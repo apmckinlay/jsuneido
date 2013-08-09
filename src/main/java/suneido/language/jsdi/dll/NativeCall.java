@@ -28,10 +28,16 @@ enum NativeCall {
 	LLL_RETURN_INT64(FAST, INTEGER, 3),
 	DIRECT_RETURN_INT64(DIRECT, INTEGER, 0),
 	DIRECT_RETURN_DOUBLE(DIRECT, DOUBLE, 0),
+	DIRECT_RETURN_VARIABLE_INDIRECT(
+			DIRECT, ReturnTypeGroup.VARIABLE_INDIRECT, 0),
 	INDIRECT_RETURN_INT64(INDIRECT, INTEGER, 0),
 	INDIRECT_RETURN_DOUBLE(INDIRECT, DOUBLE, 0),
+	INDIRECT_RETURN_VARIABLE_INDIRECT(
+			INDIRECT, ReturnTypeGroup.VARIABLE_INDIRECT, 0),
 	VARIABLE_INDIRECT_RETURN_INT64(VARIABLE_INDIRECT, INTEGER, 0),
-	VARIABLE_INDIRECT_RETURN_DOUBLE(VARIABLE_INDIRECT, DOUBLE, 0);
+	VARIABLE_INDIRECT_RETURN_DOUBLE(VARIABLE_INDIRECT, DOUBLE, 0),
+	VARIABLE_INDIRECT_RETURN_VARIABLE_INDIRECT(
+				VARIABLE_INDIRECT, ReturnTypeGroup.VARIABLE_INDIRECT, 0);
 
 	//
 	// PUBLIC CONSTANTS
@@ -106,6 +112,13 @@ enum NativeCall {
 			return callVariableIndirectReturnDouble(funcPtr, sizeDirect,
 					marshaller.getData(), marshaller.getPtrArray(),
 					marshaller.getViArray(), marshaller.getViInstArray());
+		case DIRECT_RETURN_VARIABLE_INDIRECT:             // fall through
+		case INDIRECT_RETURN_VARIABLE_INDIRECT:           // fall through
+		case VARIABLE_INDIRECT_RETURN_VARIABLE_INDIRECT:
+			callVariableIndirectReturnVariableIndirect(funcPtr, sizeDirect,
+					marshaller.getData(), marshaller.getPtrArray(),
+					marshaller.getViArray(), marshaller.getViInstArray());
+			return 0L;
 		default:
 			throw new IllegalStateException("unhandled NativeCall type in switch");
 		}
@@ -189,4 +202,8 @@ enum NativeCall {
 	private static native long callVariableIndirectReturnDouble(long funcPtr,
 			int sizeDirect, byte[] args, int[] ptrArray, Object[] viArray,
 			int[] viInst);
+
+	private static native void callVariableIndirectReturnVariableIndirect(
+			long funcPtr, int sizeDirect, byte[] args, int[] ptrArray,
+			Object[] viArray, int[] viInst);
 }

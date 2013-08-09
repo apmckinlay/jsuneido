@@ -365,6 +365,23 @@ public final class Marshaller {
 	}
 
 	/**
+	 * <p>
+	 * Skips over all of the positions occupied by a single variable indirect
+	 * pointer.
+	 * </p>
+	 * @since 20130809
+	 * @see #skipBasicArrayElements(int)
+	 * @see #skipComplexElement(ElementSkipper)
+	 * @see #putNullStringPtr(VariableIndirectInstruction)
+	 * @see #putStringPtr(String, VariableIndirectInstruction)
+	 * @see #putStringPtr(Buffer, VariableIndirectInstruction)
+	 */
+	public void skipStringPtr() {
+		skipPtr();
+		nextVi();
+	}
+
+	/**
 	 * Puts a non-NULL pointer to variable indirect storage at the next position
 	 * in the marshaller.
 	 * @param value Non-{@code null} string value to marshall into variable

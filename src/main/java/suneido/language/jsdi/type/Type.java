@@ -131,10 +131,16 @@ public abstract class Type extends SuValue {
 				+ " cannot be marshalled out");
 	}
 
-	// TODO: docs since 20130717
-	public Object marshallOutReturnValue(long returnValue) {
+	// TODO: docs since 20130808
+	public void marshallInReturnValue(Marshaller marshaller) {
 		throw new IllegalStateException(getDisplayName()
-				+ " cannot be marshalled out of a 64-bit return value");
+				+ " cannot be marshalled into a return value");
+	}
+
+	// TODO: docs since 20130717
+	public Object marshallOutReturnValue(long returnValue, Marshaller marshaller) {
+		throw new IllegalStateException(getDisplayName()
+				+ " cannot be marshalled out of a return value");
 	}
 
 	// TODO: docs since 20130717

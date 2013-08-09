@@ -109,6 +109,16 @@ public final class MarshallPlanBuilder {
 		skipper.nPtr += 2;
 	}
 
+	public void variableIndirectPseudoArg() {
+		assert nextPosStack.isEmpty() && skipperStack.isEmpty();
+		assert sizeDirect == nextPos;
+		assert sizeDirect + sizeIndirect - PrimitiveSize.POINTER == endPos;
+		endPos = sizeDirect + sizeIndirect;
+		nextPos = endPos - PrimitiveSize.POINTER;
+		variableIndirectPtr();
+		nextPos = sizeDirect; // keep assertions happy
+	}
+
 	public void containerBegin() {
 		skipperStack.add(skipper);
 		skipper = new ElementSkipper(0, 0);

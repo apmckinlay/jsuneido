@@ -126,7 +126,12 @@ public final class BasicValue extends Type {
 	}
 
 	@Override
-	public Object marshallOutReturnValue(long returnValue) {
+	public void marshallInReturnValue(Marshaller marshaller) {
+		// Do nothing
+	}
+
+	@Override
+	public Object marshallOutReturnValue(long returnValue, Marshaller marshaller) {
 		switch (basicType) {
 		case BOOL:
 			return 0L == returnValue ? Boolean.FALSE : Boolean.TRUE;
