@@ -54,6 +54,7 @@ public final class InString extends StringIndirect {
 	@Override
 	public Object marshallOut(Marshaller marshaller, Object oldValue) {
 		// Do nothing, since we don't care about any changes to the value.
+		marshaller.skipStringPtr();
 		return null == oldValue ? Boolean.FALSE : oldValue;
 	}
 
