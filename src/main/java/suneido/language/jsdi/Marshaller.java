@@ -11,8 +11,11 @@ import java.util.Arrays;
  * TODO: note in strong strong text that Marshaller can't be reused because
  *       it assumes zeroed-out data array
  * TODO: per discussion w APM note reason why Marshaller can't be cached and
- *       reused: because of possible contention btwn threads calling same DLL
- * 
+ *       reused even if you re-zero it: because of possible contention btwn
+ *       threads calling same DLL
+ * NOTE: another reason: sometimes Marshaller uses plan's ptrArray, other times
+ *       it copies it...
+ *
  * @author Victor Schappert
  * @since 20130710
  * @see MarshallPlan
@@ -228,9 +231,10 @@ public final class Marshaller {
 	 * @see #getBool()
 	 */
 	public void putBool(boolean value) {
+		int dataIndex = nextData();
 		if (value) {
 			// 3 higher-order bytes can remain zero
-			data[nextData()] = (byte) 1;
+			data[dataIndex] = (byte) 1;
 		}
 	}
 
@@ -358,6 +362,23 @@ public final class Marshaller {
 	public void skipComplexElement(ElementSkipper skipper) {
 		posIndex += skipper.nPos;
 		ptrIndex += skipper.nPtr;
+	}
+
+	/**
+	 * <p>
+	 * Skips over all of the positions occupied by a single variable indirect
+	 * pointer.
+	 * </p>
+	 * @since 20130809
+	 * @see #skipBasicArrayElements(int)
+	 * @see #skipComplexElement(ElementSkipper)
+	 * @see #putNullStringPtr(VariableIndirectInstruction)
+	 * @see #putStringPtr(String, VariableIndirectInstruction)
+	 * @see #putStringPtr(Buffer, VariableIndirectInstruction)
+	 */
+	public void skipStringPtr() {
+		skipPtr();
+		nextVi();
 	}
 
 	/**
@@ -532,6 +553,7 @@ public final class Marshaller {
 	}
 
 	public Object getStringPtr() {
+		skipPtr();
 		int viIndex = nextVi();
 		Object value = viArray[viIndex];
 		if (null == value) {
@@ -540,21 +562,23 @@ public final class Marshaller {
 			assert value instanceof String;
 			return value;
 		} else {
-			return getStringPtrAlwaysByteArray(null, value);
+			return getStringPtrAlwaysByteArrayNoAdvance(null, value);
 		}
 	}
 
 	public Object getStringPtrAlwaysByteArray(Buffer oldValue) {
+		skipPtr();
 		int viIndex = nextVi();
 		assert NO_ACTION.ordinal() == viInstArray[viIndex];
-		return getStringPtrAlwaysByteArray(oldValue, viArray[viIndex]);
+		return getStringPtrAlwaysByteArrayNoAdvance(oldValue, viArray[viIndex]);
 	}
 
 	public Object getStringPtrMaybeByteArray(Buffer oldValue) {
+		skipPtr();
 		int viIndex = nextVi();
 		Object value = viArray[viIndex];
 		if (NO_ACTION.ordinal() == viInstArray[viIndex]) {
-			return getStringPtrAlwaysByteArray(oldValue, value);
+			return getStringPtrAlwaysByteArrayNoAdvance(oldValue, value);
 		} else if (null == value) {
 			return Boolean.FALSE;
 		} else {
@@ -628,13 +652,6 @@ public final class Marshaller {
 		return posArray[posIndex++];
 	}
 
-// TODO: delete me
-//	private int nextPtr() {
-//		final int ptr = ptrArray[ptrIndex];
-//		ptrIndex += 2;
-//		return ptr;
-//	}
-
 	private int nextPtrIndexAndCopy() {
 		copyPtrArray();
 		final int _ptrIndex = ptrIndex;
@@ -658,7 +675,8 @@ public final class Marshaller {
 		}
 	}
 
-	private static Object getStringPtrAlwaysByteArray(Buffer oldValue, Object value) {
+	private static Object getStringPtrAlwaysByteArrayNoAdvance(Buffer oldValue,
+			Object value) {
 		if (null == value) {
 			return Boolean.FALSE;
 		} else if (null == oldValue) {

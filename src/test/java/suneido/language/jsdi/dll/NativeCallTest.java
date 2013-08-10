@@ -2,12 +2,11 @@ package suneido.language.jsdi.dll;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static suneido.language.jsdi.MarshallTestUtil.pointerPlan;
 import static suneido.language.jsdi.VariableIndirectInstruction.NO_ACTION;
 import static suneido.language.jsdi.VariableIndirectInstruction.RETURN_JAVA_STRING;
-import static suneido.language.jsdi.dll.ReturnTypeGroup.VOID;
-import static suneido.language.jsdi.dll.ReturnTypeGroup._32_BIT;
 import static suneido.util.testing.Throwing.assertThrew;
 
 import java.util.ArrayList;
@@ -29,43 +28,36 @@ import suneido.util.testing.Assumption;
  */
 public class NativeCallTest {
 
-	private static final NativeCall[] DOF_VOID;
-	private static final NativeCall[] DOF_NONVOID;
-	private static final NativeCall[] DOF_32;
-	private static final NativeCall[] DOF_64;
-	private static final NativeCall[] IND;
-	private static final NativeCall[] VI;
+	private static final NativeCall[] DOF_NORET_VI_OR_FLOAT;
+	private static final NativeCall[] IND_NORET_VI_OR_FLOAT;
+	private static final NativeCall[] VI_NORET_VI_OR_FLOAT;
+	private static final NativeCall[] VI_RETVI;
 	static {
-		ArrayList<NativeCall> dof_void = new ArrayList<NativeCall>();
-		ArrayList<NativeCall> dof_nonvoid = new ArrayList<NativeCall>();
-		ArrayList<NativeCall> dof_32 = new ArrayList<NativeCall>();
-		ArrayList<NativeCall> dof_64 = new ArrayList<NativeCall>();
-		ArrayList<NativeCall> ind = new ArrayList<NativeCall>();
-		ArrayList<NativeCall> vi = new ArrayList<NativeCall>();
+		ArrayList<NativeCall> dof_noret_vi_or_float = new ArrayList<NativeCall>();
+		ArrayList<NativeCall> ind_noret_vi_or_float = new ArrayList<NativeCall>();
+		ArrayList<NativeCall> vi_noret_vi_or_float = new ArrayList<NativeCall>();
+		ArrayList<NativeCall> vi_retvi = new ArrayList<NativeCall>();
 		for (NativeCall nativecall : NativeCall.values()) {
-			if (nativecall.isDirectOrFast()) {
-				if (VOID == nativecall.getReturnTypeGroup())
-					dof_void.add(nativecall);
-				else {
-					dof_nonvoid.add(nativecall);
-					if (_32_BIT == nativecall.getReturnTypeGroup())
-						dof_32.add(nativecall);
-					else
-						dof_64.add(nativecall);
-				}
-			} else if (CallGroup.INDIRECT == nativecall.getCallGroup()) {
-				ind.add(nativecall);
+			if (nativecall.isFloatingPointReturn())
+				continue;
+			if (ReturnTypeGroup.VARIABLE_INDIRECT == nativecall
+					.getReturnTypeGroup()) {
+				vi_retvi.add(nativecall);
 			} else {
-				assert CallGroup.VARIABLE_INDIRECT == nativecall.getCallGroup();
-				vi.add(nativecall);
+				if (nativecall.isDirectOrFast()) {
+					dof_noret_vi_or_float.add(nativecall);
+				} else if (CallGroup.INDIRECT == nativecall.getCallGroup()) {
+					ind_noret_vi_or_float.add(nativecall);
+				} else {
+					assert CallGroup.VARIABLE_INDIRECT == nativecall.getCallGroup();
+					vi_noret_vi_or_float.add(nativecall);
+				}
 			}
 		}
-		DOF_VOID = dof_void.toArray(new NativeCall[dof_void.size()]);
-		DOF_NONVOID = dof_nonvoid.toArray(new NativeCall[dof_nonvoid.size()]);
-		DOF_32 = dof_32.toArray(new NativeCall[dof_32.size()]);
-		DOF_64 = dof_64.toArray(new NativeCall[dof_64.size()]);
-		IND = ind.toArray(new NativeCall[ind.size()]);
-		VI = vi.toArray(new NativeCall[vi.size()]);
+		DOF_NORET_VI_OR_FLOAT = dof_noret_vi_or_float.toArray(new NativeCall[dof_noret_vi_or_float.size()]);
+		IND_NORET_VI_OR_FLOAT = ind_noret_vi_or_float.toArray(new NativeCall[ind_noret_vi_or_float.size()]);
+		VI_NORET_VI_OR_FLOAT = vi_noret_vi_or_float.toArray(new NativeCall[vi_noret_vi_or_float.size()]);
+		VI_RETVI = vi_retvi.toArray(new NativeCall[vi_retvi.size()]);
 	}
 
 	@BeforeClass
@@ -78,47 +70,13 @@ public class NativeCallTest {
 	}
 
 	@Test
-	public void testDirectOnlyReturnV_AllZeroes() {
-		// THIS TEST JUST LOOKS TO MAKE SURE NOTHING BLOWS UP -- NO EXCEPTIONS,
-		// AND JVM IS STILL RUNNING! The test functions are designed to behave
-		// nicely if they get all zeroes for arguments (even if they expect
-		// pointers). So as long as we send enough zeroes, all should be well.
-		for (TestCall testcall : TestCall.values()) {
-			for (NativeCall nativecall : DOF_VOID) {
-				Marshaller m = testcall.plan.makeMarshaller();
-				nativecall.invoke(testcall.ptr, testcall.plan.getSizeDirect(),
-						m);
-			}
-		}
-	}
-
-	@Test
-	public void testDirectOnlyReturnV_FastCalling() {
-		for (TestCall testcall : TestCall.values()) {
-			switch (PrimitiveSize.minWholeWords(testcall.plan.getSizeDirect())) {
-			case 0:
-				NativeCall.callReturnV(testcall.ptr);
-				break;
-			case 1:
-				NativeCall.callLReturnV(testcall.ptr, 0);
-				break;
-			case 2:
-				NativeCall.callLLReturnV(testcall.ptr, 0, 0);
-				break;
-			case 3:
-				NativeCall.callLLLReturnV(testcall.ptr, 0, 0, 0);
-				break;
-			}
-		}
-	}
-
-	@Test
-	public void testDirectOnlyReturn32bit_AllZeroes() {
+	public void testDirect_AllZeroes() {
 		// THE TEST FUNCTIONS ARE DESIGNED TO BEHAVE NICELY IF THEY GET ALL
 		// ZEROS for arguments (even if they expect pointers). So as long as we
 		// send the proper amount of zeroes, all should be well.
 		for (TestCall testcall : TestCall.values()) {
-			for (NativeCall nativecall : DOF_32) {
+			if (Mask.DOUBLE == testcall.returnValueMask) continue;
+			for (NativeCall nativecall : DOF_NORET_VI_OR_FLOAT) {
 				{
 					Marshaller m = testcall.plan.makeMarshaller();
 					long result = nativecall.invoke(testcall.ptr,
@@ -131,29 +89,66 @@ public class NativeCallTest {
 	}
 
 	@Test
-	public void testDirectOnlyReturn32bit_FastCalling() {
-		// little-endian
-		assertEquals(27, NativeCall.callLReturnL(TestCall.CHAR.ptr, 27));
-		assertEquals(0x2728,
-				NativeCall.callLReturnL(TestCall.SHORT.ptr, 0x2728));
-		assertEquals(0x18120207,
-				NativeCall.callLReturnL(TestCall.LONG.ptr, 0x18120207));
-		// little-endian, and pushed on the stack in reverse order
-		assertEquals(0x19820207, NativeCall.callLLReturnL(TestCall.INT64.ptr,
-				0x19820207, 0xdeadbeef));
-		// sum functions
-		assertEquals(3,
-				NativeCall.callLLReturnL(TestCall.SUM_TWO_LONGS.ptr, 1, 2));
-		assertEquals(-1, NativeCall.callLLReturnL(TestCall.SUM_TWO_LONGS.ptr,
-				Integer.MAX_VALUE, Integer.MIN_VALUE));
-		assertEquals(6, NativeCall.callLLLReturnL(TestCall.SUM_THREE_LONGS.ptr,
-				3, 2, 1));
-		assertEquals(0, NativeCall.callLLLReturnL(TestCall.SUM_THREE_LONGS.ptr,
-				1, Integer.MIN_VALUE, Integer.MAX_VALUE));
+	public void testDirect_AllZeroes_FastCalling() {
+		for (TestCall testcall : TestCall.values()) {
+			if (Mask.DOUBLE == testcall.returnValueMask) continue; 
+			long result = 0xbe5077eddeadbea7L;
+			switch (PrimitiveSize.minWholeWords(testcall.plan.getSizeDirect())) {
+			case 0:
+				result = NativeCall.callReturnInt64(testcall.ptr);
+				break;
+			case 1:
+				result = NativeCall.callLReturnInt64(testcall.ptr, 0);
+				break;
+			case 2:
+				result = NativeCall.callLLReturnInt64(testcall.ptr, 0, 0);
+				break;
+			case 3:
+				result = NativeCall.callLLLReturnInt64(testcall.ptr, 0, 0, 0);
+				break;
+			default:
+				continue;
+			}
+			assertEquals(0L, result & testcall.returnValueMask.value);
+		}
 	}
 
 	@Test
-	public void testDirectOnly32bit() {
+	public void testDirect_32bit_FastCalling() {
+		// little-endian
+		assertEquals(27L, NativeCall.callLReturnInt64(TestCall.CHAR.ptr, 27)
+				& TestCall.CHAR.returnValueMask.value);
+		assertEquals(0x2728L,
+				NativeCall.callLReturnInt64(TestCall.SHORT.ptr, 0x2728)
+						& TestCall.SHORT.returnValueMask.value);
+		assertEquals(0x18120207,
+				NativeCall.callLReturnInt64(TestCall.LONG.ptr, 0x18120207)
+						& TestCall.LONG.returnValueMask.value);
+		// little-endian, and pushed on the stack in reverse order
+		assertEquals(0xdeadbeef19820207L, NativeCall.callLLReturnInt64(
+				TestCall.INT64.ptr, 0x19820207, 0xdeadbeef));
+		// sum functions
+		assertEquals(3L,
+				NativeCall.callLLReturnInt64(TestCall.SUM_TWO_LONGS.ptr, 1, 2)
+						& TestCall.SUM_TWO_LONGS.returnValueMask.value);
+		assertEquals(
+				-1,
+				(int)(NativeCall.callLLReturnInt64(TestCall.SUM_TWO_LONGS.ptr,
+						Integer.MAX_VALUE, Integer.MIN_VALUE)
+						& TestCall.SUM_TWO_LONGS.returnValueMask.value));
+		assertEquals(
+				6L,
+				NativeCall.callLLLReturnInt64(TestCall.SUM_THREE_LONGS.ptr, 3,
+						2, 1) & TestCall.SUM_THREE_LONGS.returnValueMask.value);
+		assertEquals(
+				0L,
+				NativeCall.callLLLReturnInt64(TestCall.SUM_THREE_LONGS.ptr, 1,
+						Integer.MIN_VALUE, Integer.MAX_VALUE)
+						& TestCall.SUM_THREE_LONGS.returnValueMask.value);
+	}
+
+	@Test
+	public void testDirect_Misc() {
 		// functions that return the same value
 		{
 			final TestCall[] f = new TestCall[] { TestCall.CHAR,
@@ -168,7 +163,7 @@ public class NativeCallTest {
 					m.putInt64(x[k]);
 				else
 					throw new RuntimeException("This test is busted");
-				for (NativeCall nativecall : DOF_NONVOID) {
+				for (NativeCall nativecall : DOF_NORET_VI_OR_FLOAT) {
 					assertEquals(
 							(long) x[k],
 							nativecall.invoke(f[k].ptr,
@@ -182,7 +177,7 @@ public class NativeCallTest {
 			Marshaller m = TestCall.SUM_TWO_LONGS.plan.makeMarshaller();
 			m.putLong(1);
 			m.putLong(2);
-			for (NativeCall nativecall : DOF_NONVOID) {
+			for (NativeCall nativecall : DOF_NORET_VI_OR_FLOAT) {
 				assertEquals(
 						3,
 						nativecall.invoke(TestCall.SUM_TWO_LONGS.ptr,
@@ -195,7 +190,7 @@ public class NativeCallTest {
 			m.putLong(3);
 			m.putLong(2);
 			m.putLong(1);
-			for (NativeCall nativecall : DOF_NONVOID) {
+			for (NativeCall nativecall : DOF_NORET_VI_OR_FLOAT) {
 				assertEquals(
 						6,
 						nativecall.invoke(TestCall.SUM_THREE_LONGS.ptr,
@@ -212,7 +207,7 @@ public class NativeCallTest {
 			m.putLong(199);
 			assertEquals(
 					-2,
-					(int) (NativeCall.DIRECT_ONLY_RETURN_32_BIT.invoke(
+					(int) (NativeCall.DIRECT_RETURN_INT64.invoke(
 							TestCall.SUM_FOUR_LONGS.ptr,
 							TestCall.SUM_FOUR_LONGS.plan.getSizeDirect(), m) & TestCall.SUM_FOUR_LONGS.returnValueMask.value));
 		}
@@ -226,7 +221,7 @@ public class NativeCallTest {
 			assertEquals(
 					(int) Byte.MIN_VALUE + (int) Byte.MAX_VALUE
 							+ (int) Short.MIN_VALUE + Integer.MAX_VALUE,
-					(int) (NativeCall.DIRECT_ONLY_RETURN_32_BIT.invoke(
+					(int) (NativeCall.DIRECT_RETURN_INT64.invoke(
 							TestCall.SUM_PACKED_CHAR_CHAR_SHORT_LONG.ptr,
 							TestCall.SUM_PACKED_CHAR_CHAR_SHORT_LONG.plan
 									.getSizeDirect(), m) & TestCall.SUM_PACKED_CHAR_CHAR_SHORT_LONG.returnValueMask.value));
@@ -234,17 +229,52 @@ public class NativeCallTest {
 	}
 
 	@Test
-	public void testDirectOnlyReturn64bit_AllZeroes() {
-		// THE TEST FUNCTIONS ARE DESIGNED TO BEHAVE NICELY IF THEY GET ALL
-		// ZEROS for arguments (even if they expect pointers). So as long as we
-		// send the proper amount of zeroes, all should be well.
-		for (TestCall testcall : TestCall.values()) {
-			for (NativeCall nativecall : DOF_64) {
+	public void testDirect_ReturnFloat() {
+		// Functions which return 1.0
+		final NativeCall n = NativeCall.DIRECT_RETURN_DOUBLE;
+		{
+			final TestCall[] f = { TestCall.RETURN1_0FLOAT,
+					TestCall.RETURN1_0DOUBLE };
+			for (TestCall testcall : f) {
 				Marshaller m = testcall.plan.makeMarshaller();
-				long result = nativecall.invoke(testcall.ptr,
-						testcall.plan.getSizeDirect(), m)
-						& testcall.returnValueMask.value;
-				assertEquals(0L, result);
+				assertEquals(1.0, Double.longBitsToDouble(n.invoke(
+						testcall.ptr, testcall.plan.getSizeDirect(), m)), 0.0);
+			}
+		}
+		// Functions which return the input value
+		{
+			{
+				TestCall testcall = TestCall.FLOAT;
+				Marshaller m = testcall.plan.makeMarshaller();
+				m.putFloat(33.5f);
+				assertEquals(33.5, Double.longBitsToDouble(n.invoke(
+						testcall.ptr, testcall.plan.getSizeDirect(), m)), 0.0);
+			}
+			{
+				TestCall testcall = TestCall.DOUBLE;
+				Marshaller m = testcall.plan.makeMarshaller();
+				m.putDouble(-3333333.5f);
+				assertEquals(-3333333.5, Double.longBitsToDouble(n.invoke(
+						testcall.ptr, testcall.plan.getSizeDirect(), m)), 0.0);
+			}
+		}
+		// Sum functions
+		{
+			{
+				TestCall testcall = TestCall.SUM_TWO_FLOATS;
+				Marshaller m = testcall.plan.makeMarshaller();
+				m.putFloat(.75f);
+				m.putFloat(-.50f);
+				assertEquals(.25, Double.longBitsToDouble(n.invoke(
+						testcall.ptr, testcall.plan.getSizeDirect(), m)), 0.0);
+			}
+			{
+				TestCall testcall = TestCall.SUM_TWO_DOUBLES;
+				Marshaller m = testcall.plan.makeMarshaller();
+				m.putDouble(.5);
+				m.putDouble(-.25);
+				assertEquals(.25, Double.longBitsToDouble(n.invoke(
+						testcall.ptr, testcall.plan.getSizeDirect(), m)), 0.0);
 			}
 		}
 	}
@@ -257,7 +287,7 @@ public class NativeCallTest {
 			m.putNullPtr();
 			for (TestCall testcall : new TestCall[] {
 					TestCall.HELLO_WORLD_OUT_PARAM, TestCall.NULL_PTR_OUT_PARAM }) {
-				for (NativeCall nativecall : IND) {
+				for (NativeCall nativecall : IND_NORET_VI_OR_FLOAT) {
 					nativecall.invoke(testcall.ptr, plan.getSizeDirect(), m);
 				}
 			}
@@ -268,7 +298,7 @@ public class NativeCallTest {
 	public void testIndirectOnlyReceiveValue() {
 		MarshallPlan plan = pointerPlan(PrimitiveSize.POINTER);
 		{
-			for (NativeCall nativecall : IND) {
+			for (NativeCall nativecall : IND_NORET_VI_OR_FLOAT) {
 				Marshaller m = plan.makeMarshaller();
 				m.putPtr();
 				nativecall.invoke(TestCall.HELLO_WORLD_OUT_PARAM.ptr,
@@ -280,7 +310,7 @@ public class NativeCallTest {
 			}
 		}
 		{
-			for (NativeCall nativecall : IND) {
+			for (NativeCall nativecall : IND_NORET_VI_OR_FLOAT) {
 				Marshaller m = plan.makeMarshaller();
 				m.putPtr();
 				m.putLong(100); // This will be replaced by 0
@@ -303,7 +333,7 @@ public class NativeCallTest {
 		m.putPtr();
 		m.putPtr();
 		m.putDouble(doubleValue);
-		final long longValue = NativeCall.INDIRECT_RETURN_64_BIT.invoke(
+		final long longValue = NativeCall.INDIRECT_RETURN_INT64.invoke(
 				testcall.ptr, testcall.plan.getSizeDirect(), m);
 		assertEquals(doubleValue, Double.longBitsToDouble(longValue), 0.0);
 	}
@@ -316,7 +346,7 @@ public class NativeCallTest {
 		{
 			TestCall testcall = TestCall.STRLEN;
 			MarshallPlan plan = testcall.plan;
-			for (NativeCall nativecall : VI) {
+			for (NativeCall nativecall : VI_NORET_VI_OR_FLOAT) {
 				Marshaller m = plan.makeMarshaller();
 				m.putNullStringPtr(NO_ACTION);
 				nativecall.invoke(testcall.ptr, plan.getSizeDirect(), m);
@@ -328,7 +358,7 @@ public class NativeCallTest {
 		{
 			TestCall testcall = TestCall.HELLO_WORLD_OUT_BUFFER;
 			MarshallPlan plan = testcall.plan;
-			for (NativeCall nativecall : VI) {
+			for (NativeCall nativecall : VI_NORET_VI_OR_FLOAT) {
 				Marshaller m = plan.makeMarshaller();
 				m.putNullStringPtr(NO_ACTION);
 				m.putLong(0);
@@ -341,7 +371,7 @@ public class NativeCallTest {
 		{
 			TestCall testcall = TestCall.SUM_STRING;
 			MarshallPlan plan = testcall.plan;
-			for (NativeCall nativecall : VI) {
+			for (NativeCall nativecall : VI_NORET_VI_OR_FLOAT) {
 				final Marshaller m = plan.makeMarshaller();
 				m.putNullPtr();
 				m.skipBasicArrayElements(8);
@@ -371,7 +401,7 @@ public class NativeCallTest {
 		{
 			TestCall testcall = TestCall.SUM_RESOURCE;
 			MarshallPlan plan = testcall.plan;
-			for (NativeCall nativecall : VI) {
+			for (NativeCall nativecall : VI_NORET_VI_OR_FLOAT) {
 				final Marshaller m = plan.makeMarshaller();
 				m.putINTRESOURCE((short) 0);
 				m.putNullPtr();
@@ -396,9 +426,7 @@ public class NativeCallTest {
 				"0000000000" };
 		TestCall testcall = TestCall.STRLEN;
 		MarshallPlan plan = testcall.plan;
-		for (NativeCall nativecall : VI) {
-			if (nativecall == NativeCall.VARIABLE_INDIRECT_RETURN_V)
-				continue;
+		for (NativeCall nativecall : VI_NORET_VI_OR_FLOAT) {
 			for (int k = 0; k <= 10; ++k) {
 				Marshaller m = plan.makeMarshaller();
 				m.putStringPtr(strings[k], NO_ACTION);
@@ -416,7 +444,7 @@ public class NativeCallTest {
 		final String hello_world = "hello world\u0000";
 		TestCall testcall = TestCall.HELLO_WORLD_OUT_BUFFER;
 		MarshallPlan plan = testcall.plan;
-		for (NativeCall nativecall : VI) {
+		for (NativeCall nativecall : VI_NORET_VI_OR_FLOAT) {
 			for (int size : sizes) {
 				byte[] src = new byte[size];
 				Buffer buffer = new Buffer(src, 0, size); // has a copy of src
@@ -437,7 +465,7 @@ public class NativeCallTest {
 	@Test
 	public void testVariableIndirectSumString() {
 		final TestCall testcall = TestCall.SUM_STRING;
-		final NativeCall nativecall = NativeCall.VARIABLE_INDIRECT_RETURN_32_BIT;
+		final NativeCall nativecall = NativeCall.VARIABLE_INDIRECT_RETURN_INT64;
 		final int sizeDirect = testcall.plan.getSizeDirect();
 		final long mask = testcall.returnValueMask.value;
 		//
@@ -559,7 +587,7 @@ public class NativeCallTest {
 	@Test
 	public void testVariableIndirectSumResource() {
 		final TestCall testcall = TestCall.SUM_RESOURCE;
-		final NativeCall nativecall = NativeCall.VARIABLE_INDIRECT_RETURN_32_BIT;
+		final NativeCall nativecall = NativeCall.VARIABLE_INDIRECT_RETURN_INT64;
 		final int sizeDirect = testcall.plan.getSizeDirect();
 		final long mask = testcall.returnValueMask.value;
 		//
@@ -608,5 +636,162 @@ public class NativeCallTest {
 			assertFalse(m.isPtrNull());
 			assertEquals("sum is not an INTRESOURCE", m.getResource());
 		}
+	}
+
+	@Test
+	public void testSwap() {
+		// 20130807: The purpose of this test is to catch/test a bug in
+		//           Marshaller in which it wasn't advancing the position and
+		//           pointer indices in the get[VariableIndirect] calls.
+		final TestCall testcall = TestCall.SWAP;
+		final NativeCall nativecall = NativeCall.VARIABLE_INDIRECT_RETURN_INT64;
+		final int sizeDirect = testcall.plan.getSizeDirect();
+		final long mask = testcall.returnValueMask.value;
+		{
+			final Marshaller m = testcall.plan.makeMarshaller();
+			m.putPtr();
+			m.putNullStringPtr(RETURN_JAVA_STRING);
+			m.putLong(1);
+			m.putLong(2);
+			assertEquals(0, nativecall.invoke(testcall.ptr, sizeDirect, m) & mask);
+			m.rewind();
+			assertFalse(m.isPtrNull());
+			assertEquals("!=", m.getStringPtr());
+			assertEquals(2, m.getLong());
+			assertEquals(1, m.getLong());
+		}
+	}
+
+	@Test
+	public void testReturnString_HelloWorld() {
+		TestCall testcall = TestCall.HELLO_WORLD_RETURN;
+		int sizeDirect = testcall.plan.getSizeDirect();
+		boolean[] flag = { false, true };
+		Object[] expected = { Boolean.FALSE, "hello world" };
+		for (int k = 0; k < 2; ++k) {
+			for (NativeCall nativecall : VI_RETVI) {
+				final Marshaller m = testcall.plan.makeMarshaller();
+				m.putBool(flag[k]);
+				m.putNullStringPtr(RETURN_JAVA_STRING);
+				nativecall.invoke(testcall.ptr, sizeDirect, m);
+				assertThrew(
+					new Runnable() { public void run() { m.getBool(); } },
+					ArrayIndexOutOfBoundsException.class
+				);
+				assertThrew(
+					new Runnable() { public void run() { m.getStringPtr(); } },
+					ArrayIndexOutOfBoundsException.class
+				);
+				m.rewind();
+				assertEquals(flag[k], m.getBool());
+				assertEquals(expected[k], m.getStringPtr());
+			}
+		}
+	}
+
+	@Test
+	public void testReturnString_PassedIn() {
+		TestCall testcall = TestCall.RETURN_STRING;
+		int sizeDirect = testcall.plan.getSizeDirect();
+		String[] values = { null, "", "1", "22", "thrice is nice!" };
+		for (String value : values) {
+			for (NativeCall nativecall : VI_RETVI) {
+				Marshaller m = testcall.plan.makeMarshaller();
+				// Argument
+				if (null == value) {
+					m.putNullStringPtr(NO_ACTION);
+				} else {
+					m.putStringPtr(value, NO_ACTION);
+				}
+				// Return value placeholder
+				m.putNullStringPtr(RETURN_JAVA_STRING);
+				nativecall.invoke(testcall.ptr, sizeDirect, m);
+				m.rewind();
+				if (null == value) {
+					assertEquals(Boolean.FALSE, m.getStringPtr());
+					assertEquals(Boolean.FALSE, m.getStringPtr());
+				} else {
+					m.getStringPtr();
+					assertEquals(value, m.getStringPtr());
+				}
+			}
+		}
+	}
+
+	@Test
+	public void testReturnString_Ptr() {
+		TestCall testcall = TestCall.RETURN_PTR_STRING;
+		int sizeDirect = testcall.plan.getSizeDirect();
+		String[] values = { null, "", "1", "22", "the third non-null string!" };
+		for (String value : values) {
+			for (NativeCall nativecall : VI_RETVI) {
+				Marshaller m = testcall.plan.makeMarshaller();
+				// Arguments
+				m.putPtr();
+				if (null == value) {
+					m.putNullStringPtr(NO_ACTION);
+				} else {
+					m.putStringPtr(value, NO_ACTION);
+				}
+				// Return value placeholder
+				m.putNullStringPtr(RETURN_JAVA_STRING);
+				nativecall.invoke(testcall.ptr, sizeDirect, m);
+				m.rewind();
+				assertFalse(m.isPtrNull());
+				if (null == value) {
+					assertEquals(Boolean.FALSE, m.getStringPtr());
+					assertEquals(Boolean.FALSE, m.getStringPtr());
+				} else {
+					m.getStringPtr();
+					assertEquals(value, m.getStringPtr());
+				}
+			}
+		}
+	}
+
+	@Test
+	public void testReturnString_Buffer() {
+		TestCall testcall = TestCall.RETURN_STRING_OUT_BUFFER;
+		int sizeDirect = testcall.plan.getSizeDirect();
+		String[] values = { null, "", "1", "22", "thrice is nice!" };
+		int[] bufferSizes = { 0, 1, 2, 4, 1000 };
+		for (String value : values) {
+			for (int bufferSize : bufferSizes) {
+				for (NativeCall nativecall : VI_RETVI) {
+					Marshaller m = testcall.plan.makeMarshaller();
+					// Arguments
+					if (null == value) {
+						m.putNullStringPtr(NO_ACTION);
+					} else {
+						m.putStringPtr(value, NO_ACTION);
+					}
+					Buffer buffer = new Buffer(bufferSize, "");
+					m.putStringPtr(buffer, NO_ACTION);
+					m.putLong(bufferSize);
+					// Return value placeholder
+					m.putNullStringPtr(RETURN_JAVA_STRING);
+					nativecall.invoke(testcall.ptr, sizeDirect, m);
+					m.rewind();
+					if (null == value) {
+						assertEquals(Boolean.FALSE, m.getStringPtr());
+						assertSame(buffer, m.getStringPtrAlwaysByteArray(buffer));
+						assertEquals(Boolean.FALSE, m.getStringPtr());
+					} else if (0 == bufferSize) {
+						m.getStringPtr();
+						assertSame(buffer, m.getStringPtrAlwaysByteArray(buffer));
+						assertEquals(Boolean.FALSE, m.getStringPtr());
+					} else {
+						m.getStringPtr();
+						assertSame(buffer, m.getStringPtrAlwaysByteArray(buffer));
+						String value2 = value;
+						if (bufferSize <= value2.length()) {
+							value2 = value2.substring(0, Math.max(0, bufferSize - 1));
+						}
+						assertEquals(value2, m.getStringPtr());
+						assertEquals(buffer.toStringNoZeroes(), value2);
+					}
+				} // for (nativecall ...)
+			} // for (bufferSize ...)
+		} // for (value ...)
 	}
 }

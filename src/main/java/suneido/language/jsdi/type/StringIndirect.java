@@ -1,6 +1,6 @@
 package suneido.language.jsdi.type;
 
-import suneido.language.Numbers;
+import static suneido.language.jsdi.VariableIndirectInstruction.NO_ACTION;
 import suneido.language.jsdi.*;
 
 /**
@@ -24,19 +24,30 @@ public abstract class StringIndirect extends StringType {
 	// INTERNALS
 	//
 
-	protected final void putNullStringPtrOrThrow(Marshaller marshaller, Object value,
-			VariableIndirectInstruction inst) {
-		if (null == value || Boolean.FALSE == value || Numbers.isZero(value)) {
-			marshaller.putNullStringPtr(inst);
-		} else {
-			super.marshallIn(marshaller, value); // will throw
+	/**
+	 * Marshalls a {@link Buffer} value into a {@code string} or 
+	 * {@code [in] string} type. This is a potentially dangerous operation,
+	 * since the underlying {@code dll} function will be expecting a zero-
+	 * terminated string. Therefore, this method first checks the
+	 * Buffer to ensure that it contains a zero character.
+	 * @param marshaller Marshaller to marshall into
+	 * @param buffer Non-{@code null} reference to a {@link Buffer}
+	 * @since 20130808
+	 */
+	protected final void marshallBufferAsString(Marshaller marshaller,
+			Buffer buffer) {
+		if (! buffer.hasZero()) {
+			throw new JSDIException(
+					BufferType.IDENTIFIER_BUFFER
+							+ " without zero terminator cannot safely be marshalled as "
+							+ getDisplayName());
 		}
+		marshaller.putStringPtr(buffer, NO_ACTION);
 	}
 
 	//
 	// ANCESTOR CLASS: Type
 	//
-
 
 	@Override
 	public int getSizeDirectIntrinsic() {
@@ -54,7 +65,7 @@ public abstract class StringIndirect extends StringType {
 	}
 
 	@Override
-	public void addToPlan(MarshallPlanBuilder builder) {
+	public void addToPlan(MarshallPlanBuilder builder, boolean isCallbackPlan) {
 		builder.variableIndirectPtr();
 	}
 }

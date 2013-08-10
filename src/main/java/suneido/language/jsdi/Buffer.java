@@ -62,6 +62,26 @@ public final class Buffer extends SuValue {
 		return data.length;
 	}
 
+	// TODO: docs -- 20130809 -- added for testing purposes
+	public String toStringNoZeroes() {
+		StringBuilder builder = new StringBuilder(size);
+		for (int k = 0; k < size; ++k) {
+			byte b = data[k];
+			if (0 == b) break;
+			builder.append((char)b);
+		}
+		return builder.toString();
+	}
+
+	// TODO: docs -- since 20130808
+	// TODO: add test
+	public boolean hasZero() {
+		for (byte b : data) {
+			if (0 == b) return true;
+		}
+		return false;
+	}
+
 	byte[] getInternalData() {
 		return data;
 	}
@@ -208,7 +228,9 @@ public final class Buffer extends SuValue {
 	 */
 	public static final SuValue clazz = new BuiltinClass() {
 
-		FunctionSpec newFS = new FunctionSpec(array("size", "string"), "");
+		private final FunctionSpec newFS = new FunctionSpec(array("size",
+				"string"), "");
+
 		@Override
 		protected Object newInstance(Object... args) {
 			args = Args.massage(newFS, args);

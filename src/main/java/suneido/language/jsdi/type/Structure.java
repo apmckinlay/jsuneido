@@ -2,15 +2,10 @@ package suneido.language.jsdi.type;
 
 import java.util.Map;
 
-import suneido.SuContainer;
 import suneido.SuValue;
 import suneido.language.BuiltinMethods;
-import suneido.language.Ops;
 import suneido.language.SuCallable;
-import suneido.language.jsdi.DllInterface;
-import suneido.language.jsdi.JSDIException;
-import suneido.language.jsdi.MarshallPlanBuilder;
-import suneido.language.jsdi.Marshaller;
+import suneido.language.jsdi.*;
 
 /**
  * TODO: docs
@@ -94,19 +89,19 @@ public final class Structure extends ComplexType {
 	}
 
 	@Override
-	public void addToPlan(MarshallPlanBuilder builder) {
+	public void addToPlan(MarshallPlanBuilder builder, boolean isCallbackPlan) {
 		builder.containerBegin();
-		typeList.addToPlan(builder);
+		typeList.addToPlan(builder, isCallbackPlan);
 		skipper = builder.containerEnd();
 	}
 
 	@Override
 	public void marshallIn(Marshaller marshaller, Object value) {
-		final SuContainer c = Ops.toContainer(value);
-		if (null == c) {
+		if (null == value) {
 			marshaller.skipComplexElement(skipper);
 		} else {
-			typeList.marshallInMembers(marshaller, c);
+			typeList.marshallInMembers(marshaller,
+					ObjectConversions.containerOrThrow(value));
 		}
 	}
 

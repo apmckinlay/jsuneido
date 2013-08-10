@@ -19,12 +19,20 @@ public enum TestCall {
 	SHORT("TestShort", Mask.SHORT, PrimitiveSize.SHORT),
 	LONG("TestLong", Mask.LONG, PrimitiveSize.LONG),
 	INT64("TestInt64", Mask.INT64, PrimitiveSize.INT64),
+	RETURN1_0FLOAT("TestReturn1_0Float", Mask.DOUBLE, 0),
+	RETURN1_0DOUBLE("TestReturn1_0Double", Mask.DOUBLE, 0),
+	FLOAT("TestFloat", Mask.DOUBLE, PrimitiveSize.FLOAT),
+	DOUBLE("TestDouble", Mask.DOUBLE, PrimitiveSize.DOUBLE),
 	SUM_TWO_CHARS("TestSumTwoChars", Mask.CHAR,
 			PrimitiveSize.CHAR, PrimitiveSize.CHAR),
 	SUM_TWO_SHORTS("TestSumTwoShorts", Mask.SHORT,
 			PrimitiveSize.SHORT, PrimitiveSize.SHORT),
 	SUM_TWO_LONGS("TestSumTwoLongs", Mask.LONG,
 			PrimitiveSize.LONG, PrimitiveSize.LONG),
+	SUM_TWO_FLOATS("TestSumTwoFloats", Mask.DOUBLE,
+			PrimitiveSize.FLOAT, PrimitiveSize.FLOAT),
+	SUM_TWO_DOUBLES("TestSumTwoDoubles", Mask.DOUBLE,
+			PrimitiveSize.DOUBLE, PrimitiveSize.DOUBLE),
 	SUM_THREE_LONGS("TestSumThreeLongs", Mask.LONG,
 			PrimitiveSize.LONG, PrimitiveSize.LONG, PrimitiveSize.LONG),
 	SUM_FOUR_LONGS("TestSumFourLongs", Mask.LONG,
@@ -35,7 +43,8 @@ public enum TestCall {
 	SUM_PACKED_CHAR_CHAR_SHORT_LONG("TestSumPackedCharCharShortLong", Mask.LONG,
 			makePackedCharCharShortLongPlan()),
 	STRLEN("TestStrLen", Mask.LONG, makeInStringPlan()),
-	HELLO_WORLD_RETURN("TestHelloWorldReturn", Mask.LONG, PrimitiveSize.BOOL),
+	HELLO_WORLD_RETURN("TestHelloWorldReturn", Mask.LONG,
+			makeHelloWorldReturnPlan(), PrimitiveSize.BOOL),
 	HELLO_WORLD_OUT_PARAM("TestHelloWorldOutParam", Mask.VOID,
 			pointerPlan(PrimitiveSize.WORD)),
 	HELLO_WORLD_OUT_BUFFER("TestHelloWorldOutBuffer", Mask.VOID,
@@ -45,7 +54,16 @@ public enum TestCall {
 	RETURN_PTR_PTR_PTR_DOUBLE("TestReturnPtrPtrPtrDoubleAsUInt64", Mask.INT64,
 			makePtrPtrPtrDoublePlan()),
 	SUM_STRING("TestSumString", Mask.LONG, makeSumStringPlan_TwoTier()),
-	SUM_RESOURCE("TestSumResource", Mask.LONG, makeSumResourcePlan());
+	SUM_RESOURCE("TestSumResource", Mask.LONG, makeSumResourcePlan()),
+	SWAP("TestSwap", Mask.LONG, makeSwapPlan()),
+	RETURN_STRING("TestReturnString", Mask.VOID, makeReturnStringPlan(),
+			PrimitiveSize.POINTER),
+	RETURN_PTR_STRING("TestReturnPtrString", Mask.VOID,
+			makeReturnPtrStringPlan(), PrimitiveSize.POINTER),
+	RETURN_STRING_OUT_BUFFER(
+			"TestReturnStringOutBuffer", Mask.VOID,
+			makeReturnStringOutBufferPlan(), 2 * PrimitiveSize.POINTER
+					+ PrimitiveSize.LONG);
 	
 	private final QuickDll qp;
 	public final long ptr;
@@ -58,8 +76,14 @@ public enum TestCall {
 
 	private TestCall(String funcName, Mask returnValueMask,
 			MarshallPlan marshallPlan) {
+		this(funcName, returnValueMask, marshallPlan, marshallPlan
+				.getSizeDirect());
+	}
+
+	private TestCall(String funcName, Mask returnValueMask,
+			MarshallPlan marshallPlan, int paramSize) {
 		qp = new QuickDll("jsdi", '_' + funcName + "@"
-				+ marshallPlan.getSizeDirect());
+				+ PrimitiveSize.sizeWholeWords(paramSize));
 		ptr = qp.ptr;
 		this.returnValueMask = returnValueMask;
 		this.plan = marshallPlan;
@@ -259,6 +283,65 @@ public enum TestCall {
 		builder.ptrBegin(PrimitiveSize.POINTER);
 		builder.variableIndirectPtr();
 		builder.ptrEnd();
+		return builder.makeMarshallPlan();
+	}
+
+	public static MarshallPlan makeSwapPlan() {
+		MarshallPlanBuilder builder = new MarshallPlanBuilder(
+				PrimitiveSize.POINTER, PrimitiveSize.POINTER + 2
+						* PrimitiveSize.LONG, 1);
+		builder.ptrBegin(PrimitiveSize.POINTER + 2 * PrimitiveSize.LONG);
+		builder.containerBegin();
+		builder.variableIndirectPtr();
+		builder.pos(PrimitiveSize.LONG);
+		builder.pos(PrimitiveSize.LONG);
+		builder.containerEnd();
+		builder.ptrEnd();
+		return builder.makeMarshallPlan();
+	}
+
+	public static MarshallPlan makeHelloWorldReturnPlan() {
+		MarshallPlanBuilder builder = new MarshallPlanBuilder(
+				PrimitiveSize.BOOL,
+				PrimitiveSize.POINTER /* for return value */,
+				1 /* for return value */);
+		builder.pos(PrimitiveSize.BOOL);
+		builder.variableIndirectPseudoArg();
+		return builder.makeMarshallPlan();
+	}
+
+	public static MarshallPlan makeReturnStringPlan() {
+		MarshallPlanBuilder builder = new MarshallPlanBuilder(
+				PrimitiveSize.POINTER,
+				PrimitiveSize.POINTER /* for return value */,
+				2 /* * one is for return value */);
+		builder.variableIndirectPtr();
+		builder.variableIndirectPseudoArg();
+		return builder.makeMarshallPlan();
+	}
+	
+	public static MarshallPlan makeReturnPtrStringPlan() {
+		MarshallPlanBuilder builder = new MarshallPlanBuilder(
+				PrimitiveSize.POINTER,
+				2 * PrimitiveSize.POINTER  /* one is for return value */,
+				2 /* one is for return value */);
+		builder.ptrBegin(PrimitiveSize.POINTER);
+		builder.variableIndirectPtr();
+		builder.ptrEnd();
+		builder.variableIndirectPseudoArg();
+		return builder.makeMarshallPlan();
+	}
+
+	public static MarshallPlan makeReturnStringOutBufferPlan() {
+		MarshallPlanBuilder builder = new MarshallPlanBuilder(2
+				* PrimitiveSize.POINTER + PrimitiveSize.LONG,
+				PrimitiveSize.POINTER /* for return value */,
+				3 /* one is for return value */
+		);
+		builder.variableIndirectPtr();
+		builder.variableIndirectPtr();
+		builder.pos(PrimitiveSize.LONG);
+		builder.variableIndirectPseudoArg();
 		return builder.makeMarshallPlan();
 	}
 }

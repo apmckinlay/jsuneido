@@ -2,6 +2,7 @@ package suneido.language.jsdi.type;
 
 import javax.annotation.concurrent.Immutable;
 
+import suneido.language.Numbers;
 import suneido.language.Ops;
 import suneido.language.jsdi.DllInterface;
 import suneido.language.jsdi.Marshaller;
@@ -116,40 +117,21 @@ public final class BasicValue extends Type {
 		case INT64:
 			return marshaller.getInt64();
 		case FLOAT:
-			return marshaller.getFloat(); // TODO: this should return a BigDecimal, not a float
+			return Numbers.toBigDecimal(marshaller.getFloat());
 		case DOUBLE:
-			return marshaller.getDouble(); // TODO: this should return a BigDecimal, not a double
+			return Numbers.toBigDecimal(marshaller.getDouble());
 		default:
 			throw new IllegalStateException("unhandled BasicType in switch");
 		}
 	}
 
 	@Override
-	public Object marshallOutReturnValue(int returnValue) {
-		switch (basicType) {
-		case BOOL:
-			return 0 == returnValue ? Boolean.FALSE : Boolean.TRUE;
-		case CHAR:
-			// Cast once to truncate, twice to box the result into an Integer.
-			return (int)(byte)returnValue;
-		case SHORT:
-			// Cast once to truncate, twice to box the result into an Integer.
-			return (int)(short)returnValue;
-		case GDIOBJ:
-			// intentional fall-through
-		case HANDLE:
-			// intentional fall-through
-		case LONG:
-			return returnValue;
-		case FLOAT:
-			return Float.intBitsToFloat(returnValue);
-		default:
-			return super.marshallOutReturnValue(returnValue);
-		}
+	public void marshallInReturnValue(Marshaller marshaller) {
+		// Do nothing
 	}
 
 	@Override
-	public Object marshallOutReturnValue(long returnValue) {
+	public Object marshallOutReturnValue(long returnValue, Marshaller marshaller) {
 		switch (basicType) {
 		case BOOL:
 			return 0L == returnValue ? Boolean.FALSE : Boolean.TRUE;
@@ -168,9 +150,11 @@ public final class BasicValue extends Type {
 		case INT64:
 			return returnValue;
 		case FLOAT:
-			return Float.intBitsToFloat((int)returnValue);
+			// intentional fall-through
+			// Floating-point return values from the native side are always
+			// doubles.
 		case DOUBLE:
-			return Double.longBitsToDouble(returnValue);
+			return Numbers.toBigDecimal(Double.longBitsToDouble(returnValue));
 		default:
 			throw new IllegalStateException("unhandled BasicType in switch");
 		}

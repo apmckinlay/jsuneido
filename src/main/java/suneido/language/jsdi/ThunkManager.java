@@ -6,11 +6,12 @@ import java.util.Date;
 import java.util.HashMap;
 
 import suneido.SuContainer;
-import suneido.language.SuCallable;
+import suneido.SuValue;
+import suneido.language.Params;
 import suneido.language.jsdi.type.Callback;
 
 /**
- * Maps a set of {@link SuCallable"} objects to the Java-side {@link Callback}
+ * Maps a set of {@link SuValue} objects to the Java-side {@link Callback}
  * object and native-side thunk, if any, to which they are bound. 
  * 
  * @author Victor Schappert
@@ -32,15 +33,15 @@ public final class ThunkManager {
 	//
 
 	private static class BoundThunk implements Comparable<BoundThunk> {
-		public final SuCallable callable;
+		public final SuValue boundValue;
 		public final Callback callback;
 		public final int thunkFuncAddr;
 		public final int thunkObjectAddr;
 		public final Date createTime;
 
-		public BoundThunk(SuCallable callable, Callback callback,
+		public BoundThunk(SuValue boundValue, Callback callback,
 				int thunkFuncAddr, int thunkObjectAddr) {
-			assert null != callable && null != callback;
+			assert null != boundValue && null != callback;
 			if (0 == thunkFuncAddr) {
 				throw new IllegalArgumentException(
 						"native address of thunk function cannot be 0");
@@ -49,7 +50,7 @@ public final class ThunkManager {
 				throw new IllegalArgumentException(
 						"native address of thunk object cannot be 0");
 			}
-			this.callable = callable;
+			this.boundValue = boundValue;
 			this.callback = callback;
 			this.thunkFuncAddr = thunkFuncAddr;
 			this.thunkObjectAddr = thunkObjectAddr;
@@ -70,7 +71,7 @@ public final class ThunkManager {
 		@Override
 		public String toString()
 		{
-			return new StringBuilder(128).append(callable.toString())
+			return new StringBuilder(128).append(boundValue.toString())
 					.append(" + ").append(callback.toString())
 					.append(" => (0x").append(Integer.toHexString(thunkFuncAddr))
 					.append(", 0x").append(Integer.toHexString(thunkObjectAddr))
@@ -83,7 +84,7 @@ public final class ThunkManager {
 	//
 
 	private final JSDI jsdi;
-	private final HashMap<SuCallable, BoundThunk> callableMap;
+	private final HashMap<SuValue, BoundThunk> boundValueMap;
 
 	//
 	// CONSTRUCTORS
@@ -95,7 +96,7 @@ public final class ThunkManager {
 	 */
 	ThunkManager(JSDI jsdi) {
 		this.jsdi = jsdi;
-		this.callableMap = new HashMap<SuCallable, BoundThunk>();
+		this.boundValueMap = new HashMap<SuValue, BoundThunk>();
 	}
 
 	//
@@ -103,25 +104,25 @@ public final class ThunkManager {
 	//
 
 	/**
-	 * If {@code callable} is already bound to an existing thunk, returns the
-	 * native-side function address of that thunk. If {@code callable} is not
+	 * If {@code boundValue} is already bound to an existing thunk, returns the
+	 * native-side function address of that thunk. If {@code boundValue} is not
 	 * yet bound, binds it to a thunk and returns the native-side function
 	 * address of the newly-created thunk.
-	 * @param callable SuCallable to bind
+	 * @param boundValue SuValue to bind
 	 * @param callback Callback instance which knows how to unmarshall the
 	 *                 arguments sent from the native side and pass them on to
-	 *                 {@code callable}
+	 *                 {@code boundValue}
 	 * @return Native side function address
-	 * @throws JSDIException If {@code callable} has already been bound to a
+	 * @throws JSDIException If {@code boundValue} has already been bound to a
 	 *         {@link Callback} that is not reference-equal to {@code callback}
 	 */
 	public int lookupOrCreateBoundThunk(
-		SuCallable callable,
+		SuValue boundValue,
 		Callback callback
 	)
 	{
-		if (null == callable) {
-			throw new IllegalArgumentException("callable cannot be null");
+		if (null == boundValue) {
+			throw new IllegalArgumentException("boundValue cannot be null");
 		}
 		if (null == callback) {
 			throw new IllegalArgumentException("callback cannot be null");
@@ -129,29 +130,29 @@ public final class ThunkManager {
 		BoundThunk boundThunk = null;
 		MarshallPlan plan = callback.getMarshallPlan();
 		synchronized (this) {
-			boundThunk = callableMap.get(callable);
+			boundThunk = boundValueMap.get(boundValue);
 			if (null == boundThunk)
 			{
 				int[] addrs = new int[2];
-				newThunk(callback, callable, plan.getSizeDirect(),
+				newThunk(callback, boundValue, plan.getSizeDirect(),
 						plan.getSizeIndirect(), plan.getPtrArray(),
 						plan.getVariableIndirectCount(), addrs);
-				boundThunk = new BoundThunk(callable, callback,
+				boundThunk = new BoundThunk(boundValue, callback,
 						addrs[THUNK_FUNC_ADDR_INDEX],
 						addrs[THUNK_OBJECT_ADDR_INDEX]);
-				callableMap.put(callable, boundThunk);
+				boundValueMap.put(boundValue, boundThunk);
 			}
 		}
 		if (boundThunk.callback != callback) {
-			// Don't permit the same SuCallable instance to be bound to multiple
+			// Don't permit the same SuValue instance to be bound to multiple
 			// different instances of Callback (or indeed multiple different
 			// thunks). This limitation isn't forced by technical requirements,
 			// but rather by the historical definition of the Suneido
 			// 'ClearCallback()' global function, which takes a reference to the
 			// callable object to be cleared.
 			StringBuilder error = new StringBuilder();
-			error.append("can't bind callable ")
-					.append(callable.toString())
+			error.append("can't bind ")
+					.append(boundValue.toString())
 					.append(" to multiple different callback definitions [original: ")
 					.append(boundThunk.callback.toString()).append(" versus: ")
 					.append(callback.toString()).append(']');
@@ -166,8 +167,8 @@ public final class ThunkManager {
 
 	private ArrayList<BoundThunk> thunkSnapshot() {
 		ArrayList<BoundThunk> thunks = new ArrayList<BoundThunk>(
-				callableMap.size());
-		thunks.addAll(callableMap.values());
+				boundValueMap.size());
+		thunks.addAll(boundValueMap.values());
 		Collections.sort(thunks);
 		return thunks;
 	}
@@ -176,13 +177,13 @@ public final class ThunkManager {
 		ArrayList<BoundThunk> thunks = thunkSnapshot();
 		SuContainer result = new SuContainer(thunks.size());
 		for (BoundThunk boundThunk : thunks) {
-			result.add(boundThunk.callable);
+			result.add(boundThunk.boundValue);
 		}
 		return result;
 	}
 
-	private synchronized Boolean clearCallback(SuCallable callable) {
-		BoundThunk boundThunk = callableMap.remove(callable);
+	private synchronized Boolean clearCallback(SuValue boundValue) {
+		BoundThunk boundThunk = boundValueMap.remove(boundValue);
 		if (null == boundThunk) {
 			return Boolean.FALSE;
 		} else {
@@ -195,7 +196,7 @@ public final class ThunkManager {
 	// NATIVE CALLS
 	//
 
-	private static native void newThunk(Callback callback, SuCallable callable,
+	private static native void newThunk(Callback callback, SuValue boundValue,
 			int sizeDirect, int sizeIndirect, int[] ptrArray,
 			int variableIndirectCount, int[] outThunkAddrs);
 
@@ -224,9 +225,10 @@ public final class ThunkManager {
 	 * @see suneido.language.Builtins
 	 */
 	public static final class ClearCallback {
-		public static final Boolean ClearCallback(Object callable) {
-			return callable instanceof SuCallable ? JSDI.getInstance()
-					.getThunkManager().clearCallback((SuCallable) callable)
+		@Params("value")
+		public static final Boolean ClearCallback(Object boundValue) {
+			return boundValue instanceof SuValue ? JSDI.getInstance()
+					.getThunkManager().clearCallback((SuValue) boundValue)
 					: Boolean.FALSE;
 		}
 	}
@@ -253,7 +255,7 @@ public final class ThunkManager {
 	@Override
 	protected void finalize() throws Throwable {
 		try {
-			for (BoundThunk boundThunk : callableMap.values()) {
+			for (BoundThunk boundThunk : boundValueMap.values()) {
 				deleteThunk(boundThunk.thunkObjectAddr);
 			}
 		} finally {
