@@ -209,17 +209,52 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 		return variableIndirectCount;
 	}
 
-	public void addToPlan(MarshallPlanBuilder builder) {
-		for (Entry entry : entries) entry.type.addToPlan(builder);
+	public void addToPlan(MarshallPlanBuilder builder, boolean isCallbackPlan) {
+		for (Entry entry : entries)
+			entry.type.addToPlan(builder, isCallbackPlan);
 	}
 
-	public MarshallPlan makeParamsMarshallPlan() {
+	/**
+	 * <p>
+	 * Construct a {@link MarshallPlan} suitable for marshalling the members of
+	 * this type list as if they were parameters to a {@code stdcall} function.
+	 * </p>
+	 * <p>
+	 * If a {@code dll} has a variable indirect return value (VS@20130809:
+	 * currently, the only type supported is {@code string}; {@code resource}
+	 * support could easily be added in principle), the parameter
+	 * {@code hasViReturnValue} indicates that a variable indirect
+	 * pseudo-parameter should be added to the end of the parameter list (it
+	 * will occupy the very last position in the position list, pointer list,
+	 * and variable indirect arrays). The native code places the return value
+	 * in this pseudo-parameter. 
+	 * </p>
+	 *
+	 * @param isCallbackPlan Whether the plan is being built for a
+	 * {@code callback} rather than a {@code dll}; this parameter is needed to
+	 * trigger an exception if an illegal type, such as {@code [in] string} is
+	 * found as a direct or indirect argument to a {@code callback}
+	 * @param hasViReturnValue Whether a pseudo-parameter should be added to
+	 * receive a variable indirect return value (see discussion above)
+	 * @return Marshall plan
+	 */
+	public MarshallPlan makeParamsMarshallPlan(boolean isCallbackPlan,
+			boolean hasViReturnValue) {
+		int sizeIndirect = getSizeIndirect();
+		int variableIndirectCount = getVariableIndirectCount();
+		if (hasViReturnValue) {
+			sizeIndirect += PrimitiveSize.POINTER;
+			++variableIndirectCount;
+		}
 		MarshallPlanBuilder builder = new MarshallPlanBuilder(
 			getSizeDirectWholeWords(),
-			getSizeIndirect(),
-			getVariableIndirectCount()
+			sizeIndirect,
+			variableIndirectCount
 		);
-		addToPlan(builder);
+		addToPlan(builder, isCallbackPlan);
+		if (hasViReturnValue) {
+			builder.variableIndirectPseudoArg();
+		}
 		return builder.makeMarshallPlan();
 	}
 
@@ -238,10 +273,7 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 		final int N = entries.length;
 		assert N == args.length;
 		for (int k = 0; k < N; ++k) {
-			final Type type = entries[k].type;
-			if (TypeId.BASIC != type.getTypeId()) {
-				type.marshallOut(marshaller, args[k]);
-			}
+			entries[k].type.marshallOut(marshaller, args[k]);
 		}
 	}
 
@@ -279,7 +311,7 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 			for (Entry entry : entries) {
 				oldValue = c.getIfPresent(entry.name);
 				Object newValue = entry.type.marshallOut(marshaller, oldValue);
-				if (! newValue.equals(oldValue)) {
+				if (!newValue.equals(oldValue)) {
 					c.put(entry.name, newValue);
 				}
 			}

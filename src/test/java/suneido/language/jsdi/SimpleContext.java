@@ -1,8 +1,9 @@
-package suneido.language.jsdi.type;
+package suneido.language.jsdi;
 
 import java.util.HashMap;
 
 import suneido.SuException;
+import suneido.language.Builtins;
 import suneido.language.Compiler;
 import suneido.language.ContextLayered;
 import suneido.language.Contexts;
@@ -33,7 +34,7 @@ public final class SimpleContext extends ContextLayered {
 	 * <code>objects<sub>i+1</sub></code> contains the code block for that
 	 * object.
 	 */
-	SimpleContext(String[] objects) {
+	public SimpleContext(String[] objects) {
 		super(new Contexts());
 		this.objects = new HashMap<String, String>();
 		final int N = objects.length;
@@ -48,13 +49,16 @@ public final class SimpleContext extends ContextLayered {
 
 	@Override
 	protected Object fetch(String name) {
-		String src = objects.get(name);
-		Object result = null;
-		try {
-			result = Compiler.compile(name, src, this);
-			set(name, result);
-		} catch (Exception e) {
-			throw new SuException("error loading " + name, e);
+		Object result = Builtins.get(name);
+		if (null == result)
+		{
+			String src = objects.get(name);
+			try {
+				result = Compiler.compile(name, src, this);
+				set(name, result);
+			} catch (Exception e) {
+				throw new SuException("error loading " + name, e);
+			}
 		}
 		return result;
 	}

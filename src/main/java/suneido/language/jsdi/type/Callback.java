@@ -3,8 +3,8 @@ package suneido.language.jsdi.type;
 import java.util.Arrays;
 
 import suneido.SuException;
+import suneido.SuValue;
 import suneido.language.Ops;
-import suneido.language.SuCallable;
 import suneido.language.jsdi.*;
 
 /**
@@ -47,7 +47,7 @@ public final class Callback extends ComplexType {
 		//       thunk can change
 		try {
 			if (typeList.resolve(0) || null == marshallPlan) {
-				marshallPlan = typeList.makeParamsMarshallPlan();
+				marshallPlan = typeList.makeParamsMarshallPlan(true, false);
 			}
 		} catch (ProxyResolveException e) {
 			e.setMemberType("parameter");
@@ -60,27 +60,27 @@ public final class Callback extends ComplexType {
 	/**
 	 * Invoked from native side.
 	 * 
-	 * @param callable
-	 *            Bound callable to invoke
+	 * @param boundValue
+	 *            Bound value to invoke
 	 * @param argsIn
 	 *            Argument array to unmarshall
 	 * @return The return value of {@code callable}, which must be coerceable
 	 *         to an {@code int}
 	 * @since 20130806
-	 * @see #invokeVariableIndirect(SuCallable, byte[], Object[])
+	 * @see #invokeVariableIndirect(SuValue, byte[], Object[])
 	 */
-	public int invoke(SuCallable callable, byte[] argsIn) {
+	public int invoke(SuValue boundValue, byte[] argsIn) {
 		Marshaller marshaller = marshallPlan.makeUnMarshaller(argsIn);
 		Object[] argsOut = typeList.marshallOutParams(marshaller);
-		Object result = callable.call(argsOut);
+		Object result = boundValue.call(argsOut);
 		return Ops.toInt(result);
 	}
 
 	/**
 	 * Invoked from native side.
 	 * 
-	 * @param callable
-	 *            Bound callable to invoke
+	 * @param boundValue
+	 *            Bound value to invoke
 	 * @param argsIn
 	 *            Argument array to unmarshall
 	 * @param viArray
@@ -88,9 +88,9 @@ public final class Callback extends ComplexType {
 	 * @return The return value of {@code callable}, which must be coerceable
 	 *         to an {@code int}
 	 * @since 20130806
-	 * @see #invoke(SuCallable, byte[])
+	 * @see #invoke(SuValue, byte[])
 	 */
-	public int invokeVariableIndirect(SuCallable callable, byte[] argsIn,
+	public int invokeVariableIndirect(SuValue boundValue, byte[] argsIn,
 			Object[] viArray) {
 		int[] viInstArray = new int[viArray.length];
 		Arrays.fill(viInstArray,
@@ -98,7 +98,7 @@ public final class Callback extends ComplexType {
 		Marshaller marshaller = marshallPlan.makeUnMarshaller(argsIn, viArray,
 				viInstArray);
 		Object[] argsOut = typeList.marshallOutParams(marshaller);
-		Object result = callable.call(argsOut);
+		Object result = boundValue.call(argsOut);
 		return Ops.toInt(result);
 	}
 
@@ -125,9 +125,9 @@ public final class Callback extends ComplexType {
 	public void marshallIn(Marshaller marshaller, Object value) {
 		if (null == value) {
 			marshaller.putLong(0);
-		} else if (value instanceof SuCallable) {
+		} else if (value instanceof SuValue) {
 			int thunkFuncAddr = thunkManager.lookupOrCreateBoundThunk(
-					(SuCallable) value, this);
+					(SuValue) value, this);
 			marshaller.putLong(thunkFuncAddr);
 		} else try {
 			marshaller.putLong(Ops.toIntIfNum(value));

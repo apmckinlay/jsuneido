@@ -669,4 +669,50 @@ public class MarshallerTest {
 			}
 		}, ArrayIndexOutOfBoundsException.class);
 	}
+
+	@Test
+	public void testSkipStringPtr_Single() {
+		MarshallPlan mp = variableIndirectPlan();
+		final Marshaller mr = mp.makeMarshaller();
+		mr.skipStringPtr();
+		assertThrew(new Runnable() {
+			public void run() {
+				mr.putChar((byte) 'a');
+			}
+		}, ArrayIndexOutOfBoundsException.class);
+	}
+
+	@Test
+	public void testSkipStringPtr_Multiple() {
+		MarshallPlan mp = variableIndirectPlan2();
+		final Marshaller mr = mp.makeMarshaller();
+		mr.skipStringPtr();
+		mr.putStringPtr("x", RETURN_JAVA_STRING);
+		assertArrayEquals(new Object[] { null, new byte[] { (byte) 'x', 0 } },
+				mr.getViArray());
+		assertArrayEquals(new int[] { 0, RETURN_JAVA_STRING.ordinal() },
+				mr.getViInstArray());
+		assertThrew(new Runnable() {
+			public void run() {
+				mr.putNullStringPtr(RETURN_RESOURCE);
+			}
+		}, ArrayIndexOutOfBoundsException.class);
+	}
+
+	@Test
+	public void testPutBool() {
+		// This is a regression test for a bug found 20130809: when you
+		// putBool(false), it wasn't advancing the posIndex.
+		for (boolean b : new boolean[] { false, true }) {
+			MarshallPlan mp = directPlan(PrimitiveSize.BOOL);
+			final Marshaller mr = mp.makeMarshaller();
+			mr.putBool(b);
+			assertThrew(
+				new Runnable() { public void run() { mr.getBool(); } },
+				ArrayIndexOutOfBoundsException.class
+			);
+			mr.rewind();
+			assertEquals(b, mr.getBool());
+		}
+	}
 }

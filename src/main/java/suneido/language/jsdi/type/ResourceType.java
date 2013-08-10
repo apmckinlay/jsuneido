@@ -4,6 +4,7 @@ import javax.annotation.concurrent.Immutable;
 
 import suneido.language.Ops;
 import suneido.language.jsdi.DllInterface;
+import suneido.language.jsdi.MarshallPlanBuilder;
 import suneido.language.jsdi.Marshaller;
 import suneido.language.jsdi.VariableIndirectInstruction;
 
@@ -99,7 +100,7 @@ public final class ResourceType extends StringIndirect {
 
 	@Override
 	public void marshallIn(Marshaller marshaller, Object value) {
-		if (null == value) {
+		if (isNullPointerEquivalent(value)) {
 			marshaller.putINTRESOURCE((short)0);
 		} else {
 			Short intResource = AS_INTRESOURCE(value);
@@ -116,5 +117,19 @@ public final class ResourceType extends StringIndirect {
 	@Override
 	public Object marshallOut(Marshaller marshaller, Object oldValue) {
 		return marshaller.getResource();
+	}
+
+	@Override
+	public void addToPlan(MarshallPlanBuilder builder, boolean isCallbackPlan) {
+		if (isCallbackPlan) {
+			// Unlike with InString ('[in] string') and BufferType ('buffer'),
+			// it would make sense for a dll to send a resource to a callback.
+			// The reason for throwing here at the moment is just laziness,
+			// because it would require sending a variable indirect instruction
+			// array to the native-side callback thunk, which isn't implemented
+			// as of 20130808. If needed, it is trivial to implement.
+			throwNotValidForCallback();
+		}
+		super.addToPlan(builder, isCallbackPlan);
 	}
 }

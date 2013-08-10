@@ -38,8 +38,6 @@ public final class ParseStruct<T, G extends Generator<T>> extends ParseDllEntity
 		return matchReturn(EOF, struct());
 	}
 
-	// TODO: add support for handle/gdiobj
-	// TODO: add support for strings, buffers, etc.
 	public T struct() {
 		matchSkipNewlines(STRUCT);
 		match(L_CURLY);
