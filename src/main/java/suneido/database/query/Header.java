@@ -106,7 +106,7 @@ public class Header {
 	/**
 	 * @return A list of the rule columns, i.e. columns() - fields()
 	 */
-	List<String> rules() {
+	public List<String> rules() {
 		List<String> rules = new ArrayList<String>();
 		for (String c : cols)
 			if (!inflds(flds, c))

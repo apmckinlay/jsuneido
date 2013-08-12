@@ -17,7 +17,10 @@ import suneido.database.query.Query.Dir;
 import suneido.database.query.Row;
 import suneido.database.server.DbmsQuery;
 import suneido.database.server.DbmsTran;
-import suneido.language.*;
+import suneido.language.Args;
+import suneido.language.BuiltinMethods;
+import suneido.language.Ops;
+import suneido.language.Params;
 
 public class SuQuery extends SuValue {
 	protected String query;
@@ -69,6 +72,10 @@ public class SuQuery extends SuValue {
 			if (!col.endsWith("_deps"))
 				cols.add(col);
 		return new SuContainer(cols);
+	}
+	
+	public static Object RuleColumns(Object self) {
+		return new SuContainer(((SuQuery) self).q.header().rules());
 	}
 
 	public static Object Explain(Object self) {
