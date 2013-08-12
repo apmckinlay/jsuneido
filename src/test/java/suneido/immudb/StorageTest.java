@@ -15,7 +15,7 @@ public class StorageTest {
 	public void test_advance() {
 		int adr1 = stor.alloc(40);
 		stor.alloc(40); // in second chunk
-		int size = (int) stor.sizeFrom(adr1);
+		long size = stor.sizeFrom(adr1);
 		int adr3 = stor.alloc(4);
 		stor.buffer(adr3).putInt(12345678);
 		int adr3b = stor.advance(adr1, size);
