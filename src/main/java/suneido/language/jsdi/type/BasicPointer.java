@@ -63,7 +63,7 @@ public final class BasicPointer extends Type {
 
 	@Override
 	public void addToPlan(MarshallPlanBuilder builder, boolean isCallbackPlan) {
-		builder.ptrBasic(getSizeDirectIntrinsic());
+		builder.ptrBasic(underlying.getSizeDirectIntrinsic());
 	}
 
 	@Override
