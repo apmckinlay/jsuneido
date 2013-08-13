@@ -2,6 +2,7 @@ package suneido.language;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static suneido.util.testing.Throwing.assertThrew;
 
 import org.junit.Test;
@@ -9,6 +10,7 @@ import org.junit.Test;
 import suneido.SuException;
 import suneido.language.jsdi.DllInterface;
 import suneido.language.jsdi.JSDIException;
+import suneido.language.jsdi.type.PrimitiveSize;
 import suneido.util.testing.Assumption;
 
 /**
@@ -209,6 +211,12 @@ public class ParseAndCompileStructTest {
 	@Test(expected=SuException.class)
 	public void compileZeroSizeArray() {
 		compile("struct { long[0] arr }");
+	}
+
+	@Test
+	public void compileStructWhoseSizeNotDivisibleByWordSize() {
+		assertTrue(PrimitiveSize.CHAR < PrimitiveSize.WORD);
+		compile("struct { char x }");
 	}
 
 	@Test
