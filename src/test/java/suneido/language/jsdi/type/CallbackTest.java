@@ -364,4 +364,20 @@ public class CallbackTest {
 	//
 	// EXCEPTION PROPAGATION
 	//
+
+	//
+	// RE-ENTRANT CALLBACKS
+	//
+
+	@Test
+	public void testReEntrance() {
+		// This test runs a recusive loop causing several levels of callbacks
+		// (dll --> callback --> Java --> dll --> callback --> Java ...) to
+		// ensure that this aspect of the program behaves as expected.
+		final String code =
+			"f = function(n) " +
+			"{ return 0 < n ? TestInvokeCallback_Long1(this, n - 1) + 1: n }\n" +
+			"f(10)";
+		assertEquals(10, eval(code));
+	}
 }
