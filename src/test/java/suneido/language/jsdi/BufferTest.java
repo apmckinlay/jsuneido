@@ -126,4 +126,38 @@ public class BufferTest {
 	public void testInvalidSize() {
 		Compiler.eval("Buffer(-123.3, 'string');");
 	}
+
+	@Test
+	public void testTruncate() {
+		{
+			Buffer buffer = new Buffer(0, "");
+			buffer.truncate();
+			assertEquals(0, buffer.size());
+			assertEquals(buffer, "");
+		}
+		{
+			Buffer buffer = new Buffer(1, "a");
+			assertEquals(1, buffer.size());
+			assertEquals(buffer, "a");
+			buffer.truncate();
+			assertEquals(1, buffer.size());
+			assertEquals(buffer, "a");
+		}
+		{
+			Buffer buffer = new Buffer(10, "");
+			assertFalse(buffer.equals(""));
+			buffer.truncate();
+			assertEquals(0, buffer.size());
+			assertEquals(buffer, "");
+		}
+		{
+			Buffer buffer = new Buffer(3, "a");
+			assertEquals(buffer, "a\u0000\u0000");
+			assertEquals(3, buffer.size());
+			assertFalse(buffer.equals("a"));
+			buffer.truncate();
+			assertEquals(1, buffer.size());
+			assertEquals(buffer, "a");
+		}
+	}
 }

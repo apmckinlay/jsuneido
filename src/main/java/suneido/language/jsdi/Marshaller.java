@@ -576,6 +576,7 @@ public final class Marshaller {
 		return 0 == getLong();
 	}
 
+	// TODO: note in dics that like get...Maybe it is only used by InOutString
 	public Object getStringPtr() {
 		skipPtr();
 		int viIndex = nextVi();
@@ -586,7 +587,7 @@ public final class Marshaller {
 			assert value instanceof String;
 			return value;
 		} else {
-			return getStringPtrAlwaysByteArrayNoAdvance(null, value);
+			return getStringPtrAlwaysByteArrayNoAdvance(null, value, true);
 		}
 	}
 
@@ -594,15 +595,16 @@ public final class Marshaller {
 		skipPtr();
 		int viIndex = nextVi();
 		assert NO_ACTION.ordinal() == viInstArray[viIndex];
-		return getStringPtrAlwaysByteArrayNoAdvance(oldValue, viArray[viIndex]);
+		return getStringPtrAlwaysByteArrayNoAdvance(oldValue, viArray[viIndex], false);
 	}
 
+	// TODO: note in docs this is only used by InOutString
 	public Object getStringPtrMaybeByteArray(Buffer oldValue) {
 		skipPtr();
 		int viIndex = nextVi();
 		Object value = viArray[viIndex];
 		if (NO_ACTION.ordinal() == viInstArray[viIndex]) {
-			return getStringPtrAlwaysByteArrayNoAdvance(oldValue, value);
+			return getStringPtrAlwaysByteArrayNoAdvance(oldValue, value, true);
 		} else if (null == value) {
 			return Boolean.FALSE;
 		} else {
@@ -700,7 +702,7 @@ public final class Marshaller {
 	}
 
 	private static Object getStringPtrAlwaysByteArrayNoAdvance(Buffer oldValue,
-			Object value) {
+			Object value, boolean truncate) {
 		if (null == value) {
 			return Boolean.FALSE;
 		} else if (null == oldValue) {
@@ -710,6 +712,14 @@ public final class Marshaller {
 			byte[] b = (byte[])value;
 			return new Buffer(b, 0, b.length);
 		} else {
+			// The truncation code is necessary to mimic the behaviour of
+			// CSuneido when it marshalls out a 'string' dll type into an
+			// instance of Buffer: the output is truncated as if it were a
+			// zero-terminated string.
+			if (truncate) {
+				Buffer oldBuffer = (Buffer)oldValue;
+				oldBuffer.truncate();
+			}
 			// In the ordinary course, oldValue will be the Buffer that was
 			// originally marshalled in, and since it's data array was passed
 			// by reference to the native side, it has already inherited the

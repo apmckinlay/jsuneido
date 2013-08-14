@@ -129,6 +129,16 @@ public final class Buffer extends SuValue {
 		if (size < data.length) data[size] = 0; 
 	}
 
+	// TODO: docs -- since 20130813 -- truncate size to first 0
+	void truncate() {
+		for (int k = 0; k < size; ++k) {
+			if (0 == data[k]) {
+				size = k;
+				return;
+			}
+		}
+	}
+
 	//
 	// INTERNALS
 	//
