@@ -272,14 +272,13 @@ public class TypeListTest {
 			m.rewind();
 			tl.marshallOutParams(m, args2);
 			// Nothing gets marshalled out because (A) this test doesn't
-			// actually
-			// cause any native code to be invoked and (B) even if it did, any
-			// changes caused by the native side would be made to the buffer
-			// originally passed to the marshall in code, not a new buffer
-			// passed to
-			// the marshall out code.
-			assertArrayEquals(new Object[] { new Buffer(str.length(), "") },
-					args2);
+			// actually cause any native code to be invoked and (B) even if it
+			// did, any changes caused by the native side would be made to the
+			// buffer originally passed to the marshall in code, not a new buffer
+			// passed to the marshall out code. **HOWEVER**, marshalling an
+			// InOutString type into an instance of Buffer results in the
+			// Buffer being truncated at the first NULL!
+			assertArrayEquals(new Object[] { new Buffer(0, "") }, args2);
 		}
 	}
 
