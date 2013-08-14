@@ -4,10 +4,7 @@ import static suneido.language.jsdi.VariableIndirectInstruction.NO_ACTION;
 
 import javax.annotation.concurrent.Immutable;
 
-import suneido.language.jsdi.Buffer;
-import suneido.language.jsdi.DllInterface;
-import suneido.language.jsdi.MarshallPlanBuilder;
-import suneido.language.jsdi.Marshaller;
+import suneido.language.jsdi.*;
 
 /**
  * TODO: docs
@@ -56,6 +53,12 @@ public final class InString extends StringIndirect {
 		// Do nothing, since we don't care about any changes to the value.
 		marshaller.skipStringPtr();
 		return null == oldValue ? Boolean.FALSE : oldValue;
+	}
+
+	@Override
+	public void putMarshallOutInstruction(Marshaller marshaller) {
+		marshaller
+				.putViInstructionOnly(VariableIndirectInstruction.NO_ACTION);
 	}
 
 	@Override

@@ -68,4 +68,10 @@ public abstract class StringIndirect extends StringType {
 	public void addToPlan(MarshallPlanBuilder builder, boolean isCallbackPlan) {
 		builder.variableIndirectPtr();
 	}
+
+	@Override
+	public void putMarshallOutInstruction(Marshaller marshaller) {
+		marshaller
+				.putViInstructionOnly(VariableIndirectInstruction.NO_ACTION);
+	}
 }

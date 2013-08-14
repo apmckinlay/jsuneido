@@ -55,6 +55,15 @@ public class Numbers {
 	private Numbers() {
 	} // all static, no instances
 
+	public static BigDecimal toBigDecimal(int x) {
+		return new BigDecimal(x);
+	}
+
+	public static BigDecimal toBigDecimal(long x) {
+		// FIXME: What about the MathContext, MC??
+		return new BigDecimal(x);
+	}
+
 	public static BigDecimal toBigDecimal(float x) {
 		// FIXME: What about the MathContext, MC??
 		return new BigDecimal(x);
@@ -89,9 +98,13 @@ public class Numbers {
 	public static boolean integral(Object n) {
 		return longable(n) ||
 				n instanceof BigInteger ||
-				(n instanceof BigDecimal && ((BigDecimal) n).scale() <= 0) ||
+				(n instanceof BigDecimal && integral((BigDecimal)n)) ||
 				((n instanceof Float || n instanceof Double) &&
 						Math.abs(((Number) n).doubleValue()) % 1 == 0);
+	}
+
+	public static boolean integral(BigDecimal n) {
+		return n.scale() <= 0 || n.stripTrailingZeros().scale() <= 0;
 	}
 
 	public static boolean isZero(Object x) {
@@ -107,6 +120,10 @@ public class Numbers {
 				: n instanceof BigDecimal ? ((BigDecimal) n).signum()
 				: n instanceof BigInteger ? ((BigInteger) n).signum()
 				: (int) Math.signum(n.doubleValue());
+	}
+
+	public static boolean isInRange(BigDecimal x, BigDecimal lo, BigDecimal hi) {
+		return x.compareTo(lo) >= 0 && x.compareTo(BD_INT_MAX) <= 0;
 	}
 
 	public static Number narrow(long x) {
@@ -131,8 +148,7 @@ public class Numbers {
 	public static Number narrow(BigDecimal x) {
 		if (x.signum() == 0)
 			return 0;
-		if (x.scale() <= 0 &&
-				x.compareTo(BD_INT_MIN) >= 0 && x.compareTo(BD_INT_MAX) <= 0)
+		if (x.scale() <= 0 && isInRange(x, BD_INT_MIN, BD_INT_MAX))
 			return x.intValueExact();
 		return x;
 	}

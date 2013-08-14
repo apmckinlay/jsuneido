@@ -1,6 +1,7 @@
 package suneido.language.jsdi.dll;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static suneido.util.testing.Throwing.assertThrew;
 
@@ -16,6 +17,7 @@ import suneido.language.Numbers;
 import suneido.language.jsdi.Buffer;
 import suneido.language.jsdi.JSDIException;
 import suneido.language.jsdi.SimpleContext;
+import suneido.language.jsdi.type.Structure;
 import suneido.util.testing.Assumption;
 
 /**
@@ -36,6 +38,21 @@ public class DllTest {
 	private static ContextLayered CONTEXT;
 	private static final String[] NAMED_TYPES = {
 		"Packed_CharCharShortLong", "struct { char a; char b; short c; long d; }",
+		"Recursive_CharCharShortLong2",
+			"struct { Packed_CharCharShortLong x; Recursive_CharCharShortLong1 * inner; }",
+		"Recursive_CharCharShortLong1",
+			"struct { Packed_CharCharShortLong x; Recursive_CharCharShortLong0 * inner; }",
+		"Recursive_CharCharShortLong0",
+			"struct { Packed_CharCharShortLong x; long inner; }",
+		"Recursive_StringSum2",
+			"struct\n" +
+			"\t{\n" +
+			"\tPacked_CharCharShortLong[2] x\n" +
+			"\tstring str\n" +
+			"\tbuffer buffer_\n" +
+			"\tlong len\n" +
+			"\tRecursive_StringSum1 * inner\n" +
+			"\t}",
 		"Recursive_StringSum1",
 			"struct\n" +
 			"\t{\n" +
@@ -43,9 +60,9 @@ public class DllTest {
 			"\tstring str\n" +
 			"\tbuffer buffer_\n" +
 			"\tlong len\n" +
-			"\tRecursive_StringSum2 * inner\n" +
+			"\tRecursive_StringSum0 * inner\n" +
 			"\t}",
-		"Recursive_StringSum2",
+		"Recursive_StringSum0",
 			"struct\n" +
 			"\t{\n" +
 			"\tPacked_CharCharShortLong[2] x\n" +
@@ -89,11 +106,21 @@ public class DllTest {
 		"TestSwap", "dll long jsdi:_TestSwap@4(Swap_StringLongLong * ptr)",
 		"TestReturnString", "dll string jsdi:_TestReturnString@4([in] string str)",
 		"TestReturnPtrString", "dll string jsdi:_TestReturnPtrString@4(StringWrapper * ptr)",
-		"TestReturnStringOutBuffer", "dll string jsdi:_TestReturnStringOutBuffer@12(string str, buffer buffer_, long size)"
+		"TestReturnStringOutBuffer", "dll string jsdi:_TestReturnStringOutBuffer@12(string str, buffer buffer_, long size)",
+		"TestReturnStatic_Packed_CharCharShortLong",
+			"dll long jsdi:_TestReturnStatic_Packed_CharCharShortLong@4(Packed_CharCharShortLong * ptr)",
+		"TestReturnStatic_Recursive_CharCharShortLong",
+			"dll long jsdi:_TestReturnStatic_Recursive_CharCharShortLong@4(Recursive_CharCharShortLong2 * ptr)",
+		"TestReturnStatic_Recursive_StringSum",
+			"dll long jsdi:_TestReturnStatic_Recursive_StringSum@4(Recursive_StringSum2 * ptr)",
 	};
 
 	private static Object eval(String src) {
 		return Compiler.eval(src, CONTEXT);
+	}
+
+	private static Structure struct(String src) {
+		return (Structure)Compiler.eval(src, CONTEXT);
 	}
 
 	private static final String[] NOT_AN_OBJECT = { "50", "true", "false",
@@ -392,5 +419,87 @@ public class DllTest {
 				assertEquals(expected, output);
 			}
 		}
+	}
+
+	//
+	// TESTS for copying out Structures
+	//
+
+	@Test
+	public void testStructureCopyOutDirect() {
+		Object addr = eval("TestReturnStatic_Packed_CharCharShortLong(false)");
+		assertFalse(Numbers.isZero(addr));
+		assertEquals(addr, eval("TestReturnStatic_Packed_CharCharShortLong(Object(a: 5, d: -1))"));
+		String code = String.format("Packed_CharCharShortLong(%d)", addr);
+		assertEquals(eval("#(a: 5, b: 0, c: 0, d: -1)"), eval(code));
+		assertEquals(addr, eval("TestReturnStatic_Packed_CharCharShortLong(Object(a: 0, b: 5, c: -1))"));
+		assertEquals(
+				eval("#(a: 0, b: 5, c: -1, d: 0)"),
+				struct("Packed_CharCharShortLong").call1(addr));
+	}
+
+	@Test
+	public void testStructureCopyOutIndirect() {
+		Object addr = eval("TestReturnStatic_Recursive_CharCharShortLong(false)");
+		assertFalse(Numbers.isZero(addr));
+		assertEquals(addr, eval("TestReturnStatic_Recursive_CharCharShortLong(Object(x: Object(a: 5, d: -1)))"));
+		final String code0 = String.format("Recursive_CharCharShortLong0(%d)", addr); // doesn't engage indirect copy out
+		assertEquals(eval("#(x: #(a: 5, b: 0, c: 0, d: -1), inner: 0)"), eval(code0));
+		final String code1 = String.format("Recursive_CharCharShortLong1(%d)", addr); // indirect copy out
+		assertEquals(eval("#(x: #(a: 5, b: 0, c: 0, d: -1), inner: false)"), eval(code1));
+		final String code2 = String.format("Recursive_CharCharShortLong2(%d)", addr); // indirect copy out
+		assertEquals(eval("#(x: #(a: 5, b: 0, c: 0, d: -1), inner: false)"), eval(code2));
+		assertEquals(
+				addr,
+				eval("TestReturnStatic_Recursive_CharCharShortLong(" +
+						"Object(inner: Object(inner: Object(x: Object(c: 5555)))))"
+		));
+		assertEquals(
+				eval("#(x: #(a:0,b:0,c:0,d:0), " +
+						"inner: #(x: #(a:0,b:0,c:0,d:0), " +
+							"inner: #(x: #(a:0,b:0,c:5555,d:0), " +
+							"inner: 0)" +
+					"))"),
+				eval(code2)
+		);
+	}
+
+	@Test
+	public void testStructureCopyOutVariableIndirect() {
+		Object addr = eval("TestReturnStatic_Recursive_StringSum(0)");
+		String array = "Object(Object(a: 10, b: 9, c: 8, d: 7), Object(a: 6, b: 5, c: 4, d: 3))";
+		String array0 = "#(#(a:0,b:0,c:0,d:0),#(a:0,b:0,c:0,d:0))";
+		String hello = "'Olá mundo'";
+		assertFalse(Numbers.isZero(addr));
+		Object value = eval(String.format("TestReturnStatic_Recursive_StringSum(Object(x: %s, str: %s))", array, hello));
+		assertEquals(addr, value);
+		for (String s : new String[] { "Recursive_StringSum2", "Recursive_StringSum1" }) {
+			assertEquals(
+					eval(String.format("Object(x: %s, str: %s, buffer_: false, len: 0, inner: false)", array, hello)),
+					eval(String.format("%s(%d)", s, addr))
+			);
+		}
+		value = eval(String.format("TestReturnStatic_Recursive_StringSum(Object(x: %s, str: %s, inner: Object()))", array, hello));
+		assertEquals(addr, value);
+		for (String s : new String[] { "Recursive_StringSum2/false", "Recursive_StringSum1/0" }) {
+			String[] split = s.split("/");
+			assertEquals(
+					eval(String.format("Object(x: %s, str: %s, buffer_: false, len: 0, " +
+							"inner: #(x: %s, str: false, buffer_: false, len: 0, inner: %s))", array, hello, array0, split[1])),
+					eval(String.format("%s(%d)", split[0], addr))
+			);
+		}
+		value = eval(String.format(
+					"TestReturnStatic_Recursive_StringSum(" + 
+							"Object(x: %s, str: %s, " +
+							"inner: Object(str: 'inner1', " +
+								"inner: Object(x: %s, str: 'inner2'))))", array, hello, array));
+		assertEquals(addr, value);
+		assertEquals(
+				eval(String.format("Object(x: %s, str: %s, buffer_: false, len: 0, " +
+						"inner: Object(x: %s, str: 'inner1', buffer_: false, len: 0, " +
+						"inner: Object(x: %s, str: 'inner2', buffer_: false, len: 0, inner: 0)))",
+						array, hello, array0, array)),
+				eval(String.format("Recursive_StringSum2(%d)", addr)));
 	}
 }

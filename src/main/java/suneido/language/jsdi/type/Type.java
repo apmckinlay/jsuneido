@@ -131,6 +131,23 @@ public abstract class Type extends SuValue {
 				+ " cannot be marshalled out");
 	}
 
+	/**
+	 * <p>
+	 * In a situation in which a value is being marshalled out of the native
+	 * side without being marshalled in first, ensures that the marshaller
+	 * contains enough information to marshall the type out.
+	 * </p>
+	 * <p>
+	 * At the moment, this method is used to implement
+	 * {@link Structure#call1(Object)}.
+	 * </p>
+	 * @param marshaller
+	 * @since 20130813
+	 */
+	public void putMarshallOutInstruction(Marshaller marshaller) {
+		// Do nothing.
+	}
+
 	// TODO: docs since 20130808
 	public void marshallInReturnValue(Marshaller marshaller) {
 		throw new IllegalStateException(getDisplayName()

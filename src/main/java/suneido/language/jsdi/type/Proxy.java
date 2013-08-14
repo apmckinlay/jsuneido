@@ -266,4 +266,9 @@ public final class Proxy extends Type {
 			throw new IllegalStateException("unhandled StorageType in switch");
 		}
 	}
+
+	@Override
+	public void putMarshallOutInstruction(Marshaller marshaller) {
+		lastResolvedType.putMarshallOutInstruction(marshaller);
+	}
 }

@@ -25,11 +25,11 @@ public class StructureTest {
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		Assumption.jvmIs32BitOnWindows();
-		CONTEXT = new SimpleContext(NAMED_STRUCTS);
+		CONTEXT = new SimpleContext(NAMED_TYPES);
 	}
 
 	private static ContextLayered CONTEXT;
-	private static final String[] NAMED_STRUCTS = {
+	private static final String[] NAMED_TYPES = {
 		"RECT", "struct { long left; long top; long right; long bottom; }",
 		"POINT", "struct { long x; long y; }",
 		"TwoTierStruct",
@@ -91,7 +91,7 @@ public class StructureTest {
 		"SelfRef3", "struct { SelfRef3 * selfRef }",
 		"StringStruct1", "struct { short a; short b; string c; string[4] d; }",
 		"StringStruct2", "struct { StringStruct1[2] a; buffer[8] b; buffer c; }",
-		"StringStruct3", "struct { long a; StringStruct2 b; StringStruct2 * c }"
+		"StringStruct3", "struct { long a; StringStruct2 b; StringStruct2 * c }",
 	};
 
 	private static Object eval(String src) {
@@ -108,7 +108,8 @@ public class StructureTest {
 		MarshallPlanBuilder builder = new MarshallPlanBuilder(
 			struct.getSizeDirectWholeWords(),
 			struct.getSizeIndirect(),
-			struct.getVariableIndirectCount()
+			struct.getVariableIndirectCount(),
+			false
 		);
 		struct.addToPlan(builder, false);
 		return builder.makeMarshallPlan();
@@ -196,4 +197,8 @@ public class StructureTest {
 			);
 		}
 	}
+
+	// NOTE: tests for Structure() -- i.e. Structure.call1(Object) -- are in
+	//       DllTest
+	// TODO: tests for Modify()
 }

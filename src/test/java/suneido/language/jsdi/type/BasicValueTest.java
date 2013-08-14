@@ -68,7 +68,7 @@ public class BasicValueTest {
 			assertFalse(typesSeen.contains(bts.type));
 			BasicValue type = bv(bts.type);
 			MarshallPlanBuilder builder = new MarshallPlanBuilder(
-					type.getSizeDirectWholeWords(), 0, 0);
+					type.getSizeDirectWholeWords(), 0, 0, true);
 			type.addToPlan(builder, false);
 			MarshallPlan mp = builder.makeMarshallPlan();
 			for (Object value : bts.values) {

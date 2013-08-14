@@ -7,6 +7,7 @@ import javax.annotation.concurrent.Immutable;
 import suneido.language.jsdi.Buffer;
 import suneido.language.jsdi.DllInterface;
 import suneido.language.jsdi.Marshaller;
+import suneido.language.jsdi.VariableIndirectInstruction;
 
 /**
  * TODO: docs
@@ -59,6 +60,12 @@ public final class InOutString extends StringIndirect {
 		} else {
 			return marshaller.getStringPtr();
 		}
+	}
+
+	@Override
+	public void putMarshallOutInstruction(Marshaller marshaller) {
+		marshaller
+				.putViInstructionOnly(VariableIndirectInstruction.RETURN_JAVA_STRING);
 	}
 
 	@Override

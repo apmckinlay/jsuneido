@@ -9,7 +9,7 @@ import suneido.language.jsdi.type.TypeList;
  * @since 20130717
  */
 @DllInterface
-enum CallGroup {
+public enum CallGroup {
 
 	FAST,
 	DIRECT,

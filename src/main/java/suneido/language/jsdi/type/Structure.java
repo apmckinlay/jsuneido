@@ -2,10 +2,13 @@ package suneido.language.jsdi.type;
 
 import java.util.Map;
 
+import suneido.SuContainer;
 import suneido.SuValue;
 import suneido.language.BuiltinMethods;
+import suneido.language.Ops;
 import suneido.language.SuCallable;
 import suneido.language.jsdi.*;
+import suneido.language.jsdi.dll.CallGroup;
 
 /**
  * TODO: docs
@@ -21,6 +24,13 @@ import suneido.language.jsdi.*;
 public final class Structure extends ComplexType {
 
 	//
+	// DATA
+	//
+
+	private MarshallPlan marshallPlan;
+	private CallGroup    callGroup;
+
+	//
 	// CONSTRUCTORS
 	//
 
@@ -29,6 +39,22 @@ public final class Structure extends ComplexType {
 		if (members.isEmpty()) {
 			throw new JSDIException("structure must have at least one member");
 		}
+		if (members.isClosed()) {
+			marshallPlan = members.makeMembersMarshallPlan();
+			callGroup = CallGroup.fromTypeList(members, true);
+		}
+	}
+
+	//
+	// INTERNALS
+	//
+
+	private Marshaller makeMarshaller() {
+		if (resolve(0) || null == marshallPlan) {
+			marshallPlan = typeList.makeMembersMarshallPlan();
+			callGroup = CallGroup.fromTypeList(typeList, true);
+		}
+		return marshallPlan.makeMarshaller();
 	}
 
 	//
@@ -110,6 +136,11 @@ public final class Structure extends ComplexType {
 		return typeList.marshallOutMembers(marshaller, oldValue);
 	}
 
+	@Override
+	public void putMarshallOutInstruction(Marshaller marshaller) {
+		typeList.putMarshallOutInstructions(marshaller);
+	}
+
 	//
 	// ANCESTOR CLASS: SuValue
 	//
@@ -121,6 +152,46 @@ public final class Structure extends ComplexType {
 	public SuValue lookup(String method) {
 		SuValue result = builtins.get(method);
 		return null != result ? result : new SuValue.NotFound(method);
+	}
+
+	@Override
+	public Object call1(Object arg) {
+		if (arg instanceof Number) {
+			Marshaller m = makeMarshaller();
+			putMarshallOutInstruction(m);
+			int ptr = NumberConversions.toPointer32(arg);
+			if (0 != ptr) {
+				switch (callGroup) {
+				case FAST:
+				case DIRECT: // intentional fall through
+					copyOutDirect(ptr, m.getData(), marshallPlan.getSizeDirect());
+					break;
+				case INDIRECT:
+					copyOutIndirect(ptr, m.getData(), marshallPlan.getSizeDirect(),
+							m.getPtrArray());
+					break;
+				case VARIABLE_INDIRECT:
+					copyOutVariableIndirect(ptr, m.getData(),
+							marshallPlan.getSizeDirect(), m.getPtrArray(),
+							m.getViArray(), m.getViInstArray());
+					break;
+				default:
+					throw new IllegalStateException("unhandled CallGroup in switch");
+				}
+			}
+			m.rewind();
+			return typeList.marshallOutMembers(m, null);
+		} else if (arg instanceof CharSequence || arg instanceof Buffer) {
+			throw new JSDIException("jSuneido does not support Struct(string)");
+		} else {
+			final SuContainer c = Ops.toContainer(arg);
+			if (null != c) {
+				throw new JSDIException(
+						"jSuneido does not support Struct(object)");
+			} else {
+				return Boolean.FALSE;
+			}
+		}
 	}
 
 	//
@@ -137,16 +208,46 @@ public final class Structure extends ComplexType {
 	//
 
 	/**
-	 * Built-in size method. <em>eg</em>: {@code (struct { }).Size()}. The
+	 * Built-in size method. <em>eg</em>: <code>(struct { }).Size()</code>. The
 	 * requirements for built-in methods are documented in
 	 * {@link suneido.language.BuiltinMethods}.
-	 * @param self The structure.
-	 * @return Integer size of the structure in bytes.
+	 * @param self The structure
+	 * @return Integer size of the structure in bytes
 	 * @see suneido.language.BuiltinMethods
+	 * @see #Modify(Object, Object, Object, Object)
 	 */
 	public static Object Size(Object self) {
 		Structure struct = (Structure)self;
 		struct.resolve(0);
 		return struct.getSizeDirectIntrinsic();
 	}
+
+	/**
+	 * Built-in member modification method. <em>eg</em>:
+	 * <code>(struct { long x }).Replace(ptr, "x", 13))</code>. The
+	 * requirements for built-in methods are documented in
+	 * {@link suneido.language.BuiltinMethods}.
+	 * @param self The structure
+	 * @param address Integer that is a valid pointer returned from some
+	 * {@code dll} function and known to point to a valid structure of this
+	 * type
+	 * @param memberName String identifying the member to be modified
+	 * @param value Value to assign to the member to be modified 
+	 */
+	public static Object Modify(Object self, Object address, Object memberName,
+			Object value) {
+		throw new RuntimeException("not implemented");
+	}
+
+	//
+	// NATIVE METHODS
+	//
+
+	static native void copyOutDirect(int structAddr, byte[] data, int sizeDirect);
+
+	static native void copyOutIndirect(int structAddr, byte[] data,
+			int sizeDirect, int[] ptrArray);
+
+	static native void copyOutVariableIndirect(int structAddr, byte[] data,
+			int sizeDirect, int[] ptrArray, Object[] viArray, int[] viInstArray);
 }

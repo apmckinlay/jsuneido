@@ -33,7 +33,7 @@ public final class MarshallTestUtil {
 			sizeIndirect += size;
 		}
 		MarshallPlanBuilder builder = new MarshallPlanBuilder(sizeDirect_,
-				sizeIndirect, 0);
+				sizeIndirect, 0, true);
 		for (int size : sizeDirect) builder.ptrBasic(size);
 		return builder.makeMarshallPlan();
 	}
@@ -56,7 +56,7 @@ public final class MarshallTestUtil {
 	public static MarshallPlan variableIndirectPlan2() {
 		MarshallPlanBuilder builder = new MarshallPlanBuilder(
 			2 * PrimitiveSize.pointerWholeWordBytes(),
-			0, 2);
+			0, 2, true);
 		builder.variableIndirectPtr();
 		builder.variableIndirectPtr();
 		return builder.makeMarshallPlan();
