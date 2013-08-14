@@ -57,6 +57,30 @@ public final class Structure extends ComplexType {
 		return marshallPlan.makeMarshaller();
 	}
 
+	private Object copyOut(int structAddr) {
+		Marshaller m = makeMarshaller();
+		putMarshallOutInstruction(m);
+		switch (callGroup) {
+		case FAST:
+		case DIRECT: // intentional fall through
+			copyOutDirect(structAddr, m.getData(), marshallPlan.getSizeDirect());
+			break;
+		case INDIRECT:
+			copyOutIndirect(structAddr, m.getData(), marshallPlan.getSizeDirect(),
+					m.getPtrArray());
+			break;
+		case VARIABLE_INDIRECT:
+			copyOutVariableIndirect(structAddr, m.getData(),
+					marshallPlan.getSizeDirect(), m.getPtrArray(),
+					m.getViArray(), m.getViInstArray());
+			break;
+		default:
+			throw new IllegalStateException("unhandled CallGroup in switch");
+		}
+		m.rewind();
+		return typeList.marshallOutMembers(m, null);
+	}
+
 	//
 	// ANCESTOR CLASS: ComplexType
 	//
@@ -157,29 +181,9 @@ public final class Structure extends ComplexType {
 	@Override
 	public Object call1(Object arg) {
 		if (arg instanceof Number) {
-			Marshaller m = makeMarshaller();
-			putMarshallOutInstruction(m);
 			int ptr = NumberConversions.toPointer32(arg);
 			if (0 != ptr) {
-				switch (callGroup) {
-				case FAST:
-				case DIRECT: // intentional fall through
-					copyOutDirect(ptr, m.getData(), marshallPlan.getSizeDirect());
-					break;
-				case INDIRECT:
-					copyOutIndirect(ptr, m.getData(), marshallPlan.getSizeDirect(),
-							m.getPtrArray());
-					break;
-				case VARIABLE_INDIRECT:
-					copyOutVariableIndirect(ptr, m.getData(),
-							marshallPlan.getSizeDirect(), m.getPtrArray(),
-							m.getViArray(), m.getViInstArray());
-					break;
-				default:
-					throw new IllegalStateException("unhandled CallGroup in switch");
-				}
-				m.rewind();
-				return typeList.marshallOutMembers(m, null);
+				return copyOut(ptr);
 			}
 		} else if (arg instanceof CharSequence || arg instanceof Buffer) {
 			throw new JSDIException("jSuneido does not support Struct(string)");
