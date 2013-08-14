@@ -445,6 +445,19 @@ public class DllTest {
 	//
 
 	@Test
+	public void testStructureCopyOutNull() {
+		for (String structName : new String[] { "Packed_CharCharShortLong",
+				"Recursive_CharCharShortLong2", "Recursive_CharCharShortLong1",
+				"Recursive_CharCharShortLong0", "Recursive_StringSum2",
+				"Recursive_StringSum1", "Recursive_StringSum0" }) {
+			for (String nullValue : new String[] { "false", "0" }) {
+				assertEquals(Boolean.FALSE,
+						eval(String.format("%s(%s)", structName, nullValue)));
+			}
+		}
+	}
+
+	@Test
 	public void testStructureCopyOutDirect() {
 		Object addr = eval("TestReturnStatic_Packed_CharCharShortLong(false)");
 		assertFalse(Numbers.isZero(addr));

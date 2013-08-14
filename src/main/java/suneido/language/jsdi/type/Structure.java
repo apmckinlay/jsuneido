@@ -178,9 +178,9 @@ public final class Structure extends ComplexType {
 				default:
 					throw new IllegalStateException("unhandled CallGroup in switch");
 				}
+				m.rewind();
+				return typeList.marshallOutMembers(m, null);
 			}
-			m.rewind();
-			return typeList.marshallOutMembers(m, null);
 		} else if (arg instanceof CharSequence || arg instanceof Buffer) {
 			throw new JSDIException("jSuneido does not support Struct(string)");
 		} else {
@@ -188,10 +188,9 @@ public final class Structure extends ComplexType {
 			if (null != c) {
 				throw new JSDIException(
 						"jSuneido does not support Struct(object)");
-			} else {
-				return Boolean.FALSE;
 			}
 		}
+		return Boolean.FALSE;
 	}
 
 	//
