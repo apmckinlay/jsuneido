@@ -240,6 +240,9 @@ public final class Proxy extends Type {
 				marshaller.skipComplexElement(skipper);
 				return Boolean.FALSE;
 			} else {
+				if (! (oldValue instanceof SuContainer) &&
+						isNullPointerEquivalent(oldValue))
+					oldValue = null;
 				return lastResolvedType.marshallOut(marshaller, oldValue);
 			}
 		case ARRAY:

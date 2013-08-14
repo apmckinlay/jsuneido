@@ -318,20 +318,19 @@ public class CallbackTest {
 		);
 	}
 
-// TODO : enable this test
-//	@Test
-//	public void testViCall_TwoStrings() {
-//		assertEquals(
-//			26,
-//			eval(
-//				"x = class { Call(y) { return SuTestSumString(y) } }\n" +
-//				"TestInvokeCallback_Recursive_StringSum(" +
-//					"new x()," +
-//					"RSS(PCCSL(4, 3, 2, 1), PCCSL(-1, 0, 1, 2), '1414', Buffer(5, '-1400'), 5)" +
-//				")"
-//			)
-//		);
-//	}
+	@Test
+	public void testViCall_TwoStrings() {
+		assertEquals(
+			26,
+			eval(
+				"x = class { Call(y) { return SuTestSumString(y) } }\n" +
+				"TestInvokeCallback_Recursive_StringSum(" +
+					"new x()," +
+					"RSS(PCCSL(4, 3, 2, 1), PCCSL(-1, 0, 1, 2), '1414', Buffer(5, '-1400'), 5)" +
+				")"
+			)
+		);
+	}
 
 	//
 	// TYPES THAT CAN'T BE MARSHALLED OUT OF CALLBACK
