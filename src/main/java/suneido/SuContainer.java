@@ -316,6 +316,25 @@ public class SuContainer extends SuValue
 	 *  because we need to check nesting */
 	@Override
 	public int hashCode(int nest) {
+		// FIXME: Question: Why does hashCode() throw if you exceed a certain
+		//        nesting level -- therefore it will throw if there is any self-
+		//        reference at all? 
+		//
+		// In CSuneido you can do this:
+		//     x = Object()
+		//     x.Add(x)
+		//     x.Add("hello")
+		//     y = Object()
+		//     y[x] = 1
+		//     Print(y.Members())
+		//         => #(#(..., "hello"))
+		//
+		// Whereas if you try that in jSuneido, you get an exception due to the
+		// hashCode() function. But note that the following works as expected in
+		// jSuneido:
+		//
+		//     x = Object(); x.Add(x); z = Object(); z.Add(z); x is z
+		//         => true
 		checkNest(++nest);
 		int result = 17;
 		for (Object x : vec)
