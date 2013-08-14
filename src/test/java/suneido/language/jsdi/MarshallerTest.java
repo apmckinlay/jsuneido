@@ -477,11 +477,11 @@ public class MarshallerTest {
 		mr.rewind();
 		Object C = mr.getStringPtrMaybeByteArray(IN_);
 		assertSame(IN_, C);
-		assertEquals(EXPECT, C);
+		assertFalse(EXPECT.equals(C)); // because C was truncated at first NUL
+		assertEquals(C, "of each purple curtain");
 		mr.rewind();
 		Object D = mr.getStringPtrAlwaysByteArray(IN_);
 		assertSame(IN_, D);
-		assertEquals(EXPECT, D);
 		// Cases 'E' and 'F' should never happen unless the Suneido programmer
 		// is doing silly things in concurrent threads...
 		OUT_ = new Buffer(IN.length(), "");
@@ -489,12 +489,13 @@ public class MarshallerTest {
 		Object E = mr.getStringPtrMaybeByteArray(OUT_);
 		assertSame(OUT_, E);
 		assertFalse(EXPECT.equals(E));
-		assertEquals(new Buffer(IN.length(), ""), OUT_);
+		assertEquals(0, OUT_.size());
+		assertFalse(new Buffer(IN.length(), "").equals(OUT_));
 		mr.rewind();
 		Object F = mr.getStringPtrAlwaysByteArray(OUT_);
 		assertSame(OUT_, F);
 		assertFalse(EXPECT.equals(F));
-		assertEquals(new Buffer(IN.length(), ""), OUT_);
+		assertEquals(0, OUT_.size());
 		// Cases 'G' and 'H' should also never happen. The rationale for
 		// returning a new Buffer is just to make sure the marshaller returns a
 		// non-null value
