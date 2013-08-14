@@ -69,6 +69,7 @@
 		<javah class="${jsdi-package}.ThunkManager" classpath="${java-dest-dir}" destdir="${jsdi-path}/src/gen"/>
 		<javah class="${jsdi-package}.dll.DllFactory" classpath="${java-dest-dir}" destdir="${jsdi-path}/src/gen"/>
 		<javah class="${jsdi-package}.dll.NativeCall" classpath="${java-dest-dir}" destdir="${jsdi-path}/src/gen"/>
+		<javah class="${jsdi-package}.type.Structure" classpath="${java-dest-dir}" destdir="${jsdi-path}/src/gen"/>
 		<!--  Unfortunately, javah creates headers for inner classes which
 			  themselves contain no native methods. Clean up those extra
 			  files. -->

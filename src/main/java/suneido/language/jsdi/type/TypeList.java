@@ -216,7 +216,7 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 
 	/**
 	 * <p>
-	 * Construct a {@link MarshallPlan} suitable for marshalling the members of
+	 * Construct a {@link MarshallPlan} suitable for marshalling the entries of
 	 * this type list as if they were parameters to a {@code stdcall} function.
 	 * </p>
 	 * <p>
@@ -237,6 +237,7 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 	 * @param hasViReturnValue Whether a pseudo-parameter should be added to
 	 * receive a variable indirect return value (see discussion above)
 	 * @return Marshall plan
+	 * @see #makeMembersMarshallPlan()
 	 */
 	public MarshallPlan makeParamsMarshallPlan(boolean isCallbackPlan,
 			boolean hasViReturnValue) {
@@ -249,12 +250,33 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 		MarshallPlanBuilder builder = new MarshallPlanBuilder(
 			getSizeDirectWholeWords(),
 			sizeIndirect,
-			variableIndirectCount
+			variableIndirectCount,
+			true
 		);
 		addToPlan(builder, isCallbackPlan);
 		if (hasViReturnValue) {
 			builder.variableIndirectPseudoArg();
 		}
+		return builder.makeMarshallPlan();
+	}
+
+	/**
+	 * <p>
+	 * Construct a {@link MarshallPlan} suitable for marshalling the members of
+	 * this type list as if they were members of a C {@code struct}.
+	 * </p>
+	 * @return
+	 * @since 20130812
+	 * @see #makeParamsMarshallPlan(boolean, boolean)
+	 */
+	public MarshallPlan makeMembersMarshallPlan() {
+		MarshallPlanBuilder builder = new MarshallPlanBuilder(
+			getSizeDirectIntrinsic(),
+			getSizeIndirect(),
+			getVariableIndirectCount(),
+			false
+		);
+		addToPlan(builder, false);
 		return builder.makeMarshallPlan();
 	}
 
@@ -322,6 +344,11 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 			}
 		}
 		return c;
+	}
+
+	public void putMarshallOutInstructions(Marshaller marshaller) {
+		for (Entry entry : entries)
+			entry.type.putMarshallOutInstruction(marshaller);
 	}
 
 	/**

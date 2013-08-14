@@ -26,6 +26,7 @@ public final class MarshallPlanBuilder {
 	private final ArrayList<Integer>        ptrList;
 	private final ArrayList<Integer>        nextPosStack; // indirection
 	private final ArrayList<ElementSkipper> skipperStack; // containers
+	private final boolean                   alignToWordBoundary;
 	private       ElementSkipper            skipper;
 	private       int                       nextPos;
 	private       int                       endPos;
@@ -35,7 +36,8 @@ public final class MarshallPlanBuilder {
 	// CONSTRUCTORS
 	//
 
-	public MarshallPlanBuilder(int sizeDirect, int sizeIndirect, int variableIndirectCount) {
+	public MarshallPlanBuilder(int sizeDirect, int sizeIndirect,
+			int variableIndirectCount, boolean alignToWordBoundary) {
 		this.sizeDirect = sizeDirect;
 		this.sizeIndirect = sizeIndirect;
 		this.variableIndirectCount = variableIndirectCount;
@@ -44,7 +46,8 @@ public final class MarshallPlanBuilder {
 		this.ptrList = new ArrayList<Integer>();
 		this.nextPosStack = new ArrayList<Integer>();
 		this.skipperStack = new ArrayList<ElementSkipper>();
-		skipper = new ElementSkipper(0, 0);
+		this.alignToWordBoundary = alignToWordBoundary;
+		this.skipper = new ElementSkipper(0, 0);
 		this.nextPos = 0;
 		this.endPos = sizeDirect;
 		this.variableIndirectPos = 0;
@@ -58,7 +61,8 @@ public final class MarshallPlanBuilder {
 		final int pos = nextPos;
 		assert 0 <= pos && pos < endPos && endPos <= sizeDirect + sizeIndirect;
 		posList.add(pos);
-		if (nextPosStack.isEmpty() && skipperStack.isEmpty()) {
+		if (alignToWordBoundary && nextPosStack.isEmpty()
+				&& skipperStack.isEmpty()) {
 			// If this is an argument to a function, add the whole word size of
 			// the argument, since that's how stdcall works.
 			nextPos += PrimitiveSize.sizeWholeWords(bytes);
@@ -135,7 +139,8 @@ public final class MarshallPlanBuilder {
 		// If we are now at the outermost containment level (i.e. we just
 		// finished a stdcall argument that is itself a container), make sure we
 		// advance to the next word boundary.
-		if (nextPosStack.isEmpty() && skipperStack.isEmpty()) {
+		if (alignToWordBoundary && nextPosStack.isEmpty()
+				&& skipperStack.isEmpty()) {
 			int rem = nextPos % PrimitiveSize.WORD;
 			if (0 != rem) {
 				nextPos += PrimitiveSize.WORD - rem;
@@ -155,8 +160,8 @@ public final class MarshallPlanBuilder {
 
 	public MarshallPlan makeMarshallPlan() {
 		assert nextPosStack.isEmpty();
-		assert sizeDirect == nextPos
-				&& sizeDirect + sizeIndirect == endPos;
+		assert sizeDirect == nextPos;
+		assert sizeDirect + sizeIndirect == endPos;
 		assert skipperStack.isEmpty();
 		assert posList.size() == skipper.nPos;
 		assert ptrList.size() == skipper.nPtr;

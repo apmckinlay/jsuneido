@@ -220,6 +220,12 @@ public class ParseAndCompileStructTest {
 	}
 
 	@Test
+	public void compileMisalignedWord() {
+		assertTrue(PrimitiveSize.CHAR < PrimitiveSize.WORD);
+		compile("struct { char x ; long y }");
+	}
+
+	@Test
 	public void compileErrors() {
 		Assumption.jvmIs32BitOnWindows();
 		String bad[] = {

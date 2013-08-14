@@ -280,6 +280,22 @@ public class NativeCallTest {
 	}
 
 	@Test
+	public void testSignedIntAsPointer() {
+		// This test asserts that we can send 32-bit unsigned pointer values to
+		// the native side packed into 32-bit Java ints.
+		TestCall testcall = TestCall.REMOVE_SIGN_FROM_LONG;
+		for (NativeCall nativecall : DOF_NORET_VI_OR_FLOAT) {
+			Marshaller m = testcall.plan.makeMarshaller();
+			int x = 0xffffffff;
+			assertTrue(x < 0);
+			m.putLong(x);
+			long y = nativecall.invoke(testcall.ptr, testcall.plan.getSizeDirect(), m);
+			assertTrue(0 < y);
+			assertEquals(0xffffffffL, y); 
+		}
+	}
+
+	@Test
 	public void testIndirectOnlyNullPointers() {
 		MarshallPlan plan = pointerPlan(PrimitiveSize.POINTER);
 		{

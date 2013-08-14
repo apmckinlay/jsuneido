@@ -23,6 +23,8 @@ public enum TestCall {
 	RETURN1_0DOUBLE("TestReturn1_0Double", Mask.DOUBLE, 0),
 	FLOAT("TestFloat", Mask.DOUBLE, PrimitiveSize.FLOAT),
 	DOUBLE("TestDouble", Mask.DOUBLE, PrimitiveSize.DOUBLE),
+	REMOVE_SIGN_FROM_LONG("TestRemoveSignFromLong", Mask.INT64,
+			PrimitiveSize.LONG),
 	SUM_TWO_CHARS("TestSumTwoChars", Mask.CHAR,
 			PrimitiveSize.CHAR, PrimitiveSize.CHAR),
 	SUM_TWO_SHORTS("TestSumTwoShorts", Mask.SHORT,
@@ -93,7 +95,7 @@ public enum TestCall {
 		MarshallPlanBuilder builder = new MarshallPlanBuilder(
 				PrimitiveSize.sizeWholeWords(PrimitiveSize.CHAR
 						+ PrimitiveSize.CHAR + PrimitiveSize.SHORT
-						+ PrimitiveSize.LONG), 0, 0);
+						+ PrimitiveSize.LONG), 0, 0, true);
 		builder.containerBegin();
 		builder.pos(PrimitiveSize.CHAR);
 		builder.pos(PrimitiveSize.CHAR);
@@ -105,7 +107,7 @@ public enum TestCall {
 
 	private static MarshallPlan makeInStringPlan() {
 		MarshallPlanBuilder builder = new MarshallPlanBuilder(
-			PrimitiveSize.pointerWholeWordBytes(),0, 1);
+			PrimitiveSize.pointerWholeWordBytes(),0, 1, true);
 		builder.variableIndirectPtr();
 		return builder.makeMarshallPlan();
 	}
@@ -113,7 +115,7 @@ public enum TestCall {
 	private static MarshallPlan makePtrPtrPtrDoublePlan() {
 		MarshallPlanBuilder builder = new MarshallPlanBuilder(
 				PrimitiveSize.pointerWholeWordBytes(),
-				2 * PrimitiveSize.POINTER + PrimitiveSize.DOUBLE, 0
+				2 * PrimitiveSize.POINTER + PrimitiveSize.DOUBLE, 0, true
 		);
 		builder.ptrBegin(PrimitiveSize.POINTER);
 		builder.ptrBegin(PrimitiveSize.POINTER);
@@ -127,7 +129,7 @@ public enum TestCall {
 		MarshallPlanBuilder builder = new MarshallPlanBuilder(
 				PrimitiveSize.pointerWholeWordBytes()
 						+ PrimitiveSize.sizeWholeWords(PrimitiveSize.LONG), 0,
-				1);
+				1, true);
 		builder.variableIndirectPtr();
 		builder.pos(PrimitiveSize.LONG);
 		return builder.makeMarshallPlan();
@@ -141,7 +143,7 @@ public enum TestCall {
 		MarshallPlanBuilder builder = new MarshallPlanBuilder(
 				PrimitiveSize.pointerWholeWordBytes(),
 				2 * sizeOf_RecursiveStringSum,
-				2 * (2));
+				2 * (2), true);
 		builder.ptrBegin(sizeOf_RecursiveStringSum);
 			builder.containerBegin();              // struct RecursiveStringSum
 				builder.arrayBegin();
@@ -278,7 +280,7 @@ public enum TestCall {
 
 	public static MarshallPlan makeSumResourcePlan() {
 		MarshallPlanBuilder builder = new MarshallPlanBuilder(
-				2 * PrimitiveSize.POINTER, PrimitiveSize.POINTER, 2);
+				2 * PrimitiveSize.POINTER, PrimitiveSize.POINTER, 2, true);
 		builder.variableIndirectPtr();
 		builder.ptrBegin(PrimitiveSize.POINTER);
 		builder.variableIndirectPtr();
@@ -289,7 +291,7 @@ public enum TestCall {
 	public static MarshallPlan makeSwapPlan() {
 		MarshallPlanBuilder builder = new MarshallPlanBuilder(
 				PrimitiveSize.POINTER, PrimitiveSize.POINTER + 2
-						* PrimitiveSize.LONG, 1);
+						* PrimitiveSize.LONG, 1, true);
 		builder.ptrBegin(PrimitiveSize.POINTER + 2 * PrimitiveSize.LONG);
 		builder.containerBegin();
 		builder.variableIndirectPtr();
@@ -304,7 +306,7 @@ public enum TestCall {
 		MarshallPlanBuilder builder = new MarshallPlanBuilder(
 				PrimitiveSize.BOOL,
 				PrimitiveSize.POINTER /* for return value */,
-				1 /* for return value */);
+				1 /* for return value */, true);
 		builder.pos(PrimitiveSize.BOOL);
 		builder.variableIndirectPseudoArg();
 		return builder.makeMarshallPlan();
@@ -314,7 +316,7 @@ public enum TestCall {
 		MarshallPlanBuilder builder = new MarshallPlanBuilder(
 				PrimitiveSize.POINTER,
 				PrimitiveSize.POINTER /* for return value */,
-				2 /* * one is for return value */);
+				2 /* * one is for return value */, true);
 		builder.variableIndirectPtr();
 		builder.variableIndirectPseudoArg();
 		return builder.makeMarshallPlan();
@@ -324,7 +326,7 @@ public enum TestCall {
 		MarshallPlanBuilder builder = new MarshallPlanBuilder(
 				PrimitiveSize.POINTER,
 				2 * PrimitiveSize.POINTER  /* one is for return value */,
-				2 /* one is for return value */);
+				2 /* one is for return value */, true);
 		builder.ptrBegin(PrimitiveSize.POINTER);
 		builder.variableIndirectPtr();
 		builder.ptrEnd();
@@ -336,7 +338,7 @@ public enum TestCall {
 		MarshallPlanBuilder builder = new MarshallPlanBuilder(2
 				* PrimitiveSize.POINTER + PrimitiveSize.LONG,
 				PrimitiveSize.POINTER /* for return value */,
-				3 /* one is for return value */
+				3 /* one is for return value */, true
 		);
 		builder.variableIndirectPtr();
 		builder.variableIndirectPtr();

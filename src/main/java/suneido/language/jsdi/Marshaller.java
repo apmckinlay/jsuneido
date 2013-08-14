@@ -479,6 +479,30 @@ public final class Marshaller {
 		viInstArray[viIndex] = RETURN_RESOURCE.ordinal();
 	}
 
+	/**
+	 * <p>
+	 * Puts a variable indirect instruction at the next position in the
+	 * instruction array <em>without advancing the cursors in the position array
+	 * or the pointer array</em>.
+	 * </p>
+	 * <p>
+	 * This method is used in situations in which instructions need to be sent
+	 * to the native side even though no actual data needs to be marshalled
+	 * over, for example when doing structure copy-outs. See
+	 * {@link suneido.language.jsdi.type.Structure#call1(Object)}.
+	 * </p>
+	 * @param inst Instruction to place in the variable indirect
+	 * instructions array
+	 * @see #putNullStringPtr(VariableIndirectInstruction)
+	 * @see #putStringPtr(Buffer, VariableIndirectInstruction)
+	 * @see #putStringPtr(String, VariableIndirectInstruction)
+	 * @see #putINTRESOURCE(short)
+	 */
+	public void putViInstructionOnly(VariableIndirectInstruction inst) {
+		// TODO: test for this
+		viInstArray[nextVi()] = inst.ordinal();
+	}
+
 	public void putZeroTerminatedStringDirect(String value, int maxChars) {
 		int dataIndex = nextData();
 		Buffer.copyStr(value, data, dataIndex, Math.min(maxChars - 1, value.length()));

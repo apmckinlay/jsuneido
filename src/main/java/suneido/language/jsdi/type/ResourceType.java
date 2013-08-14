@@ -98,6 +98,21 @@ public final class ResourceType extends StringIndirect {
 		return IDENTIFIER;
 	}
 
+
+	@Override
+	public void addToPlan(MarshallPlanBuilder builder, boolean isCallbackPlan) {
+		if (isCallbackPlan) {
+			// Unlike with InString ('[in] string') and BufferType ('buffer'),
+			// it would make sense for a dll to send a resource to a callback.
+			// The reason for throwing here at the moment is just laziness,
+			// because it would require sending a variable indirect instruction
+			// array to the native-side callback thunk, which isn't implemented
+			// as of 20130808. If needed, it is trivial to implement.
+			throwNotValidForCallback();
+		}
+		super.addToPlan(builder, isCallbackPlan);
+	}
+
 	@Override
 	public void marshallIn(Marshaller marshaller, Object value) {
 		if (isNullPointerEquivalent(value)) {
@@ -120,16 +135,8 @@ public final class ResourceType extends StringIndirect {
 	}
 
 	@Override
-	public void addToPlan(MarshallPlanBuilder builder, boolean isCallbackPlan) {
-		if (isCallbackPlan) {
-			// Unlike with InString ('[in] string') and BufferType ('buffer'),
-			// it would make sense for a dll to send a resource to a callback.
-			// The reason for throwing here at the moment is just laziness,
-			// because it would require sending a variable indirect instruction
-			// array to the native-side callback thunk, which isn't implemented
-			// as of 20130808. If needed, it is trivial to implement.
-			throwNotValidForCallback();
-		}
-		super.addToPlan(builder, isCallbackPlan);
+	public void putMarshallOutInstruction(Marshaller marshaller) {
+		marshaller
+				.putViInstructionOnly(VariableIndirectInstruction.RETURN_RESOURCE);
 	}
 }
