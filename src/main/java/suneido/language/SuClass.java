@@ -28,6 +28,8 @@ public class SuClass extends SuValue {
 	private boolean hasGetters = true; // till we know different
 	private static final Map<String, SuCallable> basicMethods =
 			BuiltinMethods.methods(SuClass.class);
+	private static final BuiltinMethods userGeneralMethods = new BuiltinMethods(
+			Object.class, "Objects");
 	protected Context context = Suneido.context; // TODO pass it in
 
 	@SuppressWarnings("unchecked")
@@ -71,18 +73,21 @@ public class SuClass extends SuValue {
 	public SuValue lookup(String method) {
 		if (method == "<new>")
 			return newInstanceMethod;
-		Object f = basicMethods.get(method);
+		SuCallable f = basicMethods.get(method);
 		if (f != null)
-			return (SuValue) f;
-		f = get2(method);
-		if (f instanceof SuCallable)
-			return (SuCallable) f;
+			return f;
+		Object o = get2(method);
+		if (o instanceof SuCallable)
+			return (SuCallable) o;
 		if (method == "New")
 			return initMethod;
 		if (method == "CallClass")
 			return newInstanceMethod;
 		if (method == "Eval")
 			return eval;
+		f = userGeneralMethods.getMethod(method);
+		if (f != null)
+			return f;
 		return new NotFound(method);
 	}
 

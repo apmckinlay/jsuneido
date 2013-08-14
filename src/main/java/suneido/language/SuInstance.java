@@ -13,8 +13,6 @@ import suneido.SuValue;
 import suneido.language.builtin.ContainerMethods;
 import suneido.util.PairStack;
 
-import com.google.common.base.Objects;
-
 /**
  * An instance of a Suneido class
  * (which will be an instance of {@link SuClass})
@@ -65,9 +63,14 @@ public class SuInstance extends SuValue {
 
 	@Override
 	public SuValue lookup(String method) {
-		SuCallable m = methods.get(method);
+		// Prioritize looking up SuInstance built-ins first: Base(), Base?(),
+		// and so on.
+		SuValue m = methods.get(method);
 		if (m != null)
 			return m;
+		// If not found in the instance, methods, look in the class. This
+		// includes class built-ins -- Method?() -- as well as user-defined
+		// methods. The class will also look for user-defined methods.
 		return myclass.lookup(method);
 	}
 
