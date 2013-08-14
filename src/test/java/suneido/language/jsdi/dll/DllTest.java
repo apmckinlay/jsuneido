@@ -100,6 +100,7 @@ public class DllTest {
 		"TestHelloWorldReturn", "dll string jsdi:_TestHelloWorldReturn@4(bool flag)",
 		"TestHelloWorldOutParam", "dll void jsdi:_TestHelloWorldOutParam@4(StringWrapper * ptr)",
 		"TestHelloWorldOutBuffer", "dll void jsdi:_TestHelloWorldOutBuffer@8(buffer buffer_, long size)",
+		"TestHelloWorldOutBufferAsStr", "dll void jsdi:_TestHelloWorldOutBuffer@8(string buffer_, long size)",
 		"TestReturnPtrPtrPtrDoubleAsUInt64", "dll int64 jsdi:_TestReturnPtrPtrPtrDoubleAsUInt64@4(PtrPtrDouble * ptr)",
 		"TestSumString", "dll long jsdi:_TestSumString@4(Recursive_StringSum1 * rss)",
 		"TestSumResource", "dll long jsdi:_TestSumResource@8(resource res, ResourceWrapper * pres)",
@@ -299,6 +300,24 @@ public class DllTest {
 			String code = String.format(
 				"TestHelloWorldOutBuffer(b = Buffer(%d), b.Size()); b", k);
 			assertEquals(new Buffer(k, expected), eval(code));
+		}
+	}
+
+	@Test
+	public void testHelloWorldOutBufferAsStr() {
+		// This tests that when you set the type to 'string' but pass in a
+		// Buffer, the Buffer gets truncated at the first NUL so that it looks
+		// like a string.
+		final int N = "hello world".length();
+		for (int k = 1; k <= N + 5; ++k) {
+			String expected = "hello world".substring(0, Math.min(k, N));
+			String code = String.format(
+					"TestHelloWorldOutBufferAsStr(b = Buffer(%d), b.Size()); b", k);
+			Buffer x = new Buffer(expected.length(), expected);
+			Object y = eval(code);
+			assertEquals(x, y);
+			assertEquals(x, expected);
+			assertEquals(y, expected);
 		}
 	}
 

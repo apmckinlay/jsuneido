@@ -371,7 +371,7 @@ public class CallbackTest {
 
 	@Test
 	public void testReEntrance() {
-		// This test runs a recusive loop causing several levels of callbacks
+		// This test runs a recursive loop causing several levels of callbacks
 		// (dll --> callback --> Java --> dll --> callback --> Java ...) to
 		// ensure that this aspect of the program behaves as expected.
 		final String code =
