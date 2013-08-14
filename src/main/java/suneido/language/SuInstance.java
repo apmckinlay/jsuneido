@@ -22,6 +22,7 @@ import com.google.common.base.Objects;
 public class SuInstance extends SuValue {
 	final SuClass myclass;
 	private final Map<String, Object> ivars;
+	private boolean isHashing;
 	private static final Map<String, SuCallable> methods =
 			BuiltinMethods.methods(SuInstance.class);
 
@@ -187,8 +188,22 @@ public class SuInstance extends SuValue {
 	}
 
 	@Override
-	public int hashCode() {
-		return Objects.hashCode(myclass, ivars);
+	public synchronized int hashCode() {
+		// Like SuContainer, SuInstance can be self-referential because its
+		// instance variables can contain self-references. This implementation
+		// of hashCode() is mainly stolen from java.util.Hashtable.hashCode(),
+		// which also handled self-reference. [See on GrepCode]
+		int h = myclass.hashCode();
+		if (isHashing || ivars.isEmpty())
+			return h;
+		try {
+			isHashing = true;
+			h += 31 * ivars.hashCode();
+		}
+		finally {
+			isHashing = false;
+		}
+		return h;
 	}
 
 	@Override
