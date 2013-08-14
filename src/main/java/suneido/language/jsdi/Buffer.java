@@ -7,6 +7,7 @@ import java.util.Map;
 
 import suneido.SuValue;
 import suneido.language.*;
+import suneido.language.builtin.StringMethods;
 
 /**
  * <p>
@@ -180,8 +181,11 @@ public final class Buffer extends SuValue {
 
 	@Override
 	public SuValue lookup(String method) {
+		// Try using Buffer's custom built-ins. If that doesn't work, try
+		// leapfrogging off of String's built-ins (note that String's built-ins
+		// will convert this Buffer to a String and operate on the String).
 		SuValue result = builtins.get(method);
-		return null != result ? result : new SuValue.NotFound(method);
+		return null != result ? result : StringMethods.singleton.lookup(method);
 	}
 
 	//

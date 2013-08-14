@@ -31,9 +31,12 @@ public class StringMethods extends BuiltinMethods {
 	}
 
 	private static String toStr(Object self) {
-		return self instanceof String
-				? (String) self
-				: ((String2) self).toString();
+		// TODO: We can probably eliminate toStr() and just inline
+		//       self.toString() everywhere. 
+		return self.toString();
+//		return self instanceof String
+//				? (String) self
+//				: ((String2) self).toString();
 	}
 
 	public static Object AlphaQ(Object self) {

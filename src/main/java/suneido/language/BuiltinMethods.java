@@ -28,7 +28,7 @@ import com.google.common.collect.ImmutableMap;
 // MAYBE add a way to have params but still be MethodN e.g. SuQuery
 
 /**
- * Uses reflection to get method's from a class
+ * Uses reflection to get methods from a class
  * - the methods must be public, static, capitalized, and return Object.
  * {@link FunctionSpec} is provided by an @Param(string) annotation.
  * The annotation is not required if there are no arguments.
