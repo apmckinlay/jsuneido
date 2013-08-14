@@ -25,10 +25,6 @@ public abstract class SuValue implements Packable {
 		return "a" + typeName();
 	}
 
-	public int hashCode(int nest) {
-		return hashCode();
-	}
-
 	/**
 	 * used for non-method calls
 	 */

@@ -314,7 +314,6 @@ public class SuContainer extends SuValue
 	}
 	/** can't use vec and map hashCode methods
 	 *  because we need to check nesting */
-	@Override
 	public int hashCode(int nest) {
 		// FIXME: Question: Why does hashCode() throw if you exceed a certain
 		//        nesting level -- therefore it will throw if there is any self-
@@ -335,6 +334,10 @@ public class SuContainer extends SuValue
 		//
 		//     x = Object(); x.Add(x); z = Object(); z.Add(z); x is z
 		//         => true
+		//
+		// I think that hashCode() probably isn't the best place to be checking
+		// for over-nesting (it really shouldn't throw). If it's a problem,
+		// we should check at the point it becomes a problem (e.g. db packing).
 		checkNest(++nest);
 		int result = 17;
 		for (Object x : vec)
