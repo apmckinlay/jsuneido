@@ -84,9 +84,9 @@ public class DbTools {
 			String filename) {
 		String tempfile = FileUtils.tempfile().toString();
 		if (! Jvm.runWithNewJvm("-load:" + filename + SEPARATOR + tempfile))
-			System.exit(-1);
+			fatal("Load FAILED");
 		if (! Jvm.runWithNewJvm("-check:" + tempfile))
-			fatal("Check failed after Load " + dbFilename);
+			fatal("Load ABORTED - check failed after load");
 		dbpkg.renameDbWithBackup(tempfile, dbFilename);
 	}
 
@@ -152,12 +152,12 @@ public class DbTools {
 
 	public static void compactPrintExit(DatabasePackage dbpkg, String dbFilename) {
 		if (! Jvm.runWithNewJvm("-check:" + dbFilename))
-			System.exit(-1);
+			fatal("Compact ABORTED - check failed before compact - database CORRUPT");
 		String tempfile = FileUtils.tempfile().toString();
 		if (! Jvm.runWithNewJvm("-compact:" + dbFilename + SEPARATOR + tempfile))
-			System.exit(-1);
+			fatal("Compact FAILED");
 		if (! Jvm.runWithNewJvm("-check:" + tempfile))
-			fatal("Check failed after Compact " + dbFilename);
+			fatal("Compact ABORTED - check failed after compact");
 		dbpkg.renameDbWithBackup(tempfile, dbFilename);
 	}
 
@@ -186,9 +186,9 @@ public class DbTools {
 		System.out.println("Rebuilding " + dbFilename + " ...");
 		String tempfile = FileUtils.tempfile().toString();
 		if (! Jvm.runWithNewJvm("-rebuild:" + dbFilename + SEPARATOR + tempfile))
-			fatal("Rebuild failed " + dbFilename);
+			fatal("Rebuild FAILED");
 		if (! Jvm.runWithNewJvm("-check:" + tempfile))
-			fatal("Check failed after Rebuild " + dbFilename);
+			fatal("Rebuild ABORTED - check failed after rebuild");
 		dbpkg.renameDbWithBackup(tempfile, dbFilename);
 	}
 
@@ -200,7 +200,7 @@ public class DbTools {
 		Stopwatch sw = new Stopwatch().start();
 		String result = dbpkg.rebuild(dbFilename, tempfile);
 		if (result == null)
-			fatal("Rebuild " + dbFilename + ": FAILED");
+			System.exit(-1);
 		else {
 			errlog("Rebuild " + dbFilename + ": " + result);
 			System.out.println("Rebuild SUCCEEDED in " + sw);
