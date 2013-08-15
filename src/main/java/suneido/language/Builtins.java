@@ -36,6 +36,7 @@ public class Builtins {
 			.put("AssertionError", function(AssertionError.class))
 			.put("Boolean?", function(BooleanQ.class))
 			.put("Buffer", Buffer.clazz)
+			.put("Buffer?", function(BufferQ.class))
 			.put("Built", function(Built.class))
 			.put("BuiltinNames", function(BuiltinNames.class))
 			.put("Callbacks", function(ThunkManager.Callbacks.class))

@@ -3,6 +3,7 @@ package suneido.language.jsdi;
 import static suneido.util.Util.array;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 import java.util.Map;
 
 import suneido.SuValue;
@@ -17,7 +18,7 @@ import suneido.language.builtin.StringMethods;
  * This class is semi-threadsafe. It is possible for multiple threads to modify
  * the contents of the buffer in such a way that they are incoherent according
  * to the standards of the client Suneido code. However, because the underlying
- * data array never changes and {@link #size()} is always less than or equal to
+ * data array never changes and {@link #length()} is always less than or equal to
  * the size of the underlying data array, a buffer is always in a reasonable
  * state from the point of view of the run-time system.
  * </p>
@@ -26,7 +27,7 @@ import suneido.language.builtin.StringMethods;
  * @since 20130718
  */
 @DllInterface
-public final class Buffer extends SuValue {
+public final class Buffer extends SuValue implements CharSequence {
 
 	//
 	// DATA
@@ -34,6 +35,12 @@ public final class Buffer extends SuValue {
 
 	private final byte[] data;
 	private int          size;
+
+	//
+	// STATICS
+	//
+
+	private static final String BUFFER_ENCODING = "ISO-8859-1";
 
 	//
 	// CONSTRUCTORS
@@ -51,14 +58,17 @@ public final class Buffer extends SuValue {
 		setAndSetSizeInternal(src, start, end);
 	}
 
+	// TODO -- docs -- since 20130814
+	Buffer(Buffer other) { // Copy constructor for testing purposes
+		this.data = Arrays.copyOf(other.data, other.data.length);
+		this.size = other.size;
+	}
+
 	//
 	// ACCESSORS
 	//
 
-	public int size() {
-		return size;
-	}
-
+	// TODO: docs -- and see #length()
 	public int capacity() {
 		return data.length;
 	}
@@ -173,6 +183,31 @@ public final class Buffer extends SuValue {
 	}
 
 	//
+	// INTERFACE: CharSequence
+	//
+
+	@Override
+	public int length() {
+		return size;
+	}
+
+	@Override
+	public char charAt(int index) {
+		if (! (0 <= index && index < size))
+			throw new IndexOutOfBoundsException("invalid index: " + index);
+		return (char)data[index];
+	}
+
+	@Override
+	public CharSequence subSequence(int start, int end) {
+		try {
+			return new String(data, start, end - start, BUFFER_ENCODING);
+		} catch (UnsupportedEncodingException e ) {
+			throw new JSDIException("can't convert buffer to string", e);
+		}
+	}
+
+	//
 	// ANCESTOR CLASS: SuValue
 	//
 
@@ -195,7 +230,7 @@ public final class Buffer extends SuValue {
 	@Override
 	public String toString() {
 		try {
-			return new String(data, 0, size, "ISO-8859-1");
+			return new String(data, 0, size, BUFFER_ENCODING);
 		} catch (UnsupportedEncodingException e ) {
 			throw new JSDIException("can't convert buffer to string", e);
 		}
@@ -214,6 +249,15 @@ public final class Buffer extends SuValue {
 		}
 	}
 
+	@Override
+	public int hashCode() {
+		int h = 0;
+		for (int k = 0; k < size; ++k) {
+			h = 31 * h + data[k];
+		}
+		return h;
+	}
+
 	//
 	// BUILT-IN METHODS
 	//
@@ -228,7 +272,7 @@ public final class Buffer extends SuValue {
 	 */
 	public static Object Size(Object self) {
 		Buffer buffer = (Buffer)self;
-		return buffer.size();
+		return buffer.length();
 	}
 
 	//

@@ -198,6 +198,45 @@ public class StructureTest {
 		}
 	}
 
+	@Test
+	public void testCallOnObject() {
+		assertEquals(new Buffer(4 * 4, ""), eval("RECT(Object())"));
+		assertEquals(new Buffer(new byte[] { (byte) 0xff, (byte) 0xee,
+				(byte) 0xdd, (byte) 0x0c, (byte) 0xbb, (byte) 0xaa,
+				(byte) 0x99, 0x08 }, 0, 8),
+				eval("POINT(#(x: 0x0cddeeff, y: 0x0899aabb))"));
+		assertEquals(
+				new Buffer(new byte[] { (byte)'x', 0, (byte)'y', 0, 1, 0, 0, 0, 0, 0, 0, 0 }, 0, 12),
+				eval("(struct { buffer[2] a; string[2] b; Packed_CharCharShortLong c })(#(a: x, b: y, c: #(a: 1)))")
+		);
+	}
+
+	@Test
+	public void testCallOnObject_NoIndirect() {
+		assertThrew(new Runnable() {
+			public void run() {
+				eval("ThreeTierStruct(Object())");
+			}
+		}, JSDIException.class, "does not support.*pointers");
+	}
+
+	@Test
+	public void testCallOnObject_NoVariableIndirect() {
+		for (String s : new String[] { "string", "buffer", "resource" } ) {
+			final String code = String.format("(struct { %s x })(Object())", s);
+			assertThrew(new Runnable() {
+				public void run() {
+					eval(code);
+				}
+			}, JSDIException.class, "does not support.*pointers");
+		}
+		assertThrew(new Runnable() {
+			public void run() {
+				eval("StringStruct2(Object(a: Object()))");
+			}
+		}, JSDIException.class, "does not support.*pointers");
+	}
+
 	// NOTE: tests for Structure() -- i.e. Structure.call1(Object) -- are in
 	//       DllTest
 	// TODO: tests for Modify()

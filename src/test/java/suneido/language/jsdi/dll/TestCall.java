@@ -240,7 +240,7 @@ public enum TestCall {
 		}
 		if (null != rssOuter.buffer) {
 			m.putStringPtr(rssOuter.buffer, NO_ACTION);
-			m.putLong(rssOuter.buffer.size());
+			m.putLong(rssOuter.buffer.length());
 		} else {
 			m.putNullStringPtr(NO_ACTION);
 			m.putLong(0);
@@ -268,7 +268,7 @@ public enum TestCall {
 			}
 			if (null != rssInner.buffer) {
 				m.putStringPtr(rssInner.buffer, NO_ACTION);
-				m.putLong(rssInner.buffer.size());
+				m.putLong(rssInner.buffer.length());
 			} else {
 				m.putNullStringPtr(NO_ACTION);
 				m.putLong(0);

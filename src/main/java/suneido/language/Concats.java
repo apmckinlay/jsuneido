@@ -13,6 +13,9 @@ import javax.annotation.concurrent.ThreadSafe;
  * Shares this array when possible.
  * When possible, adds to the end of existing array rather than alloc/copy.
  * Merges small strings to avoid growing the array as much.
+ *
+ * TODO: What about hashCode() -- String2 calls toString().hashCode(), which
+ *       seems to detract from the benefit of deferred catenation
  */
 @ThreadSafe
 public final class Concats extends String2 {
