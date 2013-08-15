@@ -1,7 +1,6 @@
 package suneido.language.jsdi.type;
 
 import suneido.SuContainer;
-import suneido.SuValue;
 import suneido.language.Numbers;
 import suneido.language.jsdi.*;
 
@@ -11,7 +10,7 @@ import suneido.language.jsdi.*;
  * @since 20130625
  */
 @DllInterface
-public abstract class Type extends SuValue {
+public abstract class Type extends JSDIValue {
 
 	//
 	// DATA

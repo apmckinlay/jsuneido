@@ -27,7 +27,7 @@ import suneido.language.builtin.StringMethods;
  * @since 20130718
  */
 @DllInterface
-public final class Buffer extends SuValue implements CharSequence {
+public final class Buffer extends JSDIValue implements CharSequence {
 
 	//
 	// DATA
