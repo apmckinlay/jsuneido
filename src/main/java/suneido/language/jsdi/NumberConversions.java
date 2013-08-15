@@ -32,7 +32,7 @@ public final class NumberConversions {
 			return ((Number) x).longValue();
 		else if (Boolean.FALSE == x)
 			return 0L;
-		else if (x instanceof CharSequence || x instanceof Buffer)
+		else if (x instanceof CharSequence)
 			return toLongFromString(x.toString());
 		else if (Boolean.TRUE == x)
 			return 1L;
@@ -45,7 +45,7 @@ public final class NumberConversions {
 			return ((Number) x).floatValue();
 		else if (Boolean.FALSE == x)
 			return 0f;
-		else if (x instanceof CharSequence || x instanceof Buffer)
+		else if (x instanceof CharSequence)
 			return toFloatFromString(x.toString());
 		else if (Boolean.TRUE == x)
 			return 1f;
@@ -104,7 +104,7 @@ public final class NumberConversions {
 			}
 		} else if (Boolean.FALSE == a) {
 			return 0;
-		} else if (a instanceof CharSequence || a instanceof Buffer) {
+		} else if (a instanceof CharSequence) {
 			return toPointer32FromLong(toLongFromString(a.toString()));
 		} else {
 			throw new JSDIException("can't convert " + Ops.typeName(a)

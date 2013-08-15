@@ -1,6 +1,7 @@
 package suneido.language.jsdi;
 
 import static org.junit.Assert.*;
+import static suneido.util.testing.Throwing.assertThrew;
 
 import org.junit.Test;
 
@@ -26,8 +27,8 @@ public class BufferTest {
 		for (int k = 0; k < bOld.length; ++k) {
 			bNew[k] = bOld[k];
 		}
-		new_.setAndSetSize(bNew, 0, old.size());
-		assert new_.size() == old.size();
+		new_.setAndSetSize(bNew, 0, old.length());
+		assert new_.length() == old.length();
 		return new_;
 	}
 
@@ -88,7 +89,7 @@ public class BufferTest {
 		for (Buffer b : SOME_BUFFERS) {
 			assertFalse(b.equals((String) null));
 			assertFalse(b.equals(b.toString() + "X"));
-			if (0 < b.size()) {
+			if (0 < b.length()) {
 				String str = b.toString();
 				str = str.substring(0, str.length() - 1)
 						+ (str.charAt(str.length() - 1) + 1);
@@ -98,19 +99,41 @@ public class BufferTest {
 	}
 
 	@Test
+	public void testHashCode() {
+		for (Buffer b1 : SOME_BUFFERS) {
+			for (Buffer b2 : SOME_BUFFERS) {
+				if (b1 == b2) {
+					b2 = new Buffer(b2);
+					assertEquals(b1, b2);
+					assertEquals(b2, b1);
+					assertEquals(b1.hashCode(), b2.hashCode());
+				}
+				b1 = new Buffer(b1);
+				b2 = new Buffer(b2);
+				b1.truncate();
+				b2.truncate();
+				if (b1.equals(b2)) {
+					assertEquals(b1.hashCode(), b2.hashCode());
+				}
+			}
+		}
+		
+	}
+
+	@Test
 	public void testSetAndSetSize() {
 		Buffer buffer = new Buffer(10, "abcdef");
 		byte[] b = new byte[4];
 		buffer.copyInternalData(b, 1, 3);
 		assertArrayEquals(new byte[] { 0, (byte)'a', (byte)'b', (byte)'c' }, b);
-		assertEquals(10, buffer.size());
+		assertEquals(10, buffer.length());
 		assertEquals(10, buffer.capacity());
 		buffer.setAndSetSize(b, 0, 2);
-		assertEquals(2, buffer.size());
+		assertEquals(2, buffer.length());
 		assertEquals(10, buffer.capacity());
 		assertEquals("\u0000a", buffer.toString());
 		buffer.setAndSetSize(b, 0, 4);
-		assertEquals(4, buffer.size());
+		assertEquals(4, buffer.length());
 		assertEquals(10, buffer.capacity());
 		assertEquals("\u0000abc", buffer.toString());
 	}
@@ -132,32 +155,124 @@ public class BufferTest {
 		{
 			Buffer buffer = new Buffer(0, "");
 			buffer.truncate();
-			assertEquals(0, buffer.size());
+			assertEquals(0, buffer.length());
 			assertEquals(buffer, "");
 		}
 		{
 			Buffer buffer = new Buffer(1, "a");
-			assertEquals(1, buffer.size());
+			assertEquals(1, buffer.length());
 			assertEquals(buffer, "a");
 			buffer.truncate();
-			assertEquals(1, buffer.size());
+			assertEquals(1, buffer.length());
 			assertEquals(buffer, "a");
 		}
 		{
 			Buffer buffer = new Buffer(10, "");
 			assertFalse(buffer.equals(""));
 			buffer.truncate();
-			assertEquals(0, buffer.size());
+			assertEquals(0, buffer.length());
 			assertEquals(buffer, "");
 		}
 		{
 			Buffer buffer = new Buffer(3, "a");
 			assertEquals(buffer, "a\u0000\u0000");
-			assertEquals(3, buffer.size());
+			assertEquals(3, buffer.length());
 			assertFalse(buffer.equals("a"));
 			buffer.truncate();
-			assertEquals(1, buffer.size());
+			assertEquals(1, buffer.length());
 			assertEquals(buffer, "a");
 		}
+	}
+
+	@Test
+	public void testCharSequence_length() {
+		Buffer b = new Buffer(100, "x");
+		assertEquals(100, b.length());
+		b.truncate();
+		assertEquals(1, b.length());
+		b = new Buffer(0, "");
+		assertEquals(0, b.length());
+		b = new Buffer(5, "hello");
+		assertEquals(5, b.length());
+		b.truncate();
+		assertEquals(5, b.length());
+	}
+
+	@Test
+	public void testCharSequence_charAt() {
+		for (final String S : new String[] { "", "$", "xy", "@@@",
+				"...mankind are more disposed to suffer while the evils are sufferable..." }) {
+			for (final int N : new int[] { 0, 1, 2, 3, 4, 5, 50, 100 }) {
+				String s = S;
+				String s2 = s;
+				if (N < s.length()) {
+					s = s.substring(0, N);
+					s2 = s;
+				} else if (s.length() < N) {
+					s2 = s + new String(new char[N - s.length()]); // zero pad right
+				}
+				final Buffer b = new Buffer(N, s);
+				for (int k = 0; k < N; ++k) {
+					assertEquals(s2.charAt(k), b.charAt(k));
+				}
+				assertThrew(
+						new Runnable() { public void run() { b.charAt(N); } },
+						IndexOutOfBoundsException.class
+				);
+				assertThrew(
+						new Runnable() { public void run() { b.charAt(-1); } },
+						IndexOutOfBoundsException.class
+				);
+			}
+		}
+	}
+
+	@Test
+	public void testCharSequence_subSequence() {
+		for (final String S : new String[] { "", "$", "xy", "@@@",
+		"...mankind are more disposed to suffer while the evils are sufferable..." }) {
+			for (final int N : new int[] { 0, 1, 2, 3, 4, 5, 50, 100 }) {
+				String s = S;
+				String s2 = s;
+				if (N < s.length()) {
+					s = s.substring(0, N);
+					s2 = s;
+				} else if (s.length() < N) {
+					s2 = s + new String(new char[N - s.length()]); // zero pad right
+				}
+				final Buffer b = new Buffer(N, s);
+				assertEquals(N, b.length());
+				assertEquals(s2, b.toString());
+				for (int i = 0; i <= N; ++i) {
+					for (int j = i; j <= N; ++j) {
+						CharSequence x = s2.subSequence(i, j);
+						CharSequence y = b.subSequence(i, j);
+						assertEquals(x, y);
+						assertEquals(y, x);
+					}
+				}
+				assertThrew(
+						new Runnable() { public void run() { b.subSequence(0, N + 1); } },
+						StringIndexOutOfBoundsException.class
+				);
+				assertThrew(
+						new Runnable() { public void run() { b.subSequence(-1, N); } },
+						StringIndexOutOfBoundsException.class
+				);
+
+			}
+		}
+	}
+
+	@Test
+	public void testStringQ() {
+		// To be consistent with CSuneido
+		assertSame(Boolean.TRUE, Compiler.eval("String?(Buffer(10, 'hello'))"));
+	}
+
+	@Test
+	public void testBufferQ() {
+		assertSame(Boolean.TRUE, Compiler.eval("Buffer?(Buffer(10, 'hello'))"));
+
 	}
 }

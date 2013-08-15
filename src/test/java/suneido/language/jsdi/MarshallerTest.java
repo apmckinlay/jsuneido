@@ -333,7 +333,7 @@ public class MarshallerTest {
 			// Note this technically breaks the symmetry requirement of
 			// Object.equals(), but it is how Ops.is_() is implemented.
 			assertEquals(b1, "\u0000\u0000");
-			assertEquals(LEN, b1.size());
+			assertEquals(LEN, b1.length());
 			Buffer b2 = new Buffer(100, "abc");
 			mr.rewind();
 			Buffer b3 = mr.getNonZeroTerminatedStringDirect(LEN, b2);
@@ -489,13 +489,13 @@ public class MarshallerTest {
 		Object E = mr.getStringPtrMaybeByteArray(OUT_);
 		assertSame(OUT_, E);
 		assertFalse(EXPECT.equals(E));
-		assertEquals(0, OUT_.size());
+		assertEquals(0, OUT_.length());
 		assertFalse(new Buffer(IN.length(), "").equals(OUT_));
 		mr.rewind();
 		Object F = mr.getStringPtrAlwaysByteArray(OUT_);
 		assertSame(OUT_, F);
 		assertFalse(EXPECT.equals(F));
-		assertEquals(0, OUT_.size());
+		assertEquals(0, OUT_.length());
 		// Cases 'G' and 'H' should also never happen. The rationale for
 		// returning a new Buffer is just to make sure the marshaller returns a
 		// non-null value

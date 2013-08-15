@@ -49,16 +49,16 @@ public final class Structure extends ComplexType {
 	// INTERNALS
 	//
 
-	private Marshaller makeMarshaller() {
+	private MarshallPlan getMarshallPlan() {
 		if (resolve(0) || null == marshallPlan) {
 			marshallPlan = typeList.makeMembersMarshallPlan();
 			callGroup = CallGroup.fromTypeList(typeList, true);
 		}
-		return marshallPlan.makeMarshaller();
+		return marshallPlan;
 	}
 
 	private Object copyOut(int structAddr) {
-		Marshaller m = makeMarshaller();
+		Marshaller m = getMarshallPlan().makeMarshaller();
 		putMarshallOutInstruction(m);
 		switch (callGroup) {
 		case FAST:
@@ -79,6 +79,21 @@ public final class Structure extends ComplexType {
 		}
 		m.rewind();
 		return typeList.marshallOutMembers(m, null);
+	}
+
+	private Buffer toBuffer(SuContainer value) {
+		MarshallPlan p = getMarshallPlan();
+		if (!p.isDirectOnly()) {
+			throw new JSDIException(
+					String.format(
+							"jSuneido does not support %s(object) because structure %1$s contains pointers",
+							getSuTypeName()
+					));
+		}
+		Marshaller m = p.makeMarshaller();
+		typeList.marshallInMembers(m, value);
+		byte[] data = m.getData();
+		return new Buffer(data, 0, data.length);
 	}
 
 	//
@@ -190,8 +205,7 @@ public final class Structure extends ComplexType {
 		} else {
 			final SuContainer c = Ops.toContainer(arg);
 			if (null != c) {
-				throw new JSDIException(
-						"jSuneido does not support Struct(object)");
+				return toBuffer(c);
 			}
 		}
 		return Boolean.FALSE;

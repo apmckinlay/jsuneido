@@ -10,6 +10,7 @@ import suneido.language.jsdi.dll.Dll;
  * @author Victor Schappert
  * @since 20130709
  * @see StructQ
+ * @see BufferQ
  */
 @DllInterface
 public final class DllQ {

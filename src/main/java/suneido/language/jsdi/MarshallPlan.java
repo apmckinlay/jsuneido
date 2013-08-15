@@ -40,6 +40,20 @@ public final class MarshallPlan {
 	//
 
 	/**
+	 * Indicates this plan describes direct-only (<em>ie</em> pointerless)
+	 * storage.
+	 *
+	 * @return True if the plan contains no pointers, false otherwise
+	 * @since 20130814
+	 * @see #getSizeDirect()
+	 * @see #getSizeIndirect()
+	 * @see #getVariableIndirectCount()
+	 */
+	public boolean isDirectOnly() {
+		return 0 == sizeIndirect && 0 == variableIndirectCount;
+	}
+
+	/**
 	 * <p>
 	 * Get the amount of direct storage, in bytes, required to marshall the
 	 * data.
@@ -51,6 +65,7 @@ public final class MarshallPlan {
 	 * </p>
 	 *
 	 * @return Amount of direct storage required to marshall the data
+	 * @see #isDirectOnly
 	 * @see #getSizeIndirect()
 	 * @see #getPtrArray()
 	 * @see #getVariableIndirectCount()

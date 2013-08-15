@@ -261,7 +261,7 @@ public class Numbers {
 	public static Number toNum(Object x) {
 		if (x instanceof Number)
 			return (Number) x;
-		if (x instanceof String || x instanceof String2)
+		if (x instanceof CharSequence)
 			return stringToPlainNumber(x.toString());
 		if (x instanceof Boolean)
 			return (Boolean) x ? 1 : 0;
