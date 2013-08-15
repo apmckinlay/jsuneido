@@ -141,13 +141,14 @@ public final class Buffer extends SuValue implements CharSequence {
 	}
 
 	// TODO: docs -- since 20130813 -- truncate size to first 0
-	void truncate() {
+	Buffer truncate() {
 		for (int k = 0; k < size; ++k) {
 			if (0 == data[k]) {
 				size = k;
-				return;
+				return this;
 			}
 		}
+		return this;
 	}
 
 	//
@@ -213,6 +214,17 @@ public final class Buffer extends SuValue implements CharSequence {
 
 	private static final Map<String, SuCallable> builtins = BuiltinMethods
 			.methods(Buffer.class);
+
+	@Override
+	public Object get(Object member) {
+		if (member instanceof Range)
+			return ((Range) member).substr(this);
+		int i = Ops.toInt(member);
+		int len = length();
+		if (i < 0)
+			i += len;
+		return 0 <= i && i < len ? subSequence(i, i + 1) : "";
+	}
 
 	@Override
 	public SuValue lookup(String method) {

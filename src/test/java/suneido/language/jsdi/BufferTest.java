@@ -32,6 +32,10 @@ public class BufferTest {
 		return new_;
 	}
 
+	private static Object eval(String code) {
+		return Compiler.eval(code);
+	}
+
 	@Test
 	public void testEqualsString() {
 		assertEquals(new Buffer(0, ""), "");
@@ -267,12 +271,72 @@ public class BufferTest {
 	@Test
 	public void testStringQ() {
 		// To be consistent with CSuneido
-		assertSame(Boolean.TRUE, Compiler.eval("String?(Buffer(10, 'hello'))"));
+		assertSame(Boolean.TRUE, eval("String?(Buffer(10, 'hello'))"));
 	}
 
 	@Test
 	public void testBufferQ() {
-		assertSame(Boolean.TRUE, Compiler.eval("Buffer?(Buffer(10, 'hello'))"));
+		assertSame(Boolean.TRUE, eval("Buffer?(Buffer(10, 'hello'))"));
 
+	}
+
+	@Test
+	public void testGet_Char() {
+		for (Buffer b : SOME_BUFFERS) {
+			String s = b.toString();
+			assertEquals(s.length(), b.length());
+			for (int k = 0; k < b.length(); ++k) {
+				assertEquals(s.charAt(k), ((CharSequence)b.get(k)).charAt(0));
+				Buffer bTemp = new Buffer(b).truncate();
+				String sTemp = bTemp.toString();
+				assertEquals(
+						"" + s.charAt(k) /* convert char -> String */,
+						eval(String.format("(Buffer(%d, '%s'))[%d]", b.length(), sTemp, k))
+				);
+			}
+		}
+	}
+
+	@Test
+	public void testGet_RangeTo() {
+		assertEquals("", eval("(Buffer(0, ''))[-1..0]"));
+		assertEquals("", eval("(Buffer(0, ''))[0..0]"));
+		assertEquals("", eval("(Buffer(0, ''))[0..1]"));
+		assertEquals("", eval("(Buffer(0, ''))[1..0]"));
+
+		assertEquals("", eval("(Buffer(1, '1'))[0..0]"));
+		assertEquals("1", eval("(Buffer(1, '1'))[0..1]"));
+		assertEquals("", eval("(Buffer(1, '1'))[1..1]"));
+		assertEquals("", eval("(Buffer(1, '1'))[1..0]"));
+
+		assertEquals("", eval("(Buffer(2, '1'))[0..0]"));
+		assertEquals("1", eval("(Buffer(2, '1'))[0..1]"));
+		assertEquals("1\u0000", eval("(Buffer(2, '1'))[0..2]"));
+		assertEquals("\u0000", eval("(Buffer(2, '1'))[1..2]"));
+		assertEquals("", eval("(Buffer(2, '1'))[2..3]"));
+	}
+
+	@Test
+	public void testGet_RangeLen() {
+		assertEquals("", eval("(Buffer(0, ''))[0::0]"));
+		assertEquals("", eval("(Buffer(0, ''))[0::1]"));
+		assertEquals("", eval("(Buffer(0, ''))[-1::10]"));
+
+		assertEquals("", eval("(Buffer(1, '1'))[0::0]"));
+		assertEquals("1", eval("(Buffer(1, '1'))[0::1]"));
+		assertEquals("", eval("(Buffer(1, '1'))[1::1]"));
+		assertEquals("", eval("(Buffer(1, '1'))[1::0]"));
+
+		assertEquals("", eval("(Buffer(2, '1'))[0::0]"));
+		assertEquals("1", eval("(Buffer(2, '1'))[0::1]"));
+		assertEquals("1\u0000", eval("(Buffer(2, '1'))[0::2]"));
+		assertEquals("1\u0000", eval("(Buffer(2, '1'))[0::]"));
+		assertEquals("1\u0000", eval("(Buffer(2, '1'))[::2]"));
+		assertEquals("\u0000", eval("(Buffer(2, '1'))[1::1]"));
+		assertEquals("\u0000", eval("(Buffer(2, '1'))[1::2]"));
+		assertEquals("", eval("(Buffer(2, '1'))[2::3]"));
+		assertEquals("\u0000", eval("(Buffer(2, '1'))[-1::1]"));
+		assertEquals("\u0000", eval("(Buffer(2, '1'))[-1::3]"));
+		assertEquals("1\u0000", eval("(Buffer(2, '1'))[-2::2]"));
 	}
 }

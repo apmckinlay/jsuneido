@@ -11,7 +11,7 @@ import suneido.SuContainer;
 @Immutable
 public abstract class Range {
 
-	public abstract String substr(String s);
+	public abstract CharSequence substr(CharSequence s);
 
 	public abstract SuContainer sublist(SuContainer c);
 
@@ -25,11 +25,11 @@ public abstract class Range {
 		}
 
 		@Override
-		public String substr(String s) {
+		public CharSequence substr(CharSequence s) {
 			int size = s.length();
 			int f = prepFrom(from, size);
 			int t = prepTo(f, to, size);
-			return s.substring(f, t);
+			return s.subSequence(f, t);
 		}
 
 		@Override
@@ -51,11 +51,11 @@ public abstract class Range {
 		}
 
 		@Override
-		public String substr(String s) {
+		public CharSequence substr(CharSequence s) {
 			int size = s.length();
 			int f = prepFrom(from, size);
 			int n = prepLen(len, size - f);
-			return s.substring(f, f + n);
+			return s.subSequence(f, f + n);
 		}
 
 		@Override
