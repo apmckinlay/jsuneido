@@ -339,4 +339,9 @@ public class BufferTest {
 		assertEquals("\u0000", eval("(Buffer(2, '1'))[-1::3]"));
 		assertEquals("1\u0000", eval("(Buffer(2, '1'))[-2::2]"));
 	}
+
+	@Test
+	public void testType() {
+		assertEquals("Buffer", eval("Type(Buffer(0, ''))"));
+	}
 }
