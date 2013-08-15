@@ -46,9 +46,9 @@ public class CallbackTest {
 			"\tstring str\n" +
 			"\tbuffer buffer_\n" +
 			"\tlong len\n" +
-			"\tRecursive_StringSum2_Dll * inner\n" +
+			"\tRecursive_StringSum0_Dll * inner\n" +
 			"\t}",
-		"Recursive_StringSum2_Dll",
+		"Recursive_StringSum0_Dll",
 			"struct\n" +
 			"\t{\n" +
 			"\tPacked_CharCharShortLong[2] x\n" +
@@ -64,9 +64,9 @@ public class CallbackTest {
 			"\tstring str\n" +
 			"\tstring buffer_\n" +
 			"\tlong len\n" +
-			"\tRecursive_StringSum2_Callback * inner\n" +
+			"\tRecursive_StringSum0_Callback * inner\n" +
 			"\t}",
-		"Recursive_StringSum2_Callback",
+		"Recursive_StringSum0_Callback",
 			"struct\n" +
 			"\t{\n" +
 			"\tPacked_CharCharShortLong[2] x\n" +
@@ -320,13 +320,16 @@ public class CallbackTest {
 
 	@Test
 	public void testViCall_TwoStrings() {
+		// NOTE: You need to send a buffer with one more item of space than the
+		//       string stored in it so that it is zero-terminated, because it
+		//       is being out-marshalled as the 'string' type.
 		assertEquals(
 			26,
 			eval(
 				"x = class { Call(y) { return SuTestSumString(y) } }\n" +
 				"TestInvokeCallback_Recursive_StringSum(" +
 					"new x()," +
-					"RSS(PCCSL(4, 3, 2, 1), PCCSL(-1, 0, 1, 2), '1414', Buffer(5, '-1400'), 5)" +
+					"RSS(PCCSL(4, 3, 2, 1), PCCSL(-1, 0, 1, 2), '1414', Buffer(6, '-1400'), 6)" +
 				")"
 			)
 		);
