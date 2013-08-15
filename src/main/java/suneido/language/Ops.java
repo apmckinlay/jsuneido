@@ -668,7 +668,7 @@ public final class Ops {
 				throw new SuException("uninitialized member " + member);
 			return y;
 		} else if (isString(x))
-			return getString(x.toString(), member);
+			return getString((CharSequence)x, member);
 		else if (x instanceof Object[])
 			return getArray((Object[]) x, toInt(member));
 		else if (x instanceof Boolean || x instanceof Number)
@@ -695,14 +695,14 @@ public final class Ops {
 		return x[i];
 	}
 
-	private static Object getString(String s, Object m) {
+	private static Object getString(CharSequence s, Object m) {
 		if (m instanceof Range)
 			return ((Range) m).substr(s);
 		int i = toInt(m);
 		int len = s.length();
 		if (i < 0)
 			i += len;
-		return 0 <= i && i < len ? s.substring(i, i + 1) : "";
+		return 0 <= i && i < len ? s.subSequence(i, i + 1) : "";
 	}
 
 	public static Range rangeTo(Object from, Object to) {
