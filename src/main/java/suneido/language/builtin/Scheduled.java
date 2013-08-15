@@ -10,7 +10,7 @@ import suneido.Suneido;
 import suneido.language.Ops;
 import suneido.language.Params;
 
-public class Delayed {
+public class Scheduled {
 
 	@Params("ms, function")
 	public static Object Delayed(Object ms, Object fn) {
