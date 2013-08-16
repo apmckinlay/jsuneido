@@ -29,7 +29,7 @@ public class Dll extends SuCallable {
 	final ReturnTypeGroup returnTypeGroup; // never null
 	final NativeCall      nativeCall;      // null if params isn't closed
 
-	final String     suTypeName;
+	final String     valueName;
 	final DllFactory dllFactory;
 	final String     libraryName;
 	final String     userFunctionName;
@@ -44,10 +44,9 @@ public class Dll extends SuCallable {
 	// deliberately package-internal
 	// todo: docs
 	Dll(long funcPtr, TypeList params, Type returnType,
-			ReturnTypeGroup returnTypeGroup, NativeCall nc, String suTypeName,
+			ReturnTypeGroup returnTypeGroup, NativeCall nc, String valueName,
 			DllFactory dllFactory, String libraryName, String userFuncName,
 			String funcName, FunctionSpec functionSpec) {
-		assert 0 != funcPtr : "Invalid dll function pointer";
 		assert (TypeId.VOID == returnType.getTypeId() || TypeId.BASIC == returnType
 				.getTypeId() && StorageType.VALUE == returnType.getStorageType())
 				|| InOutString.INSTANCE == returnType : "Invalid dll return type";
@@ -60,7 +59,7 @@ public class Dll extends SuCallable {
 		this.returnType = returnType;
 		this.returnTypeGroup = returnTypeGroup;
 		this.nativeCall = nc;
-		this.suTypeName = suTypeName;
+		this.valueName = valueName;
 		this.dllFactory = dllFactory;
 		this.libraryName = libraryName;
 		this.userFunctionName = userFuncName;
@@ -89,29 +88,6 @@ public class Dll extends SuCallable {
 	//
 	// ACCESSORS
 	//
-
-	/**
-	 * Returns the Suneido type name.
-	 * 
-	 * <p>
-	 * For example, for a global {@code dll} in a library record called 'X',
-	 * the returned value is "X". However, the value returned is not necessarily
-	 * a global name. For anonymous types, the Suneido type name is an
-	 * arbitrary value assigned by the compiler.
-	 * </p>
-	 *
-	 * <p>
-	 * This method is called {@code getSuTypeName()} to differentiate it from
-	 * {@link SuValue#typeName()}, which relates to the JSuneido universe rather
-	 * than the user's type naming universe. 
-	 * </p>
-	 *
-	 * @return Suneido type name
-	 * @see suneido.language.jsdi.type.ComplexType#getSuTypeName()
-	 */
-	public final String getSuTypeName() {
-		return suTypeName;
-	}
 
 	public final String getSignature() {
 		StringBuilder result = new StringBuilder();
@@ -146,6 +122,11 @@ public class Dll extends SuCallable {
 
 	private static final Map<String, SuCallable> builtins = BuiltinMethods
 			.methods(Dll.class);
+
+	@Override
+	public final String valueName() {
+		return valueName;
+	}
 
 	@Override
 	public SuValue lookup(String method) {
