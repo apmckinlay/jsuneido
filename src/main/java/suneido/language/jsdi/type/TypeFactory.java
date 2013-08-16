@@ -126,11 +126,11 @@ public final class TypeFactory {
 	}
 
 	@SuppressWarnings("static-method")
-	public Structure makeStruct(String suTypeName, TypeList members) {
-		return new Structure(suTypeName, members);
+	public Structure makeStruct(String valueName, TypeList members) {
+		return new Structure(valueName, members);
 	}
 
-	public Callback makeCallback(String suTypeName, TypeList members) {
-		return new Callback(suTypeName, members, jsdi.getThunkManager());
+	public Callback makeCallback(String valueName, TypeList members) {
+		return new Callback(valueName, members, jsdi.getThunkManager());
 	}
 }

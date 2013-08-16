@@ -34,8 +34,8 @@ public final class Structure extends ComplexType {
 	// CONSTRUCTORS
 	//
 
-	Structure(String suTypeName, TypeList members) {
-		super(TypeId.STRUCT, suTypeName, members);
+	Structure(String valueName, TypeList members) {
+		super(TypeId.STRUCT, valueName, members);
 		if (members.isEmpty()) {
 			throw new JSDIException("structure must have at least one member");
 		}
@@ -87,7 +87,7 @@ public final class Structure extends ComplexType {
 			throw new JSDIException(
 					String.format(
 							"jSuneido does not support %s(object) because structure %1$s contains pointers",
-							getSuTypeName()
+							valueName()
 					));
 		}
 		Marshaller m = p.makeMarshaller();
@@ -105,7 +105,7 @@ public final class Structure extends ComplexType {
 			return typeList.resolve(level);
 		} catch (ProxyResolveException e) {
 			e.setMemberType("member");
-			e.setParentName(suTypeName);
+			e.setParentName(valueName());
 			throw new JSDIException(e);
 		}
 	}

@@ -551,6 +551,14 @@ public final class Ops {
 		return x.getClass().getName();
 	}
 
+	public static String valueName(Object x) {
+		if (null == x)
+			throwUninitializedVariable();
+		else if (x instanceof SuValue)
+			return ((SuValue) x).valueName();
+		return "";
+	}
+
 	public static Throwable exception(Object e) {
 		return e instanceof Except
 				? new SuException(((Except) e).getThrowable(), e.toString())

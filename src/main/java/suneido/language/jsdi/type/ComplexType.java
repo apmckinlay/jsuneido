@@ -1,6 +1,5 @@
 package suneido.language.jsdi.type;
 
-import suneido.SuValue;
 import suneido.language.jsdi.DllInterface;
 import suneido.language.jsdi.ElementSkipper;
 import suneido.language.jsdi.StorageType;
@@ -17,7 +16,7 @@ public abstract class ComplexType extends Type {
 	// DATA
 	//
 
-	protected final String         suTypeName;
+	private   final String         valueName;
 	protected final TypeList       typeList;
 	protected       ElementSkipper skipper; // only valid to last addToPlan()
 
@@ -25,40 +24,17 @@ public abstract class ComplexType extends Type {
 	// CONSTRUCTORS
 	//
 
-	protected ComplexType(TypeId typeId, String suTypeName, TypeList typeList) {
+	protected ComplexType(TypeId typeId, String valueName, TypeList typeList) {
 		super(typeId, StorageType.VALUE);
-		if (null == suTypeName)
+		if (null == valueName)
 			throw new IllegalArgumentException("suTypeName cannot be null");
-		this.suTypeName = suTypeName;
+		this.valueName = valueName;
 		this.typeList = typeList;
 	}
 
 	//
 	// ACCESSORS
 	//
-
-	/**
-	 * Returns the Suneido type name.
-	 * 
-	 * <p>
-	 * For example, for a global {@code struct} in a library record called 'A',
-	 * the returned value is "A". However, the value returned is not necessarily
-	 * a global name. For anonymous types, the Suneido type name is an
-	 * arbitrary value assigned by the compiler.
-	 * </p>
-	 *
-	 * <p>
-	 * This method is called {@code getSuTypeName()} to differentiate it from
-	 * {@link SuValue#typeName()}, which relates to the JSuneido universe rather
-	 * than the user's type naming universe. 
-	 * </p>
-	 *
-	 * @return Suneido type name
-	 * @see suneido.language.jsdi.dll.Dll#getSuTypeName()
-	 */
-	public final String getSuTypeName() {
-		return suTypeName;
-	}
 
 	// TODO: Docs since 20130725
 	public final ElementSkipper getElementSkipper() {
@@ -72,5 +48,14 @@ public abstract class ComplexType extends Type {
 	// TODO: docs
 	boolean resolve(int level) {
 		return false;
+	}
+
+	//
+	// ANCESTOR CLASS: SuValue
+	//
+
+	@Override
+	public final String valueName() {
+		return valueName;
 	}
 }
