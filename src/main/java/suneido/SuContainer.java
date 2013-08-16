@@ -21,7 +21,6 @@ import suneido.intfc.database.RecordBuilder;
 import suneido.language.Ops;
 import suneido.language.Pack;
 import suneido.language.Range;
-import suneido.language.String2;
 import suneido.language.builtin.ContainerMethods;
 import suneido.util.NullIterator;
 import suneido.util.PairStack;
@@ -309,52 +308,29 @@ public class SuContainer extends SuValue
 	}
 
 	@Override
-	public int hashCode() {
-		return hashCode(0);
-	}
-	/** can't use vec and map hashCode methods
-	 *  because we need to check nesting */
-	public int hashCode(int nest) {
-		// FIXME: Question: Why does hashCode() throw if you exceed a certain
-		//        nesting level -- therefore it will throw if there is any self-
-		//        reference at all? 
-		//
-		// In CSuneido you can do this:
-		//     x = Object()
-		//     x.Add(x)
-		//     x.Add("hello")
-		//     y = Object()
-		//     y[x] = 1
-		//     Print(y.Members())
-		//         => #(#(..., "hello"))
-		//
-		// Whereas if you try that in jSuneido, you get an exception due to the
-		// hashCode() function. But note that the following works as expected in
-		// jSuneido:
-		//
-		//     x = Object(); x.Add(x); z = Object(); z.Add(z); x is z
-		//         => true
-		//
-		// I think that hashCode() probably isn't the best place to be checking
-		// for over-nesting (it really shouldn't throw). If it's a problem,
-		// we should check at the point it becomes a problem (e.g. db packing).
-		checkNest(++nest);
-		int result = 17;
-		for (Object x : vec)
-			result = 31 * result + hashCode(x, nest);
-		for (Map.Entry<Object, Object> e : map.entrySet()) {
-			result = 31 * result + hashCode(e.getKey(), nest);
-			result = 31 * result + hashCode(e.getValue(), nest);
+	public synchronized int hashCode() {
+		int h = 31 * 31 * vec.size() + 31 * map.size() +
+				SuContainer.class.hashCode();
+		if (! vec.isEmpty()) {
+			// The nice thing about vectors: they have a canonical ordering, so
+			// we know we can satisfy the hashCode() contract by just looking at
+			// an arbitrary number of elements.
+			h = 31 * h + Ops.hashCodeContrib(vec.get(0), 0);
+		} else if (map.size() <= 5) {
+			// The nasty thing about maps: no canonical ordering. If we want to
+			// look at any of the members, we have to look at all of them.
+			for (Map.Entry<Object, Object> entry : map.entrySet()) {
+				h = 31 * h + Ops.hashCodeContrib(entry.getKey(), 0)
+						^ Ops.hashCodeContrib(entry.getValue(), 0);
+			}
 		}
-		return result;
+		return h;
 	}
 
-	private static int hashCode(Object x, int nest) {
-		if (x instanceof SuContainer)
-			return ((SuContainer) x).hashCode(nest);
-		if (x instanceof BigDecimal)
-			return canonical(x).hashCode();
-		return x.hashCode();
+	@Override
+	public int hashCodeContrib(int nest) {
+		return 31 * 31 * vec.size() + 31 * map.size()
+				+ SuContainer.class.hashCode();
 	}
 
 	/**
@@ -375,7 +351,7 @@ public class SuContainer extends SuValue
 			}
 			return canonicalBD(toBigDecimal(x));
 		}
-		if (x instanceof String2)
+		if (x instanceof CharSequence)
 			return x.toString();
 		return x;
 	}

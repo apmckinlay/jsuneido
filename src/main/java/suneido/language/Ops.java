@@ -559,6 +559,14 @@ public final class Ops {
 		return "";
 	}
 
+	public static int hashCodeContrib(Object x, int nest) {
+		if (x instanceof SuValue) {
+			return ((SuValue)x).hashCodeContrib(nest);
+		} else {
+			return x.hashCode();
+		}
+	}
+
 	public static Throwable exception(Object e) {
 		return e instanceof Except
 				? new SuException(((Except) e).getThrowable(), e.toString())

@@ -17,10 +17,10 @@ import suneido.util.PairStack;
  * An instance of a Suneido class
  * (which will be an instance of {@link SuClass})
  */
+// FIXME: Deal with thread safety issues
 public class SuInstance extends SuValue {
 	final SuClass myclass;
 	private final Map<String, Object> ivars;
-	private boolean isHashing;
 	private static final Map<String, SuCallable> methods =
 			BuiltinMethods.methods(SuInstance.class);
 
@@ -191,22 +191,24 @@ public class SuInstance extends SuValue {
 	}
 
 	@Override
-	public synchronized int hashCode() {
+	public int hashCode() {
 		// Like SuContainer, SuInstance can be self-referential because its
 		// instance variables can contain self-references. This implementation
 		// of hashCode() is mainly stolen from java.util.Hashtable.hashCode(),
 		// which also handled self-reference. [See on GrepCode]
-		int h = myclass.hashCode();
-		if (isHashing || ivars.isEmpty())
-			return h;
-		try {
-			isHashing = true;
-			h += 31 * ivars.hashCode();
-		}
-		finally {
-			isHashing = false;
+		int h = 31 * ivars.size() + myclass.hashCode();
+		if (ivars.size() <= 10) {
+			for (Map.Entry<String, Object> entry : ivars.entrySet()) {
+				h = 31 * h + (Ops.hashCodeContrib(entry.getKey(), 0) ^
+							Ops.hashCodeContrib(entry.getValue(), 0));
+			}
 		}
 		return h;
+	}
+
+	@Override
+	public int hashCodeContrib(int nest) {
+		return 31 * ivars.size() + myclass.hashCode();
 	}
 
 	@Override
