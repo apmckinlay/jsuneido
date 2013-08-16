@@ -178,10 +178,12 @@ public class SuContainerTest {
 		c.packSize();
 	}
 
-	@Test(expected = RuntimeException.class)
 	public void hashCodeNest() {
 		SuContainer c = new SuContainer();
 		c.add(c);
+		c.hashCode();
+		c = new SuContainer();
+		c.put(c, c);
 		c.hashCode();
 	}
 
