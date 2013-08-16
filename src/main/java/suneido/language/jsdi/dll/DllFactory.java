@@ -10,6 +10,7 @@ import suneido.language.jsdi.JSDI;
 import suneido.language.jsdi.JSDIException;
 import suneido.language.jsdi.type.Type;
 import suneido.language.jsdi.type.TypeList;
+import suneido.language.jsdi.type.VoidType;
 
 /**
  * Manages creation and allocation of {@code dll} objects.
@@ -98,6 +99,15 @@ public final class DllFactory {
 	 */
 	public Dll makeDll(String suTypeName, String libraryName,
 			String userFuncName, TypeList params, Type returnType) {
+		final ReturnTypeGroup rtg = ReturnTypeGroup.fromType(returnType);
+		final FunctionSpec funcSpec = makeFunctionSpec(params);
+		//
+		// Check for void DLL
+		//
+		if (VoidType.IDENTIFIER.equals(libraryName)) {
+			return new VoidDll(params, returnType, rtg, suTypeName, this,
+					userFuncName, funcSpec);
+		}
 		//
 		// Load the library (or fetch the already-loaded library).
 		//
@@ -119,14 +129,8 @@ public final class DllFactory {
 				}
 			}
 			//
-			// Make a FunctionSpec of the DLL so the compiler knows how to
-			// handle call expressions.
-			//
-			FunctionSpec funcSpec = makeFunctionSpec(params);
-			//
 			// Determine the native call characteristics.
 			//
-			ReturnTypeGroup rtg = ReturnTypeGroup.fromType(returnType);
 			CallGroup cg = CallGroup.fromTypeList(params);
 			NativeCall nc = null;
 			if (null != cg) {
