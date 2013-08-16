@@ -87,6 +87,7 @@ public class Builtins {
 			.put("Mod", function(Mod.class))
 			.put("MoveFile", function(MoveFile.class))
 			.put("Mul", function(Mul.class))
+			.put("Name", function(Name.class))
 			.put("Neg", function(Neg.class))
 			.put("Neq", function(Neq.class))
 			.put("NoMatch", function(NoMatch.class))

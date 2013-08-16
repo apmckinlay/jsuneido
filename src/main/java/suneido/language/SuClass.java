@@ -293,6 +293,11 @@ public class SuClass extends SuValue {
 	}
 
 	@Override
+	public String valueName() {
+		return name;
+	}
+
+	@Override
 	public String toString() {
 		return name;
 	}

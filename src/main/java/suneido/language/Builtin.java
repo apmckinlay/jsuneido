@@ -264,36 +264,43 @@ class Builtin {
 
 	// functions ---------------------------------------------------------------
 
-	static SuCallable function(MethodHandle mh, FunctionSpec params) {
+	static SuCallable function(MethodHandle mh, String valueName, FunctionSpec params) {
 		if (params == null)
-			return new FunctionN(mh, null);
+			return new FunctionN(mh, valueName, null);
 		switch (params.nParams()) {
 		case 0:
-			return new Function0(mh, params);
+			return new Function0(mh, valueName, params);
 		case 1:
-			return new Function1(mh, params);
+			return new Function1(mh, valueName, params);
 		case 2:
-			return new Function2(mh, params);
+			return new Function2(mh, valueName, params);
 		case 3:
-			return new Function3(mh, params);
+			return new Function3(mh, valueName, params);
 		case 4:
-			return new Function4(mh, params);
+			return new Function4(mh, valueName, params);
 		default:
-			return new FunctionN(mh, params);
+			return new FunctionN(mh, valueName, params);
 		}
 	}
 
 	private static abstract class Function extends SuCallable {
 		protected final MethodHandle mh;
+		private final String valueName;
 
-		Function(MethodHandle mh, FunctionSpec params) {
+		Function(MethodHandle mh, String valueName, FunctionSpec params) {
 			this.mh = mh;
+			this.valueName = valueName;
 			this.params = params;
 		}
 
 		@Override
 		public String typeName() {
 			return "Builtin";
+		}
+	
+		@Override
+		public String valueName() {
+			return valueName;
 		}
 
 		@Override
@@ -303,8 +310,8 @@ class Builtin {
 
 	private static class FunctionN extends Function {
 
-		FunctionN(MethodHandle mh, FunctionSpec params) {
-			super(mh, params);
+		FunctionN(MethodHandle mh, String valueName, FunctionSpec params) {
+			super(mh, valueName, params);
 		}
 
 		@Override
@@ -323,8 +330,8 @@ class Builtin {
 
 	private static final class Function0 extends Function {
 
-		Function0(MethodHandle mh, FunctionSpec params) {
-			super(mh, params);
+		Function0(MethodHandle mh, String valueName, FunctionSpec params) {
+			super(mh, valueName, params);
 		}
 
 		@Override
@@ -346,8 +353,8 @@ class Builtin {
 	}
 	private static final class Function1 extends Function {
 
-		Function1(MethodHandle mh, FunctionSpec params) {
-			super(mh, params);
+		Function1(MethodHandle mh, String valueName, FunctionSpec params) {
+			super(mh, valueName, params);
 		}
 
 		@Override
@@ -375,8 +382,8 @@ class Builtin {
 
 	private static final class Function2 extends Function {
 
-		Function2(MethodHandle mh, FunctionSpec params) {
-			super(mh, params);
+		Function2(MethodHandle mh, String valueName, FunctionSpec params) {
+			super(mh, valueName, params);
 		}
 
 		@Override
@@ -409,8 +416,8 @@ class Builtin {
 
 	private static final class Function3 extends Function {
 
-		Function3(MethodHandle mh, FunctionSpec params) {
-			super(mh, params);
+		Function3(MethodHandle mh, String valueName, FunctionSpec params) {
+			super(mh, valueName, params);
 		}
 
 		@Override
@@ -448,8 +455,8 @@ class Builtin {
 
 	private static final class Function4 extends Function {
 
-		Function4(MethodHandle mh, FunctionSpec params) {
-			super(mh, params);
+		Function4(MethodHandle mh, String valueName, FunctionSpec params) {
+			super(mh, valueName, params);
 		}
 
 		@Override

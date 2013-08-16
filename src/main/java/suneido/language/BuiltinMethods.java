@@ -93,7 +93,7 @@ public class BuiltinMethods extends SuValue {
 					isCapitalized(name)) {
 				try {
 					MethodHandle mh = lookup.unreflect(m);
-					b.put(name, Builtin.function(mh, params(m, 0)));
+					b.put(name, Builtin.function(mh, name, params(m, 0)));
 				} catch (IllegalAccessException e) {
 					throw new SuException("error getting function " +
 							c.getName() + " " + m.getName(), e);

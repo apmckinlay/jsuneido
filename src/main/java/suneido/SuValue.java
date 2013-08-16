@@ -53,6 +53,33 @@ public abstract class SuValue implements Packable {
 		return s;
 	}
 
+	/**
+	 * <p>
+	 * Returns the name of this value instance within Suneido, as opposed to
+	 * the name of its type. This function is used to implement the Suneido
+	 * {@code Name(value)} built-in function.
+	 * </p>
+	 * <p>
+	 * For example, if you have a global Suniedo class named "Control", then:
+	 * <ul>
+	 * <li>
+	 * <pre>Name(Control)
+	 *     => "Control"  // value returned by SuValue.valueName()</pre>
+	 * </li>
+	 * <li>
+	 * <pre>Type(Control)
+	 *     => "Class"    // name returned by SuValue.typeName()</pre>
+	 * </li>
+	 * </ul>
+	 * </p>
+	 * @return
+	 * @since 20130815
+	 * @see #typeName()
+	 */
+	public String valueName() {
+		return "";
+	}
+
 	public Object get(Object member) {
 		throw new SuException(typeName() + " " + this
 				+ " does not support get " + member);

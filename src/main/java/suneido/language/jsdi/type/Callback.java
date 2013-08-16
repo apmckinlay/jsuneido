@@ -27,8 +27,8 @@ public final class Callback extends ComplexType {
 	// CONSTRUCTORS
 	//
 
-	Callback(String suTypeName, TypeList parameters, ThunkManager thunkManager) {
-		super(TypeId.CALLBACK, suTypeName, parameters);
+	Callback(String valueName, TypeList parameters, ThunkManager thunkManager) {
+		super(TypeId.CALLBACK, valueName, parameters);
 		if (null == thunkManager) {
 			throw new IllegalArgumentException("thunkManager cannot be null");
 		}
@@ -51,7 +51,7 @@ public final class Callback extends ComplexType {
 			}
 		} catch (ProxyResolveException e) {
 			e.setMemberType("parameter");
-			e.setParentName(suTypeName);
+			e.setParentName(valueName());
 			throw new JSDIException(e);
 		}
 		return marshallPlan;
