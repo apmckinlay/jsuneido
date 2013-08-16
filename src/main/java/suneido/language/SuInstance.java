@@ -192,10 +192,6 @@ public class SuInstance extends SuValue {
 
 	@Override
 	public int hashCode() {
-		// Like SuContainer, SuInstance can be self-referential because its
-		// instance variables can contain self-references. This implementation
-		// of hashCode() is mainly stolen from java.util.Hashtable.hashCode(),
-		// which also handled self-reference. [See on GrepCode]
 		int h = 31 * ivars.size() + myclass.hashCode();
 		if (ivars.size() <= 10) {
 			for (Map.Entry<String, Object> entry : ivars.entrySet()) {
