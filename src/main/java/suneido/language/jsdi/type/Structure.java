@@ -6,6 +6,7 @@ import suneido.SuContainer;
 import suneido.SuValue;
 import suneido.language.BuiltinMethods;
 import suneido.language.Ops;
+import suneido.language.Params;
 import suneido.language.SuCallable;
 import suneido.language.jsdi.*;
 import suneido.language.jsdi.dll.CallGroup;
@@ -251,6 +252,7 @@ public final class Structure extends ComplexType {
 	 * @param memberName String identifying the member to be modified
 	 * @param value Value to assign to the member to be modified 
 	 */
+	@Params("address, member_name, value")
 	public static Object Modify(Object self, Object address, Object memberName,
 			Object value) {
 		throw new RuntimeException("not implemented");
