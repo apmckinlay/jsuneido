@@ -122,6 +122,7 @@ public class Builtins {
 			.put("String?", function(StringQ.class))
 			.put("Struct?", function(StructQ.class))
 			.put("Sub", function(Sub.class))
+			.put("SymbolsInfo", function(SymbolsInfo.class))
 			.put("Synchronized", function(Synchronized.class))
 			.put("System", function(SystemFunction.class))
 			.put("SystemMemory", function(SystemMemory.class))
