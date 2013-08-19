@@ -9,6 +9,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import suneido.SuContainer;
+import suneido.SuException;
 import suneido.language.Compiler;
 import suneido.language.ContextLayered;
 import suneido.language.jsdi.JSDIException;
@@ -335,6 +336,14 @@ public class CallbackTest {
 		);
 	}
 
+	@Test
+	public void testAtParam() {
+		assertEquals(
+			3,
+			eval("TestInvokeCallback_Long2(function(@a) { s = 0; for (b in a) s += b; return s; }, 1, 2)")
+		);
+	}
+
 	//
 	// TYPES THAT CAN'T BE MARSHALLED OUT OF CALLBACK
 	//
@@ -360,13 +369,124 @@ public class CallbackTest {
 	// PARAMETER MISMATCHES
 	//
 
+	@Test
+	public void testExceptionParamMismatch() {
+		assertThrew(new Runnable() {
+			public void run() {
+				eval("TestInvokeCallback_Long1(function(x) { x.Add('y') }, 2)");
+			}
+		}, SuException.class, "method not found:.*Add");
+	}
+
 	//
 	// BAD RETURN VALUES
 	//
 
+	@Test
+	public void testExceptionReturnValueNone_Basic() {
+		assertEquals(0, eval("TestInvokeCallback_Long1(function(@x) { }, 1)"));
+	}
+
+	@Test
+	public void testExceptionReturnValueNone_Vi() {
+		assertEquals(0, eval("TestInvokeCallback_Recursive_StringSum(function(x) { return }, Object())"));
+	}
+
+	@Test
+	public void testExceptionReturnValueNotConvertible() {
+		assertThrew(new Runnable() {
+			public void run() {
+				eval("TestInvokeCallback_Long1(function(a) { return 'Michalek/Spezza/Ryan' }, 2)");
+			}
+		}, SuException.class, "can't convert");
+	}
+
 	//
 	// EXCEPTION PROPAGATION
 	//
+
+	@Test
+	public void testExceptionThrowBasic() {
+		// Straightforward test -- make sure it works as a one-off
+		assertThrew(new Runnable() {
+			public void run() {
+				eval("TestInvokeCallback_Long1(function(a) { throw a }, 444)");
+			}
+		}, SuException.class, "444");
+		// In case exception throwing causes subtle problems which might be
+		// detected later, run a stress test...
+		for (int k = 0; k < 100; ++k) {
+			int x = k;
+			int y = k + 1;
+			String expected = String.format("#\\(%d, %d\\)", x, y); // escape parentheses for regex
+			final String code = String
+					.format("TestInvokeCallback_Long2(function(@a) { throw Display(a) }, %d, %d)",
+							x, y);
+			assertThrew(new Runnable() {
+				public void run() {
+					eval(code);
+				}
+			}, SuException.class, expected);
+		}
+	}
+
+	@Test
+	public void testExceptionThrowVi() {
+		assertThrew(new Runnable() {
+			public void run() {
+				eval(
+						"TestInvokeCallback_Recursive_StringSum(" +
+								"{ |x| throw SuTestSumString(x) }, " +
+								"RSS(PCCSL(102, -1, 0, -1), PCCSL(1, 1, 1, 97), '55', inner: RSS(PCCSL(50, 50, 50, 50), PCCSL(0, 0, 25, 25), '50'))" +
+						")"
+				);
+			}
+		}, SuException.class, "555");
+	}
+
+	@Test
+	public void testExceptionReEntrantBasic() {
+		final String code =
+			"f = function(n)\n" +
+			"\t{\n" +
+			"\tif 0 < n\n" +
+			"\t\t{\n" +
+			"\t\ttry\n" +
+			"\t\t\tTestInvokeCallback_Long1(this, n - 1)\n" +
+			"\t\tcatch (x)\n" +
+			"\t\t\tthrow x + 1\n" +
+			"\t\t}\n" +
+			"\telse throw 0\n" +
+			"\t}\n" +
+			"f(20)";
+		assertThrew(new Runnable() {
+			public void run() {
+				eval(code);
+			}
+		}, SuException.class, "20");
+	}
+
+	@Test
+	public void testExceptionReEntrantVi() {
+		final String code =
+			"g = function(rss)\n" +
+			"\t{\n" +
+			"\tif 0 < rss.str\n" +
+			"\t\t{\n" +
+			"\t\ttry\n" +
+			"\t\t\tTestInvokeCallback_Recursive_StringSum(this, RSS(Object(), Object(), str: rss.str - 1))\n" +
+			"\t\tcatch (x)\n" +
+			"\t\t\tthrow x + 1\n" +
+			"\t\t}\n" +
+			"\telse throw 0\n" +
+			"\t}\n" +
+			"g(RSS(Object(), Object(), str: '15'))";
+		assertThrew(new Runnable() {
+			public void run() {
+				eval(code);
+			}
+		}, SuException.class, "15");
+	}
 
 	//
 	// RE-ENTRANT CALLBACKS

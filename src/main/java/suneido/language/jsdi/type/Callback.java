@@ -37,6 +37,20 @@ public final class Callback extends ComplexType {
 	}
 
 	//
+	// INTERNALS
+	//
+
+	private static int toInt(Object result) {
+		if (null == result) {
+			// For consistency with CSuneido, a 'null' return value (failure to
+			// return any value, as in 'function() { }' or
+			// 'function() { return }') should send back 0 to the invoking DLL.
+			return 0;
+		}
+		return Ops.toInt(result);
+	}
+
+	//
 	// ACCESSORS
 	//
 
@@ -73,7 +87,7 @@ public final class Callback extends ComplexType {
 		Marshaller marshaller = marshallPlan.makeUnMarshaller(argsIn);
 		Object[] argsOut = typeList.marshallOutParams(marshaller);
 		Object result = boundValue.call(argsOut);
-		return Ops.toInt(result);
+		return toInt(result);
 	}
 
 	/**
@@ -99,7 +113,7 @@ public final class Callback extends ComplexType {
 				viInstArray);
 		Object[] argsOut = typeList.marshallOutParams(marshaller);
 		Object result = boundValue.call(argsOut);
-		return Ops.toInt(result);
+		return toInt(result);
 	}
 
 	//
