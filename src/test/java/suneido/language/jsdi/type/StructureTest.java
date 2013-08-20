@@ -81,8 +81,8 @@ public class StructureTest {
 			//
 		"Packed_CharCharShortLong", "struct { char a; char b; short c; long d; }",
 		"Recursive_StringSum1",
-			"struct { Packed_CharCharShortLong[2] x; string str; buffer buf; long len; Recursive_StringSum2 * inner }",
-		"Recursive_StringSum2",
+			"struct { Packed_CharCharShortLong[2] x; string str; buffer buf; long len; Recursive_StringSum0 * inner }",
+		"Recursive_StringSum0",
 			"struct { Packed_CharCharShortLong[2] x; string str; buffer buf; long len; long setToZero }",
 		"CycleA", "struct { CycleB cycleB }",
 		"CycleB", "struct { CycleA cycleA }",
@@ -212,10 +212,32 @@ public class StructureTest {
 	}
 
 	@Test
+	public void testCallOnBuffer() {
+		assertEquals(eval("#(left:0,top:0,right:0,bottom:0)"),
+				eval("RECT(Buffer(RECT.Size(), ''))"));
+		assertEquals(
+				eval("#(x: 1, y: 1)"),
+				eval("POINT(Buffer(POINT.Size(), '\\x01\\x00\\x00\\x00\\x01'))"));
+		assertEquals(
+				eval("#(a:1, b:-1, c:2, d:-2)"),
+				eval("Packed_CharCharShortLong(Packed_CharCharShortLong(Object(a:1, b:-1, c:2, d:-2)))")
+		);
+	}
+
+	@Test
 	public void testCallOnObject_NoIndirect() {
 		assertThrew(new Runnable() {
 			public void run() {
 				eval("ThreeTierStruct(Object())");
+			}
+		}, JSDIException.class, "does not support.*pointers");
+	}
+
+	@Test
+	public void testCallOnBuffer_NoIndirect() {
+		assertThrew(new Runnable() {
+			public void run() {
+				eval("ThreeTierStruct(Buffer(100, ''))");
 			}
 		}, JSDIException.class, "does not support.*pointers");
 	}
@@ -235,6 +257,35 @@ public class StructureTest {
 				eval("StringStruct2(Object(a: Object()))");
 			}
 		}, JSDIException.class, "does not support.*pointers");
+	}
+
+	@Test
+	public void testCallOnBuffer_NoVariableIndirect() {
+		for (String s : new String[] { "string", "buffer", "resource" } ) {
+			final String code = String.format("(struct { %s x })(Buffer(100, ''))", s);
+			assertThrew(new Runnable() {
+				public void run() {
+					eval(code);
+				}
+			}, JSDIException.class, "does not support.*pointers");
+		}
+		assertThrew(new Runnable() {
+			public void run() {
+				eval("StringStruct2(Buffer(100, ''))");
+			}
+		}, JSDIException.class, "does not support.*pointers");
+	}
+
+	@Test
+	public void testCallOnString() {
+		for (final String s : new String[] { "(struct { short a })", "RECT",
+				"Recursive_StringSum1" }) {
+			assertThrew(new Runnable() {
+				public void run() {
+					eval(String.format("%s('\\x00'.Repeat(200))", s));
+				}
+			}, JSDIException.class, "does not support Struct\\(string\\)");
+		}
 	}
 
 	// NOTE: tests for Structure() -- i.e. Structure.call1(Object) -- are in

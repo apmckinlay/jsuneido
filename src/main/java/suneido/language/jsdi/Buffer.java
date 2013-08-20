@@ -93,7 +93,9 @@ public final class Buffer extends JSDIValue implements CharSequence {
 		return false;
 	}
 
-	byte[] getInternalData() {
+	// TODO: docs
+	// TODO: make this public to support Structure(Buffer)
+	public byte[] getInternalData() {
 		return data;
 	}
 
