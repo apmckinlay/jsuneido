@@ -1,10 +1,12 @@
 package suneido.language.builtin;
 
 /**
- * Implements the {@code SymbolsInfo} built-in.
+ * Implements the {@code SymbolsInfo()} built-in.
  * 
  * @author Victor Schappert
  * @since 20130819
+ * @see GlobalsInfo
+ * @see ThreadCount
  */
 public final class SymbolsInfo {
 
