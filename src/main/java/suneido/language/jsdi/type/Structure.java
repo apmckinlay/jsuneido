@@ -97,6 +97,26 @@ public final class Structure extends ComplexType {
 		return new Buffer(data, 0, data.length);
 	}
 
+	private Object fromBuffer(Buffer data) {
+		MarshallPlan p = getMarshallPlan();
+		if (!p.isDirectOnly()) {
+			throw new JSDIException(
+					String.format(
+							"jSuneido does not support %s(Buffer) because structure %1$s contains pointers",
+							valueName()
+					));
+		} else if (data.length() < getSizeDirectIntrinsic()) {
+			throw new JSDIException(
+					String.format(
+							"Buffer has length %d but size of %s is %d",
+							data.length(), valueName(), getSizeDirectIntrinsic()
+					));
+		} else {
+			Marshaller m = p.makeUnMarshaller(data.getInternalData());
+			return marshallOut(m, null);
+		}
+	}
+
 	//
 	// ANCESTOR CLASS: ComplexType
 	//
@@ -201,8 +221,13 @@ public final class Structure extends ComplexType {
 			if (0 != ptr) {
 				return copyOut(ptr);
 			}
-		} else if (arg instanceof CharSequence || arg instanceof Buffer) {
-			throw new JSDIException("jSuneido does not support Struct(string)");
+		} else if (arg instanceof Buffer) {
+			return fromBuffer((Buffer)arg);
+		} else if (arg instanceof String) {
+			// Struct(string) is deliberately not supported because, while
+			// Buffers are currently guaranteed to be 1 byte per character,
+			// there is no such guarantee for jSuneido strings.
+			throw new JSDIException("jSuneido does not support Struct(string) - use a Buffer");
 		} else {
 			final SuContainer c = Ops.toContainer(arg);
 			if (null != c) {
