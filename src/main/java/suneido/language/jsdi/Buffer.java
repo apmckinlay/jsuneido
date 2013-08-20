@@ -278,13 +278,41 @@ public final class Buffer extends JSDIValue implements CharSequence {
 	 * Built-in size method. <em>eg</em>: {@code Buffer(10, "abc").Size()}. The
 	 * requirements for built-in methods are documented in
 	 * {@link suneido.language.BuiltinMethods}.
-	 * @param self The structure.
-	 * @return Integer size of the structure in bytes.
+	 * @param self The buffer
+	 * @return Integer size of the buffer in bytes
 	 * @see suneido.language.BuiltinMethods
 	 */
-	public static Object Size(Object self) {
+	public static Integer Size(Object self) {
 		Buffer buffer = (Buffer)self;
 		return buffer.length();
+	}
+
+	/**
+	 * <p>
+	 * Built-in multi-byte character to wide-character method.
+	 * </p>
+	 * <p>
+	 * <strong>NOTE</strong> that this method exists for compatibility with
+	 * {@code CSuneido}. It currently has a trivial implementation which assumes
+	 * the input is 8-bit Windows-1252 characters. Unlike in CSuneido, this
+	 * method is only available instances of {@code Buffer}, rather than for all
+	 * strings. The output is always 16-bit little-endian Unicode characters.
+	 * </p>
+	 * @param self A buffer containing multi-byte characters
+	 * @return A new buffer containing the wide-character equivalent of the
+	 * buffer's contents
+	 * @see #Size(Object)
+	 * @see suneido.language.BuiltinMethods
+	 */
+	public static Buffer Mbstowcs(Object self) {
+		Buffer buffer = (Buffer)self;
+		byte[] x = buffer.data;
+		byte[] y = new byte[2 * x.length];
+		int i = 0, j = 0;
+		for (; i < x.length; ++i, j += 2) {
+			y[j] = x[i];
+		}
+		return new Buffer(y, 0, y.length);
 	}
 
 	//
