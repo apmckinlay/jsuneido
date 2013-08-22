@@ -4,6 +4,8 @@
 
 package suneido.language;
 
+import static suneido.language.FunctionSpec.NA;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -90,9 +92,16 @@ public class SuInstance extends SuValue {
 		return new SuInstance((SuInstance) self);
 	}
 
-	@Params("key")
-	public static Object Delete(Object self, Object a) {
-		return ((SuInstance) self).ivars.remove(a) == null ? false : self;
+	@Params("key=NA, all=NA")
+	public static Object Delete(Object self, Object key, Object all) {
+		if ((key == NA) == (all == NA))
+			throw new SuException("usage: object.Delete(field) or object.Delete(all:)");
+		if (key != NA)
+			return ((SuInstance) self).ivars.remove(key) == null ? false : self;
+		else {
+			((SuInstance) self).ivars.clear();
+			return self;
+		}
 	}
 
 	public static Object Eval(Object self, Object... args) {
