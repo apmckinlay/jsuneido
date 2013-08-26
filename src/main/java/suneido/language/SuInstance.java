@@ -138,6 +138,10 @@ public class SuInstance extends SuValue {
 	public static SuContainer Members(Object self) {
 		return new SuContainer(((SuInstance) self).ivars.keySet());
 	}
+	
+	public static Object Size(Object self) {
+		return ((SuInstance) self).ivars.size();
+	}
 
 	@Override
 	public String toString() {

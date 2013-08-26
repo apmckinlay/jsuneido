@@ -278,6 +278,12 @@ public class SuClass extends SuValue {
 		Object x = c.get2(method);
 		return x instanceof SuCallable;
 	}
+	
+	public static Object Size(Object self) {
+		return ((SuClass) self).members.size();
+	}
+	
+	//==========================================================================
 
 	private static SuClass toClass(Object x) {
 		if (x instanceof SuInstance)
