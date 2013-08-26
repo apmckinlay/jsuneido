@@ -79,6 +79,7 @@ public class Builtins {
 			.put("Gt", function(Gt.class))
 			.put("Gte", function(Gte.class))
 			.put("Libraries", function(Libraries.class))
+			.put("Locals", function(Locals.class))
 			.put("Lt", function(Lt.class))
 			.put("Lte", function(Lte.class))
 			.put("Lucene", lucene())
