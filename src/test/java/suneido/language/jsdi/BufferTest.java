@@ -144,9 +144,9 @@ public class BufferTest {
 
 	@Test
 	public void testSize() {
-		assertEquals(0, Compiler.eval("Buffer(0, '').Size()"));
-		assertEquals(1, Compiler.eval("Buffer(1, '').Size()"));
-		assertEquals(1, Compiler.eval("Buffer(1, 'a').Size()"));
+		assertEquals(1, Compiler.eval("Buffer(0, '').Size()"));
+		assertEquals(2, Compiler.eval("Buffer(1, '').Size()"));
+		assertEquals(2, Compiler.eval("Buffer(1, 'a').Size()"));
 	}
 
 	@Test(expected=JSDIException.class)
@@ -220,11 +220,13 @@ public class BufferTest {
 					assertEquals(s2.charAt(k), b.charAt(k));
 				}
 				assertThrew(
-						new Runnable() { public void run() { b.charAt(N); } },
+						new Runnable() { @Override
+						public void run() { b.charAt(N); } },
 						IndexOutOfBoundsException.class
 				);
 				assertThrew(
-						new Runnable() { public void run() { b.charAt(-1); } },
+						new Runnable() { @Override
+						public void run() { b.charAt(-1); } },
 						IndexOutOfBoundsException.class
 				);
 			}
@@ -256,11 +258,13 @@ public class BufferTest {
 					}
 				}
 				assertThrew(
-						new Runnable() { public void run() { b.subSequence(0, N + 1); } },
+						new Runnable() { @Override
+						public void run() { b.subSequence(0, N + 1); } },
 						StringIndexOutOfBoundsException.class
 				);
 				assertThrew(
-						new Runnable() { public void run() { b.subSequence(-1, N); } },
+						new Runnable() { @Override
+						public void run() { b.subSequence(-1, N); } },
 						StringIndexOutOfBoundsException.class
 				);
 
@@ -301,7 +305,7 @@ public class BufferTest {
 	public void testGet_RangeTo() {
 		assertEquals("", eval("(Buffer(0, ''))[-1..0]"));
 		assertEquals("", eval("(Buffer(0, ''))[0..0]"));
-		assertEquals("", eval("(Buffer(0, ''))[0..1]"));
+		assertEquals("\u0000", eval("(Buffer(0, ''))[0..1]"));
 		assertEquals("", eval("(Buffer(0, ''))[1..0]"));
 
 		assertEquals("", eval("(Buffer(1, '1'))[0..0]"));
@@ -313,31 +317,31 @@ public class BufferTest {
 		assertEquals("1", eval("(Buffer(2, '1'))[0..1]"));
 		assertEquals("1\u0000", eval("(Buffer(2, '1'))[0..2]"));
 		assertEquals("\u0000", eval("(Buffer(2, '1'))[1..2]"));
-		assertEquals("", eval("(Buffer(2, '1'))[2..3]"));
+		assertEquals("\u0000", eval("(Buffer(2, '1'))[2..3]"));
 	}
 
 	@Test
 	public void testGet_RangeLen() {
 		assertEquals("", eval("(Buffer(0, ''))[0::0]"));
-		assertEquals("", eval("(Buffer(0, ''))[0::1]"));
-		assertEquals("", eval("(Buffer(0, ''))[-1::10]"));
+		assertEquals("\u0000", eval("(Buffer(0, ''))[0::1]"));
+		assertEquals("\u0000", eval("(Buffer(0, ''))[-1::10]"));
 
 		assertEquals("", eval("(Buffer(1, '1'))[0::0]"));
 		assertEquals("1", eval("(Buffer(1, '1'))[0::1]"));
-		assertEquals("", eval("(Buffer(1, '1'))[1::1]"));
+		assertEquals("\u0000", eval("(Buffer(1, '1'))[1::1]"));
 		assertEquals("", eval("(Buffer(1, '1'))[1::0]"));
 
 		assertEquals("", eval("(Buffer(2, '1'))[0::0]"));
 		assertEquals("1", eval("(Buffer(2, '1'))[0::1]"));
 		assertEquals("1\u0000", eval("(Buffer(2, '1'))[0::2]"));
-		assertEquals("1\u0000", eval("(Buffer(2, '1'))[0::]"));
+		assertEquals("1\u0000\u0000", eval("(Buffer(2, '1'))[0::]"));
 		assertEquals("1\u0000", eval("(Buffer(2, '1'))[::2]"));
 		assertEquals("\u0000", eval("(Buffer(2, '1'))[1::1]"));
-		assertEquals("\u0000", eval("(Buffer(2, '1'))[1::2]"));
-		assertEquals("", eval("(Buffer(2, '1'))[2::3]"));
+		assertEquals("\u0000\u0000", eval("(Buffer(2, '1'))[1::2]"));
+		assertEquals("\u0000", eval("(Buffer(2, '1'))[2::3]"));
 		assertEquals("\u0000", eval("(Buffer(2, '1'))[-1::1]"));
 		assertEquals("\u0000", eval("(Buffer(2, '1'))[-1::3]"));
-		assertEquals("1\u0000", eval("(Buffer(2, '1'))[-2::2]"));
+		assertEquals("\u0000\u0000", eval("(Buffer(2, '1'))[-2::2]"));
 	}
 
 	@Test
