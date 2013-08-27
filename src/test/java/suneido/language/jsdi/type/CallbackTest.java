@@ -529,4 +529,21 @@ public class CallbackTest {
 			"f(10)";
 		assertEquals(10, eval(code));
 	}
+
+	//
+	// SELF-CLEARING CALLBACK
+	//
+
+	@Test
+	public void testSelfClearingCallback() {
+		// Callbacks must be able to clear themselves because this is supported
+		// in cSuneido, e.g. by WndProc.NCDESTROY(), so the below operation
+		// should work just fine. 
+		final String code =
+			"f = function(n) " +
+			"{ ClearCallback(this); return 2 * n; }\n" +
+			"TestInvokeCallback_Long1(f, 3)";
+		assertEquals(6, eval(code));
+		assertEquals(eval("#()"), eval("Callbacks()"));
+	}
 }
