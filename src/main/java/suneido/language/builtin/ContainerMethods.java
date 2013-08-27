@@ -232,6 +232,11 @@ public final class ContainerMethods {
 				.iterable(iterWhich(args), IterResult.KEY));
 	}
 
+	@Params("string")
+	public static Object MethodQ(Object self, Object a) {
+		return false;
+	}
+
 	public static Object Size(Object self, Object... args) {
 		Args.massage(FunctionSpec.noParams, args); // args must be named
 		SuContainer c = (SuContainer) self;
