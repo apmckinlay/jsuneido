@@ -78,6 +78,9 @@ public class CallbackTest {
 			"\t}",
 		"TestInvokeCallback_Long1",
 			"dll long jsdi:_TestInvokeCallback_Long1@8(TestCallback_Long1 f, long a)",
+		"TestInvokeCallback_Long1_2",
+			"dll long jsdi:_TestInvokeCallback_Long1_2@16(" +
+					"TestCallback_Long1 f, long a, TestCallback_Long1 g, long b)",
 		"TestInvokeCallback_Long2",
 			"dll long jsdi:_TestInvokeCallback_Long2@12(TestCallback_Long2 f, long a, long b)",
 		"TestInvokeCallback_Packed_CharCharShortLong",
@@ -464,6 +467,29 @@ public class CallbackTest {
 				eval(code);
 			}
 		}, SuException.class, "20");
+	}
+
+	@Test
+	public void testExceptionDouble() {
+		// The purpose of this test is to ensure that there are no JNI warnings
+		// when the following sequence of calls is done:
+		//
+		//     call a 'dll', F()
+		//         F() calls callback x()
+		//             x() throws (in Suneido code, or Java/JNI code)
+		//         F() doesn't know about the exception thrown by x() and wants
+		//             to call a second callback, y(), before F() returns back
+		//             to Suneido.
+		assertThrew(new Runnable() {
+			public void run() {
+				eval("TestInvokeCallback_Long1_2({ throw 'a' }, 1, {  }, 2)");
+			}
+		}, SuException.class, "a");
+		assertThrew(new Runnable() {
+			public void run() {
+				eval("TestInvokeCallback_Long1_2({ throw 'a' }, 1, { throw 'b' }, 2)");
+			}
+		}, SuException.class, "a");
 	}
 
 	@Test
