@@ -338,7 +338,7 @@ public final class Buffer extends JSDIValue implements CharSequence {
 			if (size < 0) {
 				throw new JSDIException("invalid buffer size: " + size);
 			}
-			return new Buffer(size + 1, Ops.toStr(args[1]));
+			return new Buffer(size, Ops.toStr(args[1]));
 		}
 	};
 }
