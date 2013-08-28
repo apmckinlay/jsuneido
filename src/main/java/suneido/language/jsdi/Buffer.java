@@ -46,11 +46,19 @@ public final class Buffer extends JSDIValue implements CharSequence {
 	// CONSTRUCTORS
 	//
 
-	public Buffer(int size, CharSequence str) {
+	public Buffer(int size, String str) {
 		this.data = new byte[size];
 		this.size = size;
-		final int N = Math.min(size, str.length());
-		copyStr(str.toString(), data, 0, N);
+		final int N = str.length();
+		sizeCheck(N);
+		copyStr(str, data, 0, N);
+	}
+
+	public Buffer(int size, Buffer buf) {
+		this.data = new byte[size];
+		this.size = size;
+		sizeCheck(buf.size);
+		System.arraycopy(buf.data, 0, this.data, 0, buf.size);
 	}
 
 	public Buffer(byte[] src, int start, int end) {
@@ -62,6 +70,17 @@ public final class Buffer extends JSDIValue implements CharSequence {
 	Buffer(Buffer other) { // Copy constructor for testing purposes
 		this.data = Arrays.copyOf(other.data, other.data.length);
 		this.size = other.size;
+	}
+
+	//
+	// INTERNALS
+	//
+
+	private void sizeCheck(int minRequired) throws JSDIException {
+		if (size < minRequired) {
+			throw new JSDIException(
+					"Buffer must be large enough for initial string");
+		}
 	}
 
 	//
@@ -335,10 +354,17 @@ public final class Buffer extends JSDIValue implements CharSequence {
 		protected Object newInstance(Object... args) {
 			args = Args.massage(newFS, args);
 			int size = Ops.toInt(args[0]);
-			if (size < 0) {
-				throw new JSDIException("invalid buffer size: " + size);
+			if (size <= 0) {
+				// Per discussion with APM 20130828, Suneido programmer is not
+				// permitted to request a zero-size Buffer explicitly. However,
+				// a Buffer may still be truncated to zero by the marshaller if
+				// passed to a dll parameter taking 'string' type, etc.
+				throw new JSDIException("Buffer size must be greater than zero");
 			}
-			return new Buffer(size, Ops.toStr(args[1]));
+			Object o = args[1];
+			return o instanceof Buffer
+					? new Buffer(size, (Buffer)o)
+					: new Buffer(size, Ops.toStr(o));
 		}
 	};
 }

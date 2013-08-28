@@ -266,7 +266,7 @@ public class DllTest {
 		assertEquals(4, eval("TestStrLen(true)"));  // gets converted to "true"
 		assertEquals(34, eval("TestStrLen('supercalifragilisticexpialidocious')"));
 		assertThrew(
-			new Runnable() { public void run() { eval("TestStrLen(Buffer(0))"); } },
+			new Runnable() { public void run() { eval("TestStrLen(Buffer(1, 'a'))"); } },
 			JSDIException.class, "cannot safely be marshalled"
 		);
 		assertEquals(0, eval("TestStrLen(Buffer(1))"));
@@ -295,7 +295,7 @@ public class DllTest {
 	public void testHelloWorldOutBuffer() {
 		eval("TestHelloWorldOutBuffer(false, 0)");
 		final int N = "hello world".length();
-		for (int k = 0; k <= N + 1; ++k) {
+		for (int k = 1; k <= N + 1; ++k) {
 			String expected = "hello world\u0000\u0000".substring(0, k);
 			String code = String.format(
 				"TestHelloWorldOutBuffer(b = Buffer(%d), b.Size()); b", k);
