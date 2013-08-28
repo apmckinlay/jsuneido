@@ -84,6 +84,7 @@ public class Pack {
 	}
 
 	public static int packSize(String s) {
+		// TODO: Should strings be packed in the future as UTF-16?
 		int n = s.length();
 		return n == 0 ? 0 : 1 + n;
 	}
