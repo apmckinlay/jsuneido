@@ -144,14 +144,32 @@ public class BufferTest {
 
 	@Test
 	public void testSize() {
-		assertEquals(0, Compiler.eval("Buffer(0, '').Size()"));
+		assertEquals(0, new Buffer(0, "").length());
+		assertEquals(1, Compiler.eval("Buffer(1).Size()"));
 		assertEquals(1, Compiler.eval("Buffer(1, '').Size()"));
 		assertEquals(1, Compiler.eval("Buffer(1, 'a').Size()"));
 	}
 
 	@Test(expected=JSDIException.class)
-	public void testInvalidSize() {
+	public void testSizeCantBeExplicitlyZero() {
+		Compiler.eval("Buffer(0)");
+	}
+
+	@Test(expected=JSDIException.class)
+	public void testSizeInvalid() {
 		Compiler.eval("Buffer(-123.3, 'string');");
+	}
+
+	@Test
+	public void testSizeBigEnoughForContents() {
+		for (final String s : new String[] { "Buffer(2)", "'ab'" }) {
+			assertThrew(new Runnable() {
+				public void run() {
+					String code = String.format("Buffer(1, %s)", s);
+					Compiler.eval(code);
+				}
+			}, JSDIException.class, "Buffer must be large enough for initial");
+		}
 	}
 
 	@Test
@@ -303,11 +321,6 @@ public class BufferTest {
 
 	@Test
 	public void testGet_RangeTo() {
-		assertEquals("", eval("(Buffer(0, ''))[-1..0]"));
-		assertEquals("", eval("(Buffer(0, ''))[0..0]"));
-		assertEquals("", eval("(Buffer(0, ''))[0..1]"));
-		assertEquals("", eval("(Buffer(0, ''))[1..0]"));
-
 		assertEquals("", eval("(Buffer(1, '1'))[0..0]"));
 		assertEquals("1", eval("(Buffer(1, '1'))[0..1]"));
 		assertEquals("", eval("(Buffer(1, '1'))[1..1]"));
@@ -322,10 +335,6 @@ public class BufferTest {
 
 	@Test
 	public void testGet_RangeLen() {
-		assertEquals("", eval("(Buffer(0, ''))[0::0]"));
-		assertEquals("", eval("(Buffer(0, ''))[0::1]"));
-		assertEquals("", eval("(Buffer(0, ''))[-1::10]"));
-
 		assertEquals("", eval("(Buffer(1, '1'))[0::0]"));
 		assertEquals("1", eval("(Buffer(1, '1'))[0::1]"));
 		assertEquals("", eval("(Buffer(1, '1'))[1::1]"));
@@ -346,6 +355,6 @@ public class BufferTest {
 
 	@Test
 	public void testType() {
-		assertEquals("Buffer", eval("Type(Buffer(0, ''))"));
+		assertEquals("Buffer", eval("Type(Buffer(1, ''))"));
 	}
 }

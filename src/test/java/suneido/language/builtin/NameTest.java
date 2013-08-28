@@ -97,8 +97,8 @@ public class NameTest {
 	@DllInterface
 	public void testJSDILocal() {
 		Assumption.jvmIs32BitOnWindows();
-		test("Name(Buffer(0, ''))", "");
-		test("Name(x = Buffer(0, ''))", "");
+		test("Name(Buffer(1, ''))", "");
+		test("Name(x = Buffer(1, ''))", "");
 //		test("Name(struct { char x })", "");      FIXME: This test case should work, as it does on CSuneido
 //		test("Name(x = struct { char x })", "");  FIXME: This test case should work, as it does on CSuneido
 //		test("Name(callback())", "");             FIXME: This test case should work, as it does on CSuneido
