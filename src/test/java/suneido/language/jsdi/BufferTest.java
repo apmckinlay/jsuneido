@@ -3,9 +3,12 @@ package suneido.language.jsdi;
 import static org.junit.Assert.*;
 import static suneido.util.testing.Throwing.assertThrew;
 
+import java.nio.ByteBuffer;
+
 import org.junit.Test;
 
 import suneido.language.Compiler;
+import suneido.language.Pack;
 
 /**
  * Test for {@link Buffer}.
@@ -356,5 +359,22 @@ public class BufferTest {
 	@Test
 	public void testType() {
 		assertEquals("Buffer", eval("Type(Buffer(1, ''))"));
+	}
+
+	@Test
+	public void testPackSize() {
+		assertEquals(0, new Buffer(0, "").packSize());
+		for (Buffer b : SOME_BUFFERS) {
+			assertEquals(b.packSize(), Pack.packSize(b.toString()));
+		}
+	}
+
+	@Test
+	public void testPacking() {
+		for (Buffer b : SOME_BUFFERS) {
+			ByteBuffer bb = Pack.pack(b);
+			Object u = Pack.unpack(bb);
+			assertEquals(b.toString(), u);
+		}
 	}
 }

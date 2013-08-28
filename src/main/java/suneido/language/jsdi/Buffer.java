@@ -3,6 +3,7 @@ package suneido.language.jsdi;
 import static suneido.util.Util.array;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Map;
 
@@ -226,6 +227,40 @@ public final class Buffer extends JSDIValue implements CharSequence {
 			return new String(data, start, end - start, BUFFER_ENCODING);
 		} catch (UnsupportedEncodingException e ) {
 			throw new JSDIException("can't convert buffer to string", e);
+		}
+	}
+
+	//
+	// INTERFACE: Packable
+	//
+
+	/**
+	 * At the moment, {@code Buffer} is packed as if it were a string, and
+	 * strings are packed as if they are arrays of 8-bit characters.
+	 *
+	 * @since 20130828
+	 * @see #pack(ByteBuffer)
+	 * @see Pack#packSize(String)
+	 * @see Concats#packSize(int)
+	 */
+	@Override
+	public int packSize(int nest) {
+		return 0 == size ? 0 : 1 + size;
+	}
+
+	/**
+	 * At the moment, {@code Buffer} is packed as if it were a string, and
+	 * strings are packed as if they are arrays of 8-bit characters.
+	 *
+	 * @since 20130828
+	 * @see #packSize(int)
+	 * @see Concats#pack(ByteBuffer)
+	 */
+	@Override
+	public void pack(ByteBuffer buf) {
+		if (0 < size) {
+			buf.put(Pack.Tag.STRING);
+			buf.put(data, 0, size);
 		}
 	}
 
