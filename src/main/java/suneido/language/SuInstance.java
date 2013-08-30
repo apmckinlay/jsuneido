@@ -208,15 +208,15 @@ public class SuInstance extends SuValue {
 		int h = 31 * ivars.size() + myclass.hashCode();
 		if (ivars.size() <= 10) {
 			for (Map.Entry<String, Object> entry : ivars.entrySet()) {
-				h = 31 * h + (Ops.hashCodeContrib(entry.getKey(), 0) ^
-							Ops.hashCodeContrib(entry.getValue(), 0));
+				h = 31 * h + (Ops.hashCodeContrib(entry.getKey()) ^
+							Ops.hashCodeContrib(entry.getValue()));
 			}
 		}
 		return h;
 	}
 
 	@Override
-	public int hashCodeContrib(int nest) {
+	public int hashCodeContrib() {
 		return 31 * ivars.size() + myclass.hashCode();
 	}
 
