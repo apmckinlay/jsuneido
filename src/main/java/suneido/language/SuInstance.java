@@ -16,8 +16,15 @@ import suneido.language.builtin.ContainerMethods;
 import suneido.util.PairStack;
 
 /**
- * An instance of a Suneido class
- * (which will be an instance of {@link SuClass})
+ * <p>
+ * An instance of a Suneido class. The class itself is represented by an
+ * instance of {@link SuClass}.
+ * </p>
+ * <p>
+ * NOTE: In cSuneido, there is no explicit {@code SuInstance} and class
+ * instances are represented by {@code SuObject}s. See, <em>eg</em>
+ * {@code SuObject::myclass}.
+ * </p>
  */
 // FIXME: Deal with thread safety issues
 public class SuInstance extends SuValue {
@@ -205,19 +212,7 @@ public class SuInstance extends SuValue {
 
 	@Override
 	public int hashCode() {
-		int h = 31 * ivars.size() + myclass.hashCode();
-		if (ivars.size() <= 10) {
-			for (Map.Entry<String, Object> entry : ivars.entrySet()) {
-				h = 31 * h + (Ops.hashCodeContrib(entry.getKey()) ^
-							Ops.hashCodeContrib(entry.getValue()));
-			}
-		}
-		return h;
-	}
-
-	@Override
-	public int hashCodeContrib() {
-		return 31 * ivars.size() + myclass.hashCode();
+		return myclass.hashCode();
 	}
 
 	@Override
