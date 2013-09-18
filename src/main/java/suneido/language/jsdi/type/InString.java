@@ -1,3 +1,7 @@
+/* Copyright 2013 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.jsdi.type;
 
 import static suneido.language.jsdi.VariableIndirectInstruction.NO_ACTION;
