@@ -10,7 +10,10 @@ import static suneido.language.FunctionSpec.NA;
 import static suneido.language.Ops.toInt;
 import static suneido.util.Util.array;
 
-import java.util.*;
+import java.util.ConcurrentModificationException;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import suneido.*;
 import suneido.SuContainer.IterResult;
@@ -130,9 +133,7 @@ public final class ContainerMethods {
 		Object arg = iter.next();
 		if (!(arg instanceof SuValue))
 			throw new SuException("usage: object.Eval requires callable");
-		// BUG copyOfRange won't work in all cases e.g. @args
-		return ((SuValue) arg).eval(self,
-				Arrays.copyOfRange(args, 1, args.length));
+		return ((SuValue) arg).eval(self, iter.rest());
 	}
 
 	@Params("value")

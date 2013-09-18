@@ -6,8 +6,6 @@ package suneido.language;
 
 import suneido.SuValue;
 
-import com.google.common.base.Objects;
-
 /**
  * A method bound to an instance.
  */
@@ -48,13 +46,12 @@ public class SuBoundMethod extends SuCallable {
 		if (! (other instanceof SuBoundMethod))
 			return false;
 		SuBoundMethod that = (SuBoundMethod) other;
-		return Objects.equal(method, that.method) &&
-				Objects.equal(instance, that.instance);
+		return instance == that.instance && method.equals(that.method);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hashCode(instance, method);
+		return 31 * System.identityHashCode(instance) + method.hashCode();
 	}
 
 	@Override

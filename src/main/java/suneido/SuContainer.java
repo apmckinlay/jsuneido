@@ -315,20 +315,20 @@ public class SuContainer extends SuValue
 			// The nice thing about vectors: they have a canonical ordering, so
 			// we know we can satisfy the hashCode() contract by just looking at
 			// an arbitrary number of elements.
-			h = 31 * h + Ops.hashCodeContrib(vec.get(0), 0);
+			h = 31 * h + Ops.hashCodeContrib(vec.get(0));
 		} else if (map.size() <= 5) {
 			// The nasty thing about maps: no canonical ordering. If we want to
 			// look at any of the members, we have to look at all of them.
 			for (Map.Entry<Object, Object> entry : map.entrySet()) {
-				h = 31 * h + Ops.hashCodeContrib(entry.getKey(), 0)
-						^ Ops.hashCodeContrib(entry.getValue(), 0);
+				h = 31 * h + Ops.hashCodeContrib(entry.getKey())
+						^ Ops.hashCodeContrib(entry.getValue());
 			}
 		}
 		return h;
 	}
 
 	@Override
-	public int hashCodeContrib(int nest) {
+	public int hashCodeContrib() {
 		return 31 * 31 * vec.size() + 31 * map.size()
 				+ SuContainer.class.hashCode();
 	}

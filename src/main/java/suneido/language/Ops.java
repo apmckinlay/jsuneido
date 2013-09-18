@@ -559,9 +559,9 @@ public final class Ops {
 		return "";
 	}
 
-	public static int hashCodeContrib(Object x, int nest) {
+	public static int hashCodeContrib(Object x) {
 		if (x instanceof SuValue) {
-			return ((SuValue)x).hashCodeContrib(nest);
+			return ((SuValue)x).hashCodeContrib();
 		} else {
 			return x.hashCode();
 		}

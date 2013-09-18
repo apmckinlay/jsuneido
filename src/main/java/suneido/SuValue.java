@@ -44,7 +44,7 @@ public abstract class SuValue implements Packable {
 	 * immediately inside the container being hashed, and so on
 	 * @return Contribution of {@code this} to the container's hash code
 	 */
-	public int hashCodeContrib(int nest) {
+	public int hashCodeContrib() {
 		return hashCode();
 	}
 
