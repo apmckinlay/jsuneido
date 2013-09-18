@@ -25,7 +25,7 @@ public class SuClass extends SuValue {
 	private final String name;
 	private final String baseGlobal; // TODO could be int slot
 	private final Map<String, Object> members; // must be synchronized
-	private boolean hasGetters = true; // till we know different
+	private boolean hasGet_ = true; // till we know different
 	private static final Map<String, SuCallable> basicMethods =
 			BuiltinMethods.methods(SuClass.class);
 	private static final BuiltinMethods userGeneralMethods = new BuiltinMethods(
@@ -45,21 +45,28 @@ public class SuClass extends SuValue {
 	}
 
 	public Object get(SuValue self, Object member) {
+		Object value = get1(self, member);
+		if (value == null)
+			throw new SuException("member not found: " + member);
+		return value;
+	}
+
+	public Object get1(SuValue self, Object member) {
 		Object value = get2(member);
 		if (value != null)
 			return value instanceof SuCallable && self != null
 					? new SuBoundMethod(self, (SuCallable) value) : value;
-		if (hasGetters) {
-			String getter = ("Get_" + member).intern();
-			value = get2(getter);
-			if (value instanceof SuCallable)
-				return ((SuCallable) value).eval(self);
+		if (hasGet_) {
 			value = get2("Get_");
 			if (value instanceof SuCallable)
 				return ((SuCallable) value).eval(self, member);
-			hasGetters = false;
+			hasGet_ = false; // avoid future attempts
 		}
-		throw new SuException("member not found: " + member);
+		String getter = ("Get_" + member).intern();
+		value = get2(getter);
+		if (value instanceof SuCallable)
+			return ((SuCallable) value).eval(self);
+		return null;
 	}
 
 	protected Object get2(Object member) {
@@ -222,12 +229,11 @@ public class SuClass extends SuValue {
 
 	@Params("key, block")
 	public static Object GetDefault(Object self, Object a, Object b) {
-			return ((SuClass) self).getDefault(a, b);
+			return ((SuClass) self).getDefault(self, a, b);
 	}
 
-	public Object getDefault(Object k, Object b) {
-		String key = Ops.toStr(k);
-		Object x = members.get(key);
+	public Object getDefault(Object self, Object key, Object b) {
+		Object x = get1((SuValue) self, key);
 		if (x != null)
 			return x;
 		return SuCallable.isBlock(b) ? Ops.call(b) : b;

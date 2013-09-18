@@ -128,7 +128,7 @@ public class SuInstance extends SuValue {
 		Object x = ivars.get(k);
 		if (x != null)
 			return x;
-		return myclass.getDefault(k, b);
+		return myclass.getDefault(this, k, b);
 	}
 
 	@Params("key")
