@@ -175,25 +175,50 @@ public class ClassTest {
 	@Test public void test_static_getter() {
 		define("A", "class { " +
 				"Get_N() { 'getter' }" +
-				"Get_(m) { 'get ' $ m }" +
 				" }");
 		test("A.N", "'getter'");
-		test("A.X", "'get X'");
+		notFound("A.X");
+		
 		define("B", "A { }");
 		test("B.N", "'getter'");
+		notFound("B.X");
+		
+		define("A", "class { " +
+				"Get_N() { 'getter' }" + // will never be used
+				"Get_(m) { 'get ' $ m }" +
+				" }");
+		test("A.N", "'get N'");
+		test("A.X", "'get X'");
+		
+		define("B", "A { }");
+		test("B.N", "'get N'");
 		test("B.X", "'get X'");
+
 	}
 	@Test public void test_instance_getter() {
 		define("A", "class { "
 				+ "New(x) { .X = x } "
 				+ "Get_N() { .X $ ' getter' } "
-				+ "Get_(m) { .X $ ' get ' $ m } "
 				+ "}");
 		test("A(1).N", "'1 getter'");
-		test("A(1).Z", "'1 get Z'");
+		notFound("A(1).Z");
+		
 		define("B", "A { }");
 		test("B(2).N", "'2 getter'");
+		notFound("B(2).Z");
+		
+		define("A", "class { "
+				+ "New(x) { .X = x } "
+				+ "Get_N() { .X $ ' getter' } " // will never be used
+				+ "Get_(m) { .X $ ' get ' $ m } "
+				+ "}");
+		test("A(1).N", "'1 get N'");
+		test("A(1).Z", "'1 get Z'");
+		
+		define("B", "A { }");
+		test("B(2).N", "'2 get N'");
 		test("B(2).Z", "'2 get Z'");
+
 	}
 	@Test public void test_private_instance_getter() {
 		define("A", "class { "
