@@ -1,7 +1,7 @@
 -injars jsuneido-raw.jar
 -injars lib/asm-all-4.0.jar (!META-INF/MANIFEST.MF)
 -injars lib/jsr305-1.3.9.jar (!META-INF/MANIFEST.MF)
--injars lib/guava-14.0.1.jar (!META-INF/MANIFEST.MF)
+-injars lib/guava-15.0.jar (!META-INF/MANIFEST.MF)
 -injars lib/trove-3.0.3.jar (!META-INF/MANIFEST.MF)
 -libraryjars lib/lucene-core-3.6.1.jar
 -libraryjars  <java.home>/lib/rt.jar
