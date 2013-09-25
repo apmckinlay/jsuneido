@@ -271,6 +271,7 @@ public class Lexer {
 	}
 
 	private Token value(Token token) {
+		// use copy constructor to avoid reference to source
 		value = new String(source.substring(prev, si));
 		return token;
 	}
@@ -318,6 +319,10 @@ public class Lexer {
 
 	public int end() {
 		return si;
+	}
+
+	public int length() {
+		return si - prev;
 	}
 
 	public String matched() {
