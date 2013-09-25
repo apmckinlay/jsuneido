@@ -74,8 +74,8 @@ public enum Token {
 	CLOSURE,
 	// for AST (DLL interface)
 	@DllInterface VALUETYPE, @DllInterface ARRAYTYPE,
-	@DllInterface POINTERTYPE, 
-	
+	@DllInterface POINTERTYPE,
+	// TODO include long, bool, etc. for compatibility with cSuneido Scanner
 	;
 
 	Token other;

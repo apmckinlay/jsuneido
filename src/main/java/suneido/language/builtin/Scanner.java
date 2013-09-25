@@ -22,8 +22,12 @@ public class Scanner extends SuValue implements Iterable<String>, Iterator<Strin
 	}
 
 	public static Object Position(Object self) {
-			return ((Scanner) self).lexer.end();
-	}
+		return ((Scanner) self).lexer.end();
+}
+
+	public static Object Length(Object self) {
+		return ((Scanner) self).lexer.length();
+}
 
 	public static Object Type(Object self) {
 			return ((Scanner) self).token.oldnum;
