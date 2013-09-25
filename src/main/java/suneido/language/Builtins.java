@@ -105,6 +105,7 @@ public class Builtins {
 			.put("Query1", new Query1())
 			.put("QueryFirst", new QueryFirst())
 			.put("QueryLast", new QueryLast())
+			.put("QueryScanner", QueryScanner.clazz)
 			.put("Random", function(Random.class))
 			.put("Record", new RecordClass())
 			.put("Record?", function(RecordQ.class))

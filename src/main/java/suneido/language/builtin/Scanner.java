@@ -8,7 +8,7 @@ import suneido.SuValue;
 import suneido.language.*;
 
 public class Scanner extends SuValue implements Iterable<String>, Iterator<String> {
-	private final Lexer lexer;
+	protected final Lexer lexer;
 	private Token token;
 	private static final BuiltinMethods methods = new BuiltinMethods(Scanner.class);
 
