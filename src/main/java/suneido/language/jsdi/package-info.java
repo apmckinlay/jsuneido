@@ -3,10 +3,9 @@
  */
 
 /**
- * @author Victor Schappert
- * @since 20130621
- *
  * This package contains the types which comprise the JSuneido DLL Interface
  * (JSDI).
+ * @author Victor Schappert
+ * @since 20130621
  */
 package suneido.language.jsdi;
