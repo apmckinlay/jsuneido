@@ -1,9 +1,6 @@
 package suneido.language.builtin;
 
-import suneido.language.Args;
-import suneido.language.BuiltinClass;
-import suneido.language.FunctionSpec;
-import suneido.language.Ops;
+import suneido.language.*;
 
 public class QueryScanner extends Scanner {
 	
@@ -19,5 +16,11 @@ public class QueryScanner extends Scanner {
 			return new QueryScanner(Ops.toStr(args[0]));
 		}
 	};
+	
+	// not quite correct since this will include language only keywords
+	// e.g. dll stuff
+	protected boolean isKeyword() {
+		return lexer.getKeyword() != Token.NIL;
+	}
 
 }

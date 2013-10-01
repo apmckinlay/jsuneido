@@ -21,6 +21,16 @@ public class Scanner extends SuValue implements Iterable<String>, Iterator<Strin
 		return methods.lookup(method);
 	}
 
+	public static Object Next(Object self) {
+		String s = ((Scanner) self).next();
+		return s == null ? self : s;
+}
+
+	public static Object Next2(Object self) {
+		String s = ((Scanner) self).next2();
+		return s == null ? self : s;
+}
+
 	public static Object Position(Object self) {
 		return ((Scanner) self).lexer.end();
 }
@@ -41,17 +51,22 @@ public class Scanner extends SuValue implements Iterable<String>, Iterator<Strin
 			return ((Scanner) self).lexer.getValue();
 	}
 
+	@Deprecated
 	public static Object Keyword(Object self) {
-			return ((Scanner) self).lexer.getKeyword().oldnum;
+		return ((Scanner) self).isKeyword() ? 1 : 0;
+}
+
+	public static Object KeywordQ(Object self) {
+		return ((Scanner) self).isKeyword();
+}
+
+	protected boolean isKeyword() {
+		Token keyword = lexer.getKeyword();
+		return keyword != Token.NIL && keyword.ordinal() < Token.ALTER.ordinal();
 	}
 
 	public static Object Iter(Object self) {
 			return self;
-	}
-
-	public static Object Next(Object self) {
-			String s = ((Scanner) self).next();
-			return s == null ? self : s;
 	}
 
 	@Override
@@ -70,6 +85,31 @@ public class Scanner extends SuValue implements Iterable<String>, Iterator<Strin
 		if (token == EOF)
 			return null;
 		return lexer.matched();
+	}
+
+	// no allocation, no use of oldnum
+	public String next2() {
+		token = lexer.nextAll();
+		if (token == EOF)
+			return null;
+		switch (token) {
+		case ERROR:
+			return "ERROR";
+		case IDENTIFIER:
+			return "IDENTIFIER";
+		case NUMBER:
+			return "NUMBER";
+		case STRING:
+			return "STRING";
+		case WHITE:
+			return "WHITESPACE";
+		case COMMENT:
+			return "COMMENT";
+		case NEWLINE:
+			return "NEWLINE";
+		default:
+			return "";
+		}
 	}
 
 	@Override
