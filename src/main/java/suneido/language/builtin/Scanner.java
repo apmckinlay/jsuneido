@@ -1,3 +1,7 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
 import static suneido.language.Token.EOF;
@@ -24,41 +28,45 @@ public class Scanner extends SuValue implements Iterable<String>, Iterator<Strin
 	public static Object Next(Object self) {
 		String s = ((Scanner) self).next();
 		return s == null ? self : s;
-}
+	}
 
 	public static Object Next2(Object self) {
 		String s = ((Scanner) self).next2();
 		return s == null ? self : s;
-}
+	}
 
 	public static Object Position(Object self) {
 		return ((Scanner) self).lexer.end();
-}
+	}
 
 	public static Object Length(Object self) {
 		return ((Scanner) self).lexer.length();
-}
+	}
 
 	public static Object Type(Object self) {
-			return ((Scanner) self).token.oldnum;
+		return ((Scanner) self).token.oldnum;
+	}
+
+	public static Object Type2(Object self) {
+		return ((Scanner) self).type2();
 	}
 
 	public static Object Text(Object self) {
-			return ((Scanner) self).lexer.matched();
+		return ((Scanner) self).lexer.matched();
 	}
 
 	public static Object Value(Object self) {
-			return ((Scanner) self).lexer.getValue();
+		return ((Scanner) self).lexer.getValue();
 	}
 
 	@Deprecated
 	public static Object Keyword(Object self) {
 		return ((Scanner) self).isKeyword() ? 1 : 0;
-}
+	}
 
 	public static Object KeywordQ(Object self) {
 		return ((Scanner) self).isKeyword();
-}
+	}
 
 	protected boolean isKeyword() {
 		Token keyword = lexer.getKeyword();
@@ -66,7 +74,7 @@ public class Scanner extends SuValue implements Iterable<String>, Iterator<Strin
 	}
 
 	public static Object Iter(Object self) {
-			return self;
+		return self;
 	}
 
 	@Override
@@ -92,6 +100,10 @@ public class Scanner extends SuValue implements Iterable<String>, Iterator<Strin
 		token = lexer.nextAll();
 		if (token == EOF)
 			return null;
+		return type2();
+	}
+
+	private String type2() {
 		switch (token) {
 		case ERROR:
 			return "ERROR";
