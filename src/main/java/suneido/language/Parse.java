@@ -135,8 +135,7 @@ public class Parse<T, G> {
 		case AND:
 		case OR:
 		case NOT:
-			String value = lexer.getValue();
-			return Character.isLetter(value.charAt(0));
+			return lexer.getKeyword() != Token.NIL;
 		default:
 			return false;
 		}
