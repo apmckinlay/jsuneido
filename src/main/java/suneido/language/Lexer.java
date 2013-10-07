@@ -37,7 +37,7 @@ public class Lexer {
 	public String getValue() {
 		// use copy constructor if value is substr of source 
 		// to avoid reference to source
-		return value != null && valueIsSubstr ? new String(value) : value;
+		return valueIsSubstr ? new String(value) : value;
 	}
 
 	public Token getKeyword() {
@@ -69,8 +69,8 @@ public class Lexer {
 	}
 
 	public Token nextAll() {
-		value = null;
-		valueIsSubstr = true;
+		value = "";
+		valueIsSubstr = false;
 		keyword = null;
 		prev = si;
 		if (si >= source.length())
@@ -181,6 +181,7 @@ public class Lexer {
 		if (si < source.length())
 			++si;	// skip closing quote
 		value = source.substring(prev + 1, si - 1);
+		valueIsSubstr = true;
 		return STRING;
 	}
 
@@ -195,7 +196,6 @@ public class Lexer {
 		if (si < source.length())
 			++si;	// skip closing quote
 		value = sb.toString();
-		valueIsSubstr = false;
 		return STRING;
 	}
 
@@ -210,7 +210,7 @@ public class Lexer {
 		}
 		if (c == '?' || c == '!')
 			++si;
-		value = source.substring(prev, si);
+		value(null);
 		keyword = ignoreCase
 				? Token.lookupIgnoreCase(value) : Token.lookup(value);
 		if (charAt(si) == ':' &&
@@ -275,6 +275,7 @@ public class Lexer {
 
 	private Token value(Token token) {
 		value = source.substring(prev, si);
+		valueIsSubstr = true;
 		return token;
 	}
 
