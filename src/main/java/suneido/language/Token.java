@@ -42,6 +42,7 @@ public enum Token {
 	LSHIFTEQ("<<=", ASSIGN, I), RSHIFTEQ(">>=", ASSIGN, I),
 	BITOREQ("|=", ASSIGN, I), BITANDEQ("&=", ASSIGN, I), BITXOREQ("^=", ASSIGN, I),
 	RANGETO(".."), RANGELEN("::"),
+	
 	// keywords
 	IF("if"), ELSE("else"),
 	WHILE("while"), DO("do"), FOR("for"), FOREVER("forever"),
@@ -53,6 +54,7 @@ public enum Token {
 	NEW("new"), RETURN("return"), TRY("try"), THROW("throw"),
 	SUPER("super"), TRUE("true"), FALSE("false"),
 	IN("in"), THIS("this"),
+	
 	// for queries
 	ALTER("alter"), AVERAGE("average", SUMOP), BY("by"), 
 	CASCADE("cascade"), COUNT("count", SUMOP), CREATE("create"), 

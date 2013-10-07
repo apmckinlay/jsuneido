@@ -184,11 +184,11 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		case L_BRACKET:
 			return object();
 		default:
+			if (anyName())
+				return symbol();
+			syntaxError();
+			return null;
 		}
-		if (anyName())
-			return symbol();
-		syntaxError();
-		return null;
 	}
 
 	private T symbol() {
