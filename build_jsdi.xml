@@ -5,18 +5,21 @@
 	<condition property="jsdi-path" value="${env.JSDI_PATH}" else="../jsdi">
 		<isset property="env.JSDI_PATH"/>
 	</condition>
-	<property name="dll-src-dir" value="${jsdi-path}/bin/debug"/>
-	<property name="dll-dst-dir" value="lib"/>
 	<property name="jsdi-package" value="suneido.language.jsdi"/>
 	<property name="jsdi-tools-package" value="suneido.language.jsdi.tools"/>
+	<property name="jsdi-make-config" value="release"/>
 	<property name="java-dest-dir" value="target/classes"/>
-
+	<property name="dll-src-dir" value="${jsdi-path}/bin/${jsdi-make-config}"/>
+	<property name="dll-dst-dir" value="lib"/>
+	
 	<target name="all" depends="gen_jni,make"/>
 
 	<target name="make" depends="gen_global_refs,gen_enums"
 			description="Make the JSDI DLL"
 	>
-		<exec executable="make" dir="${jsdi-path}" failonerror="true"/>
+		<exec executable="make" dir="${jsdi-path}" failonerror="true">
+			<arg value="CONFIG=${jsdi-make-config}"/>
+		</exec>
 		<copy file="${dll-src-dir}/jsdi.dll" todir="${dll-dst-dir}"
 			  overwrite="true" failonerror="true"
 		/>
@@ -25,6 +28,7 @@
 	<target name="clean">
 		<exec executable="make" dir="${jsdi-path}" failonerror="true">
 			<arg value="clean"/>
+			<arg value="CONFIG=${jsdi-make-config}"/>
 		</exec>
 	</target>
 
