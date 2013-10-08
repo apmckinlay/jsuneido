@@ -36,7 +36,7 @@ import suneido.language.Ops;
 public class Repl {
 
 	public static void repl() throws IOException {
-		Compiler.eval("JInit()");
+		Compiler.eval("Init()");
 		PrintWriter out = new PrintWriter(System.out);
 		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 		while (true) {
