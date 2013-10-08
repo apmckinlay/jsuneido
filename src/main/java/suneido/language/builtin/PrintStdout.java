@@ -9,7 +9,7 @@ import java.util.Map;
 import suneido.language.ArgsIterator;
 import suneido.language.Ops;
 
-public class Print {
+public class PrintStdout {
 
 	public static synchronized Object Print(Object... args) {
 		ArgsIterator iter = new ArgsIterator(args);
@@ -26,7 +26,6 @@ public class Print {
 			if (iter.hasNext())
 				print(" ");
 		}
-		System.out.println();
 		System.out.flush();
 		return null;
 	}

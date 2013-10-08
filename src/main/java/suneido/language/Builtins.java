@@ -101,7 +101,7 @@ public class Builtins {
 			.put("OperatingSystem", function(OperatingSystem.class))
 			.put("Or", function(Or.class))
 			.put("Pack", function(suneido.language.builtin.Pack.class))
-			.put("Print", function(Print.class))
+			.put("PrintStdout", function(PrintStdout.class))
 			.put("Query1", new Query1())
 			.put("QueryFirst", new QueryFirst())
 			.put("QueryLast", new QueryLast())
