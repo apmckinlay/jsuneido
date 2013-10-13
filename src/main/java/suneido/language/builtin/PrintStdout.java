@@ -17,15 +17,16 @@ public class PrintStdout {
 			Object x = iter.next();
 			if (x instanceof Map.Entry) {
 				@SuppressWarnings("unchecked")
-                                Map.Entry<Object, Object> e = (Map.Entry<Object, Object>) x;
+				Map.Entry<Object, Object> e = (Map.Entry<Object, Object>) x;
 				print(e.getKey());
-				print(": ");
+				System.out.print(": ");
 				print(e.getValue());
 			} else
 				print(x);
 			if (iter.hasNext())
-				print(" ");
+				System.out.print(' ');
 		}
+		System.out.println();
 		System.out.flush();
 		return null;
 	}
