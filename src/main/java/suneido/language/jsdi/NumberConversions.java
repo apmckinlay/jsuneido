@@ -97,7 +97,13 @@ public final class NumberConversions {
 	 * pointer
 	 * @since 20130912
 	 */
+	@Deprecated
 	public static int toPointer32(Object a) {
+		// TODO: This should be completely removed in favour of toPointer64.
+		//       The various places in which we assume 32-bit pointers
+		//       (callback thunks, resources) should be changed to use 64-bit
+		//       integers. Otherwise converting to 64-bit will be even more
+		//       difficult.
 		if (a instanceof Number) {
 			if (a instanceof Integer) {
 				return (int)a;
