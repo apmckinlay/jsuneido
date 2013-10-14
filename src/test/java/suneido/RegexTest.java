@@ -1,7 +1,14 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import java.util.regex.Pattern;
 
@@ -13,7 +20,16 @@ public class RegexTest {
 
 	@Test
 	public void convertRegex() {
-		assertEquals("[\\p{Alnum}]", Regex.convertRegex("[[:alnum:]]"));
+		convertTest("[[:alnum:]]", "[\\p{Alnum}]");
+		convertTest("foo[", "foo\\[");
+		convertTest("foo(", "foo\\(");
+		convertTest("[$]", "[\\$]");
+	}
+	
+	private static void convertTest(String from, String to) {
+		String converted = Regex.convertRegex(from);
+		assertThat(converted, is(to));
+		Pattern.compile(converted); // throws if bad syntax	
 	}
 
 	@Test
