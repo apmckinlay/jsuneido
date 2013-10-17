@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import suneido.SuContainer;
 import suneido.Suneido;
 
 /**
@@ -28,22 +29,27 @@ import suneido.Suneido;
 public class Compiler {
 
 	public static Object compile(String name, String src) {
-		return compile(name, src, null, Suneido.context);
+		return compile(name, src, null, Suneido.context, null);
+	}
+
+	public static Object compile(String name, String src, SuContainer warnings) {
+		return compile(name, src, null, Suneido.context, warnings);
 	}
 
 	public static Object compile(String name, String src, PrintWriter pw) {
-		return compile(name, src, pw, Suneido.context);
+		return compile(name, src, pw, Suneido.context, null);
 	}
 
 	public static Object compile(String name, String src, ContextLayered context) {
-		return compile(name, src, null, context);
+		return compile(name, src, null, context, null);
 	}
 
-	public static Object compile(String name, String src, PrintWriter pw, ContextLayered context) {
+	public static Object compile(String name, String src, PrintWriter pw,
+			ContextLayered context, SuContainer warnings) {
 		AstNode ast = parse(src);
 		if (pw != null)
 			pw.append(ast.toString() + "\n\n");
-		return new AstCompile(name, pw, context).fold(ast);
+		return new AstCompile(name, pw, context, warnings).fold(ast);
 	}
 
 	public static AstNode parse(String src) {
