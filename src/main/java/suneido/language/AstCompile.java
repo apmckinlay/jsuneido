@@ -36,11 +36,14 @@ public class AstCompile {
 	private static final AtomicInteger nextFnId = new AtomicInteger();
 	private int fnId = -1;
 	private final ContextLayered context;
+	private final SuContainer warnings;
 
-	public AstCompile(String globalName, PrintWriter pw, ContextLayered context) {
+	public AstCompile(String globalName, PrintWriter pw, ContextLayered context,
+			SuContainer warnings) {
 		this.globalName = globalName;
 		this.pw = pw;
 		this.context = context;
+		this.warnings = warnings;
 	}
 
 	public Object fold(AstNode ast) {
@@ -322,7 +325,7 @@ public class AstCompile {
 
 	/**
 	 * Used by foldFunction and block
-	 * 
+	 *
 	 * @param locals
 	 *            The outer locals for a block. Not used for functions.
 	 */

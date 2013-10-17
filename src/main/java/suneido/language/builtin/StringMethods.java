@@ -31,12 +31,7 @@ public class StringMethods extends BuiltinMethods {
 	}
 
 	private static String toStr(Object self) {
-		// TODO: We can probably eliminate toStr() and just inline
-		//       self.toString() everywhere. 
 		return self.toString();
-//		return self instanceof String
-//				? (String) self
-//				: ((String2) self).toString();
 	}
 
 	public static Object AlphaQ(Object self) {
@@ -70,8 +65,10 @@ public class StringMethods extends BuiltinMethods {
 		return s.length() == 0 ? 0 : (int) s.charAt(0);
 	}
 
-	public static Object Compile(Object self) {
-		return Compiler.compile("stringCompile", toStr(self));
+	@Params("object=false")
+	public static Object Compile(Object self, Object a) {
+		SuContainer warnings = (a == Boolean.FALSE) ? null : (SuContainer) a;
+		return Compiler.compile("stringCompile", toStr(self), warnings);
 	}
 
 	@Params("string")
@@ -219,7 +216,7 @@ public class StringMethods extends BuiltinMethods {
 		}
 		return result;
 	}
-	
+
 	@Params("n, block")
 	public static Object MapN(Object self, Object a, Object block) {
 		String s = toStr(self);
@@ -230,7 +227,7 @@ public class StringMethods extends BuiltinMethods {
 			String chunk = s.substring(i, Math.min(i + n, slen));
 			sb.append(Ops.toStr(Ops.call(block, chunk)));
 		}
-		return sb.toString();		
+		return sb.toString();
 	}
 
 	@Params("pattern")
