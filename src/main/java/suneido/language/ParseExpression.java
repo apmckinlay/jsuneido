@@ -322,11 +322,9 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	private boolean assign() {
 		return (EQ_as_IS && token == EQ) ? false : token.assign();
 	}
-	private static boolean isGlobal(String value) {
-		char c = value.charAt(0);
-		if (c == '_')
-			c = value.charAt(1);
-		return Character.isUpperCase(c);
+	private static boolean isGlobal(String name) {
+		int i = name.startsWith("_") && name.length() > 1 ? 1 : 0;
+		return Character.isUpperCase(name.charAt(i));
 	}
 	private T arguments() {
 		T args = null;

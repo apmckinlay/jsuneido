@@ -1257,7 +1257,7 @@ public class AstCompile {
 	}
 
 	private static boolean isGlobal(String name) {
-		int i = name.startsWith("_") ? 1 : 0;
+		int i = name.startsWith("_") && name.length() > 1 ? 1 : 0;
 		return Character.isUpperCase(name.charAt(i));
 	}
 

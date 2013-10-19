@@ -185,7 +185,7 @@ public class AstGenerator extends Generator<AstNode> {
 
 	@Override
 	public AstNode identifier(String text) {
-		return new AstNode(Token.IDENTIFIER, text);
+		return new AstNode(Token.IDENTIFIER, "_".equals(text) ? "it" : text);
 	}
 
 	@Override
