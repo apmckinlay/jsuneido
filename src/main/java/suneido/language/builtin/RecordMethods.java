@@ -4,8 +4,6 @@
 
 package suneido.language.builtin;
 
-import static suneido.language.FunctionSpec.NA;
-
 import java.util.Map;
 
 import suneido.SuException;
@@ -32,13 +30,13 @@ public class RecordMethods {
 		return new SuRecord((SuRecord) self);
 	}
 
-	@Params("key=NA, all=NA")
-	public static Object Delete(Object self, Object key, Object all) {
-		if (key == NA && all == NA) {
+	// handle dbRecord.Delete()
+	public static Object Delete(Object self, Object... args) {
+		if (! new ArgsIterator(args).hasNext()) {
 			((SuRecord) self).delete();
 			return Boolean.TRUE;
 		} else
-			return ContainerMethods.delete(self, key, all);
+			return ContainerMethods.delete(self, args);
 	}
 
 	@Params("field")
