@@ -460,6 +460,7 @@ public class SuContainer extends SuValue
 	}
 
 	public void clear() {
+		checkReadonly();
 		vec.clear();
 		map.clear();
 	}
@@ -672,7 +673,7 @@ public class SuContainer extends SuValue
 	}
 
 	public Object find(Object value) {
-		// FIXME: Concurrency issue -- modification between size() and get() 
+		// FIXME: Concurrency issue -- modification between size() and get()
 		for (int i = 0; i < vec.size(); ++i)
 			if (Ops.is_(value, vec.get(i)))
 				return i;
