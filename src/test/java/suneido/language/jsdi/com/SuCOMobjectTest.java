@@ -4,10 +4,10 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import suneido.language.jsdi.com.SuCOMobject;
+import suneido.language.jsdi.com.COMobject;
 
 /**
- * Test for {@link SuCOMobject}.
+ * Test for {@link COMobject}.
  * 
  * @author Victor Schappert
  * @since 20130928
