@@ -24,19 +24,19 @@ import suneido.language.jsdi.DllInterface;
  * </tr>
  * <tr>
  * <td>&lt;Integral number in range of {@link Integer}&gt;</td>
- * <td>{@link Int32}</td>
+ * <td>{@link IntValue}</td>
  * </tr>
  * <tr>
  * <td>&lt;Integral number not in range of {@link Integer} but representable as an unsigned 32-bit integer&gt;</td>
- * <td>{@link Int32}</td>
+ * <td>{@link IntValue}</td>
  * </tr>
  * <tr>
  * <td>&lt;Integral number in range of {@link Long} but not in range of {@link Integer}&gt;</td>
- * <td>{@link Int64}</td>
+ * <td>{@link IntValue}</td>
  * </tr>
  * <tr>
  * <td>&lt;Integral number not in range of {@link Long} but representable as an unsigned 64-bit integer&gt;</td>
- * <td>{@link Int64}</td>
+ * <td>{@link IntValue}</td>
  * </tr>
  * <tr>
  * <td>&lt;Non-integral number in range of {@link Double}&gt;</td>
@@ -60,8 +60,8 @@ import suneido.language.jsdi.DllInterface;
  * <td>throw {@link COMMarshallingException}</td>
  * </tr>
  * <tr>
- * <td>{@link SuCOMobject}</td>
- * <td>{@link SuCOMobject}</td>
+ * <td>{@link COMobject}</td>
+ * <td>{@link COMobject}</td>
  * </tr>
  * </table>
  * <sup><strong>1</strong></sup>: <strong>NOTE</strong> that at some future

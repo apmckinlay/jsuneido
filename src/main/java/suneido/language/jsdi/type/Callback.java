@@ -148,7 +148,7 @@ public final class Callback extends ComplexType {
 					(SuValue) value, this);
 			marshaller.putLong(thunkFuncAddr);
 		} else try {
-			marshaller.putLong(Ops.toIntIfNum(value));
+			marshaller.putLong(NumberConversions.toPointer32(value));
 		} catch (SuException e) {
 			throw new JSDIException("can't marshall " + value + " into "
 					+ toString());
