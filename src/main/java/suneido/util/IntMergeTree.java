@@ -102,7 +102,7 @@ public class IntMergeTree {
 	int[] alloc(int i) {
 		nodes[i] = (cache[i] == null) ? null : cache[i].get();
 		if (nodes[i] == null)
-			cache[i] = new SoftReference<int[]>(nodes[i] = new int[1 << i]);
+			cache[i] = new SoftReference<>(nodes[i] = new int[1 << i]);
 		return nodes[i];
 	}
 

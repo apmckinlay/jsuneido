@@ -17,7 +17,7 @@ public class RuleContext {
 			new ThreadLocal<Deque<Rule>>() {
 				@Override
 				public Deque<Rule> initialValue() {
-					return new ArrayDeque<Rule>();
+					return new ArrayDeque<>();
 				}
 			};
 

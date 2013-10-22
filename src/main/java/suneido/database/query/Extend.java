@@ -52,7 +52,7 @@ public class Extend extends Query1 {
 			throw new SuException("extend: column(s) already exist: " +
 					intersect(srccols, flds));
 
-		eflds = new ArrayList<String>();
+		eflds = new ArrayList<>();
 		for (Expr e : exprs)
 			if (e != null)
 				addUnique(eflds, e.fields());
@@ -188,7 +188,7 @@ public class Extend extends Query1 {
 	List<Fixed> fixed() {
 		if (fix != null)
 			return fix;
-		fix = new ArrayList<Fixed>();
+		fix = new ArrayList<>();
 		for (int i = 0; i < flds.size(); ++i)
 			if (exprs.get(i) instanceof Constant)
 				fix.add(new Fixed(flds.get(i), ((Constant) exprs.get(i)).value));

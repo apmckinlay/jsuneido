@@ -124,7 +124,7 @@ public enum Token {
 		return feature == TERMOP;
 	}
 
-	static final Map<String, Token> keywords = new HashMap<String, Token>();
+	static final Map<String, Token> keywords = new HashMap<>();
 	static {
 		for (Token t : Token.values())
 			if (t.string != null && Character.isLetter(t.string.charAt(0)))

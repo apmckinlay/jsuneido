@@ -903,7 +903,7 @@ public class BtreeTest {
 	//--------------------------------------------------------------------------
 
 	public static List<BtreeKey> randomKeys(Random rand, int n) {
-		List<BtreeKey> keys = new ArrayList<BtreeKey>();
+		List<BtreeKey> keys = new ArrayList<>();
 		for (int i = 0; i < n; ++i)
 			keys.add(randomKey(rand));
 		return keys;

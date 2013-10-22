@@ -10,7 +10,7 @@ import java.util.Map;
 import suneido.intfc.database.Record;
 
 class Lookup {
-	Map<Record,Object[]> map = new HashMap<Record, Object[]>();
+	Map<Record,Object[]> map = new HashMap<>();
 
 	void put(Record key, Object[] data) {
 		map.put(key, data);

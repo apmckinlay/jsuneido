@@ -106,7 +106,7 @@ class BtreeDbNode extends BtreeNode {
 		BtreeDbNode child = (BtreeDbNode) Btree.nodeAt(stor, level - 1, childAdr);
 		if (refs == null)
 			refs = new SoftReference[rec.size()];
-		refs[i]  = new SoftReference<BtreeDbNode>(child); // cache
+		refs[i]  = new SoftReference<>(child); // cache
 		return child;
 	}
 

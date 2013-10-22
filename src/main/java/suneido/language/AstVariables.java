@@ -20,7 +20,7 @@ public class AstVariables {
 
 	private static class Variables extends AstNode.Visitor {
 		private final AstNode root;
-		private final Set<String> vars = new HashSet<String>();
+		private final Set<String> vars = new HashSet<>();
 
 		Variables(AstNode root) {
 			this.root = root;

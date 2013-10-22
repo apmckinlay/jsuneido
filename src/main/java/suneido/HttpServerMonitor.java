@@ -65,9 +65,9 @@ public class HttpServerMonitor {
 	       			+ "</html>\r\n");
 			String response = sb.toString();
 			t.sendResponseHeaders(200, response.length());
-			OutputStream os = t.getResponseBody();
-			os.write(response.getBytes());
-			os.close();
+			try (OutputStream os = t.getResponseBody()) {
+				os.write(response.getBytes());
+			}
 		}
 
 		private static long mb(long n) {

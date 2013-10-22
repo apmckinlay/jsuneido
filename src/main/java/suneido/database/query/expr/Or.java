@@ -27,7 +27,7 @@ public class Or extends Multi {
 			or.exprs.add(expr2);
 			return or;
 		} else {
-			List<Expr> exprs = new ArrayList<Expr>();
+			List<Expr> exprs = new ArrayList<>();
 			exprs.add(expr1);
 			exprs.add(expr2);
 			return new Or(exprs);

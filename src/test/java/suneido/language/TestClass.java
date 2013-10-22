@@ -9,7 +9,7 @@ import java.util.Map;
 class TestClass {
 
 	public static SuClass instance() {
-		Map<String, Object> methods = new HashMap<String, Object>();
+		Map<String, Object> methods = new HashMap<>();
 		methods.put("Substr", new Test_Substr());
 		methods.put("Size", new Test_Size());
 		return new SuClass("TestClass", null, methods);

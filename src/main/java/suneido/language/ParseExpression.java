@@ -322,11 +322,9 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	private boolean assign() {
 		return (EQ_as_IS && token == EQ) ? false : token.assign();
 	}
-	private static boolean isGlobal(String value) {
-		char c = value.charAt(0);
-		if (c == '_')
-			c = value.charAt(1);
-		return Character.isUpperCase(c);
+	private static boolean isGlobal(String name) {
+		int i = name.startsWith("_") && name.length() > 1 ? 1 : 0;
+		return Character.isUpperCase(name.charAt(i));
 	}
 	private T arguments() {
 		T args = null;
@@ -412,14 +410,14 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 
 	private T constant() {
-		ParseConstant<T, G> p = new ParseConstant<T, G>(this);
+		ParseConstant<T, G> p = new ParseConstant<>(this);
 		T result = p.constant();
 		token = p.token;
 		return result;
 	}
 
 	private T statementList(Context context) {
-		ParseFunction<T, G> p = new ParseFunction<T, G>(this);
+		ParseFunction<T, G> p = new ParseFunction<>(this);
 		T result = p.statementList(context);
 		token = p.token;
 		return result;

@@ -45,11 +45,11 @@ public final class MarshallPlanBuilder {
 		this.sizeDirect = sizeDirect;
 		this.sizeIndirect = sizeIndirect;
 		this.variableIndirectCount = variableIndirectCount;
-		this.posList = new ArrayList<Integer>((sizeDirect + sizeIndirect)
+		this.posList = new ArrayList<>((sizeDirect + sizeIndirect)
 				/ PrimitiveSize.WORD + 10);
-		this.ptrList = new ArrayList<Integer>();
-		this.nextPosStack = new ArrayList<Integer>();
-		this.skipperStack = new ArrayList<ElementSkipper>();
+		this.ptrList = new ArrayList<>();
+		this.nextPosStack = new ArrayList<>();
+		this.skipperStack = new ArrayList<>();
 		this.alignToWordBoundary = alignToWordBoundary;
 		this.skipper = new ElementSkipper(0, 0);
 		this.nextPos = 0;

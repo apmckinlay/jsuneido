@@ -21,7 +21,7 @@ public class ArgsIterator implements Iterator<Object>, Iterable<Object> {
 	private final Object[] args;
 	private boolean named = true;
 	private int argi = 0;
-	Iterator<Object> each = new NullIterator<Object>();
+	Iterator<Object> each = new NullIterator<>();
 
 	public ArgsIterator(Object[] args) {
 		this.args = args;
@@ -51,7 +51,7 @@ public class ArgsIterator implements Iterator<Object>, Iterable<Object> {
 			return next();
 		} else if (x == NAMED && named) {
 			x = args[argi++];
-			return new AbstractMap.SimpleEntry<Object, Object>(x, args[argi++]);
+			return new AbstractMap.SimpleEntry<>(x, args[argi++]);
 		}
 		return x;
 	}

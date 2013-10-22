@@ -39,7 +39,7 @@ public class DbmsServerBySelect {
 	private static final Executor executor =
 		Executors.newCachedThreadPool(threadFactory);
 	@GuardedBy("serverDataSet")
-	static final Set<ServerData> serverDataSet = new HashSet<ServerData>();
+	static final Set<ServerData> serverDataSet = new HashSet<>();
 	private static InetAddress inetAddress;
 
 	public static void run(int port, int idleTimeoutMin) {
@@ -206,7 +206,7 @@ public class DbmsServerBySelect {
 	}
 
 	public static List<String> connections() {
-		List<String> list = new ArrayList<String>();
+		List<String> list = new ArrayList<>();
 		synchronized(serverDataSet) {
 			for (ServerData sd : serverDataSet)
 				list.add(sd.getSessionId());

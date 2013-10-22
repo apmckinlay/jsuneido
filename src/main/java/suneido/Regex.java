@@ -86,8 +86,11 @@ public class Regex {
 				} else if (rx.startsWith("(?-q)", i)) {
 					sb.append("\\E");
 					i += 5;
-				} else {
+				} else if (i + 1 < rx.length()) {
 					sb.append(c);
+					++i;
+				} else {
+					sb.append('\\').append(c);
 					++i;
 				}
 				++inParens;

@@ -48,7 +48,7 @@ public class ParseRequestTest {
 		Lexer lexer = new Lexer(s);
 		lexer.ignoreCase();
 		StringRequestGenerator generator = new StringRequestGenerator();
-		ParseRequest<String> pc = new ParseRequest<String>(lexer, generator);
+		ParseRequest<String> pc = new ParseRequest<>(lexer, generator);
 		return pc.parse();
 	}
 

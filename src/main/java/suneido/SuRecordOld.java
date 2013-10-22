@@ -37,7 +37,7 @@ public abstract class SuRecordOld extends SuContainer {
 	private final List<Object> observers = Lists.newArrayList();
 	private final Set<Object> invalid = Sets.newHashSet(); // used by rules
 	private final SetMultimap<Object, Object> dependencies;
-	private final Deque<Object> activeRules = new ArrayDeque<Object>();
+	private final Deque<Object> activeRules = new ArrayDeque<>();
 	private final Set<Object> invalidated = Sets.newLinkedHashSet(); // for observers
 	private final Map<Object, Object> attachedRules = Maps.newHashMap();
 
@@ -257,14 +257,14 @@ public abstract class SuRecordOld extends SuContainer {
 			if (!f.equals("-"))
 				get(f);
 		// invert dependencies
-		Map<Object, Set<Object>> deps = new HashMap<Object, Set<Object>>();
+		Map<Object, Set<Object>> deps = new HashMap<>();
 		for (Object key : dependencies.keySet())
 			for (Object x : dependencies.get(key)) {
 				String d = x + "_deps";
 				if (!fldsyms.contains(d))
 					continue;
 				if (! deps.containsKey(d))
-					deps.put(d, new HashSet<Object>());
+					deps.put(d, new HashSet<>());
 				deps.get(d).add(key);
 			}
 		return deps;
@@ -345,7 +345,7 @@ public abstract class SuRecordOld extends SuContainer {
 			new ThreadLocal<List<ActiveObserver>>() {
 				@Override
 				public List<ActiveObserver> initialValue() {
-					return new ArrayList<ActiveObserver>();
+					return new ArrayList<>();
 				}
 			};
 

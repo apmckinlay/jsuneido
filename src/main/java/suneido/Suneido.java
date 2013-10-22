@@ -72,8 +72,7 @@ public class Suneido {
 
 	public static synchronized void errlog(String s, Throwable err) {
 		System.out.println(s);
-		try {
-			FileWriter fw = new FileWriter("error.log", true);
+		try (FileWriter fw = new FileWriter("error.log", true)) {
 			fw.append(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 			fw.append(" ");
 			if (TheDbms.dbms() != null) {
@@ -85,7 +84,6 @@ public class Suneido {
 			fw.append("\n");
 			if (err != null)
 				err.printStackTrace(new PrintWriter(fw));
-			fw.close();
 		} catch (IOException e) {
 			System.out.println("can't write to error.log " + e);
 		}

@@ -25,7 +25,7 @@ class IndexedData {
 	enum Mode { KEY, UNIQUE, DUPS };
 	private final ReadWriteTransaction t;
 	private final Tran tran;
-	private final List<AnIndex> indexes = new ArrayList<AnIndex>();
+	private final List<AnIndex> indexes = new ArrayList<>();
 	private TIntHashSet deletes;
 
 	IndexedData(ReadWriteTransaction t) {

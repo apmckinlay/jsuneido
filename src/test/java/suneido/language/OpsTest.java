@@ -1,7 +1,11 @@
 package suneido.language;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static suneido.language.Numbers.INF;
 import static suneido.language.Numbers.MC;
 import static suneido.language.Numbers.MINUS_INF;
@@ -213,10 +217,10 @@ public class OpsTest {
 	@Test
 	public void test_overflow() {
 		// overflow from byte to short
-		assertEquals((int)Byte.MAX_VALUE + 1, uminus(Byte.MIN_VALUE));
+		assertEquals(Byte.MAX_VALUE + 1, uminus(Byte.MIN_VALUE));
 
 		// overflow from short to int
-		assertEquals((int)Short.MAX_VALUE + 1, uminus(Short.MIN_VALUE));
+		assertEquals(Short.MAX_VALUE + 1, uminus(Short.MIN_VALUE));
 
 		// overflow from int to long
 		assertEquals(Integer.MAX_VALUE + 1L, add(Integer.MAX_VALUE, 1));
@@ -344,13 +348,13 @@ public class OpsTest {
 			catchMatch(new BlockReturnException(null,0));
 			fail();
 		} catch (Throwable e) {
-			assertThat(e, is(BlockReturnException.class));
+			assertThat(e, instanceOf(BlockReturnException.class));
 		}
 		try {
 			catchMatch(new BlockReturnException(null,0), "*");
 			fail();
 		} catch (Throwable e) {
-			assertThat(e, is(BlockReturnException.class));
+			assertThat(e, instanceOf(BlockReturnException.class));
 		}
 	}
 
@@ -362,11 +366,11 @@ public class OpsTest {
 
 	@Test
 	public void getString() {
-		assertThat(Ops.get("abcd", 0), is((Object) "a"));
-		assertThat(Ops.get("abcd", 3), is((Object) "d"));
-		assertThat(Ops.get("abcd", 4), is((Object) ""));
-		assertThat(Ops.get("abcd", -1), is((Object) "d"));
-		assertThat(Ops.get("abcd", -4), is((Object) "a"));
-		assertThat(Ops.get("abcd", -5), is((Object) ""));
+		assertEquals("a", Ops.get("abcd", 0));
+		assertEquals("d", Ops.get("abcd", 3));
+		assertEquals("", Ops.get("abcd", 4));
+		assertEquals("d", Ops.get("abcd", -1));
+		assertEquals("a", Ops.get("abcd", -4));
+		assertEquals("", Ops.get("abcd", -5));
 	}
 }

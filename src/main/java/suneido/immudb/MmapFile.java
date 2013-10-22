@@ -41,16 +41,20 @@ class MmapFile extends Storage {
 	MmapFile(File file, String mode) {
 		super(64 * 1024 * 1024);
 		this.file = file;
-		if ("r".equals(mode)) {
+		switch (mode) {
+		case "r":
 			if (!file.canRead())
 				throw new SuException("can't open " + file + " read-only");
 			this.mode = FileChannel.MapMode.READ_ONLY;
-		} else if ("rw".equals(mode)) {
+			break;
+		case "rw":
 			if (file.exists() && (! file.canRead() || ! file.canWrite()))
 				throw new SuException("can't open " + file + " read-write");
 			this.mode = FileChannel.MapMode.READ_WRITE;
-		} else
+			break;
+		default:
 			throw new SuException("invalid mode " + mode);
+		}
 		try {
 			fin = new RandomAccessFile(file, mode);
 		} catch (FileNotFoundException e) {

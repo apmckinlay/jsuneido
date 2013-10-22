@@ -102,7 +102,7 @@ public class MergeTree<T> {
 	Object[] alloc(int i) {
 		nodes[i] = (cache[i] == null) ? null : cache[i].get();
 		if (nodes[i] == null)
-			cache[i] = new SoftReference<Object[]>(nodes[i] = new Object[1 << i]);
+			cache[i] = new SoftReference<>(nodes[i] = new Object[1 << i]);
 		return nodes[i];
 	}
 
