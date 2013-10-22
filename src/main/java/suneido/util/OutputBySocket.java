@@ -12,7 +12,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class OutputBySocket implements NetworkOutput {
 	private final OutputStream out;
-	private final List<ByteBuffer> queue = new ArrayList<ByteBuffer>();
+	private final List<ByteBuffer> queue = new ArrayList<>();
 	private byte[] data = new byte[8];
 
 	public OutputBySocket(Socket socket) throws IOException {

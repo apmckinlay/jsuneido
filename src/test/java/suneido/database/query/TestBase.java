@@ -160,7 +160,7 @@ public class TestBase {
 	}
 
 	protected List<Record> get(String tablename, Transaction tran) {
-		List<Record> recs = new ArrayList<Record>();
+		List<Record> recs = new ArrayList<>();
 		Table table = tran.getTable(tablename);
 		IndexIter iter = tran.iter(table.num(), null);
 		for (iter.next(); !iter.eof(); iter.next())

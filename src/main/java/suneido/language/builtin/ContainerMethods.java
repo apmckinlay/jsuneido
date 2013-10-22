@@ -6,14 +6,10 @@ package suneido.language.builtin;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static suneido.language.FunctionSpec.NA;
 import static suneido.language.Ops.toInt;
 import static suneido.util.Util.array;
 
-import java.util.ConcurrentModificationException;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import suneido.*;
 import suneido.SuContainer.IterResult;
@@ -85,20 +81,38 @@ public final class ContainerMethods {
 		return new SuContainer((SuContainer) self);
 	}
 
-	@Params("key=NA, all=NA")
-	public static Object Delete(Object self, Object key, Object all) {
-		return delete(self, key, all);
+	public static Object Delete(Object self, Object... args) {
+		return delete(self, args);
 	}
 
-	static Object delete(Object self, Object key, Object all) {
-		if ((key == NA) == (all == NA))
-			throw new SuException("usage: object.Delete(field) or object.Delete(all:)");
+	static Object delete(Object self, Object[] args) {
 		SuContainer c = (SuContainer) self;
-		if (key != NA)
-			return c.delete(key) ? c : false;
-		else if (all == Boolean.TRUE)
-			c.clear();
+		ArgsIterator iter = new ArgsIterator(args);
+		if (! iter.hasNext())
+			deleteUsage();
+		Object arg = iter.next();
+		if (arg instanceof AbstractMap.SimpleEntry) {
+			@SuppressWarnings("unchecked")
+			AbstractMap.SimpleEntry<Object,Object> e =
+					(AbstractMap.SimpleEntry<Object,Object>) arg;
+			if (! "all".equals(e.getKey()))
+				deleteUsage();
+			if (e.getValue() == Boolean.TRUE)
+				c.clear();
+		} else {
+			c.delete(arg);
+			while (iter.hasNext()) {
+				arg = iter.next();
+				if (arg instanceof AbstractMap.SimpleEntry)
+					deleteUsage();
+				c.delete(arg);
+			}
+		}
 		return c;
+	}
+
+	private static void deleteUsage() {
+		throw new SuException("usage: object.Delete(member ...) or object.Delete(all:)");
 	}
 
 	@Params("value, block=false")
@@ -107,10 +121,21 @@ public final class ContainerMethods {
 		return SuContainer.of(r.left, r.right);
 	}
 
-	@Params("key")
-	public static Object Erase(Object self, Object a) {
+	public static Object Erase(Object self, Object... args) {
 		SuContainer c = (SuContainer) self;
-		return c.erase(a) ? c : false;
+		ArgsIterator iter = new ArgsIterator(args);
+		if (! iter.hasNext())
+			eraseUsage();
+		for (Object arg : iter) {
+			if (arg instanceof AbstractMap.SimpleEntry)
+				eraseUsage();
+			c.erase(arg);
+		}
+		return c;
+	}
+
+	private static void eraseUsage() {
+		throw new SuException("usage: object.Erase(member ...)");
 	}
 
 	// also called by SuInstance and SuClass

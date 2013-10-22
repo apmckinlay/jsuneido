@@ -292,7 +292,7 @@ public class ParseAndCompileDllTest {
 
 	@Test
 	public void compileInStringInvalidUses() {
-		final ArrayList<String> typeNames = new ArrayList<String>();
+		final ArrayList<String> typeNames = new ArrayList<>();
 		for (BasicType basicType : BasicType.values()) {
 			typeNames.add(basicType.toIdentifier());
 			typeNames.add(basicType.toIdentifier() + "*");

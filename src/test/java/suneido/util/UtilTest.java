@@ -32,7 +32,7 @@ public class UtilTest {
 	@Test
 	public void listToParens() {
 		assertEquals("()", Util.listToParens(null));
-		List<String> list = new ArrayList<String>();
+		List<String> list = new ArrayList<>();
 		assertEquals("()", Util.listToParens(list));
 		list.add("one");
 		assertEquals("('one')", Util.displayListToParens(list));
@@ -45,7 +45,7 @@ public class UtilTest {
 	@Test
 	public void commasToList() {
 		assertTrue(Util.commasToList("").isEmpty());
-		List<String> list = new ArrayList<String>();
+		List<String> list = new ArrayList<>();
 		list.add("abc");
 		assertEquals(list, Util.commasToList("abc"));
 		list.add("def");
@@ -56,9 +56,9 @@ public class UtilTest {
 
 	@Test
 	public void set_union() {
-		List<String> x = new ArrayList<String>();
-		List<String> y = new ArrayList<String>();
-		List<String> list = new ArrayList<String>();
+		List<String> x = new ArrayList<>();
+		List<String> y = new ArrayList<>();
+		List<String> list = new ArrayList<>();
 		assertEquals(list, Util.union(x, y));
 		x.add("abc");
 		list.add("abc");
@@ -78,8 +78,8 @@ public class UtilTest {
 
 	@Test
 	public void set_eq() {
-		List<String> x = new ArrayList<String>();
-		List<String> y = new ArrayList<String>();
+		List<String> x = new ArrayList<>();
+		List<String> y = new ArrayList<>();
 		assertTrue(Util.setEquals(x, y));
 		x.add("a");
 		assertFalse(Util.setEquals(x, y));

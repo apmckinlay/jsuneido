@@ -97,7 +97,7 @@ public class Project extends Query1 {
 
 	@Override
 	public List<List<String>> keys() {
-		List<List<String>> keys = new ArrayList<List<String>>();
+		List<List<String>> keys = new ArrayList<>();
 		for (List<String> k : source.keys())
 			if (flds.containsAll(k))
 				keys.add(k);
@@ -108,7 +108,7 @@ public class Project extends Query1 {
 
 	@Override
 	List<List<String>> indexes() {
-		List<List<String>> idxs = new ArrayList<List<String>>();
+		List<List<String>> idxs = new ArrayList<>();
 		for (List<String> src : source.indexes())
 			if (flds.containsAll(src))
 				idxs.add(src);
@@ -132,8 +132,8 @@ public class Project extends Query1 {
 		else if (source instanceof Rename) {
 			Rename r = (Rename) source;
 			// remove renames not in project
-			List<String> new_from = new ArrayList<String>();
-			List<String> new_to = new ArrayList<String>();
+			List<String> new_from = new ArrayList<>();
+			List<String> new_to = new ArrayList<>();
 			List<String> f = r.from;
 			List<String> t = r.to;
 			for (int i = 0; i < f.size(); ++i)
@@ -145,7 +145,7 @@ public class Project extends Query1 {
 			r.to = new_to;
 
 			// rename fields
-			List<String> new_fields = new ArrayList<String>();
+			List<String> new_fields = new ArrayList<>();
 			for (String fld : flds) {
 				int i = t.indexOf(fld);
 				new_fields.add(i == -1 ? fld : f.get(i));
@@ -160,8 +160,8 @@ public class Project extends Query1 {
 		else if (source instanceof Extend) {
 			Extend e = (Extend) source;
 			// remove portions of extend not included in project
-			List<String> new_flds = new ArrayList<String>();
-			List<Expr> new_exprs = new ArrayList<Expr>();
+			List<String> new_flds = new ArrayList<>();
+			List<Expr> new_exprs = new ArrayList<>();
 			for (int i = 0; i < e.flds.size(); ++i)
 				if (flds.contains(e.flds.get(i))) {
 					new_flds.add(e.flds.get(i));
@@ -176,12 +176,12 @@ public class Project extends Query1 {
 			// there must be no rules left
 			// since we don't know what fields are required by rules
 			if (! e.hasRules()) {
-				List<String> eflds = new ArrayList<String>();
+				List<String> eflds = new ArrayList<>();
 				for (Expr ex : e.exprs)
 					addUnique(eflds, ex.fields());
 				if (flds.containsAll(eflds)) {
 					// remove extend fields from project
-					List<String> new_fields = new ArrayList<String>();
+					List<String> new_fields = new ArrayList<>();
 					for (String f : flds)
 						if (!e.flds.contains(f))
 							new_fields.add(f);
@@ -200,7 +200,7 @@ public class Project extends Query1 {
 		else if (source instanceof Union || source instanceof Intersect) {
 			Compatible c = (Compatible) source;
 			if (c.disjoint != null && ! flds.contains(c.disjoint)) {
-				List<String> flds2 = new ArrayList<String>(flds);
+				List<String> flds2 = new ArrayList<>(flds);
 				flds2.add(c.disjoint);
 				c.source = new Project(c.source,
 						intersect(flds2, c.source.columns()));
@@ -300,7 +300,7 @@ public class Project extends Query1 {
 
 	@Override
 	List<Fixed> fixed() {
-		List<Fixed> fixed = new ArrayList<Fixed>();
+		List<Fixed> fixed = new ArrayList<>();
 		for (Fixed f : source.fixed())
 			if (flds.contains(f.field))
 				fixed.add(f);

@@ -132,7 +132,7 @@ public class RunPiped extends SuValue {
 	 * in the long run we should switch to passing multiple arguments instead
 	 */
 	private static List<String> splitcmd(String s) {
-		ArrayList<String> args = new ArrayList<String>();
+		ArrayList<String> args = new ArrayList<>();
 		while (true) {
 			s = s.trim();
 			if (s.isEmpty())

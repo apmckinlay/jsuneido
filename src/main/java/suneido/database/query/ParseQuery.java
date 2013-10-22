@@ -52,7 +52,7 @@ public class ParseQuery<T, G extends QueryGenerator<T>> extends Parse<T, G> {
 	private T record() {
 		if (token != L_CURLY && token != L_BRACKET)
 			syntaxError("record expected e.g. { a: 1, b: 2 }");
-		ParseConstant<T, G> p = new ParseConstant<T, G>(this);
+		ParseConstant<T, G> p = new ParseConstant<>(this);
 		T result = p.object();
 		token = p.token;
 		return result;
@@ -323,7 +323,7 @@ public class ParseQuery<T, G extends QueryGenerator<T>> extends Parse<T, G> {
 	}
 
 	private T expression() {
-		ParseExpression<T, G> p = new ParseExpression<T, G>(this);
+		ParseExpression<T, G> p = new ParseExpression<>(this);
 		p.eq_as_is();
 		T result = p.expression();
 		token = p.token;

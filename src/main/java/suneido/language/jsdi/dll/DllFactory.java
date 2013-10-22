@@ -60,9 +60,9 @@ public final class DllFactory {
 	private final JSDI jsdi;
 	private final Object lock = new Object();
 	private final Map<String, LoadedLibrary> libraries =
-		new HashMap<String, LoadedLibrary>();
+		new HashMap<>();
 	private final ArrayList<DllMakeObserver> observers =
-		new ArrayList<DllMakeObserver>();
+		new ArrayList<>();
 
 	//
 	// CONSTRUCTORS

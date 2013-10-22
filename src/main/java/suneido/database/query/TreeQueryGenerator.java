@@ -43,8 +43,8 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 		return new Extend((Query) query, e.cols, e.exprs);
 	}
 	static class Extends {
-		List<String> cols = new ArrayList<String>();
-		List<Expr> exprs = new ArrayList<Expr>();
+		List<String> cols = new ArrayList<>();
+		List<Expr> exprs = new ArrayList<>();
 	}
 	@Override
 	public Object extendList(Object listOb, String column, Object expr) {
@@ -105,8 +105,8 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 		return new Rename((Query) query, r.froms, r.tos);
 	}
 	static class Renames {
-		List<String> froms = new ArrayList<String>();
-		List<String> tos = new ArrayList<String>();
+		List<String> froms = new ArrayList<>();
+		List<String> tos = new ArrayList<>();
 	}
 	@Override
 	public Object renames(Object renames, String from, String to) {
@@ -130,9 +130,9 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 				s.on);
 	}
 	static class Sumops {
-		List<String> cols = new ArrayList<String>();
-		List<String> funcs = new ArrayList<String>();
-		List<String> on = new ArrayList<String>();
+		List<String> cols = new ArrayList<>();
+		List<String> funcs = new ArrayList<>();
+		List<String> on = new ArrayList<>();
 	}
 	@Override
 	public Object sumops(Object sumops, String name, Token op, String field) {
@@ -167,8 +167,8 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	}
 
 	static class Updates {
-		List<String> cols = new ArrayList<String>();
-		List<Expr> exprs = new ArrayList<Expr>();
+		List<String> cols = new ArrayList<>();
+		List<Expr> exprs = new ArrayList<>();
 	}
 	@Override
 	public Object updates(Object updates, String column, Object expr) {
@@ -314,7 +314,7 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	@Override
 	public Object inConstant(Object listOb, Object constant) {
 		List<Object> list =
-				listOb == null ? new ArrayList<Object>() : (List<Object>) listOb;
+				listOb == null ? new ArrayList<>() : (List<Object>) listOb;
 		list.add(constant);
 		return list;
 	}

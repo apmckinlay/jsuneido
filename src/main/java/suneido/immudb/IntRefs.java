@@ -25,7 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 class IntRefs {
 	static final int MASK = 0xfff00000;
 	public static final int MAXADR = 0xffffffff;
-	private final List<Object> list = new ArrayList<Object>();
+	private final List<Object> list = new ArrayList<>();
 	private int adrs[] = null;
 
 	/** adds the ref and returns its intref */

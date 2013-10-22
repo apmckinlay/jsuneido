@@ -19,15 +19,15 @@ import suneido.util.NetworkOutput;
 public class ServerData {
 	private int next = 0;
 	private final Map<Integer, DbmsTran> trans =
-			new HashMap<Integer, DbmsTran>();
+			new HashMap<>();
 	private final Map<Integer, List<Integer>> tranqueries =
-			new HashMap<Integer, List<Integer>>();
+			new HashMap<>();
 	private final Map<Integer, DbmsQuery> queries =
-			new HashMap<Integer, DbmsQuery>();
+			new HashMap<>();
 	private final Map<Integer, DbmsQuery> cursors =
-			new HashMap<Integer, DbmsQuery>();
-	private final Map<String, String> sviews = new HashMap<String, String>();
-	private final Stack<String> viewnest = new Stack<String>();
+			new HashMap<>();
+	private final Map<String, String> sviews = new HashMap<>();
+	private final Stack<String> viewnest = new Stack<>();
 	private String sessionId = "127.0.0.1";
 	public final NetworkOutput outputQueue; // for kill
 	public boolean textmode = true;

@@ -23,7 +23,7 @@ public class TempIndex extends Query1 {
 	private boolean first = true;
 	private boolean rewound = true;
 	private RecordStore stor;
-	private final ArraysList<Object> refs = new ArraysList<Object>();
+	private final ArraysList<Object> refs = new ArraysList<>();
 	private final IntComparator cmp = new IntComparator() {
 		@Override
 		public int compare(int xi, int yi) {

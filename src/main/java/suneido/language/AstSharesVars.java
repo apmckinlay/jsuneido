@@ -35,7 +35,7 @@ public class AstSharesVars {
 		public boolean hasSharedVars;
 		private boolean needBlocks = false;
 		private final Set<String> outerVars;
-		private final Stack<BlockInfo> blocks = new Stack<BlockInfo>();
+		private final Stack<BlockInfo> blocks = new Stack<>();
 
 		Visitor(AstNode ast) {
 			root = ast;

@@ -43,6 +43,7 @@ public class Scanner extends SuValue implements Iterable<String>, Iterator<Strin
 		return ((Scanner) self).lexer.length();
 	}
 
+	@Deprecated
 	public static Object Type(Object self) {
 		return ((Scanner) self).token.oldnum;
 	}

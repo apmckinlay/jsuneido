@@ -66,8 +66,8 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 
 		public Args(String memberType, int size) {
 			this.memberType = memberType;
-			this.entries = new ArrayList<Entry>(size);
-			this.names = new TreeSet<String>();
+			this.entries = new ArrayList<>(size);
+			this.names = new TreeSet<>();
 			this.isClosed = true;
 			this.isUsed = false;
 			this.numMarshallableToJSDILong = 0;

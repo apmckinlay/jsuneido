@@ -153,7 +153,7 @@ public class Summarize extends Query1 {
 		if (strategy == Strategy.COPY)
 			return source.indexes();
 		else {
-			List<List<String>> idxs = new ArrayList<List<String>>();
+			List<List<String>> idxs = new ArrayList<>();
 			for (List<String> src : source.indexes())
 				if (startsWithSet(src, by))
 					idxs.add(src);
@@ -163,7 +163,7 @@ public class Summarize extends Query1 {
 
 	@Override
 	public List<List<String>> keys() {
-		List<List<String>> keys = new ArrayList<List<String>>();
+		List<List<String>> keys = new ArrayList<>();
 		for (List<String> k : source.keys())
 			if (by.containsAll(k))
 				keys.add(k);
@@ -365,7 +365,7 @@ public class Summarize extends Query1 {
 
 		@Override
 		void init() {
-			set = new HashSet<Object>();
+			set = new HashSet<>();
 		}
 
 		@Override

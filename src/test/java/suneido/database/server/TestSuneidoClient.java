@@ -40,44 +40,44 @@ public class TestSuneidoClient {
 			}
 		}
 		private void run2() throws UnknownHostException, IOException {
-			Socket socket = new Socket(address, 3147);
-			socket.setSoTimeout(2000);
-			DataInputStream inputstream = new DataInputStream(socket.getInputStream());
-			DataOutputStream outputstream = new DataOutputStream(socket.getOutputStream());
-			inputstream.readLine();
-			long t = System.currentTimeMillis();
-			int i;
-			for (i = 0; ; ++i) {
-				if (i % 100 == 0) {
-					long elapsed = System.currentTimeMillis() - t;
-					if (elapsed > DURATION)
-						break;
-				}
-				int n = 9999999; //rand.nextInt(MAX_B);
-				String query = "testConcurrency where b = " + n;
-				String request = "GET1 +  T0 Q" + query.length() + "\n";
+			try (Socket socket = new Socket(address, 3147)) {
+				socket.setSoTimeout(2000);
+				DataInputStream inputstream = new DataInputStream(socket.getInputStream());
+				DataOutputStream outputstream = new DataOutputStream(socket.getOutputStream());
+				inputstream.readLine();
+				long t = System.currentTimeMillis();
+				for (int i = 0; ; ++i) {
+					if (i % 100 == 0) {
+						long elapsed = System.currentTimeMillis() - t;
+						if (elapsed > DURATION) {
+							System.out.println("done " + i);
+							break;
+						}
+					}
+					int n = 9999999; //rand.nextInt(MAX_B);
+					String query = "testConcurrency where b = " + n;
+					String request = "GET1 +  T0 Q" + query.length() + "\n";
 //System.out.println(">" + request + "\t" + query);
-				outputstream.write(request.getBytes());
-				outputstream.write(query.getBytes());
-				int c = inputstream.read();
-				if (c != 'E')
-					System.out.println("expected E(OF) but got " + c);
-				c = inputstream.read();
-				if (c != 'O')
-					System.out.println("expected (E)O(F) but got " + c);
-				String response = inputstream.readLine().trim();
+					outputstream.write(request.getBytes());
+					outputstream.write(query.getBytes());
+					int c = inputstream.read();
+					if (c != 'E')
+						System.out.println("expected E(OF) but got " + c);
+					c = inputstream.read();
+					if (c != 'O')
+						System.out.println("expected (E)O(F) but got " + c);
+					String response = inputstream.readLine().trim();
 //System.out.println("<" + response);
-				if (!response.equals("F") ) {
-					String[] parts = response.split(" ");
-					assert parts[0].startsWith("A");
-					assert parts[1].startsWith("R");
-					assert parts[2].startsWith("(");
-					n = Integer.parseInt(parts[1].substring(1));
-					inputstream.readFully(buf, 0, n);
+					if (!response.equals("F") ) {
+						String[] parts = response.split(" ");
+						assert parts[0].startsWith("A");
+						assert parts[1].startsWith("R");
+						assert parts[2].startsWith("(");
+						n = Integer.parseInt(parts[1].substring(1));
+						inputstream.readFully(buf, 0, n);
+					}
 				}
 			}
-			socket.close();
-System.out.println("done " + i);
 		}
 	}
 

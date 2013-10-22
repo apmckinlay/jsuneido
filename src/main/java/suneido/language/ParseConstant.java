@@ -207,7 +207,7 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 
 	private T functionWithoutKeyword(boolean inClass) {
-		ParseFunction<T, G> p = new ParseFunction<T, G>(this);
+		ParseFunction<T, G> p = new ParseFunction<>(this);
 		T result = p.functionWithoutKeyword(inClass);
 		token = p.token;
 		return result;
@@ -215,7 +215,7 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 
 	@DllInterface
 	private T struct() {
-		ParseStruct<T, G> p = new ParseStruct<T, G>(this);
+		ParseStruct<T, G> p = new ParseStruct<>(this);
 		T result = p.struct();
 		token = p.token;
 		return result;
@@ -223,7 +223,7 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 
 	@DllInterface
 	private T dll() {
-		ParseDll<T, G> p = new ParseDll<T, G>(this);
+		ParseDll<T, G> p = new ParseDll<>(this);
 		T result = p.dll();
 		token = p.token;
 		return result;
@@ -231,7 +231,7 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 
 	@DllInterface
 	private T callback() {
-		ParseCallback<T, G> p = new ParseCallback<T, G>(this);
+		ParseCallback<T, G> p = new ParseCallback<>(this);
 		T result = p.callback();
 		token = p.token;
 		return result;

@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import suneido.language.Pack;
 
 class RecordBuilder implements suneido.intfc.database.RecordBuilder {
-	private final ArrayList<ByteBuffer> bufs = new ArrayList<ByteBuffer>();
+	private final ArrayList<ByteBuffer> bufs = new ArrayList<>();
 	private final TIntArrayList offs = new TIntArrayList();
 	private final TIntArrayList lens = new TIntArrayList();
 

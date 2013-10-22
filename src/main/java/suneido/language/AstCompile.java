@@ -36,11 +36,14 @@ public class AstCompile {
 	private static final AtomicInteger nextFnId = new AtomicInteger();
 	private int fnId = -1;
 	private final ContextLayered context;
+	private final SuContainer warnings;
 
-	public AstCompile(String globalName, PrintWriter pw, ContextLayered context) {
+	public AstCompile(String globalName, PrintWriter pw, ContextLayered context,
+			SuContainer warnings) {
 		this.globalName = globalName;
 		this.pw = pw;
 		this.context = context;
+		this.warnings = warnings;
 	}
 
 	public Object fold(AstNode ast) {
@@ -126,7 +129,7 @@ public class AstCompile {
 		String base = ast.first() == null ? null : ast.first().value;
 		if (base != null && base.startsWith("_"))
 			base = context.overload(base);
-		Map<String, Object> members = new HashMap<String, Object>();
+		Map<String, Object> members = new HashMap<>();
 		SuClass prevSuClass = suClass;
 		SuClass c = suClass = new SuClass(curName, base, members);
 		String prevSuClassName = suClassName;
@@ -322,7 +325,7 @@ public class AstCompile {
 
 	/**
 	 * Used by foldFunction and block
-	 * 
+	 *
 	 * @param locals
 	 *            The outer locals for a block. Not used for functions.
 	 */
@@ -1120,8 +1123,8 @@ public class AstCompile {
 	 */
 	private void optimizeArguments(ClassGen cg, AstNode args) {
 		SuContainer constArgs = new SuContainer();
-		List<Object> unnamed = new ArrayList<Object>();
-		List<AstNode> named = new ArrayList<AstNode>();
+		List<Object> unnamed = new ArrayList<>();
+		List<AstNode> named = new ArrayList<>();
 		splitArgs(args, unnamed, named, constArgs);
 		pushArgs(cg, unnamed, named, constArgs);
 	}
@@ -1254,7 +1257,7 @@ public class AstCompile {
 	}
 
 	private static boolean isGlobal(String name) {
-		int i = name.startsWith("_") ? 1 : 0;
+		int i = name.startsWith("_") && name.length() > 1 ? 1 : 0;
 		return Character.isUpperCase(name.charAt(i));
 	}
 

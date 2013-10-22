@@ -39,7 +39,7 @@ public class Fixed {
 			return fixed2;
 		if (fixed2.isEmpty())
 			return fixed1;
-		List<Fixed> result = new ArrayList<Fixed>(fixed1);
+		List<Fixed> result = new ArrayList<>(fixed1);
 		for (Fixed f2 : fixed2)
 			if (!hasField(fixed1, f2.field))
 				result.add(f2);

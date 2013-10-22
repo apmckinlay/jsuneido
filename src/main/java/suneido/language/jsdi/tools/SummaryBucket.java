@@ -49,7 +49,7 @@ public final class SummaryBucket<K> {
 	 * Construct an empty summary bucket.
 	 */
 	public SummaryBucket() {
-		map = new HashMap<K, Entry<K>>();
+		map = new HashMap<>();
 	}
 
 	//
@@ -64,7 +64,7 @@ public final class SummaryBucket<K> {
 	public void tally(K key) {
 		final Entry<K> entry = map.get(key);
 		if (null == entry)
-			map.put(key, new Entry<K>(key));
+			map.put(key, new Entry<>(key));
 		else
 			++entry.count;
 	}

@@ -20,7 +20,7 @@ import com.google.common.io.Files;
  * control system, if any, from committing useless changes, this class does not
  * actually modify the given file unless the content of the generated lines has
  * changed.
- * 
+ *
  * @author Victor Schappert
  * @since 20130628
  */
@@ -33,7 +33,7 @@ class FileEditor {
 
 	/**
 	 * Constructs an editor to edit a given file.
-	 * 
+	 *
 	 * @param file
 	 *            Target file (must exist and be readable/writeable).
 	 * @param lineEditor
@@ -42,9 +42,9 @@ class FileEditor {
 	public FileEditor(File file, LineEditor lineEditor) {
 		this.file = file;
 		this.lineEditor = lineEditor;
-		this.before = new ArrayList<String>();
-		this.during = new ArrayList<String>();
-		this.after = new ArrayList<String>();
+		this.before = new ArrayList<>();
+		this.during = new ArrayList<>();
+		this.after = new ArrayList<>();
 		this.beginPrefix = null;
 		this.afterLine = null;
 	}
@@ -68,10 +68,7 @@ class FileEditor {
 	}
 
 	private void readFile() throws Exception {
-		FileInputStream fis = new FileInputStream(file);
-		InputStreamReader isr = new InputStreamReader(fis);
-		BufferedReader br = new BufferedReader(isr);
-		try {
+		try (BufferedReader br = new BufferedReader(new FileReader(file))) {
 			String line;
 			// Read lines before the BEGIN token.
 			Pattern BEGIN = Pattern.compile("(.*\\s)\\[BEGIN:"
@@ -99,8 +96,6 @@ class FileEditor {
 			while (null != (line = br.readLine())) {
 				after.add(line);
 			}
-		} finally {
-			br.close();
 		}
 	}
 
@@ -108,8 +103,7 @@ class FileEditor {
 		File tmp = File.createTempFile(file.getName(), ".tmp");
 		FileOutputStream fos = new FileOutputStream(tmp);
 		OutputStreamWriter osw = new OutputStreamWriter(fos);
-		BufferedWriter bw = new BufferedWriter(osw);
-		try {
+		try (BufferedWriter bw = new BufferedWriter(osw)) {
 			writeLines(before, bw);
 			if (null != beginPrefix) {
 				writeLine(
@@ -121,8 +115,6 @@ class FileEditor {
 					writeLines(after, bw);
 				}
 			}
-		} finally {
-			bw.close();
 		}
 		Files.move(tmp, file);
 	}

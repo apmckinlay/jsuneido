@@ -15,7 +15,7 @@ import com.google.common.base.Objects;
 
 public class Cache {
 	TObjectDoubleMap<CacheKey> entries = 
-		new TObjectDoubleHashMap<CacheKey>(5, .5f, -1.0);
+		new TObjectDoubleHashMap<>(5, .5f, -1.0);
 
 	public void add(List<String> index, Set<String> needs, Set<String> firstneeds,
 			boolean is_cursor, double cost) {

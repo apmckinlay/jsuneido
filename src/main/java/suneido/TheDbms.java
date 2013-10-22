@@ -17,7 +17,7 @@ public class TheDbms {
 	private static int port;
 	private static DbmsLocal localDbms;
 	private static final ThreadLocal<DbmsRemote> remoteDbms =
-			new ThreadLocal<DbmsRemote>();
+			new ThreadLocal<>();
 	private static final Set<DbmsRemote> dbmsRemotes =
 			Collections.synchronizedSet(new HashSet<DbmsRemote>());
 

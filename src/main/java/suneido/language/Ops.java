@@ -681,11 +681,7 @@ public final class Ops {
 		try {
 			Method m = x.getClass().getMethod("get" + capitalize(member));
 			return m.invoke(x);
-		} catch (SecurityException e) {
-		} catch (NoSuchMethodException e) {
-		} catch (IllegalArgumentException e) {
-		} catch (IllegalAccessException e) {
-		} catch (InvocationTargetException e) {
+		} catch (SecurityException | NoSuchMethodException | IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
 		}
 		throw new SuException("get property failed: " + x + "." + member);
 	}

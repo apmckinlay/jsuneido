@@ -83,7 +83,7 @@ class DbCheck {
 
 	protected boolean check_data_and_indexes() {
 		ExecutorService executor = Executors.newFixedThreadPool(N_THREADS);
-		ExecutorCompletionService<String> ecs = new ExecutorCompletionService<String>(executor);
+		ExecutorCompletionService<String> ecs = new ExecutorCompletionService<>(executor);
 		Database db = Database.openWithoutCheck(dstor, istor);
 		try {
 			int ntables = submitTasks(ecs, db);

@@ -22,7 +22,7 @@ public abstract class SummarizeStrategy {
 	}
 
 	List<Summary> funcSums() {
-		List<Summary> sums = new ArrayList<Summary>();
+		List<Summary> sums = new ArrayList<>();
 		for (String f : q.funcs)
 			sums.add(Summary.valueOf(f));
 		return sums;
