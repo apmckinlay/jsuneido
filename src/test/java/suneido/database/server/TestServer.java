@@ -157,7 +157,7 @@ public class TestServer {
 
 	public static class Output {
 		private final SocketChannel channel;
-		private final List<ByteBuffer> queue = new ArrayList<ByteBuffer>();
+		private final List<ByteBuffer> queue = new ArrayList<>();
 		private ByteBuffer[] bufs = new ByteBuffer[0];
 		private int n;
 

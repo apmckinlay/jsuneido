@@ -35,30 +35,30 @@ public class TestClient {
 			}
 		}
 		private void run2() throws UnknownHostException, IOException {
-			Socket socket = new Socket(address, 3147);
-			socket.setSoTimeout(5000);
-			DataInputStream inputstream = new DataInputStream(socket.getInputStream());
-			DataOutputStream outputstream = new DataOutputStream(socket.getOutputStream());
-			long t = System.currentTimeMillis();
-			int i;
-			for (i = 0; ; ++i) {
-				if (i % 100 == 0) {
-					long elapsed = System.currentTimeMillis() - t;
-					if (elapsed > DURATION)
-						break;
+			try (Socket socket = new Socket(address, 3147)) {
+				socket.setSoTimeout(5000);
+				DataInputStream inputstream = new DataInputStream(socket.getInputStream());
+				DataOutputStream outputstream = new DataOutputStream(socket.getOutputStream());
+				long t = System.currentTimeMillis();
+				for (int i = 0; ; ++i) {
+					if (i % 100 == 0) {
+						long elapsed = System.currentTimeMillis() - t;
+						if (elapsed > DURATION) {
+							System.out.println("done " + i);
+							break;
+						}
+					}
+					String query = "testConcurrency where b = 9999999";
+					String request = "GET1 +  T0 Q" + query.length() + "\n";
+					outputstream.write(request.getBytes());
+					outputstream.write(query.getBytes());
+					expect(inputstream, 'E', "E");
+					expect(inputstream, 'O', "O");
+					expect(inputstream, 'F', "F");
+					expect(inputstream, '\r', "\\r");
+					expect(inputstream, '\n', "\\n");
 				}
-				String query = "testConcurrency where b = 9999999";
-				String request = "GET1 +  T0 Q" + query.length() + "\n";
-				outputstream.write(request.getBytes());
-				outputstream.write(query.getBytes());
-				expect(inputstream, 'E', "E");
-				expect(inputstream, 'O', "O");
-				expect(inputstream, 'F', "F");
-				expect(inputstream, '\r', "\\r");
-				expect(inputstream, '\n', "\\n");
 			}
-			socket.close();
-			System.out.println("done " + i);
 		}
 
 		private static void expect(DataInputStream inputstream,

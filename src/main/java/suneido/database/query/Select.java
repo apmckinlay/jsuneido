@@ -97,7 +97,7 @@ public class Select extends Query1 {
 	List<Fixed> fixed() {
 		if (fix != null)
 			return fix;
-		fix = new ArrayList<Fixed>();
+		fix = new ArrayList<>();
 		for (Expr e : expr.exprs) {
 			Fixed fixed = fixed(e);
 			if (fixed != null)
@@ -153,8 +153,8 @@ public class Select extends Query1 {
 		// move select before extend, unless it depends on rules
 		else if (source instanceof Extend) {
 			Extend extend = (Extend) source;
-			List<Expr> src1 = new ArrayList<Expr>();
-			List<Expr> rest = new ArrayList<Expr>();
+			List<Expr> src1 = new ArrayList<>();
+			List<Expr> rest = new ArrayList<>();
 			for (Expr e : expr.exprs)
 				if (extend.needRule(e.fields()))
 					rest.add(e);
@@ -171,8 +171,8 @@ public class Select extends Query1 {
 		else if (source instanceof Summarize) {
 			Summarize summarize = (Summarize) source;
 			List<String> flds1 = summarize.source.columns();
-			List<Expr> src1 = new ArrayList<Expr>();
-			List<Expr> rest = new ArrayList<Expr>();
+			List<Expr> src1 = new ArrayList<>();
+			List<Expr> rest = new ArrayList<>();
 			for (Expr e : expr.exprs)
 				if (flds1.containsAll(e.fields()))
 					src1.add(e);
@@ -215,8 +215,8 @@ public class Select extends Query1 {
 		else if (source instanceof LeftJoin) {
 			LeftJoin j = (LeftJoin) source;
 			List<String> flds1 = j.source.columns();
-			List<Expr> common = new ArrayList<Expr>();
-			List<Expr> src1 = new ArrayList<Expr>();
+			List<Expr> common = new ArrayList<>();
+			List<Expr> src1 = new ArrayList<>();
 			for (Expr e : expr.exprs)
 				if (flds1.containsAll(e.fields()))
 					src1.add(e);
@@ -250,9 +250,9 @@ public class Select extends Query1 {
 	private boolean distribute(Query2 q2) {
 		List<String> flds1 = q2.source.columns();
 		List<String> flds2 = q2.source2.columns();
-		List<Expr> common = new ArrayList<Expr>();
-		List<Expr> src1 = new ArrayList<Expr>();
-		List<Expr> src2 = new ArrayList<Expr>();
+		List<Expr> common = new ArrayList<>();
+		List<Expr> src1 = new ArrayList<>();
+		List<Expr> src2 = new ArrayList<>();
 		for (Expr e : expr.exprs) {
 			boolean used = false;
 			if (flds1.containsAll(e.fields())) {
@@ -286,7 +286,7 @@ public class Select extends Query1 {
 			prior_needs = needs;
 			select_needs = ImmutableSet.copyOf(expr.fields());
 			tbl = source instanceof Table ? (Table) source : null;
-			isels = new HashMap<String, Iselect>();
+			isels = new HashMap<>();
 		}
 		if (tbl == null || // source isnt a Table
 				tbl.singleton) { // empty key() singleton, index irrelevant
@@ -328,26 +328,26 @@ public class Select extends Query1 {
 
 		theindexes = tbl.indexes();
 
-		ffracs = new HashMap<String, Double>();
+		ffracs = new HashMap<>();
 		List<Cmp> cmps = extract_cmps(); // WARNING: modifies expr
 		cmps_to_isels(cmps);
 		if (conflicting) {
 			nrecs = 0;
 			return;
 		}
-		possible = new ArrayList<List<String>>();
+		possible = new ArrayList<>();
 		identify_possible();
 		calc_field_fracs();
-		ifracs = new HashMap<List<String>, Double>();
+		ifracs = new HashMap<>();
 		calc_index_fracs();
 
 		// TODO should be frac of complete select, not just indexes
 		nrecs = datafrac(theindexes) * tbl.nrecords();
 	}
 	private List<Cmp> extract_cmps() {
-		List<Cmp> cmps = new ArrayList<Cmp>();
+		List<Cmp> cmps = new ArrayList<>();
 		List<String> fields = tbl.tbl.getFields();
-		List<Expr> new_exprs = new ArrayList<Expr>();
+		List<Expr> new_exprs = new ArrayList<>();
 		for (Expr e : expr.exprs) {
 			if (e == Constant.FALSE)
 				conflicting = true;
@@ -464,7 +464,7 @@ public class Select extends Query1 {
 		}
 	}
 	private List<Iselect> iselects(List<String> idx) {
-		List<Iselect> multisel = new ArrayList<Iselect>();
+		List<Iselect> multisel = new ArrayList<>();
 		for (String field : idx) {
 			Iselect r;
 			if (null == (r = isels.get(field)))
@@ -558,7 +558,7 @@ public class Select extends Query1 {
 	private double datafrac(List<List<String>> indexes) {
 		// take the union of all the index fields
 		// to ensure you don't use a field more than once
-		List<String> flds = new ArrayList<String>();
+		List<String> flds = new ArrayList<>();
 		for (List<String> idx : indexes)
 			addUnique(flds, idx);
 
@@ -693,7 +693,7 @@ public class Select extends Query1 {
 				break;
 			// set - recurse through values
 			List<ByteBuffer> save = isel.values;
-			List<Keyrange> result = new ArrayList<Keyrange>();
+			List<Keyrange> result = new ArrayList<>();
 			for (ByteBuffer value : isel.values) {
 				isel.values = asList(value);
 				result.addAll(selects(index, iselects));
@@ -864,7 +864,7 @@ public class Select extends Query1 {
 			this.ident = ident;
 			op = null;
 			value = null;
-			values = new ArrayList<ByteBuffer>();
+			values = new ArrayList<>();
 			for (ByteBuffer buf : rec)
 				values.add(buf);
 		}
@@ -950,7 +950,7 @@ public class Select extends Query1 {
 					end = r.end;
 					r.values = values;
 				}
-				values = new ArrayList<ByteBuffer>();
+				values = new ArrayList<>();
 				for (ByteBuffer x : r.values)
 					if (inrange(x))
 						values.add(x);

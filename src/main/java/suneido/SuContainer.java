@@ -68,7 +68,7 @@ public class SuContainer extends SuValue
 	}
 
 	public SuContainer(int vecCapacity) {
-		vec = Collections.synchronizedList(new ArrayList<Object>(vecCapacity));
+		vec = Collections.synchronizedList(new ArrayList<>(vecCapacity));
 	}
 
 	public SuContainer() {

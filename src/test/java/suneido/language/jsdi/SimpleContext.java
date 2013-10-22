@@ -36,7 +36,7 @@ public final class SimpleContext extends ContextLayered {
 	 */
 	public SimpleContext(String[] objects) {
 		super(new Contexts());
-		this.objects = new HashMap<String, String>();
+		this.objects = new HashMap<>();
 		final int N = objects.length;
 		for (int k = 0; k < N;) {
 			this.objects.put(objects[k++], objects[k++]);

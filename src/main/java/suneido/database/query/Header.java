@@ -31,9 +31,9 @@ public class Header {
 	}
 
 	public Header project(List<String> fields) {
-		List<List<String>> newhdr = new ArrayList<List<String>>();
+		List<List<String>> newhdr = new ArrayList<>();
 		for (List<String> fs : flds) {
-			List<String> newflds = new ArrayList<String>();
+			List<String> newflds = new ArrayList<>();
 			for (String g : fs)
 				newflds.add(fields.contains(g) ? g : "-");
 			newhdr.add(newflds);
@@ -44,13 +44,13 @@ public class Header {
 
 	public Header rename(List<String> from, List<String> to) {
 		int i;
-		List<List<String>> newhdr = new ArrayList<List<String>>();
+		List<List<String>> newhdr = new ArrayList<>();
 		for (List<String> f : flds)
 			if (intersect(from, f).isEmpty())
 				newhdr.add(f);
 			else
 				{
-				List<String> newflds = new ArrayList<String>();
+				List<String> newflds = new ArrayList<>();
 				for (String g : f)
 					if (-1 == (i = from.indexOf(g)))
 						newflds.add(g);
@@ -58,7 +58,7 @@ public class Header {
 						newflds.add(to.get(i));
 				newhdr.add(newflds);
 				}
-		List<String> newcols = new ArrayList<String>();
+		List<String> newcols = new ArrayList<>();
 		for (String c : cols)
 			if (-1 == (i = from.indexOf(c)))
 				newcols.add(c);
@@ -94,7 +94,7 @@ public class Header {
 		if (size() == 2)
 			return flds.get(1);
 		verify(size() % 2 == 0);
-		List<String> fields = new ArrayList<String>();
+		List<String> fields = new ArrayList<>();
 		// WARNING: assumes "real" data is in every other (odd) record
 		for (int i = 1; i < flds.size(); i += 2)
 			for (String f : flds.get(i))
@@ -107,7 +107,7 @@ public class Header {
 	 * @return A list of the rule columns, i.e. columns() - fields()
 	 */
 	public List<String> rules() {
-		List<String> rules = new ArrayList<String>();
+		List<String> rules = new ArrayList<>();
 		for (String c : cols)
 			if (!inflds(flds, c))
 				rules.add(c);
@@ -118,7 +118,7 @@ public class Header {
 	 * @return A list of the logical columns with the rules capitalized.
 	 */
 	public List<String> schema() {
-		List<String> schema = new ArrayList<String>(fields());
+		List<String> schema = new ArrayList<>(fields());
 		for (String c : cols)
 			if (! inflds(flds, c)) {
 				String s = c.substring(0, 1).toUpperCase() + c.substring(1);

@@ -115,7 +115,7 @@ public class Util {
 	 *         are not retained.
 	 */
 	public static <T> List<T> union(List<T> x, List<T> y) {
-		return addUnique(new ArrayList<T>(x), y);
+		return addUnique(new ArrayList<>(x), y);
 	}
 
 	public static <T> ImmutableSet<T> setUnion(Collection<T> x, Collection<T> y) {
@@ -150,7 +150,7 @@ public class Util {
 
 	/** returns a new list */
 	public static <T> List<T> withoutDups(List<T> x) {
-		List<T> result = new ArrayList<T>();
+		List<T> result = new ArrayList<>();
 		for (T s : x)
 			if (!result.contains(s))
 				result.add(s);
@@ -159,7 +159,7 @@ public class Util {
 
 	/** returns a new list */
 	public static <T> List<T> difference(List<T> x, List<T> y) {
-		List<T> result = new ArrayList<T>();
+		List<T> result = new ArrayList<>();
 		for (T s : x)
 			if (!y.contains(s))
 				result.add(s);
@@ -176,7 +176,7 @@ public class Util {
 
 	/** @return A new list */
 	public static <T> List<T> intersect(List<T> x, List<T> y) {
-		List<T> result = new ArrayList<T>();
+		List<T> result = new ArrayList<>();
 		for (T s : x)
 			if (y.contains(s))
 				result.add(s);
@@ -224,14 +224,14 @@ public class Util {
 
 	/** @return A new list containing the two lists concatenated */
 	public static <T> List<T> concat(List<T> x, List<T> y) {
-		List<T> result = new ArrayList<T>(x);
+		List<T> result = new ArrayList<>(x);
 		result.addAll(y);
 		return result;
 	}
 
 	/** @return A new list with all occurrences of a value removed */
 	public static <T> List<T> without(List<T> list, T x) {
-		List<T> result = new ArrayList<T>();
+		List<T> result = new ArrayList<>();
 		for (T y : list)
 			if (x == null ? y != null : ! x.equals(y))
 				result.add(y);

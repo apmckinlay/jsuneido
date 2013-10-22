@@ -39,7 +39,7 @@ public final class DllSummarizer implements DllMakeObserver {
 	public DllSummarizer() {
 		buckets = new SummaryBucket[BUCKETS.length];
 		for (int k = 0; k < buckets.length; ++k)
-			buckets[k] = new SummaryBucket<String>();
+			buckets[k] = new SummaryBucket<>();
 	}
 
 	//

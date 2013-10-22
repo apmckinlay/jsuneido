@@ -100,7 +100,7 @@ public final class ThunkManager {
 	 */
 	ThunkManager(JSDI jsdi) {
 		this.jsdi = jsdi;
-		this.boundValueMap = new HashMap<SuValue, BoundThunk>();
+		this.boundValueMap = new HashMap<>();
 	}
 
 	//
@@ -170,7 +170,7 @@ public final class ThunkManager {
 	//
 
 	private ArrayList<BoundThunk> thunkSnapshot() {
-		ArrayList<BoundThunk> thunks = new ArrayList<BoundThunk>(
+		ArrayList<BoundThunk> thunks = new ArrayList<>(
 				boundValueMap.size());
 		thunks.addAll(boundValueMap.values());
 		Collections.sort(thunks);

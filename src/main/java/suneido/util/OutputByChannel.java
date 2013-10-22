@@ -18,7 +18,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class OutputByChannel implements NetworkOutput {
 	private final SocketChannel channel;
 	private ByteBuffer[] bufs = new ByteBuffer[0];
-	private final List<ByteBuffer> queue = new ArrayList<ByteBuffer>();
+	private final List<ByteBuffer> queue = new ArrayList<>();
 	private int n;
 
 	public OutputByChannel(SocketChannel channel) {

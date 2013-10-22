@@ -42,7 +42,7 @@ public class SuRules extends SuContainer {
 	private final Set<Object> invalid;
 	private final Map<Object, Object> attachedRules;
 	/** activeRules is used to track which rule is currently active */
-	private final Deque<Object> activeRules = new ArrayDeque<Object>();
+	private final Deque<Object> activeRules = new ArrayDeque<>();
 
 	private static class Dependency {
 		Object field;
@@ -223,7 +223,7 @@ return ! invalid.contains(field);
 				new ThreadLocal<Deque<Rule>>() {
 					@Override
 					public Deque<Rule> initialValue() {
-						return new ArrayDeque<Rule>();
+						return new ArrayDeque<>();
 					}
 				};
 

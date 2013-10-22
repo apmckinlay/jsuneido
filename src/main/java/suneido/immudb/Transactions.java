@@ -32,10 +32,10 @@ class Transactions {
 	private final Set<Transaction> trans = Sets.newHashSet();
 	/** active update transactions */
 	private final PriorityQueue<UpdateTransaction> utrans =
-			new PriorityQueue<UpdateTransaction>(MAX_OVERLAPPING, UpdateTransaction.byAsof);
+			new PriorityQueue<>(MAX_OVERLAPPING, UpdateTransaction.byAsof);
 	/** committed read-write transactions that overlap outstanding transactions */
 	private final TreeSet<UpdateTransaction> overlapping =
-			new TreeSet<UpdateTransaction>(UpdateTransaction.byCommit);
+			new TreeSet<>(UpdateTransaction.byCommit);
 	private static final long FUTURE = Long.MAX_VALUE;
 	private static final int MAX_OVERLAPPING = 200;
 	static int MAX_UPDATE_TRAN_DURATION_SEC = 10;
@@ -166,7 +166,7 @@ class Transactions {
 	}
 
 	synchronized List<Integer> tranlist() {
-		List<Integer> list = new ArrayList<Integer>(trans.size());
+		List<Integer> list = new ArrayList<>(trans.size());
 		for (Transaction t : trans)
 			list.add(t.num());
 		return list;

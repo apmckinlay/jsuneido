@@ -29,7 +29,7 @@ public class MergeTreeTest {
 		for (int i = 0; i < NKEYS; ++i)
 			keys.add(rand.nextInt(NKEYS));
 
-		MergeTree<Integer> mt = new MergeTree<Integer>();
+		MergeTree<Integer> mt = new MergeTree<>();
 		for (Integer key : keys)
 			mt.add(key);
 		assertThat(mt.size(), is(NKEYS));
@@ -52,7 +52,7 @@ public class MergeTreeTest {
 
 	@Test
 	public void seek() {
-		MergeTree<Integer> mt = new MergeTree<Integer>();
+		MergeTree<Integer> mt = new MergeTree<>();
 		for (int i = 0; i < 10; ++i)
 			mt.add(i);
 		mt.add(5); // dup
@@ -71,7 +71,7 @@ public class MergeTreeTest {
 
 	@Test
 	public void switch_direction() {
-		MergeTree<Integer> mt = new MergeTree<Integer>();
+		MergeTree<Integer> mt = new MergeTree<>();
 		for (int i = 0; i < 6; ++i)
 			mt.add(i);
 
@@ -109,7 +109,7 @@ public class MergeTreeTest {
 
 	@Test
 	public void switch_direction2() {
-		MergeTree<Integer> mt = new MergeTree<Integer>();
+		MergeTree<Integer> mt = new MergeTree<>();
 		final int N = 1023;
 		for (int i = 0; i < N; ++i)
 			mt.add(i);
@@ -132,7 +132,7 @@ public class MergeTreeTest {
 		Random rand = new Random(98707);
 		for (int reps = 0; reps < 100; ++reps) {
 			final int NKEYS = 5 + rand.nextInt(95);
-			MergeTree<Integer> mt = new MergeTree<Integer>();
+			MergeTree<Integer> mt = new MergeTree<>();
 			for (int i = 0; i < NKEYS; ++i)
 				mt.add(rand.nextInt(NKEYS));
 			List<Integer> keys = Lists.newArrayList();
@@ -150,7 +150,7 @@ public class MergeTreeTest {
 
 	@Test
 	public void stable_sort() {
-		MergeTree<Ob> mt = new MergeTree<Ob>();
+		MergeTree<Ob> mt = new MergeTree<>();
 		for (int k = 0; k < 2; ++k)
 			for (int d = 0; d < 10; ++d)
 				mt.add(new Ob(k, d));

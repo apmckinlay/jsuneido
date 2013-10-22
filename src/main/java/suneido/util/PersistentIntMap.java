@@ -95,7 +95,7 @@ public abstract class PersistentIntMap<V> {
 					// push entry into child node along with new entry
 					data2 = data.clone();
 					data2[i] = newChild(assoc, key, value, shift + BITS_PER_LEVEL);
-					return new Node<V>(bitmap, data2);
+					return new Node<>(bitmap, data2);
 				}
 			} else { // slot points to child node
 				Node<V> child = (Node<V>) data[i];
@@ -104,10 +104,10 @@ public abstract class PersistentIntMap<V> {
 					return this; // entry already exists
 				data2 = data.clone();
 				data2[i] = newchild;
-				return new Node<V>(bitmap, data2);
+				return new Node<>(bitmap, data2);
 			}
 			data2[i] = new Entry(key, value);
-			return new Node<V>(bm, data2);
+			return new Node<>(bm, data2);
 		}
 
 		private static <V> Node<V> newChild(Entry assoc,
@@ -117,7 +117,7 @@ public abstract class PersistentIntMap<V> {
 			if (ha == h) { // collision
 				Object[] aa = new Object[1];
 				aa[0] = newChild(assoc, key, value, shift + BITS_PER_LEVEL);
-				return new Node<V>(1 << h, aa);
+				return new Node<>(1 << h, aa);
 			}
 			Object[] aa = new Object[2];
 			Entry newAssoc = new Entry(key, value);
@@ -129,7 +129,7 @@ public abstract class PersistentIntMap<V> {
 				aa[1] = newAssoc;
 			}
 			int bm = (1 << h) | (1 << ha);
-			return new Node<V>(bm, aa);
+			return new Node<>(bm, aa);
 		}
 
 	} // end of Node

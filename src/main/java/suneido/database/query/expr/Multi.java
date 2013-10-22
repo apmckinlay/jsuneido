@@ -11,7 +11,7 @@ public abstract class Multi extends Expr {
 	public List<Expr> exprs;
 
 	public Multi() {
-		exprs = new ArrayList<Expr>();
+		exprs = new ArrayList<>();
 	}
 
 	public Multi(List<Expr> exprs) {
@@ -37,14 +37,14 @@ public abstract class Multi extends Expr {
 
 	@Override
 	public List<String> fields() {
-		List<String> f = new ArrayList<String>();
+		List<String> f = new ArrayList<>();
 		for (Expr e : exprs)
 			addUnique(f, e.fields());
 		return f;
 	}
 
 	protected List<Expr> foldExprs(Expr ignore) {
-		ArrayList<Expr> new_exprs = new ArrayList<Expr>();
+		ArrayList<Expr> new_exprs = new ArrayList<>();
 		boolean changed = false;
 		for (Expr e : exprs) {
 			Expr e2 = e.fold();
@@ -57,7 +57,7 @@ public abstract class Multi extends Expr {
 	}
 
 	protected List<Expr> renameExprs(List<String> from, List<String> to) {
-		ArrayList<Expr> new_exprs = new ArrayList<Expr>();
+		ArrayList<Expr> new_exprs = new ArrayList<>();
 		boolean changed = false;
 		for (Expr e : exprs) {
 			Expr e2 = e.rename(from, to);
@@ -69,7 +69,7 @@ public abstract class Multi extends Expr {
 	}
 
 	protected List<Expr> replaceExprs(List<String> from, List<Expr> to) {
-		ArrayList<Expr> new_exprs = new ArrayList<Expr>();
+		ArrayList<Expr> new_exprs = new ArrayList<>();
 		boolean changed = false;
 		for (Expr e : exprs) {
 			Expr e2 = e.replace(from, to);

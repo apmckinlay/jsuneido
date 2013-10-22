@@ -157,7 +157,7 @@ public class Union extends Compatible {
 		if (disjoint != null) {
 			List<List<String>> kin = intersect_prefix(source.keys(), source2.keys());
 			if (!nil(kin)) {
-				List<List<String>> kout = new ArrayList<List<String>>();
+				List<List<String>> kout = new ArrayList<>();
 				for (List<String> k : kin)
 					kout.add(k.contains(disjoint) ? k : concat(k,
 							asList(disjoint)));
@@ -169,7 +169,7 @@ public class Union extends Compatible {
 
 	private static List<List<String>> intersect_prefix(List<List<String>> keys1,
 			List<List<String>> keys2) {
-		List<List<String>> kout = new ArrayList<List<String>>();
+		List<List<String>> kout = new ArrayList<>();
 		for (List<String> k1 : keys1)
 			for (List<String> k2 : keys2)
 				if (startsWith(k1, k2))
@@ -183,7 +183,7 @@ public class Union extends Compatible {
 	List<Fixed> fixed() {
 		if (fix != null)
 			return fix;
-		fix = new ArrayList<Fixed>();
+		fix = new ArrayList<>();
 		List<Fixed> fixed1 = source.fixed();
 		List<Fixed> fixed2 = source2.fixed();
 		for (Fixed f1 : fixed1)

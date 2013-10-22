@@ -129,7 +129,7 @@ public class AstCompile {
 		String base = ast.first() == null ? null : ast.first().value;
 		if (base != null && base.startsWith("_"))
 			base = context.overload(base);
-		Map<String, Object> members = new HashMap<String, Object>();
+		Map<String, Object> members = new HashMap<>();
 		SuClass prevSuClass = suClass;
 		SuClass c = suClass = new SuClass(curName, base, members);
 		String prevSuClassName = suClassName;
@@ -1123,8 +1123,8 @@ public class AstCompile {
 	 */
 	private void optimizeArguments(ClassGen cg, AstNode args) {
 		SuContainer constArgs = new SuContainer();
-		List<Object> unnamed = new ArrayList<Object>();
-		List<AstNode> named = new ArrayList<AstNode>();
+		List<Object> unnamed = new ArrayList<>();
+		List<AstNode> named = new ArrayList<>();
 		splitArgs(args, unnamed, named, constArgs);
 		pushArgs(cg, unnamed, named, constArgs);
 	}

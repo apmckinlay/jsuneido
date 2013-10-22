@@ -34,7 +34,7 @@ abstract class LineEditor {
 	 */
 	public LineEditor(String matchToken) {
 		this.matchToken = matchToken;
-		this.lines = new ArrayList<String>();
+		this.lines = new ArrayList<>();
 	}
 
 	//

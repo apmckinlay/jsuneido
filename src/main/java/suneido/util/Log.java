@@ -10,7 +10,7 @@ import suneido.SuException;
 
 @ThreadSafe
 public class Log {
-	private static final LinkedList<String> list = new LinkedList<String>();
+	private static final LinkedList<String> list = new LinkedList<>();
 	private static final int MAXSIZE = 100000;
 	private static int size = 0;
 	private static boolean disabled = false;
@@ -31,13 +31,11 @@ public class Log {
 	}
 
 	public static synchronized void save() {
-		try {
-			RandomAccessFile f = new RandomAccessFile("log.txt", "rw");
+		try (RandomAccessFile f = new RandomAccessFile("log.txt", "rw")) {
 			for (String s : list) {
 				f.writeBytes(s);
 				f.writeBytes("\n");
 			}
-			f.close();
 		} catch (IOException e) {
 			throw new SuException("dump error");
 		}

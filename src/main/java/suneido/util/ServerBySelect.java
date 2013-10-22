@@ -44,7 +44,7 @@ public class ServerBySelect {
 	private static final int SELECT_TIMEOUT_MS = ONE_MINUTE_IN_MS;
 	private static final int IDLE_CHECK_INTERVAL_MS = ONE_MINUTE_IN_MS;
 	private final Set<SelectionKey> needWrite
-			= new ConcurrentSkipListSet<SelectionKey>(new IdentityComparator());
+			= new ConcurrentSkipListSet<>(new IdentityComparator());
 	private long lastIdleCheck = 0;
 
 	public ServerBySelect(HandlerFactory handlerFactory) {
@@ -252,7 +252,7 @@ public class ServerBySelect {
 		private static final ByteBuffer[] ByteBufferArray = new ByteBuffer[0];
 		private final ServerBySelect selectServer;
 		private final SelectionKey key;
-		private final List<ByteBuffer> writeQueue = new ArrayList<ByteBuffer>();
+		private final List<ByteBuffer> writeQueue = new ArrayList<>();
 
 		public OutputQueue(ServerBySelect selectServer, SelectionKey key) { // public for tests
 			this.selectServer = selectServer;

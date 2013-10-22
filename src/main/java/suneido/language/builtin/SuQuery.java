@@ -67,7 +67,7 @@ public class SuQuery extends SuValue {
 	}
 
 	private static Object columns(Object self) {
-		List<String> cols = new ArrayList<String>();
+		List<String> cols = new ArrayList<>();
 		for (String col : ((SuQuery) self).q.header().columns())
 			if (!col.endsWith("_deps"))
 				cols.add(col);

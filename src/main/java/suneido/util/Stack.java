@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Stack<T> {
-	private final List<T> list = new ArrayList<T>();
+	private final List<T> list = new ArrayList<>();
 
 	public void pop() {
 		list.remove(list.size() - 1);

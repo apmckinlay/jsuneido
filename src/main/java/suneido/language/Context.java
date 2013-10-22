@@ -38,8 +38,8 @@ public abstract class Context {
 							nameToSlot.put(name, slot);
 							return slot;
 						}});
-	private final GrowableArray<String> names = new GrowableArray<String>();
-	private final GrowableArray<Object> values = new GrowableArray<Object>();
+	private final GrowableArray<String> names = new GrowableArray<>();
+	private final GrowableArray<Object> values = new GrowableArray<>();
 
 	/** VCS 20130703 -- I made this protected so we can derive a trivial context
 	 *                  for testing purposes...
