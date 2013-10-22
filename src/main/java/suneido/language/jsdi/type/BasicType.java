@@ -127,7 +127,7 @@ public enum BasicType {
 
 	private static final Map<String, BasicType> identifierMap;
 	static {
-		identifierMap = new TreeMap<String, BasicType>();
+		identifierMap = new TreeMap<>();
 		for (BasicType type : values()) {
 			identifierMap.put(type.identifierString, type);
 		}

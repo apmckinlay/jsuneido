@@ -96,7 +96,7 @@ public class TestBase {
 	}
 
 	private static List<Record> get(String tablename, Transaction t) {
-		List<Record> recs = new ArrayList<Record>();
+		List<Record> recs = new ArrayList<>();
 		Table tbl = t.getTable(tablename);
 		IndexIter iter = t.iter(tbl.num(), null);
 		for (iter.next(); ! iter.eof(); iter.next())

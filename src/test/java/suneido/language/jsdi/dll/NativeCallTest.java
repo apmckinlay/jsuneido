@@ -33,10 +33,10 @@ public class NativeCallTest {
 	private static final NativeCall[] VI_NORET_VI_OR_FLOAT;
 	private static final NativeCall[] VI_RETVI;
 	static {
-		ArrayList<NativeCall> dof_noret_vi_or_float = new ArrayList<NativeCall>();
-		ArrayList<NativeCall> ind_noret_vi_or_float = new ArrayList<NativeCall>();
-		ArrayList<NativeCall> vi_noret_vi_or_float = new ArrayList<NativeCall>();
-		ArrayList<NativeCall> vi_retvi = new ArrayList<NativeCall>();
+		ArrayList<NativeCall> dof_noret_vi_or_float = new ArrayList<>();
+		ArrayList<NativeCall> ind_noret_vi_or_float = new ArrayList<>();
+		ArrayList<NativeCall> vi_noret_vi_or_float = new ArrayList<>();
+		ArrayList<NativeCall> vi_retvi = new ArrayList<>();
 		for (NativeCall nativecall : NativeCall.values()) {
 			if (nativecall.isFloatingPointReturn())
 				continue;

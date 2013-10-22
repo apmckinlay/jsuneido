@@ -31,52 +31,49 @@ public class TestLucene {
 
 	private static void createIndex() throws IOException,
 			CorruptIndexException, LockObtainFailedException {
-		IndexWriter writer = writer("index", true);
-
-		Document doc = new Document();
-		doc.add(new Field("name", "mydoc",
-				Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS));
-		doc.add(new Field("text", "now is the time for all good men",
-				Field.Store.NO, Field.Index.ANALYZED));
-		writer.addDocument(doc);
-
-		doc = new Document();
-		doc.add(new Field("name", "another",
-				Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS));
-		doc.add(new Field("text", "it was a good time for sleep",
-				Field.Store.NO, Field.Index.ANALYZED));
-		writer.addDocument(doc);
-
-		doc = new Document();
-		doc.add(new Field("name", "other",
-				Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS));
-		doc.add(new Field("text", "no rest for the wicked",
-				Field.Store.NO, Field.Index.ANALYZED));
-		writer.addDocument(doc);
-
-		writer.close();
+		try (IndexWriter writer = writer("index", true)) {
+			Document doc = new Document();
+			doc.add(new Field("name", "mydoc",
+					Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS));
+			doc.add(new Field("text", "now is the time for all good men",
+					Field.Store.NO, Field.Index.ANALYZED));
+			writer.addDocument(doc);
+			
+			doc = new Document();
+			doc.add(new Field("name", "another",
+					Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS));
+			doc.add(new Field("text", "it was a good time for sleep",
+					Field.Store.NO, Field.Index.ANALYZED));
+			writer.addDocument(doc);
+			
+			doc = new Document();
+			doc.add(new Field("name", "other",
+					Field.Store.YES, Field.Index.NOT_ANALYZED_NO_NORMS));
+			doc.add(new Field("text", "no rest for the wicked",
+					Field.Store.NO, Field.Index.ANALYZED));
+			writer.addDocument(doc);
+		}
 	}
 
 	private static void searchIndex()
 			throws CorruptIndexException, IOException, ParseException {
-		Directory dir = FSDirectory.open(new File("index"));
-		IndexReader reader = IndexReader.open(dir);
-		IndexSearcher searcher = new IndexSearcher(reader);
-	    Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_31);
-	    QueryParser parser = new QueryParser(Version.LUCENE_31, "text", analyzer);
-	    Query query = parser.parse("good time");
-	    System.out.println("Searching for: " + query.toString("text"));
-	    TopDocs results = searcher.search(query, 10);
-	    int numTotalHits = results.totalHits;
-	    System.out.println(numTotalHits + " total matching documents");
-	    ScoreDoc[] hits = results.scoreDocs;
-	    for (ScoreDoc hit : hits) {
-	        Document doc = searcher.doc(hit.doc);
-	        String name = doc.get("name");
-	        System.out.println("found name: " + name);
-	    }
-	    searcher.close();
-	    reader.close();
+		try (Directory dir = FSDirectory.open(new File("index"));
+				IndexReader reader = IndexReader.open(dir); 
+				IndexSearcher searcher = new IndexSearcher(reader)) {
+			Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_31);
+			QueryParser parser = new QueryParser(Version.LUCENE_31, "text", analyzer);
+			Query query = parser.parse("good time");
+			System.out.println("Searching for: " + query.toString("text"));
+			TopDocs results = searcher.search(query, 10);
+			int numTotalHits = results.totalHits;
+			System.out.println(numTotalHits + " total matching documents");
+			ScoreDoc[] hits = results.scoreDocs;
+			for (ScoreDoc hit : hits) {
+				Document doc = searcher.doc(hit.doc);
+				String name = doc.get("name");
+				System.out.println("found name: " + name);
+			}
+		}
 	}
 
 	public static void main(String[] args)

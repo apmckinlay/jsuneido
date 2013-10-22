@@ -17,7 +17,7 @@ import suneido.intfc.database.Record;
  */
 public class SummarizeStrategyMap extends SummarizeStrategy {
 	TreeMap<Record, List<Summary>> results =
-			new TreeMap<Record, List<Summary>>();
+			new TreeMap<>();
 	NavigableMap<Record, List<Summary>> selected;
 	Map.Entry<Record, List<Summary>> cur;
 	boolean first = true;

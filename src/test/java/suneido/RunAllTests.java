@@ -14,9 +14,8 @@ public class RunAllTests {
 	}
 
 	private static String[] findTests(String jarfile) {
-		ArrayList<String> tests = new ArrayList<String>();
-		try {
-			JarFile jf = new JarFile(jarfile);
+		ArrayList<String> tests = new ArrayList<>();
+		try (JarFile jf = new JarFile(jarfile)) {
 			for (Enumeration<JarEntry> e = jf.entries(); e.hasMoreElements();) {
 				String name = e.nextElement().getName();
 				if (name.startsWith("suneido/") && name.endsWith("Test.class")
@@ -24,7 +23,6 @@ public class RunAllTests {
 					tests.add(name.replaceAll("/", ".")
 							.substring(0, name.length() - 6));
 			}
-			jf.close();
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}

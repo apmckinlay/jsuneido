@@ -32,9 +32,9 @@ public final class GenerateGlobalReferences {
 
 		public Ref(Class clazz, Member... members) {
 			this.clazz = clazz;
-			this.constructors = new ArrayList<Constructor>();
-			this.methods = new ArrayList<Method>();
-			this.fields = new ArrayList<Field>();
+			this.constructors = new ArrayList<>();
+			this.methods = new ArrayList<>();
+			this.fields = new ArrayList<>();
 			for (Member member : members) {
 				if (member instanceof Constructor)
 					constructors.add((Constructor) member);

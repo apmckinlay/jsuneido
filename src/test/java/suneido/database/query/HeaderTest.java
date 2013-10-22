@@ -13,8 +13,8 @@ public class HeaderTest {
 
 	@Test
 	public void test() {
-		List<List<String>> flds = new ArrayList<List<String>>();
-		List<String> cols = new ArrayList<String>();
+		List<List<String>> flds = new ArrayList<>();
+		List<String> cols = new ArrayList<>();
 		Header hdr = new Header(flds, cols);
 		assertEquals(0, hdr.size());
 

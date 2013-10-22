@@ -39,8 +39,8 @@ public class Rename extends Query1 {
 			String deps = from.get(i) + "_deps";
 			if (src.contains(deps)) {
 				if (!copy) {
-					from = new ArrayList<String>(from);
-					to = new ArrayList<String>(to);
+					from = new ArrayList<>(from);
+					to = new ArrayList<>(to);
 					copy = true;
 				}
 				from.add(deps);
@@ -66,16 +66,16 @@ public class Rename extends Query1 {
 		// combine Renames
 		if (source instanceof Rename) {
 			Rename r = (Rename) source;
-			List<String> from2 = new ArrayList<String>();
-			List<String> to2 = new ArrayList<String>();
+			List<String> from2 = new ArrayList<>();
+			List<String> to2 = new ArrayList<>();
 			for (int i = 0; i < from.size(); ++i)
 				if (!r.to.contains(from.get(i))) {
 					from2.add(from.get(i));
 					to2.add(to.get(i));
 				}
-			to = new ArrayList<String>(rename_fields(r.to, from, to));
+			to = new ArrayList<>(rename_fields(r.to, from, to));
 			to.addAll(to2);
-			from = new ArrayList<String>(r.from);
+			from = new ArrayList<>(r.from);
 			from.addAll(from2);
 			source = r.source;
 			return transform();
@@ -86,7 +86,7 @@ public class Rename extends Query1 {
 
 	private static List<String> rename_fields(List<String> f,
 			List<String> from, List<String> to) {
-		List<String> new_fields = new ArrayList<String>(f);
+		List<String> new_fields = new ArrayList<>(f);
 		for (int i = 0; i < f.size(); ++i) {
 			int j = from.indexOf(f.get(i));
 			if (j != -1)
@@ -125,7 +125,7 @@ public class Rename extends Query1 {
 	}
 	private static List<List<String>> rename_indexes(List<List<String>> i,
 			List<String> from, List<String> to) {
-		List<List<String>> new_idxs = new ArrayList<List<String>>(i.size());
+		List<List<String>> new_idxs = new ArrayList<>(i.size());
 		for (List<String> j : i)
 			new_idxs.add(rename_fields(j, from, to));
 		return new_idxs;

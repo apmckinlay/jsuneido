@@ -31,10 +31,10 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	protected boolean onlyReads = true;
 	/** Stores changes in table sizes */
 	protected final TIntObjectHashMap<TableInfoDelta> tidelta =
-			new TIntObjectHashMap<TableInfoDelta>();
+			new TIntObjectHashMap<>();
 	/** Caches {@link IndexedData} instances */
 	protected final TIntObjectHashMap<IndexedData> indexedData =
-			new TIntObjectHashMap<IndexedData>();
+			new TIntObjectHashMap<>();
 
 	ReadWriteTransaction(int num, Database db) {
 		super(num, db);
@@ -300,7 +300,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 			TableInfo ti = (TableInfo) dbinfo.get(tblnum);
 
 			// indexes
-			TCustomHashSet<IndexInfo> info = new TCustomHashSet<IndexInfo>(iihash);
+			TCustomHashSet<IndexInfo> info = new TCustomHashSet<>(iihash);
 			do {
 				Btree btree = (Btree) e.getValue();
 				info.add(new IndexInfo(e.getKey().colNums, btree.info()));

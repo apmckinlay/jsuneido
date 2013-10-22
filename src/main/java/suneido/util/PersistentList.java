@@ -43,7 +43,7 @@ public class PersistentList<T> extends AbstractSequentialList<T> {
 	/** @return A list containing the specified value */
 	@SuppressWarnings("unchecked")
 	public static <T> PersistentList<T> of(T value) {
-		return new PersistentList<T>(value, Nil);
+		return new PersistentList<>(value, Nil);
 	}
 
 	/** @return A list containing the specified values */
@@ -85,7 +85,7 @@ public class PersistentList<T> extends AbstractSequentialList<T> {
 	/** @return A new list with value as the head and the old list as the tail */
 	public PersistentList<T> with(T value) {
 		checkNotNull(value);
-		return new PersistentList<T>(value, this);
+		return new PersistentList<>(value, this);
 	}
 
 	@Override
@@ -104,7 +104,7 @@ public class PersistentList<T> extends AbstractSequentialList<T> {
 	public PersistentList<T> without(T x) {
 		if (!contains(x))
 			return this;
-		Builder<T> save = new Builder<T>();
+		Builder<T> save = new Builder<>();
 		PersistentList<T> list = this;
 		do {
 			for (; list != Nil && !x.equals(list.head()); list = list.tail())
@@ -209,7 +209,7 @@ public class PersistentList<T> extends AbstractSequentialList<T> {
 
 	@Override
 	public Iterator<T> iterator() {
-		return new Iter<T>(this);
+		return new Iter<>(this);
 	}
 
 	private static class Iter<T> implements Iterator<T> {
@@ -217,7 +217,7 @@ public class PersistentList<T> extends AbstractSequentialList<T> {
 		private PersistentList<T> list;
 
 		private Iter(PersistentList<T> list) {
-			this.list = new PersistentList<T>(null, list);
+			this.list = new PersistentList<>(null, list);
 		}
 
 		@Override

@@ -35,13 +35,13 @@ public class SuInstance extends SuValue {
 
 	public SuInstance(SuClass myclass) {
 		this.myclass = myclass;
-		this.ivars = new HashMap<String, Object>();
+		this.ivars = new HashMap<>();
 	}
 
 	/** copy constructor */
 	public SuInstance(SuInstance other) {
 		myclass = other.myclass;
-		ivars = new HashMap<String, Object>(other.ivars);
+		ivars = new HashMap<>(other.ivars);
 	}
 
 	@Override

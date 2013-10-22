@@ -32,7 +32,7 @@ public class Request implements RequestGenerator<Object> {
 		Lexer lexer = new Lexer(s);
 		lexer.ignoreCase();
 		Request generator = new Request(db, serverData);
-		ParseRequest<Object> pc = new ParseRequest<Object>(lexer, generator);
+		ParseRequest<Object> pc = new ParseRequest<>(lexer, generator);
 		pc.parse();
 	}
 

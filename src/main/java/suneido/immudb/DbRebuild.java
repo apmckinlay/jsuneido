@@ -136,7 +136,7 @@ class DbRebuild {
 			System.out.println("Could not recover " + fmt(discard) + " bytes of data");
 	}
 
-	private final TIntObjectHashMap<String> tblnames = new TIntObjectHashMap<String>();
+	private final TIntObjectHashMap<String> tblnames = new TIntObjectHashMap<>();
 
 	private class Proc extends CommitProcessor {
 		private final Database db;

@@ -37,7 +37,7 @@ public final class TypeFactory {
 			throw new IllegalArgumentException("jsdi cannot be null");
 		}
 		this.jsdi = jsdi;
-		this.basicValues = new EnumMap<BasicType, BasicValue>(BasicType.class);
+		this.basicValues = new EnumMap<>(BasicType.class);
 		loadBasicValues();
 	}
 

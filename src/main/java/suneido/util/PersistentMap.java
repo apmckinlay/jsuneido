@@ -145,7 +145,7 @@ public abstract class PersistentMap<K, V> {
 				a[i] = newchild;
 				return;
 			}
-			a[i] = new SimpleImmutableEntry<K, V>(key, value);
+			a[i] = new SimpleImmutableEntry<>(key, value);
 		}
 
 		@Override
@@ -174,7 +174,7 @@ public abstract class PersistentMap<K, V> {
 					aa = a.clone();
 					aa[i] = newChild(assoc, key, value, hash,
 							shift + BITS_PER_LEVEL);
-					return new TrieNode<K, V>(bitmap, aa);
+					return new TrieNode<>(bitmap, aa);
 				}
 			} else { // slot points to child node
 				Node<K, V> child = (Node<K, V>) a[i];
@@ -184,27 +184,27 @@ public abstract class PersistentMap<K, V> {
 					return this; // entry already exists
 				aa = a.clone();
 				aa[i] = newchild;
-				return new TrieNode<K, V>(bitmap, aa);
+				return new TrieNode<>(bitmap, aa);
 			}
-			aa[i] = new SimpleImmutableEntry<K, V>(key, value);
-			return new TrieNode<K, V>(bm, aa);
+			aa[i] = new SimpleImmutableEntry<>(key, value);
+			return new TrieNode<>(bm, aa);
 		}
 
 		private static <K, V> Node<K, V> newChild(SimpleImmutableEntry<K, V> assoc,
 				K key, V value, int hash, int shift) {
 			if (shift >= HASH_BITS)
-				return new OverflowNode<K, V>(assoc, new SimpleImmutableEntry<K, V>(key,
+				return new OverflowNode<>(assoc, new SimpleImmutableEntry<>(key,
 						value));
 			int ha = (assoc.getKey().hashCode() >> shift) & LEVEL_MASK;
 			int h = (hash >>> shift) & LEVEL_MASK;
 			if (ha == h) { // collision
 				Object[] aa = new Object[1];
 				aa[0] = newChild(assoc, key, value, hash, shift	+ BITS_PER_LEVEL);
-				return new TrieNode<K, V>(1 << h, aa);
+				return new TrieNode<>(1 << h, aa);
 			}
 			Object[] aa = new Object[2];
 			SimpleImmutableEntry<K, V> newAssoc =
-					new SimpleImmutableEntry<K, V>(key, value);
+					new SimpleImmutableEntry<>(key, value);
 			if (h < ha) {
 				aa[0] = newAssoc;
 				aa[1] = assoc;
@@ -213,7 +213,7 @@ public abstract class PersistentMap<K, V> {
 				aa[1] = newAssoc;
 			}
 			int bm = (1 << h) | (1 << ha);
-			return new TrieNode<K, V>(bm, aa);
+			return new TrieNode<>(bm, aa);
 		}
 
 		@Override
@@ -231,7 +231,7 @@ public abstract class PersistentMap<K, V> {
 				if (newChild != null) {
 					Object aa[] = a.clone();
 					aa[i] = newChild;
-					return new TrieNode<K, V>(bitmap, aa);
+					return new TrieNode<>(bitmap, aa);
 				} // else fall through
 			} else if (!((SimpleImmutableEntry<K, V>) a[i]).getKey().equals(key))
 				return this; // slot has different key, key not present
@@ -240,7 +240,7 @@ public abstract class PersistentMap<K, V> {
 			Object aa[] = new Object[a.length - 1];
 			System.arraycopy(a, 0, aa, 0, i);
 			System.arraycopy(a, i + 1, aa, i, a.length - i - 1);
-			return new TrieNode<K, V>(bitmap & ~bit, aa);
+			return new TrieNode<>(bitmap & ~bit, aa);
 		}
 
 		private static int bit(int hash, int shift) {
@@ -291,7 +291,7 @@ public abstract class PersistentMap<K, V> {
 				if (i > assocs.length - 1)
 					assocs = Arrays.copyOf(assocs, assocs.length * 2);
 			}
-			assocs[i] = new SimpleImmutableEntry<K, V>(key, value);
+			assocs[i] = new SimpleImmutableEntry<>(key, value);
 		}
 
 		@Override
@@ -306,8 +306,8 @@ public abstract class PersistentMap<K, V> {
 			else
 				// key exists but value wrong
 				a = Arrays.copyOf(assocs, length());
-			a[i] = new SimpleImmutableEntry<K, V>(key, value);
-			return new OverflowNode<K, V>(a);
+			a[i] = new SimpleImmutableEntry<>(key, value);
+			return new OverflowNode<>(a);
 		}
 
 		@Override
@@ -320,7 +320,7 @@ public abstract class PersistentMap<K, V> {
 			SimpleImmutableEntry<K, V> a[] = new SimpleImmutableEntry[length() - 1];
 			System.arraycopy(assocs, 0, a, 0, i);
 			System.arraycopy(assocs, i + 1, a, i, a.length - i);
-			return new OverflowNode<K, V>(a);
+			return new OverflowNode<>(a);
 		}
 
 		private int find(Object key) {
@@ -341,7 +341,7 @@ public abstract class PersistentMap<K, V> {
 
 	public static class Builder<K, V> {
 
-		private Node<K, V> map = new TrieNode<K, V>(0, new Object[4]);
+		private Node<K, V> map = new TrieNode<>(0, new Object[4]);
 
 		public Builder<K, V> put(K key, V value) {
 			map.add(key, value);
@@ -367,7 +367,7 @@ public abstract class PersistentMap<K, V> {
 	}
 
 	public static <K, V> Builder<K, V> builder() {
-		return new Builder<K, V>();
+		return new Builder<>();
 	}
 
 }

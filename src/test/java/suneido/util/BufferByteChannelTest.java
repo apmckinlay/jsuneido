@@ -16,8 +16,7 @@ public class BufferByteChannelTest {
 
 	@Test
 	public void test() throws IOException {
-		BufferByteChannel b = new BufferByteChannel(100);
-		try {
+		try (BufferByteChannel b = new BufferByteChannel(100)) {
 			assertThat(b.getBuffer().position(), is(0));
 			assertThat(b.getBuffer().remaining(), is(0));
 			b.write(ByteBuffers.stringToBuffer("hello"));
@@ -29,8 +28,6 @@ public class BufferByteChannelTest {
 			assertThat(b.read(buf), is(11));
 			buf.rewind();
 			assertThat(ByteBuffers.bufferToString(buf), is("hello world"));
-		} finally {
-			b.close();
 		}
 	}
 

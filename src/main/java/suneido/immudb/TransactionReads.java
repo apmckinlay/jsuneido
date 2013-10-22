@@ -17,7 +17,7 @@ import suneido.util.MergeTree;
 class TransactionReads {
 	private static final int MAX_READS = 10000;
 	private final UpdateTransaction t;
-	private final MergeTree<IndexRange> list  = new MergeTree<IndexRange>();
+	private final MergeTree<IndexRange> list  = new MergeTree<>();
 	private IndexRange[] reads;
 	private int rlen;
 

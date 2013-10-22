@@ -324,14 +324,14 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 
 	private T expression() {
-		ParseExpression<T, G> p = new ParseExpression<T, G>(this);
+		ParseExpression<T, G> p = new ParseExpression<>(this);
 		T result = p.expression();
 		token = p.token;
 		return result;
 	}
 
 	private T constant() {
-		ParseConstant<T, G> p = new ParseConstant<T, G>(this);
+		ParseConstant<T, G> p = new ParseConstant<>(this);
 		T result = p.constant();
 		token = p.token;
 		return result;

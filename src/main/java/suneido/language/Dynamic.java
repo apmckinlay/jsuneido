@@ -14,7 +14,7 @@ import suneido.SuException;
 /** runtime support for dynamic _variables */
 public class Dynamic {
 	private final static Deque<Map<String,Object>> stack =
-			new ArrayDeque<Map<String,Object>>();
+			new ArrayDeque<>();
 
 	public static void put(String name, Object value) {
 		stack.peek().put(name, value);

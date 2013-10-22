@@ -192,7 +192,7 @@ public class Join extends Query2 {
 			return source.indexes();
 		case N_N:
 			// union of indexes that don't include joincols
-			List<List<String>> idxs = new ArrayList<List<String>>();
+			List<List<String>> idxs = new ArrayList<>();
 			for (List<String> i : source.indexes())
 				if (disjoint(i, joincols))
 					idxs.add(i);
@@ -222,7 +222,7 @@ public class Join extends Query2 {
 	}
 
 	protected List<List<String>> keypairs() {
-		List<List<String>> keys = new ArrayList<List<String>>();
+		List<List<String>> keys = new ArrayList<>();
 		for (List<String> k1 : source.keys())
 			for (List<String> k2 : source2.keys())
 				addUnique(keys, union(k1, k2));

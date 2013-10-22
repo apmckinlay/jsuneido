@@ -85,7 +85,7 @@ class Columns implements Iterable<Column> {
 	String schemaColumns() {
 		if (columns.isEmpty())
 			return "";
-		List<String> cols = new ArrayList<String>();
+		List<String> cols = new ArrayList<>();
 		for (Column c : columns)
 			if (c.field >= 0)
 				cols.add(c.name);

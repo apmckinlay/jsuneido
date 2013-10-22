@@ -1,7 +1,6 @@
 package suneido.language;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -367,11 +366,11 @@ public class OpsTest {
 
 	@Test
 	public void getString() {
-		assertThat(Ops.get("abcd", 0), is((Object) "a"));
-		assertThat(Ops.get("abcd", 3), is((Object) "d"));
-		assertThat(Ops.get("abcd", 4), is((Object) ""));
-		assertThat(Ops.get("abcd", -1), is((Object) "d"));
-		assertThat(Ops.get("abcd", -4), is((Object) "a"));
-		assertThat(Ops.get("abcd", -5), is((Object) ""));
+		assertEquals("a", Ops.get("abcd", 0));
+		assertEquals("d", Ops.get("abcd", 3));
+		assertEquals("", Ops.get("abcd", 4));
+		assertEquals("d", Ops.get("abcd", -1));
+		assertEquals("a", Ops.get("abcd", -4));
+		assertEquals("", Ops.get("abcd", -5));
 	}
 }

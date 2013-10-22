@@ -92,7 +92,7 @@ public class DbmsLocal extends Dbms {
 
 	@Override
 	public List<LibGet> libget(String name) {
-		List<LibGet> srcs = new ArrayList<LibGet>();
+		List<LibGet> srcs = new ArrayList<>();
 		Record key = dbpkg.recordBuilder().add(name).add(-1).build();
 		Transaction tran = db.readTransaction();
 		try {

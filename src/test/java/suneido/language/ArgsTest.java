@@ -91,7 +91,7 @@ public class ArgsTest {
 	}
 
 	private static Object[] defaults(String... params) {
-		ArrayList<Object> defaults = new ArrayList<Object>();
+		ArrayList<Object> defaults = new ArrayList<>();
 		int j;
 		for (int i = 0; i < params.length; ++i)
 			if (-1 != (j = params[i].indexOf('='))) {

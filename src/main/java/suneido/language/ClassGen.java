@@ -713,9 +713,7 @@ public class ClassGen {
 					cw.toByteArray());
 			try {
 				callable = (SuCallable) sc.newInstance();
-			} catch (InstantiationException e) {
-				throw new SuException("newInstance error: " + e);
-			} catch (IllegalAccessException e) {
+			} catch (InstantiationException | IllegalAccessException e) {
 				throw new SuException("newInstance error: " + e);
 			}
 		} finally {
@@ -773,7 +771,7 @@ public class ClassGen {
 	}
 
 	public static ThreadLocal<List<Object>> shareConstants =
-			new ThreadLocal<List<Object>>();
+			new ThreadLocal<>();
 
 	/**
 	 * generator a constructor that sets const0, const1, etc.

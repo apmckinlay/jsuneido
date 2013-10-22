@@ -10,7 +10,7 @@ public class ArraysListTest {
 
 	@Test
 	public void test() {
-		ArraysList<Integer> list = new ArraysList<Integer>();
+		ArraysList<Integer> list = new ArraysList<>();
 		assertThat(list.size(), is(0));
 
 		list.add(0);

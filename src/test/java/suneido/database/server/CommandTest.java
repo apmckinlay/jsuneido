@@ -420,7 +420,7 @@ public class CommandTest {
 
 	public static class Output implements NetworkOutput {
 
-		private final List<ByteBuffer> content = new LinkedList<ByteBuffer>();
+		private final List<ByteBuffer> content = new LinkedList<>();
 
 		@Override
 		public void add(ByteBuffer buf) {

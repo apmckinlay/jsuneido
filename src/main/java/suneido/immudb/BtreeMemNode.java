@@ -75,7 +75,7 @@ class BtreeMemNode extends BtreeNode {
 
 	/** copies just the referenced elements of added */
 	private static List<BtreeKey> copyAdded(TByteArrayList index, List<BtreeKey> added) {
-		List<BtreeKey> copy = new ArrayList<BtreeKey>(countAdded(index));
+		List<BtreeKey> copy = new ArrayList<>(countAdded(index));
 		for (int i = 0; i < index.size(); ++i) {
 			int idx = index.get(i);
 			if (idx < 0) {
