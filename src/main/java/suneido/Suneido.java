@@ -108,7 +108,7 @@ public class Suneido {
 			if ("".equals(cmdlineoptions.remainder))
 				Repl.repl();
 			else
-				Compiler.eval("JInit()");
+				Compiler.eval("Init()");
 			break;
 		case DUMP:
 			String dumptablename = cmdlineoptions.actionArg;
@@ -165,7 +165,7 @@ public class Suneido {
 		HttpServerMonitor.run(cmdlineoptions.serverPort + 1);
 		openDbms();
 		try {
-			Compiler.eval("JInit()");
+			Compiler.eval("Init()");
 		} catch (Throwable e) {
 			fatal("error during init", e);
 		}
