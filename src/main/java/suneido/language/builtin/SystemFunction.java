@@ -17,9 +17,7 @@ public class SystemFunction {
 		cmd[2] = Ops.toStr(a);
 		try {
 			ProcessBuilder pb = new ProcessBuilder(cmd);
-			pb.redirectInput(ProcessBuilder.Redirect.INHERIT);
-			pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-			pb.redirectError(ProcessBuilder.Redirect.INHERIT);
+			pb.inheritIO();
 			Process proc = pb.start();
 			return proc.waitFor();
 		} catch (Throwable e) {
