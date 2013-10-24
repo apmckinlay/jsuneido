@@ -72,10 +72,6 @@ public class StringMethods extends BuiltinMethods {
 	}
 
 	@Params("string")
-	public static Object Contains(Object self, Object a) {
-		return (toStr(self)).contains(toStr(a));
-	}
-	@Params("string")
 	public static Object HasQ(Object self, Object a) {
 		return (toStr(self)).contains(toStr(a));
 	}
@@ -86,10 +82,6 @@ public class StringMethods extends BuiltinMethods {
 		return Tabs.detab(toStr(self), TABWIDTH);
 	}
 
-	@Params("string")
-	public static Object EndsWith(Object self, Object a) {
-		return toStr(self).endsWith(toStr(a));
-	}
 	@Params("string")
 	public static Object SuffixQ(Object self, Object a) {
 		return toStr(self).endsWith(toStr(a));
@@ -364,11 +356,6 @@ public class StringMethods extends BuiltinMethods {
 		return ob;
 	}
 
-	@Params("s, i = 0")
-	public static Object StartsWith(Object self, Object a, Object b) {
-		String s = toStr(self);
-		return s.startsWith(toStr(a), toInt(b));
-	}
 	@Params("s, i = 0")
 	public static Object PrefixQ(Object self, Object a, Object b) {
 		String s = toStr(self);
