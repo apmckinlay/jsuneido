@@ -423,23 +423,6 @@ public final class Ops {
 		throw new SuException("can't convert " + Ops.typeName(x) + " to integer");
 	}
 
-	public static int toIntIfNum(Object x) {
-		// TODO: determine whether it is possible and desirable in jSuneido
-		//       to hold a reference to types Long, Short, and Byte (noting
-		//       that literal processing via AstCompile.fold() and Numbers.
-		//       stringToNumber() can only produce either an 'int' or a
-		//       BigDecimal.
-		if (x instanceof Integer || x instanceof Short || x instanceof Byte)
-			return ((Number) x).intValue();
-		if (x instanceof Long)
-			return toIntFromLong((Long) x);
-		if (x instanceof BigDecimal)
-			return toIntFromBD((BigDecimal) x);
-		if (x instanceof BigInteger)
-			return toIntFromBI((BigInteger) x);
-		throw new SuException(Ops.typeName(x) + " is not a convertible Number");
-	}
-
 	// used by string operations to coerce arguments
 	// automatic conversion is only done from booleans and numbers
 	public static String toStr(Object x) {

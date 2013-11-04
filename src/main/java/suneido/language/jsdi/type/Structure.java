@@ -261,7 +261,6 @@ public final class Structure extends ComplexType {
 	 * @param self The structure
 	 * @return Integer size of the structure in bytes
 	 * @see suneido.language.BuiltinMethods
-	 * @see #Modify(Object, Object, Object, Object)
 	 */
 	public static Object Size(Object self) {
 		Structure struct = (Structure)self;
@@ -282,8 +281,11 @@ public final class Structure extends ComplexType {
 	 * @param value Value to assign to the member to be modified 
 	 */
 	@Params("address, member_name, value")
+	@Deprecated
 	public static Object Modify(Object self, Object address, Object memberName,
 			Object value) {
+		// TODO: I think that we have eliminated the need for struct.Modify
+		//       and this method should probably be removed (check with APM).
 		throw new RuntimeException("not implemented");
 	}
 
