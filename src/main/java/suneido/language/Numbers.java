@@ -144,12 +144,26 @@ public class Numbers {
 		return x;
 	}
 
-	/** Convert BigDecimal to int if possible */
+	/** Convert BigDecimal to int or long if possible */
 	public static Number narrow(BigDecimal x) {
 		if (x.signum() == 0)
-			return 0;
-		if (x.scale() <= 0 && isInRange(x, BD_INT_MIN, BD_INT_MAX))
-			return x.intValueExact();
+			return 0; // TODO: Might it not be cleaner to remove this 'optimization'? 
+		else if (x.scale() <= 0) {
+			if (isInRange(x, BD_INT_MIN, BD_INT_MAX))
+				return x.intValueExact();
+			else if (isInRange(x, BD_LONG_MIN, BD_LONG_MAX))
+				return x.longValueExact();
+		}
+		return x;
+	}
+
+	/** Ensure number is in narrowest representation possible */
+	public static Number narrow(Number x) {
+		if (x instanceof Long) {
+			return narrow(x.longValue());
+		} else if (x instanceof BigDecimal) {
+			return narrow((BigDecimal)x);
+		}
 		return x;
 	}
 

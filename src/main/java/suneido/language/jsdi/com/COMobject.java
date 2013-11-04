@@ -6,14 +6,12 @@ package suneido.language.jsdi.com;
 
 import static suneido.util.Util.array;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import suneido.SuValue;
 import suneido.language.*;
 import suneido.language.jsdi.DllInterface;
-import suneido.language.jsdi.JSDIException;
 import suneido.language.jsdi.JSDIValue;
 import suneido.language.jsdi.NumberConversions;
 
@@ -43,6 +41,7 @@ public final class COMobject extends JSDIValue {
 	//
 
 	private static final String UNKNOWN_PROGID = "???";
+	private static final String TYPENAME = "COMobject";
 
 	//
 	// CONSTRUCTORS
@@ -52,15 +51,15 @@ public final class COMobject extends JSDIValue {
 		if (null == progid) {
 			progid = UNKNOWN_PROGID;
 		}
-		if (0 == ptrToIDispatch && 0 == ptrToIUnknown) {
+		if (0L == ptrToIDispatch && 0L == ptrToIUnknown) {
 			throw new IllegalArgumentException(
 					"must have at least one of IDispatch or IUnknown pointer");
 		}
 		this.progid = progid;
 		this.ptrToIDispatch = ptrToIDispatch;
 		this.ptrToIUnknown = ptrToIUnknown;
-		this.name2dispid = Collections
-				.synchronizedMap(new HashMap<String, Integer>());
+		this.name2dispid = 0L != ptrToIDispatch ? new HashMap<String, Integer>()
+				: null;
 		this.isReleased = false;
 	}
 
@@ -91,21 +90,26 @@ public final class COMobject extends JSDIValue {
 
 	private void verifyNotReleased() {
 		if (isReleased) {
-			throw new JSDIException(infoString("already released"));
+			throw new COMException(infoString("already released"));
 		}
 	}
 
 	private void requireIDispatch() {
 		if (0 == ptrToIDispatch) {
-			throw new JSDIException(infoString("doesn't support IDispatch"));
+			throw new COMException(infoString("doesn't support IDispatch"));
 		}
 	}
 
 	private synchronized void release() {
 		verifyNotReleased();
-		if (0 != ptrToIDispatch) release(ptrToIDispatch);
-		if (0 != ptrToIUnknown) release(ptrToIUnknown);
+		release(ptrToIDispatch, ptrToIUnknown);
 		isReleased = true;
+	}
+
+	private boolean isDispatch() {
+		// There's no point making this method synchronized...
+		verifyNotReleased();
+		return 0L != ptrToIDispatch;
 	}
 
 	private void putDispId(String name, Integer dispid) {
@@ -116,45 +120,83 @@ public final class COMobject extends JSDIValue {
 		name2dispid.put(name, dispid[0]);
 	}
 
+	private synchronized Object invokeMethod(String name, Object ... args) {
+		verifyNotReleased();
+		requireIDispatch();
+		Object result = null;
+		Integer dispid = name2dispid.get(name);
+		try {
+			if (null == dispid) {
+				int[] $dispid = new int[1];
+				result = callMethodByName(ptrToIDispatch, name, args, $dispid);
+				putDispId(name, $dispid);
+			} else {
+				result = callMethodByDispId(ptrToIDispatch, dispid, args);
+			}
+		} catch (COMException e) {
+			throw rethrowWithInfo(e, name + "()"); 
+		}
+		assert null != result : "COM method invocation must return something";
+		return result;
+	}
+
+	private COMException rethrowWithInfo(COMException e, String memberName) {
+		String message = progid + "." + memberName + ": " + e.getMessage();
+		return new COMException(message, e);
+	}
+
 	//
 	// ANCESTOR CLASS: SuValue
 	//
+
+	@Override
+	public String typeName() {
+		return TYPENAME;
+	}
 
 	private static final Map<String, SuCallable> builtins = BuiltinMethods
 			.methods(COMobject.class);
 
 	@Override
-	public Object get(Object member) {
+	public synchronized Object get(Object member) {
+		verifyNotReleased();
 		requireIDispatch();
 		Object result = null;
 		String name = member.toString();
 		Integer dispid = name2dispid.get(name);
-		if (null == dispid) {
-			int[] $dispid = new int[1];
-			result = getPropertyByName(ptrToIDispatch, name, $dispid);
-			putDispId(name, $dispid);
-		} else {
-			result = getPropertyByDispId(ptrToIDispatch, dispid);
+		try {
+			if (null == dispid) {
+				int[] $dispid = new int[1];
+				result = getPropertyByName(ptrToIDispatch, name, $dispid);
+				putDispId(name, $dispid);
+			} else {
+				result = getPropertyByDispId(ptrToIDispatch, dispid);
+			}
+		} catch (COMException e) {
+			throw rethrowWithInfo(e, name);
 		}
-		if (null == result) {
-			throw new JSDIException("member " + name + " has no value");
-		}
+		assert null != result : "COM property get must return something";
 		return result;
 	}
 
 	@Override
-	public void put(Object member, Object value) {
+	public synchronized void put(Object member, Object value) {
+		verifyNotReleased();
 		requireIDispatch();
 		String name = member.toString();
 		if (null == value) {
 			throw new NullPointerException("no value for member " + name);
 		}
 		Integer dispid = name2dispid.get(name);
-		if (null == dispid) {
-			dispid = putPropertyByName(ptrToIDispatch, name, value);
-			putDispId(name, dispid);
-		} else {
-			putPropertyByDispId(ptrToIDispatch, dispid, value);
+		try {
+			if (null == dispid) {
+				dispid = putPropertyByName(ptrToIDispatch, name, value);
+				putDispId(name, dispid);
+			} else {
+				putPropertyByDispId(ptrToIDispatch, dispid, value);
+			}
+		} catch (COMException e) {
+			throw rethrowWithInfo(e, name);
 		}
 	}
 
@@ -162,9 +204,7 @@ public final class COMobject extends JSDIValue {
 	public SuValue lookup(String method) {
 		SuValue result = builtins.get(method);
 		if (null == result) {
-			requireIDispatch();
-			// TODO: What to do here? Have a map String->method? Or just
-			// instantiate a new one each time? I say the latter.
+			result = new IDispatchMethod(method);
 		}
 		return result;
 	}
@@ -192,12 +232,14 @@ public final class COMobject extends JSDIValue {
 	 * The requirements for built-in methods are documented in
 	 * {@link suneido.language.BuiltinMethods}.
 	 * @param self The structure
+	 * @return Zero (to be compatible with cSuneido)
 	 * @see suneido.language.BuiltinMethods
 	 * @see #DispatchQ(Object)
 	 */
-	public static void Release(Object self) {
+	public static Object Release(Object self) {
 		COMobject comobject = (COMobject)self;
 		comobject.release();
+		return 0; // TODO: This should be a constant from Numbers...
 	}
 
 	/**
@@ -210,7 +252,8 @@ public final class COMobject extends JSDIValue {
 	 * @see #Release(Object)
 	 */
 	public static Boolean DispatchQ(Object self) {
-		return 0L != ((COMobject)self).ptrToIDispatch;
+		COMobject comobject = (COMobject)self;
+		return comobject.isDispatch();
 	}
 
 	//
@@ -246,7 +289,7 @@ public final class COMobject extends JSDIValue {
 			// pointer which should be wrapped.
 			} else {
 				long ptrToIUnknown = NumberConversions.toPointer64(x);
-				if (0 == ptrToIUnknown) {
+				if (0L == ptrToIUnknown) {
 					return Boolean.FALSE;
 				} else {
 					String[] progid = new String[1];
@@ -263,7 +306,7 @@ public final class COMobject extends JSDIValue {
 	// INTERNAL TYPES
 	//
 
-	private final class IDispatchMethod extends SuValue {
+	private static final class IDispatchMethod extends SuValue {
 
 		//
 		// DATA
@@ -284,14 +327,8 @@ public final class COMobject extends JSDIValue {
 		//
 
 		@Override
-		public Object call(Object... args) {
-			// TODO: is this needed, or will runtime just correctly call eval?
-			return eval(this, args);
-		}
-
-		@Override
 		public Object eval(Object self, Object... args) {
-			throw new RuntimeException("hello");
+			return ((COMobject)self).invokeMethod(name, args);
 		}
 	}
 
@@ -305,7 +342,7 @@ public final class COMobject extends JSDIValue {
 	private static native boolean coCreateFromProgId(String progid,
 			long[] ptrPair);
 
-	private static native void release(long ptrToInterface);
+	private static native void release(long ptrToIDispatch, long ptrToIUnknown);
 
 	private static native Object getPropertyByName(long ptrToIDispatch,
 			String name, int[] dispid);

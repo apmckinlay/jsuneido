@@ -6,12 +6,18 @@ package suneido.language.jsdi.tools;
 
 import java.io.File;
 import java.lang.reflect.*;
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.ArrayList;
+import java.util.Date;
 
 import org.objectweb.asm.Type;
 
 import suneido.SuValue;
+import suneido.language.Numbers;
 import suneido.language.jsdi.ThunkManager;
+import suneido.language.jsdi.com.COMException;
+import suneido.language.jsdi.com.COMobject;
 import suneido.language.jsdi.type.Callback;
 
 /**
@@ -48,21 +54,53 @@ public final class GenerateGlobalReferences {
 
 	private static Ref[] makeRefs() throws Exception {
 		return new Ref[] {
-				new Ref(Object.class),
+				new Ref(Object.class,
+						Object.class.getMethod("toString")),
 				new Ref(Boolean.class, Boolean.class.getField("TRUE"),
-						Boolean.class.getField("FALSE")),
+						Boolean.class.getField("FALSE"),
+						Boolean.class.getMethod("booleanValue")),
+				new Ref(Number.class),
 				new Ref(Integer.class,
 						Integer.class.getConstructor(Integer.TYPE),
 						Integer.class.getMethod("intValue")),
+				new Ref(Long.class,
+						Long.class.getConstructor(Long.TYPE),
+						Long.class.getMethod("longValue")),
+				new Ref(BigDecimal.class,
+						// NOTE: The order of the members matters because they
+						//       are just getting auto-generated suffixes i.e.
+						//       __init, __init1, __init2...
+						BigDecimal.class.getConstructor(Double.TYPE, MathContext.class),
+						BigDecimal.class.getConstructor(String.class, MathContext.class),
+						BigDecimal.class.getMethod("doubleValue")),
+				new Ref(CharSequence.class),
 				new Ref(Enum.class, Enum.class.getMethod("ordinal")),
 				new Ref(byte[].class),
+				new Ref(Date.class,
+						Date.class.getConstructor(Long.TYPE),
+						Date.class.getMethod("getTime")),
 				new Ref(ThunkManager.class,
 						ThunkManager.class.getField("THUNK_FUNC_ADDR_INDEX"),
 						ThunkManager.class.getField("THUNK_OBJECT_ADDR_INDEX")),
 				new Ref(Callback.class, Callback.class.getMethod("invoke",
 						SuValue.class, byte[].class),
 						Callback.class.getMethod("invokeVariableIndirect",
-								SuValue.class, byte[].class, Object[].class)) };
+								SuValue.class, byte[].class, Object[].class)),
+				new Ref(COMobject.class,
+						COMobject.class.getDeclaredConstructor(
+							String.class, Long.TYPE, Long.TYPE),
+						COMobject.class.getDeclaredField("ptrToIUnknown"),
+						COMobject.class.getDeclaredField("ptrToIDispatch"),
+						COMobject.class.getDeclaredMethod("verifyNotReleased")),
+						// NOTE: getDeclaredConstructor(), unlike
+						//       getConstructor(), can return non-public
+						//       constructors...
+				new Ref(COMException.class,
+						COMException.class.getConstructor(String.class)),
+				new Ref(Numbers.class,
+						Numbers.class.getField("MC"),
+						Numbers.class.getMethod("narrow", Number.class))
+		};
 	}
 
 	private static String className(Class clazz) {
@@ -75,8 +113,13 @@ public final class GenerateGlobalReferences {
 				+ method.getName();
 	}
 
-	private static String constructorName(Constructor constructor) {
-		return className(constructor.getDeclaringClass()) + "__init";
+	private static String constructorName(Constructor constructor,
+			int overloadIndex) {
+		String result = className(constructor.getDeclaringClass()) + "__init";
+		if (0 < overloadIndex) {
+			result += overloadIndex;
+		}
+		return result;
 	}
 
 	private static String fieldName(Field field) {
@@ -94,8 +137,9 @@ public final class GenerateGlobalReferences {
 		public final ArrayList<String> makeLines() {
 			for (Ref ref : refs) {
 				addClassMember(ref.clazz);
+				int k = 0;
 				for (Constructor constructor : ref.constructors)
-					addConstructorMember(constructor);
+					addConstructorMember(constructor, k++);
 				for (Method method : ref.methods)
 					addMethodMember(method);
 				for (Field field : ref.fields)
@@ -114,9 +158,10 @@ public final class GenerateGlobalReferences {
 							+ doxygenDfn(clazz) + '.', doxygenDfn(clazz), null);
 		}
 
-		private void addConstructorMember(Constructor constructor) {
+		private void addConstructorMember(Constructor constructor,
+				int overloadIndex) {
 			add("jmethodID",
-					constructorName(constructor),
+					constructorName(constructor, overloadIndex),
 					"Returns a global reference to the constructor "
 							+ doxygenDfn(constructor.toString()) + '.',
 					doxygenDfn(constructor.toString()),
@@ -193,8 +238,9 @@ public final class GenerateGlobalReferences {
 		public final ArrayList<String> makeLines() {
 			for (Ref ref : refs) {
 				addClassMember(ref.clazz);
+				int k = 0;
 				for (Constructor constructor : ref.constructors)
-					addConstructorMember(constructor);
+					addConstructorMember(constructor, k++);
 				for (Method method : ref.methods)
 					addMethodMember(method);
 				for (Field field : ref.fields)
@@ -208,18 +254,22 @@ public final class GenerateGlobalReferences {
 					quote(Type.getInternalName(clazz)));
 		}
 
-		private void addMethodMember(Method method) {
-			add(methodName(method) + '_', "get_method_id", MEMBER_PREFIX
-					+ className(method.getDeclaringClass()) + '_',
-					quote(method.getName()),
-					quote(Type.getMethodDescriptor(method)));
-		}
-
-		private void addConstructorMember(Constructor constructor) {
-			add(constructorName(constructor) + "_", "get_method_id",
+		private void addConstructorMember(Constructor constructor,
+				int overloadIndex) {
+			add(constructorName(constructor, overloadIndex) + "_",
+					"get_method_id",
 					MEMBER_PREFIX + className(constructor.getDeclaringClass())
 							+ "_", quote("<init>"),
 					quote(Type.getConstructorDescriptor(constructor)));
+		}
+
+		private void addMethodMember(Method method) {
+			String getter_func = Modifier.isStatic(method.getModifiers()) ? "get_static_method_id"
+					: "get_method_id";
+			add(methodName(method) + '_', getter_func, MEMBER_PREFIX
+					+ className(method.getDeclaringClass()) + '_',
+					quote(method.getName()),
+					quote(Type.getMethodDescriptor(method)));
 		}
 
 		private void addFieldMember(Field field) {
