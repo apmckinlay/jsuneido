@@ -90,6 +90,12 @@ public final class NumberConversions {
 	 * integer, native code will treat it as the bitwise-equivalent unsigned
 	 * 32-bit pointer.
 	 * </p>
+	 * <p>
+	 * TODO: This function is deprecated and needs to be removed. The current
+	 * barriers to removal (20131013) are that it is still being used for
+	 * callback thunk pointers, and it is still being used for the resource
+	 * type. Once these are cleaned up, it can be removed.
+	 * </p>
 	 * @param a Value to convert
 	 * @return Value that is bitwise equivalent to the pointer represented by
 	 * {@code a}
@@ -97,7 +103,13 @@ public final class NumberConversions {
 	 * pointer
 	 * @since 20130912
 	 */
+	@Deprecated
 	public static int toPointer32(Object a) {
+		// TODO: This should be completely removed in favour of toPointer64.
+		//       The various places in which we assume 32-bit pointers
+		//       (callback thunks, resources) should be changed to use 64-bit
+		//       integers. Otherwise converting to 64-bit will be even more
+		//       difficult.
 		if (a instanceof Number) {
 			if (a instanceof Integer) {
 				return (int)a;
@@ -113,6 +125,52 @@ public final class NumberConversions {
 		} else {
 			throw new JSDIException("can't convert " + Ops.typeName(a)
 					+ " into number suitable for pointer");
+		}
+	}
+
+	/**
+	 * <p>
+	 * Converts an integer value which representing a 64-bit pointer into a Java
+	 * {@code long} capable of being passed to native code.
+	 * </p>
+	 * <p>
+	 * In particular, this function converts the following values:
+	 * <ul>
+	 * <li>{@link Boolean#FALSE} {@code =>} 0</li>
+	 * <li>Any {@link Number} {@code x} that is an integer and whose value falls
+	 * within the range [{@link Long#MIN_VALUE}, {@link Long#MAX_VALUE}]
+	 * {@code => x}</li>
+	 * <li>Any string-type value {@code y} which can be parsed into a number
+	 * {@code x} meeting the above criteria {@code => x}
+	 * <li>Anything else {@code =>} {@link JSDIException}</li> 
+	 * </ul>
+	 * The result of the conversion is an {@code long} in the range
+	 * 0x0000000000000000L-0xffffffffffffffffL. Although Java treats this number
+	 * as a signed integer, native code will treat it as the bitwise-equivalent
+	 * unsigned 64-bit pointer.
+	 * </p>
+	 * @param a Value to convert
+	 * @return Value that is bitwise equivalent to the pointer represented by
+	 * {@code a}
+	 * @throws JSDIException If {@code a} cannot be converted to a 64-bit
+	 * pointer
+	 * @since 20131013
+	 */
+	public static long toPointer64(Object a) {
+		if (a instanceof Number) {
+			if (a instanceof Long) {
+				return (long)a;
+			} else if (a instanceof Integer) {
+				return (long)(int)a;
+			} else {
+				return toPointer64FromNumber((Number)a);
+			}
+		} else if (Boolean.FALSE == a) {
+			return 0L;
+		} else if (a instanceof CharSequence) {
+			return toLongFromString(a.toString());
+		} else {
+			throw cantConvertToPointer(a);
 		}
 	}
 
@@ -169,25 +227,37 @@ public final class NumberConversions {
 		return result;
 	}
 
+	@Deprecated
 	private static int toPointer32FromLong(long x) {
 		if ((long)Integer.MIN_VALUE <= x && x <= (long)Integer.MAX_VALUE) {
 			return (int)x;
 		} else {
-			throw cantConvertToPointer32(x);
+			throw cantConvertToPointer(x);
 		}
 	}
 
+	@Deprecated
 	private static int toPointer32FromNumber(Number x) {
 		BigDecimal d = Numbers.toBigDecimal(x);
 		if (Numbers.integral(x)
 				&& Numbers.isInRange(d, Numbers.BD_INT_MIN, Numbers.BD_INT_MAX)) {
 			return d.intValue();
 		} else {
-			throw cantConvertToPointer32(x);
+			throw cantConvertToPointer(x);
 		}
 	}
 
-	private static JSDIException cantConvertToPointer32(Number x) {
+	private static long toPointer64FromNumber(Number x) {
+		BigDecimal d = Numbers.toBigDecimal(x);
+		if (Numbers.integral(x)
+				&& Numbers.isInRange(d,  Numbers.BD_LONG_MIN, Numbers.BD_LONG_MAX)) {
+			return d.longValue();
+		} else {
+			throw cantConvertToPointer(x);
+		}
+	}
+
+	private static JSDIException cantConvertToPointer(Object x) {
 		return new JSDIException(String.format(
 				"can't convert %s %s into number suitable for pointer",
 				Ops.typeName(x), x.toString()));

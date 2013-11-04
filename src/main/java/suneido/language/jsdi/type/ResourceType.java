@@ -6,11 +6,7 @@ package suneido.language.jsdi.type;
 
 import javax.annotation.concurrent.Immutable;
 
-import suneido.language.Ops;
-import suneido.language.jsdi.DllInterface;
-import suneido.language.jsdi.MarshallPlanBuilder;
-import suneido.language.jsdi.Marshaller;
-import suneido.language.jsdi.VariableIndirectInstruction;
+import suneido.language.jsdi.*;
 
 /**
  * <p>
@@ -84,7 +80,7 @@ public final class ResourceType extends StringIndirect {
 	public static Short AS_INTRESOURCE(Object value) {
 		try
 		{
-			int intValue = Ops.toIntIfNum(value);
+			int intValue = NumberConversions.toPointer32(value);
 			return 0 == (0xffff0000 & intValue)
 				? new Short((short)intValue)
 				: null;
