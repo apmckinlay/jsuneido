@@ -88,9 +88,9 @@ public final class GenerateGlobalReferences {
 								SuValue.class, byte[].class, Object[].class)),
 				new Ref(COMobject.class,
 						COMobject.class.getDeclaredConstructor(
-							String.class, Long.TYPE, Long.TYPE),
-						COMobject.class.getDeclaredField("ptrToIUnknown"),
-						COMobject.class.getDeclaredField("ptrToIDispatch"),
+							String.class, Long.TYPE, Boolean.TYPE),
+						COMobject.class.getDeclaredField("ptr"),
+						COMobject.class.getDeclaredMethod("isDispatch"),
 						COMobject.class.getDeclaredMethod("verifyNotReleased")),
 						// NOTE: getDeclaredConstructor(), unlike
 						//       getConstructor(), can return non-public

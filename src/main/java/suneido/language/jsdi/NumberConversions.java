@@ -154,6 +154,7 @@ public final class NumberConversions {
 	 * {@code a}
 	 * @throws JSDIException If {@code a} cannot be converted to a 64-bit
 	 * pointer
+	 * @see #nullPointer64()
 	 * @since 20131013
 	 */
 	public static long toPointer64(Object a) {
@@ -172,6 +173,17 @@ public final class NumberConversions {
 		} else {
 			throw cantConvertToPointer(a);
 		}
+	}
+
+	/**
+	 * Returns an integer which, when passed to native code, represents a NULL
+	 * 64-bit pointer.
+	 * @return Null pointer value
+	 * @since 20131104
+	 * @see #toPointer64(Object)
+	 */
+	public static long nullPointer64() {
+		return 0L;
 	}
 
 	//

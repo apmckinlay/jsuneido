@@ -70,7 +70,7 @@ public class COMobjectTest {
 	public void testInitialRefCount() {
 		// One for IUnknown, one because we have to QueryInterface() an
 		// IDispatch.
-		assertTrue((boolean) eval("2 is MakeTestObject().RefCount"));
+		assertTrue((boolean) eval("1 is MakeTestObject().RefCount"));
 	}
 
 	@Test
@@ -270,26 +270,26 @@ public class COMobjectTest {
 			"ok!",
 			eval(
 				"a = MakeTestObject()                                    \n" +
-				"if (2 isnt a.RefCount)                                  \n" +
+				"if (1 isnt a.RefCount)                                  \n" +
 				"    throw '1) initial RefCount wrong'                   \n" +
 				"b = a.IUnkValue                                         \n" +
 				"if (Type(b) isnt 'COMobject')                           \n" +
 				"    throw '2) b is not a COMobject'                     \n" +
-				"if (3 isnt a.RefCount)                                  \n" +
-				"    throw '3) a.RefCount should be 3, is ' $ a.RefCount \n" +
+				"if (2 isnt a.RefCount)                                  \n" +
+				"    throw '3) a.RefCount should be 2, is ' $ a.RefCount \n" +
 				"if (b.Dispatch?())                                      \n" +
 				"    throw '4) b should be just a plain IUnknown'        \n" +
 				"c = a.IUnkValue                                         \n" +
 				"if (Type(c) isnt 'COMobject')                           \n" +
 				"    throw '5) c is not a COMobject'                     \n" +
-				"if (4 isnt a.RefCount)                                  \n" +
-				"    throw '6) a.RefCount should be 4, is ' $ a.RefCount \n" +
-				"b.Release()                                             \n" +
 				"if (3 isnt a.RefCount)                                  \n" +
-				"    throw '7) a.RefCount should be down to 3 now'       \n" +
-				"c.Release()                                             \n" +
+				"    throw '6) a.RefCount should be 3, is ' $ a.RefCount \n" +
+				"b.Release()                                             \n" +
 				"if (2 isnt a.RefCount)                                  \n" +
-				"    throw '8) a.RefCount should be down to 2 now'       \n" +
+				"    throw '7) a.RefCount should be down to 2 now'       \n" +
+				"c.Release()                                             \n" +
+				"if (1 isnt a.RefCount)                                  \n" +
+				"    throw '8) a.RefCount should be down to 1 now'       \n" +
 				"a.Release()                                             \n" +
 				"'ok!'"
 			)
@@ -306,28 +306,28 @@ public class COMobjectTest {
 			"ok!",
 			eval(
 				"a = MakeTestObject()                                    \n" +
-				"if (2 isnt a.RefCount)                                  \n" +
+				"if (1 isnt a.RefCount)                                  \n" +
 				"    throw '1) initial RefCount wrong'                   \n" +
 				"b = a.IDispValue                                        \n" +
 				"if (Type(b) isnt 'COMobject')                           \n" +
 				"    throw '2) b is not a COMobject'                     \n" +
-				"if (3 isnt a.RefCount)                                  \n" +
-				"    throw '3) a.RefCount should be 3, is ' $ a.RefCount \n" +
+				"if (2 isnt a.RefCount)                                  \n" +
+				"    throw '3) a.RefCount should be 2, is ' $ a.RefCount \n" +
 				"if (not b.Dispatch?())                                  \n" +
 				"    throw '4) b should be an IDispatch'                 \n" +
-				"if (3 isnt b.RefCount)                                  \n" +
-				"    throw '5) b.RefCount should be 3, is ' $ a.RefCount \n" +
+				"if (2 isnt b.RefCount)                                  \n" +
+				"    throw '5) b.RefCount should be 2, is ' $ a.RefCount \n" +
 				"c = b.IDispValue                                        \n" +
 				"if (Type(c) isnt 'COMobject')                           \n" +
 				"    throw '6) c is not a COMobject'                     \n" +
-				"if (4 isnt a.RefCount)                                  \n" +
-				"    throw '7) a.RefCount should be 4, is ' $ a.RefCount \n" +
+				"if (3 isnt a.RefCount)                                  \n" +
+				"    throw '7) a.RefCount should be 3, is ' $ a.RefCount \n" +
 				"if (not c.Dispatch?())                                  \n" +
 				"    throw '8) c should an IDispatch'                    \n" +
-				"if (4 isnt b.RefCount)                                  \n" +
-				"    throw '9) b.RefCount should be 4, is ' $ b.RefCount \n" +
-				"if (4 isnt c.RefCount)                                  \n" +
-				"    throw '10) c.RefCount should be 4, is ' $ c.RefCount\n" +
+				"if (3 isnt b.RefCount)                                  \n" +
+				"    throw '9) b.RefCount should be 3, is ' $ b.RefCount \n" +
+				"if (3 isnt c.RefCount)                                  \n" +
+				"    throw '10) c.RefCount should be 3, is ' $ c.RefCount\n" +
 				"a.Release()                                             \n" +
 				"if (2 isnt b.RefCount)                                  \n" +
 				"    throw '11) b.RefCount should be down to 2 now'      \n" +
@@ -357,10 +357,10 @@ public class COMobjectTest {
 				"ok!",
 				eval(
 					"a = MakeTestObject()                                    \n" +
-					"if 2 isnt a.RefCount                                    \n" +
+					"if 1 isnt a.RefCount                                    \n" +
 					"    throw '1) initial RefCount wrong'                   \n" +
 					"a.NoopIUnk(a)                                           \n" +
-					"if 2 isnt a.RefCount                                    \n" +
+					"if 1 isnt a.RefCount                                    \n" +
 					"    throw '2) RefCount after method call wrong'         \n" +
 					"a.Release()                                             \n" +
 					"'ok!'"
@@ -374,10 +374,10 @@ public class COMobjectTest {
 				"ok!",
 				eval(
 					"a = MakeTestObject()                                    \n" +
-					"if 2 isnt a.RefCount                                    \n" +
+					"if 1 isnt a.RefCount                                    \n" +
 					"    throw '1) initial RefCount wrong'                   \n" +
 					"a.NoopIDisp(a)                                          \n" +
-					"if 2 isnt a.RefCount                                    \n" +
+					"if 1 isnt a.RefCount                                    \n" +
 					"    throw '2) RefCount after method call wrong'         \n" +
 					"a.Release()                                             \n" +
 					"'ok!'"
