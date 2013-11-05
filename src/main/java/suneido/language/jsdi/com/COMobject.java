@@ -31,8 +31,7 @@ public final class COMobject extends JSDIValue {
 	//
 
 	private final String progid;
-	private final long ptrToIDispatch;
-	private final long ptrToIUnknown;
+	private final long ptr;
 	private final Map<String, Integer> name2dispid;
 	private boolean isReleased;
 
@@ -47,19 +46,17 @@ public final class COMobject extends JSDIValue {
 	// CONSTRUCTORS
 	//
 
-	COMobject(String progid, long ptrToIDispatch, long ptrToIUnknown) {
+	COMobject(String progid, long ptr, boolean isDispatch) {
 		if (null == progid) {
 			progid = UNKNOWN_PROGID;
 		}
-		if (0L == ptrToIDispatch && 0L == ptrToIUnknown) {
+		if (NumberConversions.nullPointer64() == ptr) {
 			throw new IllegalArgumentException(
-					"must have at least one of IDispatch or IUnknown pointer");
+					"COM interface pointer cannot be NULL");
 		}
 		this.progid = progid;
-		this.ptrToIDispatch = ptrToIDispatch;
-		this.ptrToIUnknown = ptrToIUnknown;
-		this.name2dispid = 0L != ptrToIDispatch ? new HashMap<String, Integer>()
-				: null;
+		this.ptr = ptr;
+		this.name2dispid = isDispatch ? new HashMap<String, Integer>() : null;
 		this.isReleased = false;
 	}
 
@@ -68,12 +65,12 @@ public final class COMobject extends JSDIValue {
 	//
 
 	private void infoString(StringBuilder sb) {
-		if (0 != ptrToIDispatch) {
+		if (isDispatch()) {
 			sb.append("IDispatch 0x");
-			sb.append(Long.toHexString(ptrToIDispatch));
+			sb.append(Long.toHexString(ptr));
 		} else {
 			sb.append("IUnknown 0x");
-			sb.append(Long.toHexString(ptrToIUnknown));
+			sb.append(Long.toHexString(ptr));
 		}
 		sb.append(" \"");
 		sb.append(progid);
@@ -95,21 +92,23 @@ public final class COMobject extends JSDIValue {
 	}
 
 	private void requireIDispatch() {
-		if (0 == ptrToIDispatch) {
+		if (! isDispatch()) {
 			throw new COMException(infoString("doesn't support IDispatch"));
 		}
 	}
 
 	private synchronized void release() {
 		verifyNotReleased();
-		release(ptrToIDispatch, ptrToIUnknown);
+		if (isDispatch()) {
+			release(ptr, 0L);
+		} else {
+			release(0L, ptr);
+		}
 		isReleased = true;
 	}
 
 	private boolean isDispatch() {
-		// There's no point making this method synchronized...
-		verifyNotReleased();
-		return 0L != ptrToIDispatch;
+		return null != name2dispid;
 	}
 
 	private void putDispId(String name, Integer dispid) {
@@ -128,10 +127,10 @@ public final class COMobject extends JSDIValue {
 		try {
 			if (null == dispid) {
 				int[] $dispid = new int[1];
-				result = callMethodByName(ptrToIDispatch, name, args, $dispid);
+				result = callMethodByName(ptr, name, args, $dispid);
 				putDispId(name, $dispid);
 			} else {
-				result = callMethodByDispId(ptrToIDispatch, dispid, args);
+				result = callMethodByDispId(ptr, dispid, args);
 			}
 		} catch (COMException e) {
 			throw rethrowWithInfo(e, name + "()"); 
@@ -167,10 +166,10 @@ public final class COMobject extends JSDIValue {
 		try {
 			if (null == dispid) {
 				int[] $dispid = new int[1];
-				result = getPropertyByName(ptrToIDispatch, name, $dispid);
+				result = getPropertyByName(ptr, name, $dispid);
 				putDispId(name, $dispid);
 			} else {
-				result = getPropertyByDispId(ptrToIDispatch, dispid);
+				result = getPropertyByDispId(ptr, dispid);
 			}
 		} catch (COMException e) {
 			throw rethrowWithInfo(e, name);
@@ -190,10 +189,10 @@ public final class COMobject extends JSDIValue {
 		Integer dispid = name2dispid.get(name);
 		try {
 			if (null == dispid) {
-				dispid = putPropertyByName(ptrToIDispatch, name, value);
+				dispid = putPropertyByName(ptr, name, value);
 				putDispId(name, dispid);
 			} else {
-				putPropertyByDispId(ptrToIDispatch, dispid, value);
+				putPropertyByDispId(ptr, dispid, value);
 			}
 		} catch (COMException e) {
 			throw rethrowWithInfo(e, name);
@@ -253,6 +252,7 @@ public final class COMobject extends JSDIValue {
 	 */
 	public static Boolean DispatchQ(Object self) {
 		COMobject comobject = (COMobject)self;
+		comobject.verifyNotReleased();
 		return comobject.isDispatch();
 	}
 
@@ -274,31 +274,47 @@ public final class COMobject extends JSDIValue {
 		protected Object newInstance(Object... args) {
 			args = Args.massage(newFS, args);
 			Object x = args[0];
+			// Parameters for constructing the COMobject
+			String progid = null;
+			long ptrToIDispatch = NumberConversions.nullPointer64();
+			long ptrToIUnknown = NumberConversions.nullPointer64();
 			// If the parameter is a string, it indicates to try to do a
 			// CoCreateInstance based on the progid and fetch an IDispatch
 			// interface on the created object, or failing that an IUnknown.
 			if (x instanceof CharSequence) {
-				String progid = x.toString();
+				progid = x.toString();
 				long[] ptrPair = new long[2];
 				if (coCreateFromProgId(progid, ptrPair)) {
-					return new COMobject(progid, ptrPair[0], ptrPair[1]);
+					ptrToIDispatch = ptrPair[0];
+					ptrToIUnknown = ptrPair[1];
 				} else {
 					return Boolean.FALSE;
 				}
 			// Otherwise, if the parameter is a number, it is an IUnknown
 			// pointer which should be wrapped.
 			} else {
-				long ptrToIUnknown = NumberConversions.toPointer64(x);
-				if (0L == ptrToIUnknown) {
+				ptrToIUnknown = NumberConversions.toPointer64(x);
+				if (NumberConversions.nullPointer64() == ptrToIUnknown) {
 					return Boolean.FALSE;
 				} else {
-					String[] progid = new String[1];
-					long ptrToIDispatch = queryIDispatchAndProgId(
-							ptrToIUnknown, progid);
-					return new COMobject(progid[0], ptrToIDispatch,
-							ptrToIUnknown);
+					String[] progid$ = new String[1];
+					ptrToIDispatch = queryIDispatchAndProgId(ptrToIUnknown,
+							progid$);
+					progid = progid$[0];
 				}
 			}
+			// Now that we have assembled the parameters, construct the
+			// COMobject.
+			COMobject result = null;
+			if (NumberConversions.nullPointer64() != ptrToIDispatch) {
+				result = new COMobject(progid, ptrToIDispatch, true);
+				if (NumberConversions.nullPointer64() != ptrToIUnknown) {
+					release(NumberConversions.nullPointer64(), ptrToIUnknown);
+				}
+			} else {
+				result = new COMobject(progid, ptrToIUnknown, false);
+			}
+			return result;
 		}
 	};
 
