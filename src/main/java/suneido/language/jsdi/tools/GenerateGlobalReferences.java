@@ -71,7 +71,6 @@ public final class GenerateGlobalReferences {
 						//       are just getting auto-generated suffixes i.e.
 						//       __init, __init1, __init2...
 						BigDecimal.class.getConstructor(Double.TYPE, MathContext.class),
-						BigDecimal.class.getConstructor(String.class, MathContext.class),
 						BigDecimal.class.getMethod("doubleValue")),
 				new Ref(CharSequence.class),
 				new Ref(Enum.class, Enum.class.getMethod("ordinal")),
