@@ -6,9 +6,14 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static suneido.util.testing.Throwing.assertThrew;
 
+import java.math.BigDecimal;
+
+import javax.print.attribute.SupportedValuesAttribute;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import suneido.SuValue;
 import suneido.language.Compiler;
 import suneido.language.ContextLayered;
 import suneido.language.jsdi.SimpleContext;
@@ -462,5 +467,19 @@ public class COMobjectTest {
 				eval("MakeTestObject().Sum2Ints(true, 'boron')");
 			}
 		}, COMException.class, "type mismatch");
+	}
+
+	@Test
+	public void testNumberNarrowing() {
+		// This test just makes sure that the number narrowing code on the
+		// jsdi DLL side is working.
+		final COMobject comobject = (COMobject)eval("MakeTestObject()");
+		final SuValue sum2ints = comobject.lookup("Sum2Ints");
+		assertEquals(27L, sum2ints.eval(comobject, 29L, -2L));
+		assertEquals(65L, sum2ints.eval(comobject, new BigDecimal(19),
+				new BigDecimal(46))); // Spezza + Wiercoch = Karlsson?
+		final SuValue sum2doubles = comobject.lookup("Sum2Doubles");
+		assertEquals(new BigDecimal(100.0),
+				sum2doubles.eval(comobject, 50L, new BigDecimal(50)));
 	}
 }
