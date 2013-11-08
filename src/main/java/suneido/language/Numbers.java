@@ -148,7 +148,7 @@ public class Numbers {
 	public static Number narrow(BigDecimal x) {
 		if (x.signum() == 0)
 			return 0; // TODO: Might it not be cleaner to remove this 'optimization'? 
-		else if (x.scale() <= 0) {
+		else if (integral(x)) {
 			if (isInRange(x, BD_INT_MIN, BD_INT_MAX))
 				return x.intValueExact();
 			else if (isInRange(x, BD_LONG_MIN, BD_LONG_MAX))
