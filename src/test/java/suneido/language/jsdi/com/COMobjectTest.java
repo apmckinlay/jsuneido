@@ -8,8 +8,6 @@ import static suneido.util.testing.Throwing.assertThrew;
 
 import java.math.BigDecimal;
 
-import javax.print.attribute.SupportedValuesAttribute;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
 
