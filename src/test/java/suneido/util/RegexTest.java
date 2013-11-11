@@ -32,6 +32,9 @@ public class RegexTest {
 				"Branch(1, 3) 'ab' Jump(3) Branch(1, 3) 'cd' Jump(2) 'ef'");
 		test("abc\\Z", "'abc' \\Z");
 		test("[a]", "'a'");
+		test("(?i)x(?-i)", "(?i) 'x' (?-i)");
+		
+		test("(?q).*(?-q)def", "'.*' 'def'");
 	}
 
 	void test(String rx, String expected) {
@@ -152,10 +155,17 @@ public class RegexTest {
 		match("hello\nworld", "\\Ahe");
 		nomatch("hello\nworld", "\\Awo");
 
-		match("hello\nworld", "ld$");
+		match("hello\nworld world", "ld$");
 		match("hello\nworld", "lo$");
 		match("hello\nworld", "ld\\Z");
 		nomatch("hello\nworld", "lo\\Z");
+		
+		nomatch("(+*)", "^(+*)$");
+		match("(+*)", "^(?q)(+*)(?-q)$");
+
+		nomatch("hello", "eLL");
+		match("hello", "(?i)eLL");
+		nomatch("hello", "(?i)eL(?-i)L");
 	}
 
 	void match(String s, String rx) {
