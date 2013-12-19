@@ -18,7 +18,7 @@ public abstract class SuCallable extends SuValue {
 
 	@Override
 	public SuValue lookup(String methodName) {
-		if (methodName == "Params") // FIXME: This should probably be .equals()
+		if (methodName == "Params") // method names are interned so ok to use ==
 			return Params;
 		return super.lookup(methodName);
 	}
