@@ -18,6 +18,7 @@ public class Delete extends QueryAction {
 
 	@Override
 	public int execute() {
+		// TODO if source is table, just recreate empty indexes
 		Query q = source.setup(tran);
 		if (!q.updateable())
 			throw new SuException("delete: query not updateable");
