@@ -56,34 +56,30 @@ public class Numbers {
 	} // all static, no instances
 
 	public static BigDecimal toBigDecimal(int x) {
-		return new BigDecimal(x);
+		return new BigDecimal(x, MC);
 	}
 
 	public static BigDecimal toBigDecimal(long x) {
-		// FIXME: What about the MathContext, MC??
-		return new BigDecimal(x);
+		return new BigDecimal(x, MC);
 	}
 
 	public static BigDecimal toBigDecimal(float x) {
-		// FIXME: What about the MathContext, MC??
-		return new BigDecimal(x);
+		return new BigDecimal(x, MC);
 	}
 
 	public static BigDecimal toBigDecimal(double x) {
-		// FIXME: What about the MathContext, MC??
-		return new BigDecimal(x);
+		return new BigDecimal(x, MC);
 	}
 
 	public static BigDecimal toBigDecimal(Object n) {
-		// FIXME: What about the MathContext, MC??
 		if (n instanceof BigDecimal)
-			return (BigDecimal) n;
+			return ((BigDecimal) n).round(MC);
 		if (longable(n))
-			return BigDecimal.valueOf(((Number) n).longValue());
+			return new BigDecimal(((Number) n).longValue(), MC);
 		if (n instanceof Float || n instanceof Double)
-			return BigDecimal.valueOf(((Number) n).doubleValue());
+			return new BigDecimal(((Number) n).doubleValue(), MC);
 		if (n instanceof BigInteger)
-			return new BigDecimal((BigInteger) n);
+			return new BigDecimal((BigInteger) n, MC);
 		throw SuException.unreachable();
 	}
 
