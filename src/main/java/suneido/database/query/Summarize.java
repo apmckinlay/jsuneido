@@ -123,6 +123,8 @@ public class Summarize extends Query1 {
 			strategy = Strategy.MAP;
 			return source.optimize1(noFields, srcneeds, noNeeds, is_cursor, freeze);
 		} else {
+			if (best.cost >= IMPOSSIBLE)
+				return IMPOSSIBLE;
 			strategy = Strategy.SEQUENTIAL;
 			via = best.index;
 			return source.optimize1(best.index, srcneeds, noNeeds, is_cursor, freeze);
