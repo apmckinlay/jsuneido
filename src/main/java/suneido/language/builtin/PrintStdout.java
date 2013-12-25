@@ -26,7 +26,6 @@ public class PrintStdout {
 			if (iter.hasNext())
 				System.out.print(' ');
 		}
-		System.out.println();
 		System.out.flush();
 		return null;
 	}
