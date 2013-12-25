@@ -23,10 +23,10 @@ import com.google.common.base.CharMatcher;
  *				|	$					endOfLine
  *				|	\A					startOfString
  *				|	\Z					endOfString
- *				|	(?i)				IGNORE_CASE					TODO
- *				|	(?-i)				CASE_SENSITIVE				TODO
- *				|	(?q)				start quoted (literal)		TODO
- *				|	(?-q)				end quoted (literal)		TODO
+ *				|	(?i)				IGNORE_CASE
+ *				|	(?-i)				CASE_SENSITIVE
+ *				|	(?q)				(only affects compile)
+ *				|	(?-q)				(only affects compile)
  *				|	\<					START_WORD					TODO
  *				|	\>					END_WORD					TODO
  *				|	\#					PIECE #						TODO
@@ -69,6 +69,18 @@ import com.google.common.base.CharMatcher;
  *				|	[:space:]			CharClass
  *				|	[:upper:]			CharClass
  *				|	[:xdigit:]			CharClass
+ *
+ * handling ignore case:
+ * - compile Chars and CharClass to lower case
+ * - match has to convert to lower case
+ * NOTE: assumes that ignore case state is in sync between compile and match
+ * this won't be the case for e.g. (abc(?i)def)+
+ * 
+ * Element.nextPossible is used to optimize match
+ * if amatch fails at a certain position
+ * nextPossible skips ahead
+ * so it doesn't just try amatch at every position
+ * This makes match almost as fast as indexOf or contains
  */
 public class Regex {
 
@@ -76,6 +88,7 @@ public class Regex {
 		return new Compiler(rx).compile();
 	}
 
+	@Immutable
 	static class Pattern {
 		private final List<Element> pat;
 
@@ -89,10 +102,13 @@ public class Regex {
 
 		public boolean match(String s, int i) {
 			// TODO search backwards
-			int slen = s.length();
-			for (; i <= slen; ++i)
+			int sn = s.length();
+			Element e = pat.get(0);
+			while (i <= sn) {
 				if (-1 != amatch(s, i))
 					return true;
+				i = e.nextPossible(s, sn, i);
+			}
 			return false;
 		}
 
@@ -108,6 +124,7 @@ public class Regex {
 			final int MAX_BRANCH = 1000;
 			int alt_si[] = new int[MAX_BRANCH];
 			int alt_pi[] = new int[MAX_BRANCH];
+			boolean ignoringCase = false;		// BUT how to get this to elements?
 			int na = 0;
 			for (int pi = 0; pi < pat.size(); ) {
 				Element e = pat.get(pi);
@@ -119,6 +136,9 @@ public class Regex {
 					pi += b.main;
 				} else if (e instanceof Jump) {
 					pi += ((Jump) e).offset;
+				} else if (e == Regex.ignoreCase || e == Regex.caseSensitive) {
+					ignoringCase = (e == Regex.ignoreCase);
+					++pi;
 				} else {
 					si = e.omatch(s, si, pat, pi);
 					if (si >= 0)
@@ -152,6 +172,7 @@ public class Regex {
 		int si = 0;
 		int sn;
 		ArrayList<Element> pat = new ArrayList<>();
+		boolean ignoringCase = false;
 
 		Compiler(String src) {
 			this.src = src;
@@ -197,6 +218,16 @@ public class Regex {
 				emit(startOfString);
 			else if (match("\\Z"))
 				emit(endOfString);
+			else if (match("(?i)")) {
+				emit(ignoreCase);
+				ignoringCase = true;
+			} else if (match("(?-i)")) {
+				emit(caseSensitive);
+				ignoringCase = false;
+			} else if (match("(?q)"))
+				quoted();
+			else if (match("(?-q)"))
+				;
 			else {
 				int start = pat.size();
 				simple();
@@ -218,7 +249,15 @@ public class Regex {
 				}
 			}
 		}
-
+		
+		void quoted() {
+			int start = si;
+			si = src.indexOf("(?-q)");
+			if (si == -1)
+				si = sn;
+			emit(new Chars(src.substring(start, si), ignoringCase));
+		}
+		
 		private static final CharMatcher CM_WORD =
 				CharMatcher.JAVA_LETTER_OR_DIGIT.or(CharMatcher.is('_'));
 		private static final CharMatcher CM_NOTWORD = CM_WORD.negate();
@@ -251,7 +290,7 @@ public class Regex {
 					while (si < sn && ! special(src.charAt(si)));
 				if (next1of("?*+") && si - 1 > start)
 					--si;
-				emit(new Chars(src.substring(start, si)));
+				emit(new Chars(src.substring(start, si), ignoringCase));
 			}
 		}
 
@@ -259,7 +298,7 @@ public class Regex {
 			if (src.charAt(si) != '^' &&
 					si + 1 < sn && src.charAt(si + 1) == ']') { // e.g. [.]
 				++si;
-				emit(new Chars(src.substring(si - 1, si)));
+				emit(new Chars(src.substring(si - 1, si), ignoringCase));
 				return;
 			}
 			boolean negate = match("^");
@@ -267,7 +306,9 @@ public class Regex {
 			while (si < sn && src.charAt(si) != ']') {
 				CharMatcher elem;
 				if (matchRange())
-					elem = CharMatcher.inRange(src.charAt(si - 3), src.charAt(si - 1));
+					elem = CharMatcher.inRange(
+							handleCase(src.charAt(si - 3)), 
+							handleCase(src.charAt(si - 1)));
 				else if (match("\\d"))
 					elem = digit;
 				else if (match("\\D"))
@@ -283,13 +324,17 @@ public class Regex {
 				else if (match("[:"))
 					elem = posixClass();
 				else
-					elem = CharMatcher.is(src.charAt(si++));
+					elem = CharMatcher.is(handleCase(src.charAt(si++)));
 				cm = cm.or(elem);
 
 			}
 			if (negate)
 				cm = cm.negate();
-			emit(new CharClass(cm));
+			emit(new CharClass(cm, ignoringCase));
+		}
+
+		private char handleCase(char c) {
+			return ignoringCase ? Character.toLowerCase(c) : c;
 		}
 
 		private boolean matchRange() {
@@ -386,8 +431,8 @@ public class Regex {
 		int omatch(String s, int si) {
 			throw new RuntimeException("must be overridden");
 		}
-		int advance() {
-			return 1; // overridden by repetition
+		public int nextPossible(String s, int sn, int i) {
+			return i + 1;
 		}
 	}
 
@@ -397,6 +442,14 @@ public class Regex {
 		@Override
 		public int omatch(String s, int si) {
 			return (si == 0 || s.charAt(si - 1) == '\n') ? si : FAIL;
+		}
+		
+		@Override
+		public int nextPossible(String s, int sn, int i) {
+			if (i == sn)
+				return i + 1;
+			int j = s.indexOf('\n', i + 1);
+			return j == -1 ? sn : j + 1;
 		}
 
 		@Override
@@ -428,6 +481,11 @@ public class Regex {
 		public int omatch(String s, int si) {
 			return (si == 0) ? si : FAIL;
 		}
+		
+		@Override
+		public int nextPossible(String s, int sn, int i) {
+			return sn + 1; // only the initial position is possible
+		}
 
 		@Override
 		public String toString() {
@@ -453,15 +511,30 @@ public class Regex {
 
 	@Immutable
 	static class Chars extends Element {
-		String chars;
+		private final String chars;
+		private final boolean ignoringCase;
 
-		Chars(String chars) {
-			this.chars = chars;
+		Chars(String chars, boolean ignoringCase) {
+			this.chars = ignoringCase ? chars.toLowerCase() : chars;
+			this.ignoringCase = ignoringCase;
 		}
 
 		@Override
 		public int omatch(String s, int si) {
-			return s.startsWith(chars, si) ? si + chars.length() : FAIL;
+			if (ignoringCase) {
+				for (int i = 0; i < chars.length(); ++i)
+					if (si + i >= s.length() ||
+						Character.toLowerCase(s.charAt(si + i)) != chars.charAt(i))
+						return FAIL;
+			} else if (! s.startsWith(chars, si))
+				return FAIL;
+			return si + chars.length();
+		}
+		
+		@Override
+		public int nextPossible(String s, int sn, int i) {
+			int j = s.indexOf(chars, i + 1);
+			return j == -1 ? sn + 1 : j;
 		}
 
 		@Override
@@ -473,14 +546,31 @@ public class Regex {
 	@Immutable
 	static class CharClass extends Element {
 		private final CharMatcher cm;
+		private final boolean ignoringCase;
 
 		CharClass(CharMatcher cm) {
+			this(cm, false);
+		}
+
+		CharClass(CharMatcher cm, boolean ignoringCase) {
 			this.cm = cm.precomputed();
+			this.ignoringCase = ignoringCase;
 		}
 
 		@Override
 		int omatch(String s, int si) {
-			return si < s.length() && cm.matches(s.charAt(si)) ? si + 1 : FAIL;
+			if (si >= s.length())
+				return FAIL;
+			char c = s.charAt(si);
+			if (ignoringCase)
+				c = Character.toLowerCase(c);
+			return cm.matches(c) ? si + 1 : FAIL;
+		}
+		
+		@Override
+		public int nextPossible(String s, int sn, int i) {
+			int j = cm.indexIn(s, i + 1);
+			return j == -1 ? sn + 1 : j;
 		}
 
 		@Override
@@ -513,9 +603,7 @@ public class Regex {
 		}
 	}
 
-	/**
-	 * Implemented by amatch.
-	 */
+	/** Implemented by amatch. */
 	@Immutable
 	static class Jump extends Element {
 		int offset;
@@ -529,6 +617,21 @@ public class Regex {
 			return "Jump(" + offset + ")";
 		}
 	}
+
+	/** Implemented by amatch. */
+	@Immutable
+	static class Flag extends Element {
+		String name;
+		Flag(String name) {
+			this.name = name;
+		}
+		@Override
+		public String toString() {
+			return name;
+		}
+	}
+	final static Flag ignoreCase = new Flag("(?i)");
+	final static Flag caseSensitive = new Flag("(?-i)");
 
 	public static void main(String[] args) {
 		Regex.compile("a|b|c").amatch("c");
