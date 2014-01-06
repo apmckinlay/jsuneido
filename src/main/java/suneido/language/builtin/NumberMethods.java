@@ -85,7 +85,7 @@ public class NumberMethods extends BuiltinMethods {
 				for (++i; i < masksize && mask.charAt(i) == '#'; ++i)
 					x = x.movePointRight(1);
 			BigDecimal tmp = new BigDecimal(x.toBigInteger());
-			if (x != tmp) { // need to round
+			if (0 != x.compareTo(tmp)) { // need to round
 				x = x.add(half);
 				x = new BigDecimal(x.toBigInteger());
 			}
@@ -129,6 +129,10 @@ public class NumberMethods extends BuiltinMethods {
 		int end = start;
 		while (dst.charAt(end) == '0' && end + 1 < dst.length())
 			++end;
+		if (end > start && dst.charAt(end) == '.' && 
+				(end + 1 >= dst.length() ||
+				! Character.isDigit(dst.charAt(end + 1))))
+			--end;
 		dst.delete(start, end);
 
 		if (j >= 0)
@@ -216,6 +220,29 @@ public class NumberMethods extends BuiltinMethods {
 	public static Object Sqrt(Object self) {
 		double d = ((Number) self).doubleValue();
 		return Math.sqrt(d);
+	}
+	
+	@Params("number")
+	public static Object Round(Object self, Object d) {
+		return round(self, d, BigDecimal.ROUND_HALF_UP);
+	}
+
+	@Params("number")
+	public static Object RoundUp(Object self, Object d) {
+		return round(self, d, BigDecimal.ROUND_UP);
+	}
+
+	@Params("number")
+	public static Object RoundDown(Object self, Object d) {
+		return round(self, d, BigDecimal.ROUND_DOWN);
+	}
+
+	private static Object round(Object self, Object d, int mode) {
+		BigDecimal n = toBigDecimal(self);
+		if (n.signum() == 0)
+			return self;
+		int digits = Ops.toInt(d);
+		return n.setScale(digits, mode);
 	}
 
 }
