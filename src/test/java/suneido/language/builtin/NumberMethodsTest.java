@@ -14,6 +14,7 @@ public class NumberMethodsTest {
 	@Test
 	public void test_format() {
 		format("0", "###", "0");
+		format("0", "###.", "0.");
 		format("0", "#.##", ".00");
 		format(".08", "#.##", ".08");
 		format(".08", "#.#", ".1");
@@ -53,6 +54,13 @@ public class NumberMethodsTest {
 
 	private static void hex(Object x, String expected) {
 		assertEquals(expected, NumberMethods.Hex(x).toString());
+	}
+	
+	@Test
+	public void test_round() {
+		Object bd = new BigDecimal("0");
+		bd = NumberMethods.Round(bd, 2);
+		assertEquals("0", Ops.display(bd));
 	}
 
 }

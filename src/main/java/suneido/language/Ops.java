@@ -456,6 +456,8 @@ public final class Ops {
 	private static String removeLeadingZero(String s) {
 		if (s.startsWith("0.") && s.length() > 2)
 			s = s.substring(1);
+		if (s.startsWith("-0.") && s.length() > 3)
+			s = "-" + s.substring(2);
 		return s;
 	}
 
