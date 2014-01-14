@@ -144,14 +144,9 @@ public class Pack {
 		int millisecond = time & 0x3ff;
 
 		Calendar cal = Calendar.getInstance();
-		cal.setLenient(false);
-		try {
-			cal.set(year, month - 1, day, hour, minute, second);
-			cal.set(Calendar.MILLISECOND, millisecond);
-			return cal.getTime();
-		} catch (IllegalArgumentException e) {
-			throw new SuException("corrupt date in database");
-		}
+		cal.set(year, month - 1, day, hour, minute, second);
+		cal.set(Calendar.MILLISECOND, millisecond);
+		return cal.getTime();
 	}
 
 	static void packString(String s, ByteBuffer buf) {
