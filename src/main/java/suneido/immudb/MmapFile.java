@@ -28,8 +28,7 @@ class MmapFile extends Storage {
 	private final FileChannel.MapMode mode;
 	private final RandomAccessFile fin;
 	private final FileChannel fc;
-	final File file;
-	long starting_file_size;
+	private final long starting_file_size;
 	private int last_force;
 
 	/** @param mode Must be "r" or "rw" */
@@ -40,7 +39,6 @@ class MmapFile extends Storage {
 	/** @param mode Must be "r" or "rw" */
 	MmapFile(File file, String mode) {
 		super(64 * 1024 * 1024);
-		this.file = file;
 		switch (mode) {
 		case "r":
 			if (!file.canRead())
@@ -62,6 +60,7 @@ class MmapFile extends Storage {
 		}
 		fc = fin.getChannel();
 		findEnd();
+		starting_file_size = storSize;
 		last_force = offsetToChunk(storSize);
 	}
 
@@ -74,11 +73,10 @@ class MmapFile extends Storage {
 		ByteBuffer buf = map(storSize - 1);
 		int i = (int) ((storSize - 1) % CHUNK_SIZE) + 1;
 		assert ALIGN >= 8;
-		while (i > 0 && buf.getLong(i - 8) == 0)
+		while (i >= 8 && buf.getLong(i - 8) == 0)
 			i -= 8;
 		int chunk = (int) ((storSize - 1) / CHUNK_SIZE);
 		storSize = (long) chunk * CHUNK_SIZE + align(i);
-		starting_file_size = storSize;
 	}
 
 	private long fileLength() {
@@ -104,6 +102,9 @@ class MmapFile extends Storage {
 
 	@Override
 	synchronized void force() {
+		if (storSize == starting_file_size) // nothing written
+			return;
+		
 		for (int i = last_force; i <= offsetToChunk(storSize); ++i)
 			if (chunks[i] != null)
 				try {
@@ -112,13 +113,18 @@ class MmapFile extends Storage {
 				} catch (Exception e) {
 					// ignore intermittent IoExceptions on Windows
 				}
+		
+		// this is needed to update file last modified time on Windows
+		try {
+			fin.seek(storSize);
+			fin.writeLong(0); // long since findEnd reads longs
+		} catch (IOException e) {
+			// ignore
+		}
 	}
 
 	@Override
 	void close() {
-//		if (mode == FileChannel.MapMode.READ_WRITE)
-//			System.out.println(file + " size " + file_size +
-//					" grew " + (file_size - starting_file_size));
 		force();
 		Arrays.fill(chunks, null); // might help gc
 		try {
