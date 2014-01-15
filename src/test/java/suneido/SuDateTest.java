@@ -1,0 +1,206 @@
+/* Copyright 2013 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
+package suneido;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+
+import java.nio.ByteBuffer;
+
+import org.junit.Test;
+
+import suneido.SuDate.SuDateBad;
+
+public class SuDateTest {
+	
+	@Test
+	public void test_constructor() {
+		test(2014, 01, 15, 12, 34, 56, 789);
+		test(1900, 01, 01, 0, 0, 0, 0);
+		test(2499, 12, 31, 23, 59, 59, 999);
+	}
+	
+	private static void test(int year, int month, int day,
+			int hour, int minute, int second, int millisecond) {
+		SuDate d = new SuDate(year, month, day, hour, minute, second, millisecond);
+		assertThat(d.year(), equalTo(year));
+		assertThat(d.month(), equalTo(month));
+		assertThat(d.day(), equalTo(day));
+		assertThat(d.hour(), equalTo(hour));
+		assertThat(d.minute(), equalTo(minute));
+		assertThat(d.second(), equalTo(second));
+		assertThat(d.millisecond(), equalTo(millisecond));
+	}
+	
+	@Test
+	public void test_literal_toString() {
+		good("20140115");
+		good("19000101");
+		good("24991231");
+		good("20140115.1234");
+		good("20140115.123456");
+		good("20140115.123456789");
+		bad("2014123");
+		bad("20141231.1");
+		bad("20140115.123");
+		bad("20140115.12345");
+		bad("20140115.12345678");
+		bad("20140230");
+		bad("20130229");
+		good("20120229"); // leap year
+	}
+
+	private static void good(String s) {
+		SuDate d = SuDate.fromLiteral(s);
+		s = "#" + s;
+		assertThat(d.toString(), equalTo(s));
+		d = SuDate.fromLiteral(s);
+		assertThat(d.toString(), equalTo(s));
+	}
+	
+	private static void bad(String s) {
+		try {
+			assertThat(SuDate.fromLiteral(s), equalTo(null));
+		} catch (SuDateBad e) {
+		}
+		s = "#" + s;
+		try {
+			assertThat(SuDate.fromLiteral(s), equalTo(null));
+		} catch (SuDateBad e) {
+		}
+	}
+	
+	@Test
+	public void test_pack() {
+		pack("20140115");
+		pack("19000101");
+		pack("24991231");
+		pack("20140115.1234");
+		pack("20140115.123456");
+		pack("20140115.123456789");
+	}
+	
+	private static void pack(String s) {
+		SuDate d = SuDate.fromLiteral(s);
+		ByteBuffer buf = ByteBuffer.allocate(d.packSize());
+		d.pack(buf);
+		buf.flip();
+		SuDate d2 = SuDate.unpack(buf);
+		assertThat(d2, equalTo(d));
+	}
+	
+	@Test
+	public void test_compare() {
+		lt("20140115", "20140116");
+		lt("19000101", "20140116");
+		lt("20140115", "24991231");
+		lt("20140115", "20140115.0100");
+		lt("20140115", "20140115.000000001");
+	}
+
+	private static void lt(String s1, String s2) {
+		SuDate d1 = SuDate.fromLiteral(s1);
+		assert d1.equals(SuDate.fromLiteral(s1));
+		SuDate d2 = SuDate.fromLiteral(s2);
+		assert d2.equals(SuDate.fromLiteral(s2));
+		assert d1.compareTo(d2) < 0;
+		assert d2.compareTo(d1) > 0;
+		assert ! d1.equals(d2);
+		assert ! d2.equals(d1);
+	}
+	
+	@Test
+	public void test_plus() {
+		//							y	m	d	h	m	s	ms
+		
+		// no overflow
+		plus("20140115.123456789",	0,	0,	0,	0,	0,	0,	0,	"20140115.123456789");
+		plus("20140115.123456789",	0,	0,	0,	0,	0,	0,	1,	"20140115.123456790");	
+		plus("20140115.123456789",	0,	0,	0,	0,	0,	0,	-1,	"20140115.123456788");	
+		plus("20140115.123456789",	0,	0,	0,	0,	0,	1,	0,	"20140115.123457789");
+		plus("20140115.123456789",	0,	0,	0,	0,	0,	-1,	0,	"20140115.123455789");
+		plus("20140115.123456789",	0,	0,	0,	0,	1,	0,	0,	"20140115.123556789");
+		plus("20140115.123456789",	0,	0,	0,	0,	-1,	0,	0,	"20140115.123356789");
+		plus("20140115.123456789",	0,	0,	0,	1,	0,	0,	0,	"20140115.133456789");
+		plus("20140115.123456789",	0,	0,	0,	-1,	0,	0,	0,	"20140115.113456789");
+		plus("20140115.123456789",	0,	0,	1,	0,	0,	0,	0,	"20140116.123456789");
+		plus("20140115.123456789",	0,	0,	-1,	0,	0,	0,	0,	"20140114.123456789");
+		plus("20140115.123456789",	0,	1,	0,	0,	0,	0,	0,	"20140215.123456789");
+		plus("20140215.123456789",	0,	-1,	0,	0,	0,	0,	0,	"20140115.123456789");
+		plus("20140115.123456789",	1,	0,	0,	0,	0,	0,	0,	"20150115.123456789");
+		plus("20140115.123456789",	-1,	0,	0,	0,	0,	0,	0,	"20130115.123456789");
+	
+		plus("20140115.123456789",	0,	0,	0,	0,	0,	0,	300, "20140115.123457089");
+		plus("20140115.123456789",	0,	0,	0,	0,	0,	0,	2300, "20140115.123459089");
+		plus("20140115.123456789",	0,	0,	0,	0,	0,	0,	-1800,	"20140115.123454989");
+		plus("20140115.235959999",	0,	0,	0,	0,	0,	0,	1,	"20140116");
+		plus("20120228",			0,	0,	1,	0,	0,	0,	0,	"20120229"); // leap year
+		plus("20130228",			0,	0,	1,	0,	0,	0,	0,	"20130301");
+		plus("20140215",			0,	20,	0,	0,	0,	0,	0,	"20151015");
+		plus("20140115",			0,	-2,	0,	0,	0,	0,	0,	"20131115");
+}
+	
+	private static void plus(String s, int year, int month, int day,
+			int hour, int minute, int second, int millisecond,
+			String expected) {
+		SuDate d = SuDate.fromLiteral(s);
+		SuDate e = SuDate.fromLiteral(expected);
+		assertThat(d.plus(year, month, day, hour, minute, second, millisecond),
+				equalTo(e));
+	}
+	
+	@Test
+	public void test_weekday() {
+		weekday("20140112", 1);
+		weekday("20140115", 4);
+		weekday("20140118", 7);
+	}
+
+	private static void weekday(String s, int wd) {
+		assertThat(SuDate.fromLiteral(s).weekday(), equalTo(wd));
+	}
+	
+	@Test
+	public void test_minusDays() {
+		minusdays("20140215", "20140214", 1);
+		minusdays("20140215", "20140115", 31);
+		minusdays("20140215", "20130215", 365);
+		minusdays("20130215", "20120215", 366);
+	}
+
+	private static void minusdays(String s1, String s2, int expected) {
+		SuDate d1 = SuDate.fromLiteral(s1);
+		SuDate d2 = SuDate.fromLiteral(s2);
+		assertThat(d1.minusDays(d1), equalTo(0));
+		assertThat(d2.minusDays(d2), equalTo(0));
+		assertThat(d1.minusDays(d2), equalTo(expected));
+		assertThat(d2.minusDays(d1), equalTo(-expected));
+	}
+	
+	@Test
+	public void test_minusMilliseconds() {
+		minusms("123456008", "123456005", 3);
+		minusms("123456008", "123455005", 1003);
+		minusms("123456008", "123356008", 60 * 1000);
+		minusms("123456008", "113456008", 60 * 60 * 1000L);
+		
+		minusms("20140115", "20140114.235959999", 1);
+		minusms("20140115", "20140114.225959999", 1 + 60 * 60 * 1000L);
+	}
+
+	private static void minusms(String s1, String s2, long expected) {
+		if (s1.length() == 9)
+			s1 = "20140115." + s1;
+		SuDate d1 = SuDate.fromLiteral(s1);
+		if (s2.length() == 9)
+			s2 = "20140115." + s2;
+		SuDate d2 = SuDate.fromLiteral(s2);
+		assertThat(d1.minusMilliseconds(d1), equalTo(0L));
+		assertThat(d2.minusMilliseconds(d2), equalTo(0L));
+		assertThat(d1.minusMilliseconds(d2), equalTo(expected));
+		assertThat(d2.minusMilliseconds(d1), equalTo(-expected));
+	}
+
+}
