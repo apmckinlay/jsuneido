@@ -13,10 +13,8 @@ import suneido.language.SuCallable;
 import suneido.language.SuClass;
 
 /**
- * Base class for Suneido data types:
- * @see SuContainer
- * @see SuRecord
- * @see SuClass
+ * Base class for Suneido data types.
+ * e.g. {@link SuContainer}, {@link SuRecord}, {@link SuClass}
  */
 public abstract class SuValue implements Packable {
 
@@ -26,23 +24,12 @@ public abstract class SuValue implements Packable {
 	}
 
 	/**
-	 * <p>
-	 * Computes the contribution of a value to the hash code of a container
-	 * which it belongs to.
-	 * </p>
-	 * <p>
-	 * The {@link #hashCode()} contract applies equally to this method. In
+	 * <p>Computes the contribution of a value to the hash code of a container
+	 * which it belongs to. Overridden by {@link SuContainer</p>
+	 * <p>The {@link #hashCode()} contract applies equally to this method. In
 	 * particular, for any two SuValue objects {@code A} and {@code B} such that
-	 * {@code A.equals(B)}, and for any non-negative integer {@code n},
-	 * {@code A.hashCodeContrib(n)} must be equal to
-	 * {@code B.hashCodeContrib(n)}.
-	 * </p>
-	 *
-	 * @param nest Level of nesting of {@code this} within the container: 0
-	 * indicates that {@code this} is immediately contained within the
-	 * container being hashed; 1 indicates containment within a container
-	 * immediately inside the container being hashed, and so on
-	 * @return Contribution of {@code this} to the container's hash code
+	 * {@code A.equals(B)}, {@code A.hashCodeContrib()} must be equal to 
+	 * {@code B.hashCodeContrib()}.</p>
 	 */
 	public int hashCodeContrib() {
 		return hashCode();
@@ -95,8 +82,6 @@ public abstract class SuValue implements Packable {
 	 * </li>
 	 * </ul>
 	 * </p>
-	 * @return
-	 * @since 20130815
 	 * @see #typeName()
 	 */
 	public String valueName() {
