@@ -1,3 +1,7 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database.server;
 
 import static suneido.Trace.trace;
@@ -28,7 +32,6 @@ public class DbmsChannel {
 	public DbmsChannel(String ip, int port) {
 		try {
 			channel = SocketChannel.open(new InetSocketAddress(ip, port));
-			channel.socket().setSoTimeout(20000); // 20 seconds
 		} catch (Exception e) {
 			throw new SuException("can't connect to " + ip + ":" + port, e);
 		}
