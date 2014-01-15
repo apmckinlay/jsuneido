@@ -5,7 +5,7 @@
 package suneido;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
@@ -28,7 +28,7 @@ public class RegexTest {
 	
 	private static void convertTest(String from, String to) {
 		String converted = Regex.convertRegex(from);
-		assertThat(converted, is(to));
+		assertThat(converted, equalTo(to));
 		Pattern.compile(converted); // throws if bad syntax	
 	}
 
@@ -96,7 +96,7 @@ public class RegexTest {
 
 	@Test
 	public void replace() {
-		assertThat(StringMethods.replace("a&b", "\\&", "X", 1), is("aXb"));
+		assertThat(StringMethods.replace("a&b", "\\&", "X", 1), equalTo("aXb"));
 	}
 
 }
