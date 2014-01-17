@@ -2,8 +2,8 @@ package suneido;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static suneido.language.Numbers.MC;
 import static suneido.language.Ops.*;
-import static suneido.language.Numbers.*;
 
 import java.math.BigDecimal;
 
@@ -23,8 +23,10 @@ public class SuValueTest {
 			false, true,
 			0, 123, 456, 789,
 			"", "abc", "def",
-			stringToDate("20080514.143622123"), stringToDate("20080522.143622123"),
-			stringToDate("20081216.152744828"), stringToDate("20081216.153244828"),
+			SuDate.fromLiteral("20080514.143622123"),
+			SuDate.fromLiteral("20080522.143622123"),
+			SuDate.fromLiteral("20081216.152744828"),
+			SuDate.fromLiteral("20081216.153244828"),
 			new SuContainer(), c1, c2, c3 };
 		for (int i = 0; i < values.length; ++i)
 			for (int j = 0; j < values.length; ++j)

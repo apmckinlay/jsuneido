@@ -12,15 +12,10 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Calendar;
-import java.util.Date;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import suneido.Packable;
-import suneido.SuContainer;
-import suneido.SuException;
-import suneido.SuRecord;
+import suneido.*;
 
 @ThreadSafe // all static methods
 public class Pack {
@@ -70,17 +65,11 @@ public class Pack {
 			return packSizeBD((BigDecimal) x);
 		if (xType == String.class)
 			return packSize((String) x);
-		if (xType == Date.class)
-			return packSizeDate((Date) x);
 
 		if (x instanceof Packable)
 			return ((Packable) x).packSize(0);
 		else
 			throw new SuException("can't pack " + typeName(x));
-	}
-
-	private static int packSizeDate(Date x) {
-		return 9;
 	}
 
 	public static int packSize(String s) {
@@ -105,48 +94,10 @@ public class Pack {
 			packBD((BigDecimal) x, buf);
 		else if (xType == String.class)
 			packString((String) x, buf);
-		else if (xType == Date.class)
-			packDate((Date) x, buf);
 		else if (x instanceof Packable)
 			((Packable) x).pack(buf);
 		else
 			throw new SuException("can't pack " + typeName(x));
-	}
-
-	private static void packDate(Date x, ByteBuffer buf) {
-		buf.put(Tag.DATE);
-		Calendar cal = Calendar.getInstance();
-		cal.setTime(x);
-		int date =
-				(cal.get(Calendar.YEAR) << 9)
-						| ((cal.get(Calendar.MONTH) + 1) << 5)
-						| cal.get(Calendar.DAY_OF_MONTH);
-		buf.putInt(date);
-		int time =
-				(cal.get(Calendar.HOUR_OF_DAY) << 22)
-						| (cal.get(Calendar.MINUTE) << 16)
-						| (cal.get(Calendar.SECOND) << 10)
-						| cal.get(Calendar.MILLISECOND);
-		buf.putInt(time);
-	}
-
-	private static Date unpackDate(ByteBuffer buf) {
-		int date = buf.getInt();
-		int time = buf.getInt();
-
-		int year = date >> 9;
-		int month = (date >> 5) & 0xf;
-		int day = date & 0x1f;
-
-		int hour = time >> 22;
-		int minute = (time >> 16) & 0x3f;
-		int second = (time >> 10) & 0x3f;
-		int millisecond = time & 0x3ff;
-
-		Calendar cal = Calendar.getInstance();
-		cal.set(year, month - 1, day, hour, minute, second);
-		cal.set(Calendar.MILLISECOND, millisecond);
-		return cal.getTime();
 	}
 
 	static void packString(String s, ByteBuffer buf) {
@@ -289,7 +240,7 @@ public class Pack {
 		case Tag.RECORD:
 			return SuRecord.unpack(buf);
 		case Tag.DATE:
-			return unpackDate(buf);
+			return SuDate.unpack(buf);
 		case Tag.FUNCTION:
 		case Tag.CLASS:
 			throw new SuException("jSuneido cannot unpack functions or classes");

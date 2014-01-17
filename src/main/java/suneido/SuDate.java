@@ -12,6 +12,8 @@ import java.util.Calendar;
 
 import javax.annotation.concurrent.Immutable;
 
+import suneido.language.Pack;
+import suneido.language.builtin.DateMethods;
 import suneido.util.FAQCalendar;
 
 import com.google.common.primitives.Ints;
@@ -43,17 +45,15 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 		time = (hour << 22) | (minute << 16) | (second << 10) | millisecond;
 	}
 
+	public static SuDate normalized(int year, int month, int day,
+			int hour, int minute, int second, int millisecond) {
+		return normalize(year, month, day, hour, minute, second, millisecond);
+	}
+
 	/** @return An SuDate for the current local date & time */
 	public static SuDate now() {
 		Calendar cal = Calendar.getInstance();
-		return new SuDate(
-			cal.get(Calendar.YEAR),
-			cal.get(Calendar.MONTH) + 1,
-			cal.get(Calendar.DAY_OF_MONTH),
-			cal.get(Calendar.HOUR_OF_DAY),
-			cal.get(Calendar.MINUTE),
-			cal.get(Calendar.SECOND),
-			cal.get(Calendar.MILLISECOND));
+		return fromCalendar(cal);
 	}
 
 	public static SuDate fromLiteral(String s) {
@@ -85,6 +85,23 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 		if (to > s.length())
 			return 0;
 		return Integer.parseInt(s.substring(from, to));
+	}
+
+	public static SuDate fromTime(long d) {
+		Calendar cal = Calendar.getInstance();
+		cal.setTimeInMillis(d);
+		return fromCalendar(cal);
+	}
+
+	private static SuDate fromCalendar(Calendar cal) {
+		return new SuDate(
+				cal.get(Calendar.YEAR),
+				cal.get(Calendar.MONTH) + 1,
+				cal.get(Calendar.DAY_OF_MONTH),
+				cal.get(Calendar.HOUR_OF_DAY),
+				cal.get(Calendar.MINUTE),
+				cal.get(Calendar.SECOND),
+				cal.get(Calendar.MILLISECOND));
 	}
 
 	@Override
@@ -127,6 +144,16 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 		return cmp != 0 ? cmp : Ints.compare(this.time, that.time);
 	}
 
+	@Override
+	public String typeName() {
+		return "Date";
+	}
+
+	@Override
+	public SuValue lookup(String method) {
+		return DateMethods.lookup(method);
+	}
+
 	// validation
 
 	private static boolean valid(int year, int month, int day,
@@ -144,10 +171,6 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 				cal.get(Calendar.DAY_OF_MONTH) == day;
 	}
 
-	private static boolean valid(int val, int from, int to) {
-		return from <= val && val <= to;
-	}
-
 	public static class SuDateBad extends SuException {
 		private static final long serialVersionUID = 1L;
 
@@ -159,12 +182,13 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 	// Packable
 
 	@Override
-	public int packSize() {
+	public int packSize(int nest) {
 		return 9;
 	}
 
 	@Override
 	public void pack(ByteBuffer buf) {
+		buf.put(Pack.Tag.DATE);
 		buf.putInt(date);
 		buf.putInt(time);
 	}
@@ -173,6 +197,15 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 		int date = buf.getInt();
 		int time = buf.getInt();
 		return new SuDate(date, time);
+	}
+
+	private static final int MILLISECONDS_PER_MINUTE = 60 * 1000;
+
+	/** return offset from local to UTC in minutes */
+	public int biasUTC() {
+		Calendar cal = toCalendar();
+		return (cal.get(Calendar.ZONE_OFFSET) + cal.get(Calendar.DST_OFFSET))
+				/ MILLISECONDS_PER_MINUTE;
 	}
 
 	// getters
@@ -214,7 +247,11 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 		minute += minute();
 		second += second();
 		millisecond += millisecond();
+		return normalize(year, month, day, hour, minute, second, millisecond);
+	}
 
+	private static SuDate normalize(int year, int month, int day, int hour,
+			int minute, int second, int millisecond) {
 		// adjust to bring back into range
 		while (millisecond < 0) {
 			--second;
@@ -253,7 +290,7 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 		}
 
 		// use Calendar for days to handle leap years etc.
-		if (day < 0 || 28 < day) {
+		if (day < 1 || 28 < day) {
 			Calendar cal = Calendar.getInstance();
 			cal.clear();
 			cal.set(year, month - 1, day);
@@ -262,11 +299,11 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 			day = cal.get(Calendar.DAY_OF_MONTH);
 		}
 
-		while (month < 0) {
+		while (month < 1) {
 			--year;
 			month += 12;
 		}
-		while (month >= 12) {
+		while (month > 12) {
 			++year;
 			month -= 12;
 		}
@@ -307,11 +344,15 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 	}
 
 	private long time() {
+		return toCalendar().getTimeInMillis();
+	}
+
+	private Calendar toCalendar() {
 		Calendar cal = Calendar.getInstance();
 		cal.clear();
 		cal.set(year(), month() - 1, day(), hour(), minute(), second());
 		cal.set(Calendar.MILLISECOND, millisecond());
-		return cal.getTime().getTime();
+		return cal;
 	}
 
 	// format
@@ -597,12 +638,10 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 			year = now.year();
 			month = now.month();
 			day = now.day();
-			}
-		else
+		} else
 			return null; // no match
 
-		if (year == NOTSET)
-			{
+		if (year == NOTSET) {
 			if (month >= Math.max(now.month() - 6, 1) &&
 				month <= Math.min(now.month() + 5, 12))
 				year = now.year();
@@ -610,14 +649,12 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 				year = now.year() - 1;
 			else
 				year = now.year() + 1;
-			}
-		else if (year < 100)
-			{
+		} else if (year < 100) {
 			int thisyr = now.year();
 			year += thisyr - thisyr % 100;
 			if (year - thisyr > 20)
 				year -= 100;
-			}
+		}
 		if (! valid(year, month, day, hour, minute, second, millisecond))
 			return null;
 		return new SuDate(year, month, day, hour, minute, second, millisecond);
@@ -698,7 +735,7 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 
 	static enum Field {
 		YEAR(0, 3000), MONTH(1, 12), DAY(1, 31),
-		HOUR(0, 59), MINUTE(0, 59), SECOND(0, 59), MILLISECOND(0, 999),
+		HOUR(0, 23), MINUTE(0, 59), SECOND(0, 59), MILLISECOND(0, 999),
 		UNK(0, 0);
 
 		final int min;

@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.regex.Pattern;
 
 import suneido.SuContainer;
+import suneido.SuDate;
 import suneido.language.Ops;
 import suneido.language.Params;
 
@@ -49,7 +50,7 @@ public class Dir {
 		ob.put("name", nameOf(f));
 		ob.put("size", f.length() < Integer.MAX_VALUE ? (int) f.length()
 				: BigDecimal.valueOf(f.length()));
-		ob.put("date", new Date(f.lastModified()));
+		ob.put("date", SuDate.fromTime(f.lastModified()));
 		ob.put("attr", attrOf(f));
 		return ob;
 	}

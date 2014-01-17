@@ -11,14 +11,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.text.ParsePosition;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.ConcurrentModificationException;
+import java.util.Iterator;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.*;
-import suneido.language.builtin.DateMethods;
 import suneido.language.builtin.NumberMethods;
 import suneido.language.builtin.StringMethods;
 import suneido.language.jsdi.Buffer;
@@ -176,9 +176,9 @@ public final class Ops {
 		if (yClass == String.class)
 			return +1;
 
-		if (xClass == Date.class)
+		if (xClass == SuDate.class)
 			return -1;
-		if (yClass == Date.class)
+		if (yClass == SuDate.class)
 			return +1;
 
 		if (xClass == SuContainer.class)
@@ -364,22 +364,6 @@ public final class Ops {
 		return toInt(x) >>> toInt(y);
 	}
 
-	public static Date stringToDate(String s) {
-		if (s.startsWith("#"))
-			s = s.substring(1);
-		if (s.length() < 8 || 18 < s.length())
-			return null;
-		if (s.length() == 8)
-			s += ".";
-		if (s.length() < 18)
-			s = (s + "000000000").substring(0, 18);
-		ParsePosition pos = new ParsePosition(0);
-		Date date = new SimpleDateFormat("yyyyMMdd.HHmmssSSS").parse(s, pos);
-		if (date == null || pos.getIndex() != 18)
-			return null;
-		return date;
-	}
-
 	public static int toIntBool(Object x) {
 		if (x == Boolean.TRUE)
 			return 1;
@@ -471,8 +455,6 @@ public final class Ops {
 		String s = toStr2(x);
 		if (s != null)
 			return s;
-		if (x instanceof Date)
-			return toStringDate((Date) x);
 		return x.toString();
 	}
 
@@ -503,17 +485,6 @@ public final class Ops {
 		return sb.toString();
 	}
 
-	private static String toStringDate(Date x) {
-		String s = "#" + new SimpleDateFormat("yyyyMMdd.HHmmssSSS").format(x);
-		if (s.endsWith("000000000"))
-			return s.substring(0, 9);
-		if (s.endsWith("00000"))
-			return s.substring(0, 14);
-		if (s.endsWith("000"))
-			return s.substring(0, 16);
-		return s;
-	}
-
 	public static SuContainer toContainer(Object x) {
 		return x instanceof SuValue ? ((SuValue) x).toContainer() : null;
 	}
@@ -528,8 +499,6 @@ public final class Ops {
 			return "String";
 		if (xType == Boolean.class)
 			return "Boolean";
-		if (xType == Date.class)
-			return "Date";
 		if (xType == Integer.class || xType == Long.class ||
 				xType == BigDecimal.class)
 			return "Number";
@@ -640,8 +609,6 @@ public final class Ops {
 			return StringMethods.singleton;
 		if (x instanceof Number) // e.g. Integer, Float, BigDecimal
 			return NumberMethods.singleton;
-		if (x instanceof Date)
-			return DateMethods.singleton;
 		return invokeUnknown;
 	}
 

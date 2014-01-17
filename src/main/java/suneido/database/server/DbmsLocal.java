@@ -9,11 +9,11 @@ import static suneido.Suneido.errlog;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import suneido.DbTools;
 import suneido.SuContainer;
+import suneido.SuDate;
 import suneido.database.query.CompileQuery;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Request;
@@ -161,7 +161,7 @@ public class DbmsLocal extends Dbms {
 	}
 
 	@Override
-	public Date timestamp() {
+	public SuDate timestamp() {
 		return Timestamp.next();
 	}
 

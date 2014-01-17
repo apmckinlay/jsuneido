@@ -10,18 +10,17 @@ import static suneido.Trace.Type.CLIENTSERVER;
 
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
-import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 import suneido.SuContainer;
+import suneido.SuDate;
 import suneido.SuException;
 import suneido.database.query.Header;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Row;
 import suneido.intfc.database.Record;
-import suneido.language.Ops;
 import suneido.language.Pack;
 
 import com.google.common.base.Function;
@@ -146,10 +145,10 @@ public class DbmsRemote extends Dbms {
 		};
 
 	@Override
-	public Date timestamp() {
+	public SuDate timestamp() {
 		writeLine("TIMESTAMP");
 		String s = io.readLine();
-		Date date = Ops.stringToDate(s);
+		SuDate date = SuDate.fromLiteral(s);
 		if (date == null)
 			throw new SuException("bad timestamp from server: " + s);
 		return date;

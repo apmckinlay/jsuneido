@@ -13,6 +13,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import suneido.SuDate;
 import suneido.database.query.expr.Expr;
 import suneido.intfc.database.Record;
 import suneido.language.Ops;
@@ -97,7 +98,7 @@ public class ExprTest {
 				asList("a", "b", "c", "d", "e"));
 		Record key = dbpkg.recordBuilder().add(1).build();
 		Record rec = dbpkg.recordBuilder().add(1).add(2).add(3).add(4).
-				add(Ops.stringToDate("#20081216.153244828")).build();
+				add(SuDate.fromLiteral("#20081216.153244828")).build();
 		row = new Row(key, rec);
 		eval("a + 10", "11");
 		eval("a + -1", "0");
