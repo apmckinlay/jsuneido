@@ -6,17 +6,12 @@ package suneido.language.builtin;
 
 import static suneido.language.FunctionSpec.NA;
 import static suneido.util.Util.array;
-
-import java.util.Calendar;
-import java.util.Date;
-import java.util.TimeZone;
-
+import suneido.SuDate;
 import suneido.SuException;
 import suneido.language.Args;
 import suneido.language.BuiltinClass;
 import suneido.language.FunctionSpec;
 import suneido.language.Ops;
-import suneido.util.DateParse;
 
 public class DateClass extends BuiltinClass {
 	public static final DateClass singleton = new DateClass();
@@ -39,18 +34,18 @@ public class DateClass extends BuiltinClass {
 					"usage: Date() or Date(string [, pattern]) or "
 							+ "Date(year:, month:, day:, hour:, minute:, second:)");
 		if (args[0] != NA) {
-			if (args[0] instanceof Date)
-				return args[0];
-			Date d;
+			if (args[0] instanceof SuDate)
+				return (SuDate) args[0];
+			SuDate d;
 			if (args[1] == NA)
-				d = DateParse.parse(Ops.toStr(args[0]));
+				d = SuDate.parse(Ops.toStr(args[0]));
 			else
-				d = DateParse.parse(Ops.toStr(args[0]), Ops.toStr(args[1]));
+				d = SuDate.parse(Ops.toStr(args[0]), Ops.toStr(args[1]));
 			return d == null ? false : d;
 		} else if (hasFields(args)) {
 			return named(args);
 		} else
-			return new Date();
+			return SuDate.now();
 	}
 	private static boolean hasFields(Object[] args) {
 		for (int i = 2; i <= 8; ++i)
@@ -58,29 +53,30 @@ public class DateClass extends BuiltinClass {
 				return true;
 		return false;
 	}
-	private static Date named(Object[] args) {
-		Calendar c = Calendar.getInstance();
-		c.setTime(new Date());
+	private static SuDate named(Object[] args) {
+		SuDate now = SuDate.now();
+		int year = now.year();
+		int month = now.month();
+		int day = now.day();
+		int hour = now.hour();
+		int minute = now.minute();
+		int second = now.second();
+		int millisecond = now.millisecond();
 		if (args[2] != NA)
-			c.set(Calendar.YEAR, Ops.toInt(args[2]));
+			year = Ops.toInt(args[2]);
 		if (args[3] != NA)
-			c.set(Calendar.MONTH, Ops.toInt(args[3]) - 1);
+			month = Ops.toInt(args[3]);
 		if (args[4] != NA)
-			c.set(Calendar.DAY_OF_MONTH, Ops.toInt(args[4]));
+			day = Ops.toInt(args[4]);
 		if (args[5] != NA)
-			c.set(Calendar.HOUR_OF_DAY, Ops.toInt(args[5]));
+			hour = Ops.toInt(args[5]);
 		if (args[6] != NA)
-			c.set(Calendar.MINUTE, Ops.toInt(args[6]));
+			minute = Ops.toInt(args[6]);
 		if (args[7] != NA)
-			c.set(Calendar.SECOND, Ops.toInt(args[7]));
+			second = Ops.toInt(args[7]);
 		if (args[8] != NA)
-			c.set(Calendar.MILLISECOND, Ops.toInt(args[8]));
-		return c.getTime();
-	}
-
-	public static Object GetLocalGMTBias(Object self) {
-		int offset = TimeZone.getDefault().getOffset(new Date().getTime());
-		return -offset / 60000; // convert from ms to minutes
+			millisecond = Ops.toInt(args[8]);
+		return SuDate.normalized(year, month, day, hour, minute, second, millisecond);
 	}
 
 }

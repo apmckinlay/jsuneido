@@ -13,6 +13,7 @@ import java.nio.ByteBuffer;
 import org.junit.Test;
 
 import suneido.SuDate.SuDateBad;
+import suneido.language.Pack;
 
 public class SuDateTest {
 
@@ -88,6 +89,7 @@ public class SuDateTest {
 		ByteBuffer buf = ByteBuffer.allocate(d.packSize());
 		d.pack(buf);
 		buf.flip();
+		assertThat(buf.get(), equalTo(Pack.Tag.DATE));
 		SuDate d2 = SuDate.unpack(buf);
 		assertThat(d2, equalTo(d));
 	}

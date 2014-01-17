@@ -6,10 +6,10 @@ package suneido.database.server;
 
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
-import java.util.Date;
 import java.util.List;
 
 import suneido.SuContainer;
+import suneido.SuDate;
 import suneido.database.query.Header;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Row;
@@ -27,7 +27,7 @@ public abstract class Dbms {
 	public abstract DbmsQuery cursor(String s);
 
 	public abstract List<Integer> tranlist();
-	public abstract Date timestamp();
+	public abstract SuDate timestamp();
 	public abstract void dump(String filename);
 	public abstract void copy(String filename);
 	public abstract Object run(String s);

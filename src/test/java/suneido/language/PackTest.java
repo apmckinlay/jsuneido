@@ -8,16 +8,18 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static suneido.language.Numbers.INF;
+import static suneido.language.Numbers.MC;
+import static suneido.language.Numbers.MINUS_INF;
 import static suneido.language.Pack.*;
-import static suneido.language.Numbers.*;
 
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
-import java.util.Date;
 
 import org.junit.Test;
 
 import suneido.SuContainer;
+import suneido.SuDate;
 import suneido.SuRecord;
 
 public class PackTest {
@@ -33,7 +35,7 @@ public class PackTest {
 		test(new BigDecimal("4.94557377049180"), new BigDecimal("4.945573770491"));
 		test("");
 		test("abc");
-		test(new Date());
+		test(SuDate.now());
 		test(new SuContainer());
 		test(new SuRecord());
 		test(10000);

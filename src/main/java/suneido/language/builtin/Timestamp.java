@@ -4,13 +4,12 @@
 
 package suneido.language.builtin;
 
-import java.util.Date;
-
+import suneido.SuDate;
 import suneido.TheDbms;
 
 public class Timestamp {
 
-	public static Date Timestamp() {
+	public static SuDate Timestamp() {
 		return TheDbms.dbms().timestamp();
 	}
 

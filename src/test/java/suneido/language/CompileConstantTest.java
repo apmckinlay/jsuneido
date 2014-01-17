@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import org.junit.Test;
 
 import suneido.SuContainer;
+import suneido.SuDate;
 import suneido.SuRecord;
 
 public class CompileConstantTest {
@@ -26,8 +27,8 @@ public class CompileConstantTest {
 		assertEquals("a symbol", compile("#'a symbol'"));
 		assertEquals("identifier", compile("identifier"));
 
-		assertEquals(Ops.stringToDate("20090310"), compile("#20090310"));
-		assertEquals(Ops.stringToDate("20090310.1026"),
+		assertEquals(SuDate.fromLiteral("20090310"), compile("#20090310"));
+		assertEquals(SuDate.fromLiteral("20090310.1026"),
 				compile("#20090310.1026"));
 
 		SuContainer c = new SuContainer();

@@ -4,15 +4,14 @@
 
 package suneido.language.builtin;
 
-import java.util.Date;
-
+import suneido.SuDate;
 import suneido.language.Params;
 
 public class DateQ {
 
 	@Params("value")
 	public static Boolean DateQ(Object a) {
-		return a instanceof Date;
+		return a instanceof SuDate;
 	}
 
 }

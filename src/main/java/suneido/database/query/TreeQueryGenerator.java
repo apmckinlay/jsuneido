@@ -7,12 +7,12 @@ import java.util.Collections;
 import java.util.List;
 
 import suneido.SuContainer;
+import suneido.SuDate;
 import suneido.SuException;
 import suneido.SuRecord;
 import suneido.database.query.expr.*;
 import suneido.intfc.database.Transaction;
 import suneido.language.Numbers;
-import suneido.language.Ops;
 import suneido.language.Token;
 
 @SuppressWarnings("unchecked")
@@ -216,7 +216,7 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 
 	@Override
 	public Object date(String value) {
-		return Ops.stringToDate(value);
+		return SuDate.fromLiteral(value);
 	}
 
 	// QueryFirst('tables where tablename.Lower() is "columns"')

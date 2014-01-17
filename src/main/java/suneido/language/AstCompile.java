@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import suneido.SuContainer;
+import suneido.SuDate;
 import suneido.SuException;
 import suneido.SuRecord;
 import suneido.language.jsdi.DllInterface;
@@ -66,7 +67,7 @@ public class AstCompile {
 		case NUMBER:
 			return Numbers.stringToNumber(ast.value);
 		case DATE:
-			return Ops.stringToDate(ast.value);
+			return SuDate.fromLiteral(ast.value);
 		case OBJECT:
 		case RECORD:
 			return foldObject(ast);
