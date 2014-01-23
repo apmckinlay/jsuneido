@@ -17,6 +17,7 @@ import java.nio.channels.SocketChannel;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.SuException;
+import suneido.Suneido;
 import suneido.util.Tr;
 
 /**
@@ -43,13 +44,8 @@ public class DbmsChannel {
 	public ByteBuffer read(int n) {
 		if (rbuf.limit() < n)
 			rbuf = realloc(rbuf, n);
-		while (rbuf.position() < n) {
-			try {
-				channel.read(rbuf);
-			} catch (IOException e) {
-				throw new SuException("error", e);
-			}
-		}
+		while (rbuf.position() < n)
+			tryRead(rbuf);
 		assert rbuf.position() == n;
 		ByteBuffer result = rbuf.duplicate();
 		rbuf.clear();
@@ -72,14 +68,19 @@ public class DbmsChannel {
 			rbuf.compact();
 		}
 		while (buf.position() < n) {
-			try {
-				channel.read(buf);
-			} catch (IOException e) {
-				throw new SuException("error", e);
-			}
+			tryRead(buf);
 		}
 		buf.flip();
 		return buf;
+	}
+
+	private void tryRead(ByteBuffer buf) {
+		try {
+			if (-1 == channel.read(rbuf))
+				Suneido.fatal("lost connection");
+		} catch (IOException e) {
+			throw new SuException("error", e);
+		}
 	}
 
 	// may leave unread data in rbuf
@@ -88,11 +89,7 @@ public class DbmsChannel {
 		while (-1 == (nl = indexOf(rbuf, (byte) '\n'))) {
 			if (rbuf.remaining() == 0)
 				rbuf = realloc(rbuf, 2 * rbuf.capacity());
-			try {
-				channel.read(rbuf);
-			} catch (IOException e) {
-				throw new SuException("error", e);
-			}
+			tryRead(rbuf);
 		}
 		rbuf.flip();
 		String s = getString(rbuf, nl + 1);
