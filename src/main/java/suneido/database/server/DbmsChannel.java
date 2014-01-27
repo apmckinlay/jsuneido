@@ -76,7 +76,7 @@ public class DbmsChannel {
 
 	private void tryRead(ByteBuffer buf) {
 		try {
-			if (-1 == channel.read(rbuf))
+			if (-1 == channel.read(buf))
 				Suneido.fatal("lost connection");
 		} catch (IOException e) {
 			throw new SuException("error", e);
