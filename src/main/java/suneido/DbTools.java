@@ -28,7 +28,7 @@ public class DbTools {
 			String outputFilename) {
 		Database db = dbpkg.openReadonly(dbFilename);
 		try {
-			Stopwatch sw = new Stopwatch().start();
+			Stopwatch sw = Stopwatch.createStarted();
 			int n = dumpDatabase(dbpkg, db, outputFilename);
 			System.out.println("dumped " + n + " tables " +
 					"from " + dbFilename + " to " + outputFilename +
@@ -99,7 +99,7 @@ public class DbTools {
 			@SuppressWarnings("resource")
 			ReadableByteChannel fin = new FileInputStream(filename).getChannel();
 			try {
-				Stopwatch sw = new Stopwatch().start();
+				Stopwatch sw = Stopwatch.createStarted();
 				int n = dbpkg.loadDatabase(db, fin);
 				System.out.println("loaded " + n + " tables from " + filename +
 						" in " + sw);
@@ -144,7 +144,7 @@ public class DbTools {
 	public static Status checkPrint(DatabasePackage dbpkg, String dbFilename) {
 		System.out.println("Checking " +
 				(dbFilename.endsWith(".tmp") ? "" : dbFilename + " ") + "...");
-		Stopwatch sw = new Stopwatch().start();
+		Stopwatch sw = Stopwatch.createStarted();
 		Status result = dbpkg.check(dbFilename, printObserver);
 		System.out.println("Checked in " + sw);
 		return result;
@@ -170,7 +170,7 @@ public class DbTools {
 			Database dstdb = dbpkg.create(tempfile);
 			try {
 				System.out.println("Compacting...");
-				Stopwatch sw = new Stopwatch().start();
+				Stopwatch sw = Stopwatch.createStarted();
 				int n = dbpkg.compact(srcdb, dstdb);
 				System.out.println("Compacted " + n + " tables in " + dbFilename +
 						" in " + sw);
@@ -197,7 +197,7 @@ public class DbTools {
 		int i = arg.indexOf(SEPARATOR);
 		String dbFilename = arg.substring(0, i);
 		String tempfile = arg.substring(i + SEPARATOR.length());
-		Stopwatch sw = new Stopwatch().start();
+		Stopwatch sw = Stopwatch.createStarted();
 		String result = dbpkg.rebuild(dbFilename, tempfile);
 		if (result == null)
 			System.exit(-1);

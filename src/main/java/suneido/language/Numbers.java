@@ -328,6 +328,7 @@ public class Numbers {
 	}
 
 	static int toIntFromString(String s) {
+		// TODO use Integer.decode (handles hex and octal)
 		if (s.equals(""))
 			return 0;
 		String t = s;
