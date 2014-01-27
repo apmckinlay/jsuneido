@@ -9,7 +9,6 @@ import static suneido.language.Ops.toStr;
 import java.io.File;
 import java.io.FileFilter;
 import java.math.BigDecimal;
-import java.util.Date;
 import java.util.regex.Pattern;
 
 import suneido.SuContainer;

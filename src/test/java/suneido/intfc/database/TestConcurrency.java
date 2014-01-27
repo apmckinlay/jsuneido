@@ -37,7 +37,7 @@ public class TestConcurrency {
 			new BigTable("bigtable"),
 			new BigTable("bigtable2"),
 			};
-	static final Stopwatch stopwatch = new Stopwatch().start();
+	static final Stopwatch stopwatch = Stopwatch.createStarted();
 	static final Thread[] threads = new Thread[NTHREADS];
 	static final AtomicInteger nops = new AtomicInteger();
 

@@ -97,7 +97,7 @@ class DbCompact {
 	public static void main(String[] args) throws InterruptedException {
 		Database dbin = (Database) dbpkg.openReadonly("/test/sample/suneido.db");
 		Database dbout = (Database) dbpkg.create("immu.compact");
-		Stopwatch sw = new Stopwatch().start();
+		Stopwatch sw = Stopwatch.createStarted();
 		int n = compact(dbin, dbout);
 		System.out.println("compacted " + n + " tables " + "in " + sw);
 	}

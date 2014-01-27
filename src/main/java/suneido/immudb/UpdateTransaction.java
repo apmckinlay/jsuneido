@@ -56,7 +56,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 	protected static final short REMOVE = (short) -1;
 	protected static final short END = (short) -2;
 	/** Used by {@link Transactions} limitOutstanding */
-	final Stopwatch stopwatch = new Stopwatch().start();
+	final Stopwatch stopwatch = Stopwatch.createStarted();
 
 	UpdateTransaction(int num, Database db) {
 		super(num, db);
