@@ -35,7 +35,7 @@ Lucene.Search("lucene", "good") {|key| Print(key: key) }
 */
 
 public class Lucene extends BuiltinClass {
-	public static final Version version = Version.LUCENE_31;
+	public static final Version version = Version.LUCENE_32;
 	public static final Lucene singleton = new Lucene();
 
 	private Lucene() {
