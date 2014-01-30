@@ -1,4 +1,11 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido;
+
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class Trace {
 	public enum Type {
@@ -13,6 +20,7 @@ public class Trace {
 		}
 	}
 	public static int flags = 0;
+	private static FileWriter fw;
 
 	public static void trace(Type type, String s) {
 		if ((flags & type.bit) != 0)
@@ -20,6 +28,18 @@ public class Trace {
 	}
 
 	public static void println(String s) {
-		System.out.println(s);
+		if ((flags & Type.CONSOLE.bit) != 0)
+			System.out.println(s);
+		if ((flags & Type.LOGFILE.bit) != 0) {
+			try {
+				if (fw == null)
+					fw = new FileWriter("trace.log");
+				fw.append(s);
+				fw.append('\n');
+				fw.flush();
+			} catch (IOException e) {
+				System.out.println("Trace: " + e);
+			}
+		}
 	}
 }
