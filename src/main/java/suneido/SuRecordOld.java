@@ -154,6 +154,26 @@ public abstract class SuRecordOld extends SuContainer {
 		callObservers(key);
 	}
 
+	@Override
+	public boolean delete(Object key) {
+		boolean result = super.delete(key);
+		if (result) {
+			invalidateDependents(key);
+			callObservers(key);
+		}
+		return result;
+	}
+
+	@Override
+	public boolean erase(Object key) {
+		boolean result = super.erase(key);
+		if (result) {
+			invalidateDependents(key);
+			callObservers(key);
+		}
+		return result;
+	}
+
 	private void invalidateDependents(Object key) {
 		for (Object dep : dependencies.get(key))
 			invalidate1(dep);
