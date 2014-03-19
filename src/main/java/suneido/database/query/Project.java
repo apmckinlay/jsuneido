@@ -178,7 +178,7 @@ public class Project extends Query1 {
 			if (! e.hasRules()) {
 				List<String> eflds = new ArrayList<>();
 				for (Expr ex : e.exprs)
-					addUnique(eflds, ex.fields());
+					addAllUnique(eflds, ex.fields());
 				if (flds.containsAll(eflds)) {
 					// remove extend fields from project
 					List<String> new_fields = new ArrayList<>();

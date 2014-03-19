@@ -55,7 +55,7 @@ public class Extend extends Query1 {
 		eflds = new ArrayList<>();
 		for (Expr e : exprs)
 			if (e != null)
-				addUnique(eflds, e.fields());
+				addAllUnique(eflds, e.fields());
 	}
 
 	@Override

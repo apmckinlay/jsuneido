@@ -1,6 +1,6 @@
 package suneido.database.query.expr;
 
-import static suneido.util.Util.addUnique;
+import static suneido.util.Util.addAllUnique;
 import static suneido.util.Util.displayListToParens;
 
 import java.util.List;
@@ -35,7 +35,7 @@ public class FunCall extends Multi {
 	public List<String> fields() {
 		List<String> f = super.fields();
 		if (ob != null)
-			addUnique(f, ob.fields());
+			addAllUnique(f, ob.fields());
 		return f;
 	}
 
