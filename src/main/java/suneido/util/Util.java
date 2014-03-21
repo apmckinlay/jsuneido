@@ -115,7 +115,7 @@ public class Util {
 	 *         are not retained.
 	 */
 	public static <T> List<T> union(List<T> x, List<T> y) {
-		return addUnique(new ArrayList<>(x), y);
+		return addAllUnique(new ArrayList<>(x), y);
 	}
 
 	public static <T> ImmutableSet<T> setUnion(Collection<T> x, Collection<T> y) {
@@ -134,7 +134,7 @@ public class Util {
 	}
 
 	/** modifies list */
-	public static <T> List<T> addUnique(List<T> list, List<T> x) {
+	public static <T> List<T> addAllUnique(List<T> list, List<T> x) {
 		for (T s : x)
 			if (!list.contains(s))
 				list.add(s);
