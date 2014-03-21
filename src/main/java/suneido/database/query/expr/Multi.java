@@ -1,6 +1,6 @@
 package suneido.database.query.expr;
 
-import static suneido.util.Util.addUnique;
+import static suneido.util.Util.addAllUnique;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +39,7 @@ public abstract class Multi extends Expr {
 	public List<String> fields() {
 		List<String> f = new ArrayList<>();
 		for (Expr e : exprs)
-			addUnique(f, e.fields());
+			addAllUnique(f, e.fields());
 		return f;
 	}
 

@@ -560,7 +560,7 @@ public class Select extends Query1 {
 		// to ensure you don't use a field more than once
 		List<String> flds = new ArrayList<>();
 		for (List<String> idx : indexes)
-			addUnique(flds, idx);
+			addAllUnique(flds, idx);
 
 		// frac = product of frac of each field
 		double frac = 1;
