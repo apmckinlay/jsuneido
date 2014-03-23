@@ -3,7 +3,7 @@
 -injars lib/jsr305-1.3.9.jar (!META-INF/MANIFEST.MF)
 -injars lib/guava-16.0.jar (!META-INF/MANIFEST.MF)
 -injars lib/trove-3.0.3.jar (!META-INF/MANIFEST.MF)
--libraryjars lib/lucene-core-3.6.2.jar
+-injars lib/lucene-core-3.6.2.jar (!META-INF/MANIFEST.MF)
 -libraryjars  <java.home>/lib/rt.jar
 -outjars jsuneido.jar
 
@@ -19,6 +19,7 @@
 
 -keep class org.objectweb.asm.MethodVisitor
 
+-dontnote org.apache.lucene.**
 -dontnote com.google.common.**
 
 -dontwarn java.lang.invoke.MethodHandle
