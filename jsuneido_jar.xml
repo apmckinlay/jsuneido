@@ -18,7 +18,6 @@
 		<pathelement location="${lib.dir}/trove-3.0.3.jar"/>
 	</path>
 
-	
 	<!--         -->
 	<!-- TARGETS -->
 	<!--         -->
@@ -41,7 +40,6 @@
 		<jar destfile="jsuneido-raw.jar" filesetmanifest="mergewithoutmain">
 			<manifest>
 				<attribute name="Main-Class" value="suneido.Suneido"/>
-				<attribute name="Class-Path" value="lucene-core-3.6.1.jar"/>
 			</manifest>
 			<fileset dir="${main.destdir}">
 				<!--  Exclude JSDI tools. These are used for automatic
