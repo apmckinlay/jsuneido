@@ -9,8 +9,9 @@ import java.util.ArrayList;
 /**
  * Contains {@link LineEditor} classes for automatically generating C++ code to
  * support Java {@code enum}'s via JNI. The {@link EnumLineEditor.Header} class
- * generates lines for the {@code .h} file, while the {#Source} class generates
- * lines for the {@code .cpp} file.
+ * generates lines for the {@code .h} file, while the
+ * {@link EnumLineEditor.Source} class generates lines for the {@code .cpp}
+ * file.
  * 
  * @author Victor Schappert
  * @since 20130701
