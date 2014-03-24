@@ -22,10 +22,10 @@ public final class GenerateSharedEnums {
 		public <E extends Enum<E>> Ref(Class<E> clazz,
 				boolean wantToJNIConverter, boolean wantFromJNIConverter,
 				boolean wantStreamInsertion) {
-			this.header = new EnumLineEditor.Header<>(clazz,
+			this.header = new EnumLineEditor.Header<E>(clazz,
 					GenerateSharedEnums.class, wantToJNIConverter,
 					wantFromJNIConverter, wantStreamInsertion);
-			this.source = new EnumLineEditor.Source<>(clazz,
+			this.source = new EnumLineEditor.Source<E>(clazz,
 					GenerateSharedEnums.class, wantToJNIConverter,
 					wantFromJNIConverter, wantStreamInsertion);
 		}
