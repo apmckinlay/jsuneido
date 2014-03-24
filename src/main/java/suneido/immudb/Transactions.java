@@ -39,7 +39,7 @@ class Transactions {
 	private static final long FUTURE = Long.MAX_VALUE;
 	private static final int MAX_OVERLAPPING = 200;
 	static int MAX_UPDATE_TRAN_DURATION_SEC = 10;
-	private boolean exclusive = false;
+	private volatile boolean exclusive = false;
 
 	long clock() {
 		return clock.incrementAndGet();
@@ -96,7 +96,8 @@ class Transactions {
 	}
 
 	synchronized void commit(Transaction t) {
-		exclusive = false;
+		if (t instanceof ReadWriteTransaction) 
+			exclusive = false;
 		verify(trans.remove(t));
 		if (t instanceof UpdateTransaction) {
 			verify(utrans.remove(t));
@@ -107,7 +108,8 @@ class Transactions {
 	}
 
 	synchronized void abort(Transaction t) {
-		exclusive = false;
+		if (t instanceof ReadWriteTransaction) 
+			exclusive = false;
 		verify(trans.remove(t));
 		if (t instanceof UpdateTransaction)
 			verify(utrans.remove(t));
