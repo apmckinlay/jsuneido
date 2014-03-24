@@ -16,6 +16,7 @@ class SchemaTransaction extends UpdateTransaction {
 
 	/** upgrade to exclusive, used by TableBuilder for adding index */
 	void exclusive() {
+		assert ! ended;
 		trans.setExclusive(this);
 	}
 
