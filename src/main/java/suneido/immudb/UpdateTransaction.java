@@ -220,7 +220,8 @@ class UpdateTransaction extends ReadWriteTransaction {
 			Suneido.errlog("WARNING: excessive writes (" + writeCount +
 					") writes (output/update/delete) in one transaction " + this);
 		long secs = stopwatch.elapsed(TimeUnit.SECONDS);
-		if (secs > WARN_UPDATE_TRAN_DURATION_SEC)
+		if (secs > WARN_UPDATE_TRAN_DURATION_SEC &&
+				! (this instanceof SchemaTransaction))
 			Suneido.errlog("WARNING: long duration transaction " + this +
 					" (" + secs + " seconds)");
 	}
