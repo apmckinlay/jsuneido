@@ -25,11 +25,9 @@
 	<target name="build" depends="create_raw_jar"
 			description="Create ProGuard-ed release JAR"
 	>
-		<exec executable="java" failonerror="true">
-			<arg value="-jar"/>
-			<arg value="${lib.dir}/proguard.jar"/>
+		<java jar="${lib.dir}/proguard.jar" fork="true">
 			<arg value="@jsuneido.pro"/>
-		</exec>
+		</java>
 	</target>
 
 	<target name="rebuild" depends="clean,create_raw_jar,build"/>
@@ -71,7 +69,6 @@
 	>
 		<mkdir dir="${main.destdir}"/>
 		<javac srcdir="${main.srcdir}" destdir="${main.destdir}"
-				classpathref="main.classpath"
 				includeAntRuntime="false"
 				debug="true"
 		>
