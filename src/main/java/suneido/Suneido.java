@@ -229,6 +229,7 @@ public class Suneido {
 		System.out.println("-compact                remove deleted records");
 		System.out.println("-v[ersion]              print the version");
 		System.out.println("-i[mpersonate] version  tell clients this version");
+		System.out.println("-t[ime]o[ut] #          time out in minutes for idle clients (default is 240)");
 		System.out.println("-ut #                   set max update tran duration in seconds (default 10)");
 		System.out.println("-mw #                   set max writes per update transaction (default 10000)");
 		System.out.println("-h[elp] or -?           print this message");
