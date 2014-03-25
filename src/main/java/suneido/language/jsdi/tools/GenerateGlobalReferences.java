@@ -18,7 +18,7 @@ import suneido.language.Numbers;
 import suneido.language.jsdi.ThunkManager;
 import suneido.language.jsdi.com.COMException;
 import suneido.language.jsdi.com.COMobject;
-import suneido.language.jsdi.suneido_protocol.InternetProtocol;
+//import suneido.language.jsdi.suneido_protocol.InternetProtocol;
 import suneido.language.jsdi.type.Callback;
 
 /**
@@ -97,8 +97,8 @@ public final class GenerateGlobalReferences {
 						//       constructors...
 				new Ref(COMException.class,
 						COMException.class.getConstructor(String.class)),
-				new Ref(InternetProtocol.class,
-						InternetProtocol.class.getMethod("start", String.class)),
+//				new Ref(InternetProtocol.class,
+//						InternetProtocol.class.getMethod("start", String.class)),
 				new Ref(Numbers.class,
 						Numbers.class.getField("MC"),
 						Numbers.class.getMethod("narrow", Number.class))
@@ -136,6 +136,7 @@ public final class GenerateGlobalReferences {
 			this.refs = refs;
 		}
 
+		@Override
 		public final ArrayList<String> makeLines() {
 			for (Ref ref : refs) {
 				addClassMember(ref.clazz);
@@ -237,6 +238,7 @@ public final class GenerateGlobalReferences {
 			this.refs = refs;
 		}
 
+		@Override
 		public final ArrayList<String> makeLines() {
 			for (Ref ref : refs) {
 				addClassMember(ref.clazz);
