@@ -23,8 +23,8 @@ public class Trace {
 	private static FileWriter fw;
 
 	public static void trace(Type type, String s) {
-		if ((flags & type.bit) != 0)
-			println(type + " " + s);
+//		if ((flags & type.bit) != 0)
+//			println(type + " " + s);
 	}
 
 	public static void println(String s) {
