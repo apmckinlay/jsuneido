@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Set;
 
 import suneido.SuException;
+import suneido.Trace;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.RecordBuilder;
 import suneido.intfc.database.Transaction;
@@ -94,17 +95,24 @@ public abstract class Query {
 	Query transform() {
 		return this;
 	}
+
+	private static void trace(String s) {
+		Trace.trace(Trace.Type.QUERYOPT, s);
+	}
+
 	double optimize(List<String> index, Set<String> needs,
 			Set<String> firstneeds, boolean is_cursor, boolean freeze) {
-		//System.out.println("\noptimize START " + this);
-		//System.out.println("    index=" + index
-		//		+ " needs=" + needs	+ " firstneeds=" + firstneeds
-		//		+ (is_cursor ? " CURSOR" : "")
-		//		+ (freeze ? " FREEZE" : ""));
+		trace("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
+		trace("START " + this + "\n"
+				+ "\tindex=" + index
+				+ " needs=" + needs	+ " firstneeds=" + firstneeds
+				+ (is_cursor ? " CURSOR" : "")
+				+ (freeze ? " FREEZE" : ""));
 		if (is_cursor || nil(index)) {
 			double cost = optimize1(index, needs, firstneeds, is_cursor, freeze);
-			//System.out.println("optimize END " + this);
-			//System.out.println("\tcost " + cost);
+			trace("END " + this + "\n"
+					+ "\tcost " + cost);
+			trace("--------------------------------------------");
 			return cost;
 		}
 		if (!columns().containsAll(index))
@@ -116,17 +124,20 @@ public abstract class Query {
 		// tempindex
 		double cost2 = IMPOSSIBLE;
 		int keysize = index.size() * columnsize() * 2; // *2 for index overhead
-		cost2 = optimize1(noFields, needs,
+		double no_index_cost = optimize1(noFields, needs,
 				nil(firstneeds) ? firstneeds : setUnion(firstneeds, index),
-				is_cursor, false)
-				+ nrecords() * keysize * WRITE_FACTOR // write index
+				is_cursor, false);
+		double tempindex_cost = nrecords() * keysize * WRITE_FACTOR // write index
 				+ nrecords() * keysize // read index
-				+ 4000; // minimum fixed cost
+				+ 4000;
+		cost2 = no_index_cost + tempindex_cost; // minimum fixed cost
 		verify(cost2 >= 0);
-		//System.out.println("optimize END " + this);
-		//System.out.println("\twith " + index + " cost1 " + cost1);
-		//System.out.println("\twith tempindex cost2 " + cost2
-		//	+ " nrecords " + nrecords() + " keysize " + keysize);
+		trace("END " + this + "\n"
+				+ "\twith " + index + " cost1 " + cost1 + "\n"
+				+ "\twith TEMPINDEX cost2 " + cost2
+				+ " (" + no_index_cost + " + " + tempindex_cost + ")"
+				+ " nrecords " + nrecords() + " keysize " + keysize);
+		trace("--------------------------------------------");
 
 		double cost = Math.min(cost1, cost2);
 		if (!freeze)

@@ -552,7 +552,12 @@ public class Select extends Query1 {
 			} else
 				unreachable();
 		}
-	return tran.rangefrac(tbl.num(), listToCommas(index), org.build(), end.build());
+	Record rorg = org.build();
+	Record rend = end.build();
+	float frac = tran.rangefrac(tbl.num(), listToCommas(index), rorg, rend);
+	Table.trace(tbl.tbl.name() + "^" + index +
+			" from " + rorg + " to " + rend + " => " + frac);
+	return frac;
 	}
 
 	private double datafrac(List<List<String>> indexes) {
