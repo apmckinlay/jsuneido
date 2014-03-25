@@ -237,7 +237,6 @@ public class BtreeTest {
 		rand = new Random(564367);
 		NKEYS = 1000;
 		add(NKEYS);
-
 		check();
 
 		for (int i = 0; i < NKEYS / 2; ++i)
@@ -581,7 +580,7 @@ public class BtreeTest {
 		for (int i = 10; i < 210; i += 2)
 			btree.add(key(i));
 		assertThat(btree.treeLevels(), greaterThan(0));
-		assertThat((double) btree.rangefrac(rec(11), rec(211)),
+		assertThat((double) btree.rangefrac(rec(10), rec(211)),
 				closeTo(1.0, .01));
 		assertThat((double) btree.rangefrac(rec(10), rec(30)),
 				closeTo(.1, .01));
@@ -603,17 +602,40 @@ public class BtreeTest {
 		assertThat((double) btree.rangefrac(rec(0), rec(0)),
 				closeTo(0.0, .01));
 		assertThat((double) btree.rangefrac(rec(10), rec(9999)),
-				closeTo(1.0, .01));
+				closeTo(1.0, .02));
 		assertThat((double) btree.rangefrac(rec(10), rec(111)),
 				closeTo(.1, .01));
 		assertThat((double) btree.rangefrac(rec(10), rec(715)),
-				closeTo(.7, .01));
+				closeTo(.7, .02));
 		assertThat((double) btree.rangefrac(rec(210), rec(714)),
 				closeTo(.5, .01));
 		assertThat((double) btree.rangefrac(rec(10), rec(111)),
 				closeTo(.1, .01));
 		assertThat((double) btree.rangefrac(rec(55), rec(55)),
 				closeTo(0, .01));
+	}
+
+	@Test
+	public void rangefrac_unbalanced() {
+		btree = new Btree(tran); // normal node size
+		// unordered insertions will create half full nodes
+		for (int i = 150; i >= 0; --i)
+			btree.add(key(i));
+		// ordered insertions will create full nodes
+		// but after root splits, right most nodes will only have one key
+		int n;
+		for (n = 151; btree.treeLevels < 2; ++n)
+			btree.add(key(n));
+		assertThat((double) btree.rangefrac(rec(), rec(0)),
+				closeTo(0.0, .01));
+		assertThat((double) btree.rangefrac(rec(), rec(n * 1 / 4)),
+				closeTo(0.25, .02));
+		assertThat((double) btree.rangefrac(rec(), rec(n * 1 / 2)),
+				closeTo(0.5, .03));
+		assertThat((double) btree.rangefrac(rec(), rec(n * 3 / 4)),
+				closeTo(0.75, .04));
+		assertThat((double) btree.rangefrac(rec(), rec(n + 99)),
+				closeTo(1.0, .01));
 	}
 
 	@Test

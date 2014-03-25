@@ -654,7 +654,6 @@ class Btree implements TranIndex {
 		return rangefrac(new BtreeKey(from), new BtreeKey(to));
 	}
 
-	private static final int MAX_LEVELS = 32;
 	private static final float MIN_FRAC = .001f;
 
 	private float rangefrac(BtreeKey from, BtreeKey to) {
@@ -664,47 +663,58 @@ class Btree implements TranIndex {
 		boolean toMaximal = isMaximal(to.key);
 		if (fromMinimal && toMaximal)
 			return 1;
-
-		float fromNodeSize[] = new float[MAX_LEVELS];
-		int fromNodePos[] = new int[MAX_LEVELS];
-		if (! fromMinimal)
-			search(from, fromNodeSize, fromNodePos);
-
-		float toNodeSize[] = new float[MAX_LEVELS];
-		int toNodePos[] = new int[MAX_LEVELS];
-		if (! toMaximal)
-			search(to, toNodeSize, toNodePos);
-
-		if (! fromMinimal && ! toMaximal)
-			// average node sizes
-			for (int level = 0; level <= treeLevels; ++level)
-				fromNodeSize[level] = toNodeSize[level] =
-						(fromNodeSize[level] + toNodeSize[level]) / 2;
-
-		float fromPos = fromMinimal ? 0 : estimatePos(fromNodeSize, fromNodePos);
-		float toPos = toMaximal ? 1 : estimatePos(toNodeSize, toNodePos);
-
+		float[] rootChildFracs = childFracs(rootNode);
+		float fromPos = fromMinimal ? 0 : fracPos(from, rootChildFracs);
+		float toPos = toMaximal ? 1 : fracPos(to, rootChildFracs);
+		//trace("fromPos " + fromPos + " toPos " + toPos + " = " + (toPos - fromPos));
 		return Math.max(toPos - fromPos, MIN_FRAC);
 	}
 
-	private void search(BtreeKey key, float[] nodeSize, int[] nodePos) {
-		BtreeNode node = rootNode;
-		for (int level = 0; level <= treeLevels; ++level) {
-			nodeSize[level] = node.size();
-			nodePos[level] = node.findPos(key);
-			if (level < treeLevels)
-				node = childNode(node, nodePos[level]);
-		}
+	private float[] childFracs(BtreeNode node) { 
+		int total = 0;
+		int[] sizes = new int[node.size()];
+		for (int i = 0; i < node.size(); ++i)
+			total += sizes[i] = (node.level == 0 ? 1 : childNode(node, i).size());
+		//trace("childSizes " + Arrays.toString(sizes));
+		float[] fracs = new float[node.size()];
+		for (int i = 0; i < node.size(); ++i)
+			fracs[i] = (float) sizes[i] / total;
+		return fracs;
 	}
 
-	private float estimatePos(float[] nodeSize, int[] nodePos) {
-		float levelSize = 1;
-		float pos = 0;
-		for (int level = 0; level <= treeLevels; ++level) {
-			levelSize *= nodeSize[level];
-			pos = pos * nodeSize[level] + nodePos[level];
+	private float fracPos(BtreeKey key, float[] childFracs) {
+		BtreeNode node = rootNode;
+		int pos = node.findPos(key);
+		float fracPos = 0;
+		for (int i = 0; i < pos; ++i)
+			fracPos += childFracs[i];
+		//String msg = "fracPos " + node.size() + "^" + pos + " " + fracPos;
+
+		if (treeLevels > 0) {
+			float portion = childFracs[pos];
+			node = childNode(node, pos);
+			childFracs = childFracs(node);
+			pos = node.findPos(key);
+			for (int i = 0; i < pos; ++i)
+				fracPos += portion * childFracs[i];
+			//msg += ", " + node.size() + "^" + pos + " " + fracPos;
+
+			if (treeLevels > 1) {
+				portion *= childFracs[pos];
+				node = childNode(node, pos);
+				pos = node.findPos(key);
+				fracPos += portion * pos / node.size();
+				//msg += ", " + node.size() + "^" + pos + " " + fracPos;
+
+				if (treeLevels > 2) {
+					portion /= node.size();
+					fracPos += portion * 0.5f;
+					//msg += ", " + fracPos;
+				}
+			}
 		}
-		return pos / levelSize;
+		//trace(msg);
+		return fracPos > 1.0 ? 1.0f : fracPos;
 	}
 
 	private static boolean isMinimal(Record key) {
@@ -722,5 +732,9 @@ class Btree implements TranIndex {
 				return false;
 		return true;
 	}
+	
+//	void trace(String s) {
+//		suneido.database.query.Table.trace(s);
+//	}
 
 }
