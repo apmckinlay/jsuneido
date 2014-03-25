@@ -40,6 +40,7 @@
 		<jar destfile="jsuneido-raw.jar" filesetmanifest="mergewithoutmain">
 			<manifest>
 				<attribute name="Main-Class" value="suneido.Suneido"/>
+				<attribute name="Class-Path" value="lucene-core-3.6.2.jar"/>
 			</manifest>
 			<fileset dir="${main.destdir}">
 				<!--  Exclude JSDI tools. These are used for automatic

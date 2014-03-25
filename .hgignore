@@ -18,6 +18,7 @@ iminstall.bat
 *.tmpi
 dropsrc.bat
 .settings/org.eclipse.jdt.ui.prefs
+lucene-core-3.6.2.jar
 syntax: regexp
 ^lucene-core-3.1.0.jar
 ^\.externalToolBuilders$
