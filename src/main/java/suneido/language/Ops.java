@@ -574,6 +574,8 @@ public final class Ops {
 
 	/** string(object, ...) => object[string](...) */
 	static Object callString(Object x, Object... args) {
+		if (args.length < 1)
+			throw new SuException("string call requires 'this' argument");
 		Object ob = args[0];
 		args = Arrays.copyOfRange(args, 1, args.length);
 		return invoke(ob, x.toString(), args);
