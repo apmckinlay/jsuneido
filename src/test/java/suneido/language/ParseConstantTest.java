@@ -4,6 +4,8 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import suneido.SuException;
+
 public class ParseConstantTest {
 	@Test
 	public void constants() {
@@ -77,6 +79,10 @@ public class ParseConstantTest {
 			"(OBJECT (MEMBER null (RECORD)))");
 		constant("#(class: 123)",
 			"(OBJECT (MEMBER (STRING=class) (NUMBER=123)))");
+	}
+
+	@Test(expected = SuException.class)
+	public void unnamed_members() {
 		constant("class { one\n two }",
 			"(CLASS null (LIST (MEMBER null (STRING=one)) (MEMBER null (STRING=two))))");
 	}
