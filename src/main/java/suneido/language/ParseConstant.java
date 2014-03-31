@@ -115,9 +115,11 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 	private T memberName(boolean inClass) {
 		if (!isMemberName(inClass))
-			return null;
-		T name = simpleConstant();
-		return name;
+			if (inClass)
+				syntaxError("class members must be named");
+			else
+				return null;
+		return simpleConstant();
 	}
 	private boolean isMemberName(boolean inClass) {
 		if (! anyName() && token != NUMBER && token != SUB && token != ADD)
