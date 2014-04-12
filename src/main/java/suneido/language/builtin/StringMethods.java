@@ -296,7 +296,7 @@ public class StringMethods extends BuiltinMethods {
 		return sb.toString();
 	}
 
-	@Params("pattern, block, count = INTMAX")
+	@Params("pattern, block = '', count = INTMAX")
 	public static Object Replace(Object self, Object a, Object b, Object c) {
 		String s = toStr(self);
 		String pat = Ops.toStr(a);
