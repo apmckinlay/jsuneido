@@ -1,8 +1,12 @@
+/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database.query;
 
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static suneido.Suneido.dbpkg;
 import static suneido.database.query.Query.Dir.NEXT;
 import static suneido.database.query.Query.Dir.PREV;
@@ -35,8 +39,8 @@ public class ProjectTest {
 	private void test(String query, List<String> cols, String strategy) {
 		Transaction t = db.readTransaction();
 		Query q = CompileQuery.query(t, serverData, query);
-		assertThat(q.columns(), is(cols));
-		assertThat(q.toString(), is(strategy));
+		assertThat(q.columns(), equalTo(cols));
+		assertThat(q.toString(), equalTo(strategy));
 	}
 
 	@Test
@@ -58,7 +62,7 @@ public class ProjectTest {
 		Query q = CompileQuery.query(t, serverData, query);
 		Header hdr = q.header();
 		Row row = q.get(NEXT);
-		assertThat(row.toString(hdr), is(result));
+		assertThat(row.toString(hdr), equalTo(result));
 	}
 
 	@Test

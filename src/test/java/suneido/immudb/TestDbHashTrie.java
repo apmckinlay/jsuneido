@@ -4,8 +4,8 @@
 
 package suneido.immudb;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import gnu.trove.map.TIntIntMap;
 import gnu.trove.map.hash.TIntIntHashMap;
 
@@ -66,9 +66,9 @@ public class TestDbHashTrie {
 					int j = nextNonZero(rand);
 					Entry e = t.get(j);
 					if (entries.containsKey(j))
-						assertThat(e.value(), is(entries.get(j)));
+						assertThat(e.value(), equalTo(entries.get(j)));
 					else
-						assertThat(e, is((Entry) null));
+						assertThat(e, equalTo((Entry) null));
 				}
 			} catch (Throwable e) {
 				e.printStackTrace();

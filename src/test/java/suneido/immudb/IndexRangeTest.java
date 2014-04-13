@@ -4,10 +4,10 @@
 
 package suneido.immudb;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThan;
-import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
@@ -22,7 +22,7 @@ public class IndexRangeTest {
 
 	@Test
 	public void compare() {
-		assertThat(range(123, 123).compareTo(range(123, 123)), is(0));
+		assertThat(range(123, 123).compareTo(range(123, 123)), equalTo(0));
 		assertThat(range(123, 789).compareTo(range(456, 789)), lessThan(0));
 		assertThat(range(456, 789).compareTo(range(123, 789)), greaterThan(0));
 		assertThat(range(123, 456).compareTo(range(123, 789)), lessThan(0));

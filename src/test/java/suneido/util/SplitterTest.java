@@ -1,4 +1,9 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.util;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 

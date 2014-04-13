@@ -1,11 +1,15 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database.server;
 
 import static java.util.Arrays.asList;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static suneido.Suneido.dbpkg;
 import static suneido.util.ByteBuffers.bufferToString;
@@ -317,7 +321,7 @@ public class CommandTest {
 		String s = bufferToString(output.get(0));
 		assertThat(s, matches("A[-0-9]+ R\\d+ \\(a,b,c\\)\r\n"));
 		Record rec = dbpkg.record(output.get(1));
-		assertThat(rec.toString(), is(expected));
+		assertThat(rec.toString(), equalTo(expected));
 		return s.substring(0, s.indexOf(' '));
 	}
 	private static void update(String t, String adr, Record rec) {
@@ -398,7 +402,7 @@ public class CommandTest {
 		Header hdr = new Header(flds, cols);
 		Record rec = dbpkg.recordBuilder().add(123).add("hello").build();
 		Row row = new Row(rec);
-		assertThat(Command.rowToRecord(row, hdr), is(rec));
+		assertThat(Command.rowToRecord(row, hdr), equalTo(rec));
 	}
 
 	@Test
@@ -413,7 +417,7 @@ public class CommandTest {
 		Record rec4 = dbpkg.recordBuilder().add(456).add("bye").build();
 		Record rec = dbpkg.recordBuilder().add(123).add("hi").addMin().add(456).add("bye").build();
 		Row row = new Row(rec1, rec2, rec3, rec4);
-		assertThat(Command.rowToRecord(row, hdr), is(rec));
+		assertThat(Command.rowToRecord(row, hdr), equalTo(rec));
 	}
 
 	// =========================================================================

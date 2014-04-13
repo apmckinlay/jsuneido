@@ -4,8 +4,8 @@
 
 package suneido.immudb;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 
 import org.junit.Test;
 
@@ -26,23 +26,23 @@ public class BootstrapTest {
 
 	private static void check(Database db) {
 		assertThat(db.getSchema("tables"),
-				is("(table,tablename) key(table) key(tablename)"));
+				equalTo("(table,tablename) key(table) key(tablename)"));
 		assertThat(db.getSchema("columns"),
-				is("(table,field,column) key(table,column)"));
+				equalTo("(table,field,column) key(table,column)"));
 		assertThat(db.getSchema("indexes"),
-				is("(table,fields,key,fktable,fkcolumns,fkmode) " +
+				equalTo("(table,fields,key,fktable,fkcolumns,fkmode) " +
 						"key(table,fields)"));
 		assertThat(db.getSchema("views"),
-				is("(view_name,view_definition) key(view_name)"));
+				equalTo("(view_name,view_definition) key(view_name)"));
 
 		DbHashTrie dbinfo = db.state.dbinfo;
-		assertThat(((TableInfo) dbinfo.get(TN.TABLES)).nrows(), is(4));
-		assertThat(((TableInfo) dbinfo.get(TN.COLUMNS)).nrows(), is(13));
-		assertThat(((TableInfo) dbinfo.get(TN.INDEXES)).nrows(), is(5));
+		assertThat(((TableInfo) dbinfo.get(TN.TABLES)).nrows(), equalTo(4));
+		assertThat(((TableInfo) dbinfo.get(TN.COLUMNS)).nrows(), equalTo(13));
+		assertThat(((TableInfo) dbinfo.get(TN.INDEXES)).nrows(), equalTo(5));
 
-		assertThat(new CheckTable(db, "tables").call(), is(""));
-		assertThat(new CheckTable(db, "columns").call(), is(""));
-		assertThat(new CheckTable(db, "indexes").call(), is(""));
+		assertThat(new CheckTable(db, "tables").call(), equalTo(""));
+		assertThat(new CheckTable(db, "columns").call(), equalTo(""));
+		assertThat(new CheckTable(db, "indexes").call(), equalTo(""));
 	}
 
 }

@@ -1,8 +1,16 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database.query;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
@@ -56,7 +64,7 @@ public class RequestTest extends TestBase {
 		Request.execute(db, "create xxx (a,b,c) key(a) index(b)");
 		Request.execute(db, "ensure xxx (b,c,d) index(b) index(c) index(d)");
 		assertThat(db.getSchema("xxx"),
-				is("(a,b,c,d) key(a) index(b) index(c) index(d)"));
+				equalTo("(a,b,c,d) key(a) index(b) index(c) index(d)"));
 	}
 
 	@Test

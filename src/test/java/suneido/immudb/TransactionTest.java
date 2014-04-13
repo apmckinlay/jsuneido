@@ -4,11 +4,11 @@
 
 package suneido.immudb;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import org.junit.After;
@@ -62,7 +62,7 @@ public class TransactionTest {
 		Transaction t = db.readTransaction();
 		Record key = new RecordBuilder().add("indexes").build();
 		Record r = (Record) t.lookup(1, "tablename", key);
-		assertThat(r.getString(1), is("indexes"));
+		assertThat(r.getString(1), equalTo("indexes"));
 
 		key = new RecordBuilder().add("fred").build();
 		r = (Record) t.lookup(1, "tablename", key);
@@ -91,11 +91,11 @@ public class TransactionTest {
 
 		UpdateTransaction t = db.updateTransaction();
 		int tblnum = t.getTable("tmp").num;
-		assertThat(t.tableCount(tblnum), is(0));
-		assertThat(t.tableSize(tblnum), is(0L));
+		assertThat(t.tableCount(tblnum), equalTo(0));
+		assertThat(t.tableSize(tblnum), equalTo(0L));
 		t.addRecord("tmp", rec(123, "foo"));
-		assertThat(t.tableCount(tblnum), is(1));
-		assertThat(t.tableSize(tblnum), is(15L));
+		assertThat(t.tableCount(tblnum), equalTo(1));
+		assertThat(t.tableSize(tblnum), equalTo(15L));
 		assertNotNull(t.lookup(tblnum, new int[] { 0 }, rec(123)));
 		check(t, "tmp", rec(123, "foo"));
 		t = null;
@@ -105,10 +105,10 @@ public class TransactionTest {
 		check(db.readTransaction(), "tmp", rec(123, "foo"));
 
 		ReadTransaction rt = db.readTransaction();
-		assertThat(rt.tableCount(tblnum), is(1));
-		assertThat(rt.tableSize(tblnum), is(15L));
+		assertThat(rt.tableCount(tblnum), equalTo(1));
+		assertThat(rt.tableSize(tblnum), equalTo(15L));
 		DataRecord r = rt.lookup(tblnum, new int[] { 0 }, rec(123));
-		assertThat(r, is(rec(123, "foo")));
+		assertThat(r, equalTo(rec(123, "foo")));
 		rt.complete();
 		rt = null;
 
@@ -123,15 +123,15 @@ public class TransactionTest {
 		t = db.updateTransaction();
 		r = t.lookup(tblnum, new int[] { 0 }, rec(123));
 		t.removeRecord(tblnum, r);
-		assertThat(t.tableCount(tblnum), is(0));
-		assertThat(t.tableSize(tblnum), is(0L));
+		assertThat(t.tableCount(tblnum), equalTo(0));
+		assertThat(t.tableSize(tblnum), equalTo(0L));
 		assertNull(t.lookup(tblnum, new int[] { 0 }, rec(123)));
 		check(t, "tmp");
 		t = null;
 
 		t = db.updateTransaction();
-		assertThat(t.tableCount(tblnum), is(0));
-		assertThat(t.tableSize(tblnum), is(0L));
+		assertThat(t.tableCount(tblnum), equalTo(0));
+		assertThat(t.tableSize(tblnum), equalTo(0L));
 		t.addRecord(tblnum, rec(456, "bar"));
 		r = t.lookup(tblnum, new int[] { 0 }, rec(456));
 		t.removeRecord(tblnum, r);
@@ -198,7 +198,7 @@ public class TransactionTest {
 	@Test
 	public void views() {
 		db.addView("myview", "tables join columns");
-		assertThat(db.getView("myview"), is("tables join columns"));
+		assertThat(db.getView("myview"), equalTo("tables join columns"));
 	}
 
 	@Test
@@ -214,7 +214,7 @@ public class TransactionTest {
 		UpdateTransaction t2 = db.updateTransaction();
 		t1.removeRecord(tmp, rec(123, "foo"));
 		t1.ck_complete();
-		assertThat(t2.lookup(tmp, "a", rec(123)), is(rec(123, "foo")));
+		assertThat(t2.lookup(tmp, "a", rec(123)), equalTo(rec(123, "foo")));
 		t2.abort();
 	}
 
@@ -259,7 +259,7 @@ public class TransactionTest {
 
 		UpdateTransaction t1 = db.updateTransaction();
 		t1.onlyReads = false;
-		assertThat(t1.lookup(tmp, "a", rec(123)), is(rec(123, "foo")));
+		assertThat(t1.lookup(tmp, "a", rec(123)), equalTo(rec(123, "foo")));
 
 		UpdateTransaction t2 = db.updateTransaction();
 		t2.removeRecord(tmp, rec(123, "foo"));
@@ -374,8 +374,8 @@ public class TransactionTest {
 		int i = 0;
 		IndexIter iter = t.iter(tblnum, columns);
 		for (iter.next(); ! iter.eof(); iter.next(), ++i)
-			assertThat(t.input(iter.keyadr()), is(recs[i]));
-		assertThat(i, is(recs.length));
+			assertThat(t.input(iter.keyadr()), equalTo(recs[i]));
+		assertThat(i, equalTo(recs.length));
 		t.ck_complete();
 	}
 

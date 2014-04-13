@@ -4,11 +4,11 @@
 
 package suneido.intfc.database;
 
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
 import static suneido.Suneido.dbpkg;
 import static suneido.intfc.database.DatabasePackage.nullObserver;
 
@@ -111,13 +111,13 @@ public class DbRebuildTest extends TestBase {
 		makeTable("tmp", 3);
 		db.dropTable("tmp"); // so new database has different offsets
 		makeTable(2);
-		assertThat(db.getSchema("test"), is("(a,b) key(a) index(b,a)"));
+		assertThat(db.getSchema("test"), equalTo("(a,b) key(a) index(b,a)"));
 		db.alterTable("test").renameColumn("b", "bb").finish();
 		addRecords("test", 2, 3);
-		assertThat(db.getSchema("test"), is("(a,bb) key(a) index(bb,a)"));
+		assertThat(db.getSchema("test"), equalTo("(a,bb) key(a) index(bb,a)"));
 		rebuild();
 		db = dbpkg.openReadonly(outfilename);
-		assertThat(db.getSchema("test"), is("(a,bb) key(a) index(bb,a)"));
+		assertThat(db.getSchema("test"), equalTo("(a,bb) key(a) index(bb,a)"));
 		checkTable();
 	}
 
@@ -188,7 +188,7 @@ public class DbRebuildTest extends TestBase {
 	private void checkEmpty() {
 		if (db == null)
 			db = dbpkg.openReadonly(outfilename);
-		assertThat(count(), is(0));
+		assertThat(count(), equalTo(0));
 	}
 
 }

@@ -1,9 +1,13 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database.query;
 
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static suneido.database.query.Query.Dir.NEXT;
 
 import java.util.Collections;
@@ -26,7 +30,7 @@ public class QueryTest extends TestBase {
 		try {
 			Query q = CompileQuery.query(t, serverData, "test");
 			Row row = q.get(NEXT);
-			assertThat(row.address(), not(is(0)));
+			assertThat(row.address(), not(equalTo(0)));
 			t.complete();
 		} finally {
 			t.abortIfNotComplete();

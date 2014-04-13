@@ -4,8 +4,8 @@
 
 package suneido.language;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -23,16 +23,16 @@ public class ModuleLoaderTest {
 
 		ModuleLoader m = new ModuleLoader("mod", loader);
 
-		assertThat(m.get("Name"), is((Object) "foobar"));
+		assertThat(m.get("Name"), equalTo((Object) "foobar"));
 		verify(loader, times(1)).load("mod", "Name");
-		assertThat(m.get("Name"), is((Object) "foobar"));
+		assertThat(m.get("Name"), equalTo((Object) "foobar"));
 		verify(loader, times(1)).load("mod", "Name");
 
 		m.clear("Name");
-		assertThat(m.get("Name"), is((Object) "foobar"));
+		assertThat(m.get("Name"), equalTo((Object) "foobar"));
 		verify(loader, times(2)).load("mod", "Name");
 
-		assertThat(m.get("Name2"), is((Object) 123));
+		assertThat(m.get("Name2"), equalTo((Object) 123));
 	}
 
 }
