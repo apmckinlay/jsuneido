@@ -4,9 +4,9 @@
 
 package suneido.immudb;
 
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -38,7 +38,7 @@ public class ViewsTest {
 	public void getView() {
 		ReadTransaction t = mock(ReadTransaction.class);
 		when(t.lookup(Bootstrap.TN.VIEWS, Views.INDEX_COLS, KEY)).thenReturn(VIEW_REC);
-		assertThat(Views.getView(t, NAME), is(DEFINITION));
+		assertThat(Views.getView(t, NAME), equalTo(DEFINITION));
 	}
 
 //	@Test

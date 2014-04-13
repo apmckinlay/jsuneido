@@ -4,10 +4,10 @@
 
 package suneido.immudb;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import org.junit.After;
@@ -44,7 +44,7 @@ public class RequestTest {
 	@Test
 	public void create_table() {
 		req("create tbl " + SCHEMA);
-		assertThat(db.getSchema("tbl"), is(SCHEMA));
+		assertThat(db.getSchema("tbl"), equalTo(SCHEMA));
 	}
 
 	@Test
@@ -62,13 +62,13 @@ public class RequestTest {
 	public void alter_table_create() {
 		req("create tbl " + SCHEMA);
 		db = db.reopen();
-		assertThat(db.getSchema("tbl"), is(SCHEMA));
+		assertThat(db.getSchema("tbl"), equalTo(SCHEMA));
 		req("alter tbl create (d) index(c,d)");
 		assertThat(db.getSchema("tbl"),
-				is("(a,b,c,d) key(a) index(b,c) index(c,d)"));
+				equalTo("(a,b,c,d) key(a) index(b,c) index(c,d)"));
 		db = db.reopen();
 		assertThat(db.getSchema("tbl"),
-				is("(a,b,c,d) key(a) index(b,c) index(c,d)"));
+				equalTo("(a,b,c,d) key(a) index(b,c) index(c,d)"));
 	}
 
 	@Test
@@ -93,41 +93,41 @@ public class RequestTest {
 	public void create_with_rule_fields() {
 		String schema = "(a,b,C,D) key(a)";
 		req("create tbl " + schema);
-		assertThat(db.getSchema("tbl"), is(schema));
+		assertThat(db.getSchema("tbl"), equalTo(schema));
 	}
 
 	@Test
 	public void empty_key() {
 		String schema = "(a,b,c) key()";
 		req("create tbl " + schema);
-		assertThat(db.getSchema("tbl"), is(schema));
+		assertThat(db.getSchema("tbl"), equalTo(schema));
 	}
 
 	@Test
 	public void no_columns() {
 		String schema = "() key()";
 		req("create tbl " + schema);
-		assertThat(db.getSchema("tbl"), is(schema));
+		assertThat(db.getSchema("tbl"), equalTo(schema));
 		db = db.reopen();
-		assertThat(db.getSchema("tbl"), is(schema));
+		assertThat(db.getSchema("tbl"), equalTo(schema));
 	}
 
 	@Test
 	public void ensure() {
 		req("ensure tbl " + SCHEMA);
-		assertThat(db.getSchema("tbl"), is(SCHEMA));
+		assertThat(db.getSchema("tbl"), equalTo(SCHEMA));
 		req("ensure tbl (c, d) index(a) index(c,d)");
 		assertThat(db.getSchema("tbl"),
-				is("(a,b,c,d) key(a) index(b,c) index(c,d)"));
+				equalTo("(a,b,c,d) key(a) index(b,c) index(c,d)"));
 	}
 
 	@Test
 	public void drop_columns() {
 		req("create tbl (a,b,c,d) key(a)");
 		req("alter tbl drop (b,d)");
-		assertThat(db.getSchema("tbl"), is("(a,c) key(a)"));
+		assertThat(db.getSchema("tbl"), equalTo("(a,c) key(a)"));
 		db = db.reopen();
-		assertThat(db.getSchema("tbl"), is("(a,c) key(a)"));
+		assertThat(db.getSchema("tbl"), equalTo("(a,c) key(a)"));
 	}
 
 	@Test
@@ -156,9 +156,9 @@ public class RequestTest {
 	public void drop_index() {
 		req("ensure tbl " + SCHEMA);
 		req("alter tbl drop index(b,c)");
-		assertThat(db.getSchema("tbl"), is("(a,b,c) key(a)"));
+		assertThat(db.getSchema("tbl"), equalTo("(a,b,c) key(a)"));
 		db = db.reopen();
-		assertThat(db.getSchema("tbl"), is("(a,b,c) key(a)"));
+		assertThat(db.getSchema("tbl"), equalTo("(a,b,c) key(a)"));
 	}
 
 	@Test
@@ -221,10 +221,10 @@ public class RequestTest {
 		req("ensure tbl " + SCHEMA);
 		req("rename tbl to lbt");
 		assertNull(db.getSchema("tbl"));
-		assertThat(db.getSchema("lbt"), is(SCHEMA));
+		assertThat(db.getSchema("lbt"), equalTo(SCHEMA));
 		db = db.reopen();
 		assertNull(db.getSchema("tbl"));
-		assertThat(db.getSchema("lbt"), is(SCHEMA));
+		assertThat(db.getSchema("lbt"), equalTo(SCHEMA));
 	}
 
 	@Test
@@ -241,18 +241,18 @@ public class RequestTest {
 	public void next_column_num() {
 		req("ensure tbl (a,b,c) key(a)");
 		req("alter tbl drop (b)");
-		assertThat(db.getSchema("tbl"), is("(a,c) key(a)"));
+		assertThat(db.getSchema("tbl"), equalTo("(a,c) key(a)"));
 		req("alter tbl create (d) index(d)");
-		assertThat(db.getSchema("tbl"), is("(a,c,d) key(a) index(d)"));
+		assertThat(db.getSchema("tbl"), equalTo("(a,c,d) key(a) index(d)"));
 	}
 
 	@Test
 	public void rename_columns() {
 		req("ensure tbl " + SCHEMA);
 		req("alter tbl rename b to bb, c to cc");
-		assertThat(db.getSchema("tbl"), is("(a,bb,cc) key(a) index(bb,cc)"));
+		assertThat(db.getSchema("tbl"), equalTo("(a,bb,cc) key(a) index(bb,cc)"));
 		db = db.reopen();
-		assertThat(db.getSchema("tbl"), is("(a,bb,cc) key(a) index(bb,cc)"));
+		assertThat(db.getSchema("tbl"), equalTo("(a,bb,cc) key(a) index(bb,cc)"));
 	}
 
 	@Test
@@ -317,13 +317,13 @@ public class RequestTest {
 	@Test
 	public void add_remove_fields() {
 		req("create tbl (a, b, c, d, e, f, g) key(b)");
-		assertThat(db.getSchema("tbl"), is("(a,b,c,d,e,f,g) key(b)"));
+		assertThat(db.getSchema("tbl"), equalTo("(a,b,c,d,e,f,g) key(b)"));
 		exec("insert { a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7 } into tbl");
 		req("alter tbl drop (a, c, e, g)");
-		assertThat(db.getSchema("tbl"), is("(b,d,f) key(b)"));
+		assertThat(db.getSchema("tbl"), equalTo("(b,d,f) key(b)"));
 		req("alter tbl create (h, i, j, k)");
-		assertThat(db.getSchema("tbl"), is("(b,d,f,h,i,j,k) key(b)"));
-		assertThat(first(), is("Row{b: 2, d: 4, f: 6}"));
+		assertThat(db.getSchema("tbl"), equalTo("(b,d,f,h,i,j,k) key(b)"));
+		assertThat(first(), equalTo("Row{b: 2, d: 4, f: 6}"));
 	}
 
 	private String first() {
@@ -337,7 +337,7 @@ public class RequestTest {
 
 	@After
 	public void check() {
-		assertThat(db.check(), is(DatabasePackage.Status.OK));
+		assertThat(db.check(), equalTo(DatabasePackage.Status.OK));
 	}
 
 	private void req(String request) {

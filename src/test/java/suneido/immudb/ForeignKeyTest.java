@@ -4,8 +4,8 @@
 
 package suneido.immudb;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 
 import java.util.List;
 import java.util.Set;
@@ -31,7 +31,7 @@ public class ForeignKeyTest {
 			.addIndex("f2", false, false, "dest", "b", Fkmode.CASCADE)
 			.finish();
 		assertThat(db.getSchema("src"),
-				is("(k,a,f1,f2) key(k) " +
+				equalTo("(k,a,f1,f2) key(k) " +
 						"index(a) in dest " +
 						"index(f2) in dest(b) cascade"));
 		db.createTable("dest")
@@ -42,14 +42,14 @@ public class ForeignKeyTest {
 			.finish();
 
 		assertThat(fkdsts("dest", "a"),
-				is("[ForeignKeyTarget{src, [1], block}]"));
+				equalTo("[ForeignKeyTarget{src, [1], block}]"));
 		assertThat(fkdsts("dest", "b"),
-				is("[ForeignKeyTarget{src, [3], cascade}]"));
+				equalTo("[ForeignKeyTarget{src, [3], cascade}]"));
 
 		db = db.reopen();
 
 		assertThat(db.getSchema("src"),
-				is("(k,a,f1,f2) key(k) " +
+				equalTo("(k,a,f1,f2) key(k) " +
 						"index(a) in dest " +
 						"index(f2) in dest(b) cascade"));
 
@@ -64,36 +64,36 @@ public class ForeignKeyTest {
 			.finish();
 
 		assertThat(db.getSchema("src"),
-				is("(k,a,f1,f2) key(k) " +
+				equalTo("(k,a,f1,f2) key(k) " +
 						"index(a) in dest " +
 						"index(f1) in dest(a) " +
 						"index(f2) in dest(b) cascade"));
 
 		assertThat(fkdsts("dest", "a"),
-				is("[ForeignKeyTarget{src, [1], block}, ForeignKeyTarget{src, [2], block}]"));
+				equalTo("[ForeignKeyTarget{src, [1], block}, ForeignKeyTarget{src, [2], block}]"));
 		assertThat(fkdsts("dest", "b"),
-				is("[ForeignKeyTarget{src, [3], cascade}, ForeignKeyTarget{src2, [1], block}]"));
+				equalTo("[ForeignKeyTarget{src, [3], cascade}, ForeignKeyTarget{src2, [1], block}]"));
 
 		db.alterTable("src")
 			.dropIndex("f2")
 			.finish();
 
 		assertThat(db.getSchema("src"),
-				is("(k,a,f1,f2) key(k) " +
+				equalTo("(k,a,f1,f2) key(k) " +
 						"index(a) in dest " +
 						"index(f1) in dest(a)"));
 
 		assertThat(fkdsts("dest", "a"),
-				is("[ForeignKeyTarget{src, [1], block}, ForeignKeyTarget{src, [2], block}]"));
+				equalTo("[ForeignKeyTarget{src, [1], block}, ForeignKeyTarget{src, [2], block}]"));
 		assertThat(fkdsts("dest", "b"),
-				is("[ForeignKeyTarget{src2, [1], block}]"));
+				equalTo("[ForeignKeyTarget{src2, [1], block}]"));
 
 		db.dropTable("src2");
 
 		assertThat(fkdsts("dest", "a"),
-				is("[ForeignKeyTarget{src, [1], block}, ForeignKeyTarget{src, [2], block}]"));
+				equalTo("[ForeignKeyTarget{src, [1], block}, ForeignKeyTarget{src, [2], block}]"));
 		assertThat(fkdsts("dest", "b"),
-				is("[]"));
+				equalTo("[]"));
 
 	}
 

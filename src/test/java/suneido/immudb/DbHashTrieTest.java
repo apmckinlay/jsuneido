@@ -4,10 +4,10 @@
 
 package suneido.immudb;
 
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -39,7 +39,7 @@ public class DbHashTrieTest {
 	@Test
 	public void one_entry() {
 		add(123, 456);
-		assertThat(get(123), is(456));
+		assertThat(get(123), equalTo(456));
 		assertFalse(tree.immutable());
 	}
 
@@ -48,31 +48,31 @@ public class DbHashTrieTest {
 		for (int i = 32; i < 64; ++i)
 			add(i, i * 7);
 		for (int i = 32; i < 64; ++i)
-			assertThat(tree.get(i), is(entry(i, i * 7)));
+			assertThat(tree.get(i), equalTo(entry(i, i * 7)));
 
 		// update
 		add(50, 555);
-		assertThat(tree.get(50), is(entry(50, 555)));
+		assertThat(tree.get(50), equalTo(entry(50, 555)));
 	}
 
 	@Test
 	public void update_existing() {
 		add(123, 456);
 		add(789, 987);
-		assertThat(tree.get(123), is(entry(123, 456)));
-		assertThat(tree.get(789), is(entry(789, 987)));
+		assertThat(tree.get(123), equalTo(entry(123, 456)));
+		assertThat(tree.get(789), equalTo(entry(789, 987)));
 		add(123, 321); // new value
 		add(789, 987); // same value
-		assertThat(tree.get(123), is(entry(123, 321)));
-		assertThat(tree.get(789), is(entry(789, 987)));
+		assertThat(tree.get(123), equalTo(entry(123, 321)));
+		assertThat(tree.get(789), equalTo(entry(789, 987)));
 	}
 
 	@Test
 	public void collisions() {
 		add(0x10000, 123);
 		add(0x20000, 456);
-		assertThat(get(0x10000), is(123));
-		assertThat(get(0x20000), is(456));
+		assertThat(get(0x10000), equalTo(123));
+		assertThat(get(0x20000), equalTo(456));
 	}
 
 	void add(int key, int value) {
@@ -96,7 +96,7 @@ public class DbHashTrieTest {
 			value = rand.nextInt();
 			if (key == 0 || value == 0)
 				continue ;
-			assertThat(get(key), is(value));
+			assertThat(get(key), equalTo(value));
 		}
 	}
 
@@ -132,21 +132,21 @@ public class DbHashTrieTest {
 			assertNull(tree.get(i));
 		add(32, 123);
 		add(64, 456);
-		assertThat(get(32), is(123));
-		assertThat(get(64), is(456));
+		assertThat(get(32), equalTo(123));
+		assertThat(get(64), equalTo(456));
 		int at2 = tree.store(nullTranslator);
 
 		assert(at != at2);
-		assertThat(get(32), is(123));
-		assertThat(get(64), is(456));
+		assertThat(get(32), equalTo(123));
+		assertThat(get(64), equalTo(456));
 
 		tree = DbHashTrie.from(stor, at2);
-		assertThat(get(32), is(123));
-		assertThat(get(64), is(456));
+		assertThat(get(32), equalTo(123));
+		assertThat(get(64), equalTo(456));
 
 		tree = DbHashTrie.from(stor, at2);
-		assertThat(get(32), is(123));
-		assertThat(get(64), is(456));
+		assertThat(get(32), equalTo(123));
+		assertThat(get(64), equalTo(456));
 		Random rand = new Random(1234);
 		int key, value;
 		final int N = 1000;
@@ -161,7 +161,7 @@ public class DbHashTrieTest {
 			value = rand.nextInt();
 			if (key == 0 || value == 0)
 				continue ;
-			assertThat(get(key), is(value));
+			assertThat(get(key), equalTo(value));
 		}
 	}
 

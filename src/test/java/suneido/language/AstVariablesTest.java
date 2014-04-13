@@ -4,9 +4,9 @@
 
 package suneido.language;
 
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 
 import java.util.Set;
 
@@ -39,13 +39,13 @@ public class AstVariablesTest {
 
 	@Test
 	public void paramToName() {
-		assertThat(AstVariables.paramToName("@name"), is("name"));
-		assertThat(AstVariables.paramToName(".name"), is("name"));
-		assertThat(AstVariables.paramToName(".Name"), is("name"));
-		assertThat(AstVariables.paramToName("_name"), is("name"));
-		assertThat(AstVariables.paramToName("._name"), is("name"));
-		assertThat(AstVariables.paramToName("._Name"), is("name"));
-		assertThat(AstVariables.paramToName("Name"), is("Name"));
+		assertThat(AstVariables.paramToName("@name"), equalTo("name"));
+		assertThat(AstVariables.paramToName(".name"), equalTo("name"));
+		assertThat(AstVariables.paramToName(".Name"), equalTo("name"));
+		assertThat(AstVariables.paramToName("_name"), equalTo("name"));
+		assertThat(AstVariables.paramToName("._name"), equalTo("name"));
+		assertThat(AstVariables.paramToName("._Name"), equalTo("name"));
+		assertThat(AstVariables.paramToName("Name"), equalTo("Name"));
 	}
 
 }

@@ -4,9 +4,9 @@
 
 package suneido.immudb;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 
 import org.junit.Test;
 
@@ -99,7 +99,7 @@ public class DbRebuildTest extends TestBase {
 			t.removeRecord(adr);
 		}
 		t.ck_complete();
-		assertThat(t.counts(), is("+0 -0 u0"));
+		assertThat(t.counts(), equalTo("+0 -0 u0"));
 		rebuild();
 	}
 
@@ -122,7 +122,7 @@ public class DbRebuildTest extends TestBase {
 			t.updateRecord(adr, record(i++));
 		}
 		t.ck_complete();
-		assertThat(t.counts(), is("+3 -0 u0"));
+		assertThat(t.counts(), equalTo("+3 -0 u0"));
 		rebuild(10, 11, 12);
 	}
 
@@ -140,7 +140,7 @@ public class DbRebuildTest extends TestBase {
 			t.updateRecord(adr, record(i++));
 		}
 		t.ck_complete();
-		assertThat(t.counts(), is("+0 -0 u3"));
+		assertThat(t.counts(), equalTo("+0 -0 u3"));
 		rebuild(10, 11, 12);
 	}
 
@@ -171,7 +171,7 @@ public class DbRebuildTest extends TestBase {
 			t.updateRecord(adr, record(i++));
 		}
 		t.ck_complete();
-		assertThat(t.counts(), is("+3 -0 u0"));
+		assertThat(t.counts(), equalTo("+3 -0 u0"));
 		rebuild(10, 11, 12);
 	}
 
@@ -200,7 +200,7 @@ public class DbRebuildTest extends TestBase {
 			t.updateRecord(adr, record(i++));
 		}
 		t.ck_complete();
-		assertThat(t.counts(), is("+0 -0 u3"));
+		assertThat(t.counts(), equalTo("+0 -0 u3"));
 		rebuild(10, 11, 12);
 	}
 
@@ -221,7 +221,7 @@ public class DbRebuildTest extends TestBase {
 		for (iter.next(); ! iter.eof(); iter.next())
 			t.removeRecord(iter.keyadr());
 		t.ck_complete();
-		assertThat(t.counts(), is("+0 -0 u0"));
+		assertThat(t.counts(), equalTo("+0 -0 u0"));
 		rebuild();
 	}
 
@@ -245,7 +245,7 @@ public class DbRebuildTest extends TestBase {
 		for (iter.next(); ! iter.eof(); iter.next())
 			t.removeRecord(iter.keyadr());
 		t.ck_complete();
-		assertThat(t.counts(), is("+0 -3 u0"));
+		assertThat(t.counts(), equalTo("+0 -3 u0"));
 		rebuild();
 	}
 

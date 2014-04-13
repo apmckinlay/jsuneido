@@ -4,8 +4,8 @@
 
 package suneido.util;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -30,22 +30,22 @@ public class IntMergeTreeTest {
 		IntMergeTree mt = new IntMergeTree();
 		for (int key : keys)
 			mt.add(key);
-		assertThat(mt.size(), is(NKEYS));
+		assertThat(mt.size(), equalTo(NKEYS));
 		Arrays.sort(keys);
 
 		int i = 0;
 		IntMergeTree.Iter iter = mt.iter();
 		for (int x = iter.next(); x != Integer.MAX_VALUE; x = iter.next()) {
-			assertThat("i=" + i, x, is(keys[i++]));
+			assertThat("i=" + i, x, equalTo(keys[i++]));
 		}
-		assertThat(i, is(NKEYS));
+		assertThat(i, equalTo(NKEYS));
 
 		i = NKEYS;
 		iter = mt.iter();
 		for (int x = iter.prev(); x != Integer.MIN_VALUE; x = iter.prev()) {
-			assertThat("i=" + i, x, is(keys[--i]));
+			assertThat("i=" + i, x, equalTo(keys[--i]));
 		}
-		assertThat(i, is(0));
+		assertThat(i, equalTo(0));
 	}
 
 	@Test
@@ -57,14 +57,14 @@ public class IntMergeTreeTest {
 
 		IntMergeTree.Iter iter = mt.iter();
 		iter.seekFirst(5);
-		assertThat(iter.next(), is(5));
-		assertThat(iter.next(), is(5));
-		assertThat(iter.next(), is(6));
+		assertThat(iter.next(), equalTo(5));
+		assertThat(iter.next(), equalTo(5));
+		assertThat(iter.next(), equalTo(6));
 
 		iter.seekLast(5);
-		assertThat(iter.prev(), is(5));
-		assertThat(iter.prev(), is(5));
-		assertThat(iter.prev(), is(4));
+		assertThat(iter.prev(), equalTo(5));
+		assertThat(iter.prev(), equalTo(5));
+		assertThat(iter.prev(), equalTo(4));
 	}
 
 	@Test
@@ -74,16 +74,16 @@ public class IntMergeTreeTest {
 			mt.add(i);
 
 		IntMergeTree.Iter iter = mt.iter();
-		assertThat(iter.next(), is(0));
-		assertThat(iter.prev(), is(Integer.MIN_VALUE));
-		assertThat(iter.next(), is(0));
+		assertThat(iter.next(), equalTo(0));
+		assertThat(iter.prev(), equalTo(Integer.MIN_VALUE));
+		assertThat(iter.next(), equalTo(0));
 
 		iter = mt.iter();
-		assertThat(iter.prev(), is(5));
-		assertThat(iter.prev(), is(4));
-		assertThat(iter.next(), is(5));
-		assertThat(iter.next(), is(Integer.MAX_VALUE));
-		assertThat(iter.prev(), is(5));
+		assertThat(iter.prev(), equalTo(5));
+		assertThat(iter.prev(), equalTo(4));
+		assertThat(iter.next(), equalTo(5));
+		assertThat(iter.next(), equalTo(Integer.MAX_VALUE));
+		assertThat(iter.prev(), equalTo(5));
 
 		/* tree is:
 		 * 		[4, 5]
@@ -91,18 +91,18 @@ public class IntMergeTreeTest {
 		 * test reading next/prev at node boundary
 		 */
 		iter = mt.iter();
-		assertThat(iter.prev(), is(5));
-		assertThat(iter.prev(), is(4));
-		assertThat(iter.prev(), is(3));
-		assertThat(iter.next(), is(4));
+		assertThat(iter.prev(), equalTo(5));
+		assertThat(iter.prev(), equalTo(4));
+		assertThat(iter.prev(), equalTo(3));
+		assertThat(iter.next(), equalTo(4));
 
 		iter = mt.iter();
-		assertThat(iter.next(), is(0));
-		assertThat(iter.next(), is(1));
-		assertThat(iter.next(), is(2));
-		assertThat(iter.next(), is(3));
-		assertThat(iter.next(), is(4));
-		assertThat(iter.prev(), is(3));
+		assertThat(iter.next(), equalTo(0));
+		assertThat(iter.next(), equalTo(1));
+		assertThat(iter.next(), equalTo(2));
+		assertThat(iter.next(), equalTo(3));
+		assertThat(iter.next(), equalTo(4));
+		assertThat(iter.prev(), equalTo(3));
 	}
 
 	@Test
@@ -113,15 +113,15 @@ public class IntMergeTreeTest {
 			mt.add(i);
 		IntMergeTree.Iter iter = mt.iter();
 		for (int i = 0; i < N - 1; ++i) {
-			assertThat(iter.next(), is(i));
-			assertThat(iter.next(), is(i + 1));
-			assertThat(iter.prev(), is(i));
+			assertThat(iter.next(), equalTo(i));
+			assertThat(iter.next(), equalTo(i + 1));
+			assertThat(iter.prev(), equalTo(i));
 		}
 		iter = mt.iter();
 		for (int i = N - 1; i > 0; --i) {
-			assertThat(iter.prev(), is(i));
-			assertThat(iter.prev(), is(i - 1));
-			assertThat(iter.next(), is(i));
+			assertThat(iter.prev(), equalTo(i));
+			assertThat(iter.prev(), equalTo(i - 1));
+			assertThat(iter.next(), equalTo(i));
 		}
 	}
 
@@ -140,9 +140,9 @@ public class IntMergeTreeTest {
 			iter.prev();
 			Collections.reverse(keys);
 			for (int i = 0; i < NKEYS / 5; ++i) {
-				assertThat(iter.next(), is(keys.get(i)));
+				assertThat(iter.next(), equalTo(keys.get(i)));
 			}
-			assertThat(iter.next(), is(Integer.MAX_VALUE));
+			assertThat(iter.next(), equalTo(Integer.MAX_VALUE));
 		}
 	}
 

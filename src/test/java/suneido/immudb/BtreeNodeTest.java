@@ -4,8 +4,9 @@
 
 package suneido.immudb;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
 
 import java.nio.ByteBuffer;
@@ -38,7 +39,7 @@ public class BtreeNodeTest {
 	public void memNode_empty() {
 		BtreeNode node = BtreeNode.emptyLeaf();
 		assertThat(node, instanceOf(BtreeMemNode.class));
-		assertThat(node.size(), is(0));
+		assertThat(node.size(), equalTo(0));
 	}
 
 	@Test
@@ -75,22 +76,22 @@ public class BtreeNodeTest {
 		Random rand = new Random(87665);
 		List<BtreeKey> keys = randomKeys(rand, NKEYS);
 		BtreeNode node = BtreeNode.emptyLeaf();
-		assertThat(node.size(), is(0));
+		assertThat(node.size(), equalTo(0));
 		for (BtreeKey key : keys)
 			node = node.with(key);
-		assertThat(node.size(), is(NKEYS));
+		assertThat(node.size(), equalTo(NKEYS));
 		Collections.shuffle(keys, new Random(874));
 		for (int i = 0; i < NKEYS / 2; ++i) {
 			node = node.without(keys.get(i));
 			assertNotNull(node);
 		}
-		assertThat(node.size(), is(NKEYS / 2));
+		assertThat(node.size(), equalTo(NKEYS / 2));
 		for (int i = 0; i < NKEYS / 2; ++i)
 			assertNull(node.without(keys.get(i)));
-		assertThat(node.size(), is(NKEYS / 2));
+		assertThat(node.size(), equalTo(NKEYS / 2));
 		for (int i = NKEYS / 2; i < NKEYS; ++i) {
 			BtreeKey key = keys.get(i);
-			assertThat(node.find(key), is(key));
+			assertThat(node.find(key), equalTo(key));
 		}
 	}
 
@@ -199,7 +200,7 @@ public class BtreeNodeTest {
 		ByteBuffer buf = ByteBuffer.allocate(node.length());
 		node.pack(buf);
 		BtreeDbNode dbnode = new BtreeDbNode(0, buf, 0);
-		assertThat("size", dbnode.size(), is(0));
+		assertThat("size", dbnode.size(), equalTo(0));
 	}
 
 	@Test
@@ -211,9 +212,9 @@ public class BtreeNodeTest {
 		ByteBuffer buf = ByteBuffer.allocate(memNode.length());
 		memNode.pack(buf);
 		BtreeDbNode dbnode = new BtreeDbNode(0, buf, 0);
-		assertThat("size", dbnode.size(), is(10));
+		assertThat("size", dbnode.size(), equalTo(10));
 		for (int i = 0; i < 10; ++i)
-			assertThat(dbnode.get(i), is((Object) key));
+			assertThat(dbnode.get(i), equalTo((Object) key));
 	}
 
 	@Test
@@ -225,9 +226,9 @@ public class BtreeNodeTest {
 		ByteBuffer buf = ByteBuffer.allocate(memNode.length());
 		memNode.pack(buf);
 		BtreeDbNode dbnode = new BtreeDbNode(1, buf, 0);
-		assertThat("size", dbnode.size(), is(10));
+		assertThat("size", dbnode.size(), equalTo(10));
 		for (int i = 0; i < 10; ++i)
-			assertThat(dbnode.get(i), is((Object) key));
+			assertThat(dbnode.get(i), equalTo((Object) key));
 	}
 
 	@Test
@@ -244,14 +245,14 @@ public class BtreeNodeTest {
 		ByteBuffer buf = ByteBuffer.allocate(node.length());
 		node.pack(buf);
 		BtreeNode dbnode = new BtreeDbNode(0, buf, 0);
-		assertThat(dbnode, is((BtreeNode) node));
+		assertThat(dbnode, equalTo((BtreeNode) node));
 	}
 
 	@Test
 	public void mimimize() {
 		BtreeKey k = new RecordBuilder().add("a").add("b").btreeTreeKey(123, 456);
 		BtreeKey m = new RecordBuilder().btreeTreeKey(0, 456);
-		assertThat(k.minimize(), is(m));
+		assertThat(k.minimize(), equalTo(m));
 		assertFalse(k.isMinimalKey());
 		assertTrue(m.isMinimalKey());
 	}
@@ -260,46 +261,46 @@ public class BtreeNodeTest {
 	public void split_leaf_at_end() {
 		BtreeNode node = leaf("a", "b", "c");
 		Btree.Split split = Btree.split(node, key("d"));
-		assertThat(split.left, is(node));
-		assertThat(split.key.toString(), is("['c']*MAX^REF"));
-		assertThat(split.key.child(), is(leaf("d")));
+		assertThat(split.left, equalTo(node));
+		assertThat(split.key.toString(), equalTo("['c']*MAX^REF"));
+		assertThat(split.key.child(), equalTo(leaf("d")));
 	}
 
 	@Test
 	public void split_with_key_in_left() {
 		BtreeNode node = leaf("a", "c", "e", "g");
 		Btree.Split split = Btree.split(node, key("b"));
-		assertThat(split.left, is(leaf("a", "b", "c")));
-		assertThat(split.key.toString(), is("['c']*MAX^REF"));
-		assertThat(split.key.child(), is(leaf("e", "g")));
+		assertThat(split.left, equalTo(leaf("a", "b", "c")));
+		assertThat(split.key.toString(), equalTo("['c']*MAX^REF"));
+		assertThat(split.key.child(), equalTo(leaf("e", "g")));
 	}
 
 	@Test
 	public void split_with_key_in_right() {
 		BtreeNode node = leaf("a", "c", "e", "g");
 		Btree.Split split = Btree.split(node, key("f"));
-		assertThat(split.left, is(leaf("a", "c")));
-		assertThat(split.key.toString(), is("['c']*MAX^REF"));
-		assertThat(split.key.child(), is(leaf("e", "f", "g")));
+		assertThat(split.left, equalTo(leaf("a", "c")));
+		assertThat(split.key.toString(), equalTo("['c']*MAX^REF"));
+		assertThat(split.key.child(), equalTo(leaf("e", "f", "g")));
 	}
 
 	@Test
 	public void split_tree_node() {
 		BtreeNode node = tree("a", "c", "e", "g");
 		Btree.Split split = Btree.split(node, treekey("f", 123, 456));
-		assertThat(split.left, is(tree("a", "c")));
-		assertThat(split.key.toString(), is("['e']*123^REF"));
+		assertThat(split.left, equalTo(tree("a", "c")));
+		assertThat(split.key.toString(), equalTo("['e']*123^REF"));
 		assertThat(split.key.child(),
-				is(tree("e", "f", "g").minimizeLeftMost()));
+				equalTo(tree("e", "f", "g").minimizeLeftMost()));
 	}
 
 	@Test
 	public void split_between_leaf_duplicates() {
 		BtreeNode node = leaf(dup(1), dup(2), dup(4), dup(5));
 		Btree.Split split = Btree.split(node, dup(3));
-		assertThat(split.left, is(leaf(dup(1), dup(2), dup(3))));
-		assertThat(split.key.toString(), is("['dup']*3^REF"));
-		assertThat(split.key.child(), is(leaf(dup(4), dup(5))));
+		assertThat(split.left, equalTo(leaf(dup(1), dup(2), dup(3))));
+		assertThat(split.key.toString(), equalTo("['dup']*3^REF"));
+		assertThat(split.key.child(), equalTo(leaf(dup(4), dup(5))));
 	}
 
 	//--------------------------------------------------------------------------

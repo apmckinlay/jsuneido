@@ -1,10 +1,14 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.intfc.database;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import java.util.List;
@@ -16,7 +20,7 @@ public class DatabaseTest extends TestBase {
 	@Test
 	public void address() {
 		makeTable(1);
-		assertThat(get().get(0).address(), not(is(0)));
+		assertThat(get().get(0).address(), not(equalTo(0)));
 	}
 
 	@Test
@@ -24,10 +28,10 @@ public class DatabaseTest extends TestBase {
 		makeTable();
 		Transaction t = db.readTransaction();
 		Table tbl = t.getTable("test");
-		assertThat(t.tableCount(tbl.num()), is(0));
-		assertThat(t.tableSize(tbl.num()), is(0L));
-		assertThat(tbl.getColumns().toString(), is("[a, b]"));
-		assertThat(tbl.indexesColumns().toString(), is("[[a], [b, a]]"));
+		assertThat(t.tableCount(tbl.num()), equalTo(0));
+		assertThat(t.tableSize(tbl.num()), equalTo(0L));
+		assertThat(tbl.getColumns().toString(), equalTo("[a, b]"));
+		assertThat(tbl.indexesColumns().toString(), equalTo("[[a], [b, a]]"));
 		t.ck_complete();
 	}
 
@@ -41,31 +45,31 @@ public class DatabaseTest extends TestBase {
 		t.ck_complete();
 
 		List<Record> recs = get("test");
-		assertThat(recs.size(), is(1));
-		assertThat(recs.get(0), is(r));
-		assertThat(getNrecords("test"), is(1));
+		assertThat(recs.size(), equalTo(1));
+		assertThat(recs.get(0), equalTo(r));
+		assertThat(getNrecords("test"), equalTo(1));
 
 		db = db.reopen();
 
 		recs = get("test");
-		assertThat(recs.size(), is(1));
-		assertThat(recs.get(0), is(r));
-		assertThat(getNrecords("test"), is(1));
+		assertThat(recs.size(), equalTo(1));
+		assertThat(recs.get(0), equalTo(r));
+		assertThat(getNrecords("test"), equalTo(1));
 
 		t = db.updateTransaction();
 		t.removeRecord(getTable("test").num(), recs.get(0));
 		t.ck_complete();
 
-		assertThat(count("test"), is(0));
-		assertThat(getNrecords("test"), is(0));
+		assertThat(count("test"), equalTo(0));
+		assertThat(getNrecords("test"), equalTo(0));
 	}
 
 	@Test
 	public void test_multi_node_index() {
 		final int N = 2000;
 		makeTable(N);
-		assertThat(getNrecords("test"), is(N));
-		assertThat(count("test"), is(N));
+		assertThat(getNrecords("test"), equalTo(N));
+		assertThat(count("test"), equalTo(N));
 	}
 
 	@Test
@@ -142,7 +146,7 @@ public class DatabaseTest extends TestBase {
 			.addIndex("f2", false, false, "test", "a", Fkmode.BLOCK)
 			.finish();
 		assertThat(db.getSchema("test2"),
-				is("(b,f1,f2) key(b) index(f1) in test(a) index(f2) in test(a)"));
+				equalTo("(b,f1,f2) key(b) index(f1) in test(a) index(f2) in test(a)"));
 
 		makeTable(3);
 		List<Record> recs = get("test");
@@ -170,7 +174,7 @@ public class DatabaseTest extends TestBase {
 	private void assertRecords(int n) {
 		Transaction t;
 		t = db.readTransaction();
-		assertThat(t.tableCount(t.getTable("test2").num()), is(n));
+		assertThat(t.tableCount(t.getTable("test2").num()), equalTo(n));
 		t.ck_complete();
 	}
 
@@ -296,7 +300,7 @@ public class DatabaseTest extends TestBase {
 			.addIndex("id,date", true, false, "", "", 0)
 			.finish();
 		add("source", rec(1, 990101));
-		assertThat(count("source"), is(1));
+		assertThat(count("source"), equalTo(1));
 		db.createTable("target")
 			.addColumn("id")
 			.addColumn("name")

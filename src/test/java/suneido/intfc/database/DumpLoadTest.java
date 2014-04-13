@@ -4,9 +4,9 @@
 
 package suneido.intfc.database;
 
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static suneido.Suneido.dbpkg;
 
 import org.junit.Test;
@@ -48,8 +48,8 @@ public class DumpLoadTest extends TestBase {
 
 	private void check() {
 		assertEquals(Status.OK, db.check());
-		assertThat(db.getSchema("test"), is("(a,b) key(a) index(b,a)"));
-		assertThat(getNrecords("test"), is(7));
+		assertThat(db.getSchema("test"), equalTo("(a,b) key(a) index(b,a)"));
+		assertThat(getNrecords("test"), equalTo(7));
 	}
 
 }

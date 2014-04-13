@@ -4,8 +4,8 @@
 
 package suneido.immudb;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertTrue;
 import suneido.intfc.database.IndexIter;
 
@@ -25,21 +25,21 @@ public abstract class IndexIterTestBase {
 		if (n == -1)
 			assertTrue("expected eof, got " + iter.curKey(), iter.eof());
 		else
-			assertThat(iter.curKey().getInt(0), is(n));
+			assertThat(iter.curKey().getInt(0), equalTo(n));
 	}
 
 	protected static void checkPrev(int[] result, IndexIter iter) {
 		int i = result.length - 1;
 		for (iter.prev(); ! iter.eof(); iter.prev(), --i)
-			assertThat(iter.curKey().getInt(0), is(result[i]));
-		assertThat(i, is(-1));
+			assertThat(iter.curKey().getInt(0), equalTo(result[i]));
+		assertThat(i, equalTo(-1));
 	}
 
 	protected static void checkNext(int[] result, IndexIter iter) {
 		int i = 0;
 		for (iter.next(); ! iter.eof(); iter.next(), ++i)
-			assertThat(iter.curKey().getInt(0), is(result[i]));
-		assertThat(i, is(result.length));
+			assertThat(iter.curKey().getInt(0), equalTo(result[i]));
+		assertThat(i, equalTo(result.length));
 	}
 
 	protected static int[] a(int... a) {

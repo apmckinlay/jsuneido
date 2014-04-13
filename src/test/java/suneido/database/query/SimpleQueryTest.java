@@ -4,8 +4,8 @@
 
 package suneido.database.query;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 
 import org.junit.After;
 import org.junit.Test;
@@ -27,24 +27,24 @@ public class SimpleQueryTest extends TestBase {
 	public void table() {
 		Query q = CompileQuery.query(t, serverData, "tables");
 		Record r = q.get(Dir.NEXT).firstData();
-		assertThat(r.getInt(0), is(1));
-		assertThat(r.getString(1), is("tables"));
+		assertThat(r.getInt(0), equalTo(1));
+		assertThat(r.getString(1), equalTo("tables"));
 	}
 
 	@Test
 	public void where() {
 		Query q = CompileQuery.query(t, serverData, "tables where tablename > 'd'");
 		Record r = q.get(Dir.NEXT).firstData();
-		assertThat(r.getInt(0), is(3));
-		assertThat(r.getString(1), is("indexes"));
+		assertThat(r.getInt(0), equalTo(3));
+		assertThat(r.getString(1), equalTo("indexes"));
 	}
 
 	@Test
 	public void join() {
 		Query q = CompileQuery.query(t, serverData, "tables join columns");
 		Record r = q.get(Dir.NEXT).firstData();
-		assertThat(r.getInt(0), is(1));
-		assertThat(r.getString(1), is("tables"));
+		assertThat(r.getInt(0), equalTo(1));
+		assertThat(r.getString(1), equalTo("tables"));
 	}
 
 	@Test
@@ -52,7 +52,7 @@ public class SimpleQueryTest extends TestBase {
 		Query q = CompileQuery.query(t, serverData, "columns sort column");
 		Header hdr = q.header();
 		Row row = q.get(Dir.NEXT);
-		assertThat((String) row.getval(hdr, "column"), is("column"));
+		assertThat((String) row.getval(hdr, "column"), equalTo("column"));
 	}
 
 	@After
