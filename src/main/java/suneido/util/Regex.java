@@ -12,6 +12,8 @@ import javax.annotation.concurrent.Immutable;
 
 import com.google.common.base.CharMatcher;
 
+// TODO replacement
+
 /*
  * regular expression grammar and compiled form:
  *
@@ -110,12 +112,12 @@ public class Regex {
 		private Pattern(List<Element> pat) {
 			this.pat = pat;
 		}
-
+		
 		/**
 		 * look for a match at any position
 		 * @return Result[] if a match is found, else null
 		 */
-		public Result match(String s) {
+		public Result firstMatch(String s) {
 			// allocate these once per match instead of once per amatch
 			Result result = new Result();
 			int alt_si[] = new int[MAX_BRANCH];
@@ -130,6 +132,8 @@ public class Regex {
 			}
 			return null;
 		}
+
+		// TODO lastMatch
 
 		/**
 		 * Try to match at a specific position.
@@ -323,6 +327,8 @@ public class Regex {
 				emit(new Right(i));
 				match(")");
 			} else {
+				// MAYBE just do one char at a time
+				// and combine by adding to previous Chars
 				int prevStart = -1;
 				StringBuilder sb = new StringBuilder();
 				while (si < sn) {
@@ -356,6 +362,8 @@ public class Regex {
 		}
 
 		// if ignoring case character classes are built to match lower case
+		
+		// TODO benchmark if precomputed is faster
 
 		void charClass() {
 			if (src.charAt(si) != '^' &&
@@ -386,7 +394,8 @@ public class Regex {
 				else if (match("[:"))
 					elem = posixClass();
 				else
-					elem = CharMatcher.is(src.charAt(si++));
+					// MAYBE collect all literal chars and make one matcher
+					elem = CharMatcher.is(Character.toLowerCase(src.charAt(si++)));
 				cm = cm.or(elem);
 
 			}
@@ -407,6 +416,7 @@ public class Regex {
 		private CharMatcher range(char from, char to) {
 			if (ignoringCase) {
 				// WARNING: not guaranteed to work for non-ascii
+				// assumes ascii a-z
 				char lofrom = Character.toLowerCase(from);
 				char loto = Character.toLowerCase(to);
 				if ((from == lofrom) && (to != loto))
