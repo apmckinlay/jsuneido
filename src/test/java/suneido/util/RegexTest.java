@@ -130,6 +130,8 @@ public class RegexTest {
 
 		amatch("AbbA", "(.)(.)\\2\\1");
 		amatch("AbBa", "(.)(.)(?i)\\2\\1");
+		
+		amatch("aBc", "(?i)[ABC]+");
 	}
 
 	@Test
@@ -290,7 +292,7 @@ public class RegexTest {
 
 	void match(String s, String rx, String... exp) {
 		Regex.Pattern pat = Regex.compile(rx);
-		Regex.Result res = pat.match(s);
+		Regex.Result res = pat.firstMatch(s);
 		assertNotNull(res);
 		for (int i = 0; i < exp.length; ++i) {
 			assertThat(s.substring(res.pos[i], res.end[i]), equalTo(exp[i]));
@@ -300,12 +302,12 @@ public class RegexTest {
 	void match(String s, String rx) {
 		Regex.Pattern pat = Regex.compile(rx);
 		assertNotNull(rx + " => " + pat + " failed to match " + s,
-				pat.match(s));
+				pat.firstMatch(s));
 	}
 	void nomatch(String s, String rx) {
 		Regex.Pattern pat = Regex.compile(rx);
 		assertNull(rx + " => " + pat + " shouldn't match " + s,
-				pat.match(s));
+				pat.firstMatch(s));
 	}
 
 	void amatch(String s, String rx) {
