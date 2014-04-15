@@ -12,6 +12,8 @@ import javax.annotation.concurrent.Immutable;
 
 import com.google.common.base.CharMatcher;
 
+// TODO replacement
+
 /*
  * regular expression grammar and compiled form:
  *
@@ -112,22 +114,37 @@ public class Regex {
 		}
 
 		/**
-		 * look for a match at any position
+		 * Find the first match in the string at or after pos.
 		 * @return Result[] if a match is found, else null
 		 */
-		public Result match(String s) {
+		public Result firstMatch(String s, int pos) {
 			// allocate these once per match instead of once per amatch
 			Result result = new Result();
 			int alt_si[] = new int[MAX_BRANCH];
 			int alt_pi[] = new int[MAX_BRANCH];
-			int si = 0;
 			int sn = s.length();
+			assert 0 <= pos && pos <= sn;
 			Element e = pat.get(1); // skip LEFT0
-			while (si <= sn) {
+			for (int si = pos; si <= sn; si = e.nextPossible(s, si, sn))
 				if (null != amatch(s, si, result, alt_si, alt_pi))
 					return result;
-				si = e.nextPossible(s, si, sn);
-			}
+			return null;
+		}
+
+		/**
+		 * Find the last match in the string before pos.
+		 * Does not use the nextPossible optimization so may be slower;
+		 * @return Result[] if a match is found, else null
+		 */
+		public Result lastMatch(String s, int pos) {
+			Result result = new Result();
+			int alt_si[] = new int[MAX_BRANCH];
+			int alt_pi[] = new int[MAX_BRANCH];
+			int sn = s.length();
+			assert 0 <= pos && pos <= sn;
+			for (int si = pos; si >= 0; si--)
+				if (null != amatch(s, si, result, alt_si, alt_pi))
+					return result;
 			return null;
 		}
 
@@ -201,6 +218,8 @@ public class Regex {
 		ArrayList<Element> pat = new ArrayList<>();
 		boolean ignoringCase = false;
 		int left_count = 0;
+		boolean inChars = false;
+		boolean inCharsIgnoringCase = false;
 
 		Compiler(String src) {
 			this.src = src;
@@ -264,11 +283,11 @@ public class Regex {
 				int start = pat.size();
 				simple();
 				int len = pat.size() - start;
-				if (match("??"))
+				if (match("??")) {
 					insert(start, new Branch(len + 1, 1));
-				else if (match("?"))
+				} else if (match("?")) {
 					insert(start, new Branch(1, len + 1));
-				else if (match("+?"))
+				} else if (match("+?"))
 					emit(new Branch(1, -len));
 				else if (match("+"))
 					emit(new Branch(-len, 1));
@@ -291,8 +310,6 @@ public class Regex {
 			emit(ignoringCase ? new CharsIgnoreCase(s) : new Chars(s));
 		}
 
-		private static final CharMatcher CM_WORD =
-				CharMatcher.JAVA_LETTER_OR_DIGIT.or(CharMatcher.is('_'));
 		private static final CharMatcher CM_NOTWORD = CM_WORD.negate();
 
 		void simple() {
@@ -319,53 +336,45 @@ public class Regex {
 			} else if (match("(")) {
 				int i = ++left_count;
 				emit(new Left(i));
-				regex();
+				regex();					// recurse
 				emit(new Right(i));
 				match(")");
 			} else {
-				int prevStart = -1;
-				StringBuilder sb = new StringBuilder();
-				while (si < sn) {
-					int start = si;
-					char c = src.charAt(si);
-					if (c == '\\') {
-						if (-1 != "AZdDwWsS123456789<>".indexOf(src.charAt(si + 1)))
-							break;
-						else
-							c = src.charAt(++si); // skip backslash
-					} else if (-1 != "^$.|()[".indexOf(c))
-						break;
-					else if (-1 != "?+*".indexOf(c) && sb.length() > 0) {
-						if (sb.length() > 1) {
-							sb.deleteCharAt(sb.length() - 1);
-							si = prevStart;
-						}
-						break;
-					}
-					sb.append(c);
-					++si;
-					prevStart = start;
-				}
-				if (sb.length() > 0)
-					emitChars(sb.toString());
+				match("\\");
+				++si;
+				emitChar(src.substring(si - 1, si));
 			}
 		}
 
-		private void emitChars(String s) {
-			emit(ignoringCase ? new CharsIgnoreCase(s) : new Chars(s));
+		private void emitChar(String c) {
+			if (inChars && inCharsIgnoringCase == ignoringCase &&
+					! next1of("?*+")) {
+				((Chars) pat.get(pat.size() - 1)).chars += c;
+			} else {
+				emit(ignoringCase ? new CharsIgnoreCase(c) : new Chars(c));
+				inChars = true;
+				inCharsIgnoringCase = ignoringCase;
+			}
+		}
+
+		boolean next1of(String set) {
+			return si < sn && set.indexOf(src.charAt(si)) != -1;
 		}
 
 		// if ignoring case character classes are built to match lower case
 
+		// TODO benchmark if precomputed is faster
+
 		void charClass() {
 			if (src.charAt(si) != '^' &&
-					si + 1 < sn && src.charAt(si + 1) == ']') { // e.g. [.]
+					si + 1 < sn && src.charAt(si + 1) == ']') {
+				// optimize single char class [.]
 				++si;
-				String s = src.substring(si - 1, si);
-				emit(ignoringCase ? new CharsIgnoreCase(s) : new Chars(s));
+				emitChar(src.substring(si - 1, si));
 				return;
 			}
 			boolean negate = match("^");
+			StringBuilder chars = new StringBuilder();
 			CharMatcher cm = CharMatcher.NONE;
 			while (si < sn && src.charAt(si) != ']') {
 				CharMatcher elem;
@@ -385,14 +394,21 @@ public class Regex {
 					elem = notwhite;
 				else if (match("[:"))
 					elem = posixClass();
-				else
-					elem = CharMatcher.is(src.charAt(si++));
+				else {
+					chars.append(handleCase(src.charAt(si++)));
+					continue;
+				}
 				cm = cm.or(elem);
-
 			}
+			if (chars.length() > 0)
+				cm = cm.or(CharMatcher.anyOf(chars.toString()));
 			if (negate)
 				cm = cm.negate();
 			emit(ignoringCase ? new CharClassIgnoreCase(cm) : new CharClass(cm));
+		}
+
+		private char handleCase(char c) {
+			return ignoringCase ? Character.toLowerCase(c) : c;
 		}
 
 		private boolean matchRange() {
@@ -406,19 +422,12 @@ public class Regex {
 
 		private CharMatcher range(char from, char to) {
 			if (ignoringCase) {
-				// WARNING: not guaranteed to work for non-ascii
 				char lofrom = Character.toLowerCase(from);
 				char loto = Character.toLowerCase(to);
-				if ((from == lofrom) && (to != loto))
-					// e.g. 0-m split to 0-(a-1), a-z
-					return CharMatcher.inRange(from, (char) ('A' - 1)).or(
-							CharMatcher.inRange('a', loto));
-				else if ((from != lofrom) && (to == loto))
-					// e.g. m-~ split to m-z, (z+1)-~
-					return CharMatcher.inRange(lofrom, 'z').or(
-							CharMatcher.inRange((char) ('Z' + 1), to));
-				else // both letters
-					return CharMatcher.inRange(lofrom, loto);
+				if ((from == lofrom) != (to == loto) || (from < 'A' && 'Z' < to))
+					throw new RuntimeException(
+							"regular expression range invalid with ignore case");
+				return CharMatcher.inRange(lofrom, loto);
 			} else
 				return CharMatcher.inRange(from, to);
 		}
@@ -487,10 +496,12 @@ public class Regex {
 
 		void emit(Element e) {
 			pat.add(e);
+			inChars = false;
 		}
 
 		void insert(int i, Element e) {
 			pat.add(i, e);
+			inChars = false;
 		}
 
 	}
@@ -652,9 +663,9 @@ public class Regex {
 		}
 	}
 
-	@Immutable
+	// immutable after construction
 	static class Chars extends Element {
-		private final String chars;
+		protected String chars;
 
 		Chars(String chars) {
 			this.chars = chars;
@@ -680,12 +691,12 @@ public class Regex {
 	}
 
 	@Immutable
-	static class CharsIgnoreCase extends Element {
-		private final String chars;
+	// extend Chars so compile (simple) can treat them the same
+	static class CharsIgnoreCase extends Chars {
 		private final int len;
 
 		CharsIgnoreCase(String chars) {
-			this.chars = chars.toLowerCase();
+			super(chars.toLowerCase());
 			len = chars.length();
 		}
 
@@ -755,8 +766,7 @@ public class Regex {
 		int omatch(String s, int si) {
 			if (si >= s.length())
 				return FAIL;
-			char c = s.charAt(si);
-			return cm.matches(Character.toLowerCase(c)) ? si + 1 : FAIL;
+			return cm.matches(Character.toLowerCase(s.charAt(si))) ? si + 1 : FAIL;
 		}
 
 		@Override
@@ -829,6 +839,7 @@ public class Regex {
 			return idx == 0 ? "" : "Left" + idx;
 		}
 	}
+	final static Left LEFT0 = new Left(0);
 
 	/** Implemented by amatch. */
 	@Immutable
@@ -844,8 +855,6 @@ public class Regex {
 			return idx == 0 ? "" : "Right" + idx;
 		}
 	}
-
-	final static Left LEFT0 = new Left(0);
 	final static Right RIGHT0 = new Right(0);
 
 }

@@ -49,18 +49,24 @@ public class RegexTest {
 		test(".\\5.", ". \\5 .");
 		test("(?i)\\5", "i\\5");
 
-		test("[5-M]", "CharMatcher.inRange('\\u0035', '\\u004D')");
-		test("[M-}]", "CharMatcher.inRange('\\u004D', '\\u007D')");
-		test("(?i)[5-M]", "iCharMatcher.or("
-				+ "CharMatcher.inRange('\\u0035', '\\u0040'), "
-				+ "CharMatcher.inRange('\\u0061', '\\u006D'))");
-		test("(?i)[M-}]", "iCharMatcher.or("
-				+ "CharMatcher.inRange('\\u006D', '\\u007A'), "
-				+ "CharMatcher.inRange('\\u005B', '\\u007D'))");
+		except("(?i)[5-M]");
+		except("(?i)[M-}]");
+		except("(?i)[5-}]");
+
+		test("a[.]b", "'a.b'");
 	}
 
 	void test(String rx, String expected) {
 		assertThat(Regex.compile(rx).toString().trim(), equalTo(expected));
+	}
+
+	void except(String rx) {
+		try {
+			Regex.compile(rx);
+			assert false : "expected exception";
+		} catch (RuntimeException e) {
+			assert e.toString().contains("range invalid");
+		}
 	}
 
 	@Test
@@ -166,6 +172,9 @@ public class RegexTest {
 		noamatch("5", "[[:alpha:]]");
 		noamatch("5", "[[:lower:]]");
 		noamatch("5", "[[:upper:]]");
+
+		amatch("aBc", "[aBc]+");
+		amatch("aBc", "(?i)[ABC]+");
 
 		amatch("axb", "[\u0000-\u00ff]+");
 	}
@@ -290,22 +299,38 @@ public class RegexTest {
 
 	void match(String s, String rx, String... exp) {
 		Regex.Pattern pat = Regex.compile(rx);
-		Regex.Result res = pat.match(s);
+		Regex.Result res = pat.firstMatch(s, 0);
 		assertNotNull(res);
 		for (int i = 0; i < exp.length; ++i) {
 			assertThat(s.substring(res.pos[i], res.end[i]), equalTo(exp[i]));
 		}
 	}
 
+	@Test
+	public void lastMatch() {
+		lastMatch("hello", "\\w", 4);
+		lastMatch("hello world", "o", 7);
+		lastMatch("hello world", "\\<\\w+", 6);
+	}
+
+	void lastMatch(String s, String rx, int expected) {
+		Regex.Pattern pat = Regex.compile(rx);
+		Regex.Result res = pat.lastMatch(s, s.length());
+		if (res == null)
+			assertThat(-1, equalTo(expected));
+		else
+			assertThat(res.pos[0], equalTo(expected));
+	}
+
 	void match(String s, String rx) {
 		Regex.Pattern pat = Regex.compile(rx);
 		assertNotNull(rx + " => " + pat + " failed to match " + s,
-				pat.match(s));
+				pat.firstMatch(s, 0));
 	}
 	void nomatch(String s, String rx) {
 		Regex.Pattern pat = Regex.compile(rx);
 		assertNull(rx + " => " + pat + " shouldn't match " + s,
-				pat.match(s));
+				pat.firstMatch(s, 0));
 	}
 
 	void amatch(String s, String rx) {
