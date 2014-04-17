@@ -4,28 +4,26 @@
 
 package suneido.language;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 
 import org.junit.Test;
 
 import com.google.common.base.Strings;
-
-// NOTE: remember toString flattens
 
 public class ConcatsTest {
 
 	@Test
 	public void construct() {
 		Concats a = new Concats("hello", "world");
-		assertThat(a.toString(), is("helloworld"));
+		assertThat(a.toString(), equalTo("helloworld"));
 	}
 
 	@Test
 	public void append() {
 		Concats a = new Concats("hello", "world");
 		Concats b = a.append("!");
-		assertThat(b.toString(), is("helloworld!"));
+		assertThat(b.toString(), equalTo("helloworld!"));
 	}
 
 	@Test
@@ -33,8 +31,8 @@ public class ConcatsTest {
 		Concats a = new Concats("hello", "world");
 		Concats b = a.append("!");
 		Concats c = a.append("?");
-		assertThat(c.toString(), is("helloworld?"));
-		assertThat(b.toString(), is("helloworld!"));
+		assertThat(c.toString(), equalTo("helloworld?"));
+		assertThat(b.toString(), equalTo("helloworld!"));
 	}
 
 	@Test
@@ -44,8 +42,8 @@ public class ConcatsTest {
 		for (int i = 2; i < N; ++i)
 			a = a.append("x");
 		String s = a.toString();
-		assertThat(s.length(), is(N));
-		assertThat(s, is(Strings.repeat("x", N)));
+		assertThat(s.length(), equalTo(N));
+		assertThat(s, equalTo(Strings.repeat("x", N)));
 	}
 
 }

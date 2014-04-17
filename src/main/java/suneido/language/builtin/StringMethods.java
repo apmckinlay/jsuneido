@@ -17,12 +17,15 @@ import suneido.SuContainer;
 import suneido.SuException;
 import suneido.Suneido;
 import suneido.TheDbms;
-import suneido.language.*;
+import suneido.language.BuiltinMethods;
 import suneido.language.Compiler;
+import suneido.language.Ops;
+import suneido.language.Params;
 import suneido.util.*;
 import suneido.util.Regex.Result;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Strings;
 
 public class StringMethods extends BuiltinMethods {
 	public static final StringMethods singleton = new StringMethods();
@@ -33,6 +36,10 @@ public class StringMethods extends BuiltinMethods {
 
 	private static String toStr(Object self) {
 		return self.toString();
+	}
+
+	private static CharSequence toSeq(Object self) {
+		return self instanceof CharSequence ? (CharSequence) self : toStr(self);
 	}
 
 	public static Object AlphaQ(Object self) {
@@ -286,12 +293,7 @@ public class StringMethods extends BuiltinMethods {
 
 	@Params("n")
 	public static Object Repeat(Object self, Object a) {
-		String s = toStr(self);
-		int n = Math.max(0, toInt(a));
-		StringBuilder sb = new StringBuilder(n * s.length());
-		for (int i = 0; i < n; ++i)
-			sb.append(s);
-		return sb.toString();
+		return Strings.repeat(toStr(self), Math.max(0, toInt(a)));
 	}
 
 	@Params("pattern, block = '', count = INTMAX")
@@ -350,9 +352,7 @@ public class StringMethods extends BuiltinMethods {
 	}
 
 	public static Object Size(Object self) {
-		return self instanceof String
-				? ((String) self).length()
-				: ((String2) self).length();
+		return toSeq(self).length();
 	}
 
 	@Params("string")
@@ -383,7 +383,7 @@ public class StringMethods extends BuiltinMethods {
 
 	@Params("i, n = INTMAX")
 	public static Object Substr(Object self, Object a, Object b) {
-		String s = toStr(self);
+		CharSequence s = toSeq(self);
 		int len = s.length();
 		int i = toInt(a);
 		if (i < 0)
@@ -393,7 +393,7 @@ public class StringMethods extends BuiltinMethods {
 		if (n < 0)
 			n += len - i;
 		n = max(0, min(n, len - i));
-		return s.substring(i, i + n);
+		return s.subSequence(i, i + n);
 	}
 
 	private static final Charset Windows1252 = Charset.forName("windows-1252");
