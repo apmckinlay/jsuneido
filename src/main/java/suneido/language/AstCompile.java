@@ -37,6 +37,7 @@ public class AstCompile {
 	private static final AtomicInteger nextFnId = new AtomicInteger();
 	private int fnId = -1;
 	private final ContextLayered context;
+	@SuppressWarnings("unused")
 	private final SuContainer warnings;
 
 	public AstCompile(String globalName, PrintWriter pw, ContextLayered context,
