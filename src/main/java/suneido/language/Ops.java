@@ -227,14 +227,18 @@ public final class Ops {
 	private static final int LARGE = 256;
 
 	private static Object cat(String x, String y) {
+		if (x.length() == 0)
+			return y;
+		if (y.length() == 0)
+			return x;
 		return x.length() + y.length() < LARGE
 				? x.concat(y)
 				: new Concats(x, y);
 	}
 
 	private static Object cat2(Object x, Object y) {
-		if (x instanceof Concats && y instanceof String)
-			return ((Concats) x).append((String) y);
+		if (x instanceof Concats)
+			return ((Concats) x).append(y);
 		return cat(toStr(x), toStr(y));
 	}
 
