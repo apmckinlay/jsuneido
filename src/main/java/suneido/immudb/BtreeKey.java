@@ -20,7 +20,7 @@ class BtreeKey implements Comparable<BtreeKey> {
 	final static BtreeKey EMPTY = new BtreeKey(Record.EMPTY);
 	final Record key;
 	final int dataAdr;
-
+	
 	BtreeKey(Record key) {
 		this(key, 0);
 	}

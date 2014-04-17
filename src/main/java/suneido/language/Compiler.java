@@ -4,7 +4,6 @@
 
 package suneido.language;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -61,23 +60,23 @@ public class Compiler {
 	}
 
 	public static Object eval(String s) {
-		return Ops.call0(compile("eval", "function () { " + s + " }"));
+		return Ops.call0(compile("eval", "function () { " + s + "\n}"));
 	}
 
 	public static Object eval(String s, ContextLayered context) {
-		return Ops.call0(compile("eval", "function () { " + s + " }", context));
+		return Ops.call0(compile("eval", "function () { " + s + "\n}", context));
 	}
 
-	public static void main(String[] args) throws IOException {
-//		String s = Files.toString(new java.io.File("tmp.txt"), Charsets.UTF_8);
-//		String s = "function () { c = class { New(.P) { } A() { .P } }; i = c(123); i.A() }";
-//		String s = "function () { _p = 123; function(_p = 0){ p }(); }";
-		String s = "class { Meth() { 123 } }";
-		PrintWriter pw = new PrintWriter(System.out);
-//		Object f =
-				compile("Test", s, pw);
-		//System.out.println(" => " + Ops.call0(f));
-		//System.out.println(" => " + Ops.call1(f, "hello"));
-	}
+//	public static void main(String[] args) throws IOException {
+////		String s = Files.toString(new java.io.File("tmp.txt"), Charsets.UTF_8);
+////		String s = "function () { c = class { New(.P) { } A() { .P } }; i = c(123); i.A() }";
+////		String s = "function () { _p = 123; function(_p = 0){ p }(); }";
+//		String s = "class { Meth() { 123 } }";
+//		PrintWriter pw = new PrintWriter(System.out);
+////		Object f =
+//				compile("Test", s, pw);
+//		//System.out.println(" => " + Ops.call0(f));
+//		//System.out.println(" => " + Ops.call1(f, "hello"));
+//	}
 
 }
