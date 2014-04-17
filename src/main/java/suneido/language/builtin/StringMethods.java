@@ -11,15 +11,16 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
-import java.util.regex.MatchResult;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import suneido.*;
+import suneido.SuContainer;
+import suneido.SuException;
+import suneido.Suneido;
+import suneido.TheDbms;
 import suneido.language.*;
 import suneido.language.Compiler;
-import suneido.util.Tabs;
-import suneido.util.Util;
+import suneido.util.*;
+import suneido.util.Regex.Result;
 
 import com.google.common.base.Charsets;
 
@@ -119,16 +120,13 @@ public class StringMethods extends BuiltinMethods {
 		return extract(s, pat, b);
 	}
 	static Object extract(String s, String pat, Object part) {
-		Pattern pattern = Regex.getPat(pat, s);
-		Matcher matcher = pattern.matcher(s);
-		if (!matcher.find())
+		Regex.Result result = RegexCache.getPattern(pat).firstMatch(s, 0);
+		if (result == null)
 			return Boolean.FALSE;
-		MatchResult result = matcher.toMatchResult();
 		int part_i = (part == Boolean.FALSE)
 				? (result.groupCount() == 0) ? 0 : 1
 				: Ops.toInt(part);
-		String t = result.group(part_i);
-		return t == null ? "" : t;
+		return result.group(s, part_i);
 	}
 
 	@Params("s, i = 0")
@@ -222,20 +220,20 @@ public class StringMethods extends BuiltinMethods {
 		return sb.toString();
 	}
 
-	@Params("pattern")
-	public static Object Match(Object self, Object a) {
+	@Params("pattern, pos = 0")
+	public static Object Match(Object self, Object a, Object b) {
 		String s = toStr(self);
-		Pattern pat = Regex.getPat(Ops.toStr(a), s);
-		Matcher m = pat.matcher(s);
-		if (!m.find())
+		String pat = toStr(a);
+		int pos = toInt(b);
+		Regex.Result result = RegexCache.getPattern(pat).firstMatch(s, pos);
+		if (result == null)
 			return Boolean.FALSE;
-		MatchResult mr = m.toMatchResult();
 		SuContainer c = new SuContainer();
-		for (int i = 0; i <= mr.groupCount(); ++i) {
+		for (int i = 0; i <= result.groupCount(); ++i) {
 			SuContainer c2 = new SuContainer();
-			int start = mr.start(i);
+			int start = result.pos[i];
 			c2.add(start);
-			c2.add(start == -1 ? -1 : mr.end() - start);
+			c2.add(result.end[i] - start);
 			c.add(c2);
 		}
 		return c;
@@ -305,25 +303,46 @@ public class StringMethods extends BuiltinMethods {
 	}
 
 	public static String replace(String s, String p, Object b, int n) {
-		Pattern pat = Regex.getPat(p, s);
+		Regex.Pattern pat = RegexCache.getPattern(p);
 		String rep = null;
 		if (Ops.isString(b))
 			rep = b.toString();
+		ForEach foreach = new ForEach(s, rep, n, b);
+		pat.forEachMatch(s, foreach);
+		return foreach.result();
+	}
 
-		Matcher m = pat.matcher(s);
-		StringBuilder sb = new StringBuilder();
+	private static class ForEach implements Regex.ForEach {
+		final StringBuilder sb;
+		final String s;
+		final String rep;
+		int n;
+		final Object block;
 		int append = 0;
-		for (int i = 0; i < n && m.find(); ++i) {
-			sb.append(s.substring(append, m.start()));
-			if (rep == null) {
-				Object t = Ops.call(b, m.group());
-				sb.append(t == null ? m.group() : Ops.toStr(t));
-			} else
-				suneido.Regex.appendReplacement(m, sb, rep);
-			append = m.end();
+
+		ForEach(String s, String rep, int n, Object block) {
+			this.s = s;
+			this.rep = rep;
+			this.n = n;
+			this.block = block;
+			sb = new StringBuilder(s.length());
 		}
-		sb.append(s.substring(append));
-		return sb.toString();
+		@Override
+		public int each(Result res) {
+			sb.append(s.substring(append, res.pos[0]));
+			if (rep == null) {
+				String matched = res.group(s, 0);
+				Object t = Ops.call(block, matched);
+				sb.append(t == null ? matched : Ops.toStr(t));
+			} else
+				suneido.util.RegexReplace.append(s, res, rep, sb);
+			append = res.end[0];
+			return --n > 0 ? Math.max(res.end[0], res.pos[0] + 1) : s.length() + 1;
+		}
+		String result() {
+			sb.append(s.substring(append));
+			return sb.toString();
+		}
 	}
 
 	public static Object ServerEval(Object self) {
