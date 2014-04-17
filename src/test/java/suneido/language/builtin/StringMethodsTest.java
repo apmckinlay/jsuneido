@@ -29,7 +29,7 @@ public class StringMethodsTest {
 	public void test_extract() {
 		extract("hello world", ".....$", "world");
 		extract("hello world", "w(..)ld", "or");
-		extract("hello world", "h.*d(x)*", "");
+		extract("hello world", "h.*d(x?)", "");
 	}
 
 	private static void extract(String s, String pat, String result) {
@@ -42,6 +42,7 @@ public class StringMethodsTest {
 		replace("now is the time", "t", "X", "now is Xhe Xime");
 		replace("now is the time", "t", "X", 1, "now is Xhe time");
 		replace("now is the time", "[a-z]+", "(&)", 2, "(now) (is) the time");
+		replace("abcdef", "(abc|def)", "x", "xx");
 	}
 
 	private static void replace(String s, String pat, String rep, String result) {

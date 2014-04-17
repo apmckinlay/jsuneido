@@ -22,6 +22,7 @@ import suneido.*;
 import suneido.language.builtin.NumberMethods;
 import suneido.language.builtin.StringMethods;
 import suneido.language.jsdi.Buffer;
+import suneido.util.RegexCache;
 import suneido.util.StringIterator;
 
 import com.google.common.base.CharMatcher;
@@ -204,7 +205,7 @@ public final class Ops {
 	public static final Comp comp = new Comp();
 
 	public static boolean match_(Object s, Object rx) {
-		return Regex.contains(toStr(s), toStr(rx));
+		return null != RegexCache.getPattern(toStr(rx)).firstMatch(toStr(s), 0);
 	}
 	public static Boolean match(Object s, Object rx) {
 		return match_(s, rx);

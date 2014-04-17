@@ -38,9 +38,10 @@ public class RegexTest {
 				"Branch(1, 3) 'ab' Jump(3) Branch(1, 3) 'cd' Jump(2) 'ef'");
 		test("abc\\Z", "'abc' \\Z");
 		test("[a]", "'a'");
+		test("[\\a]", "'a'");
 		test("(?i)x.y(?-i)z", "i'x' . i'y' 'z'");
 
-		test("(?q).*(?-q)def", "'.*' 'def'");
+		test("(?q).*(?-q)def", "'.*def'");
 
 		test("\\<Foo\\>", "\\< 'Foo' \\>");
 
@@ -49,28 +50,36 @@ public class RegexTest {
 		test(".\\5.", ". \\5 .");
 		test("(?i)\\5", "i\\5");
 
-		except("(?i)[5-M]");
-		except("(?i)[M-}]");
-		except("(?i)[5-}]");
+		except("(?i)[5-M]", "range invalid");
+		except("(?i)[M-}]", "range invalid");
+		except("(?i)[5-}]", "range invalid");
 
 		test("a[.]b", "'a.b'");
+
+		test("a(?q).(?-q).c(?q).(?-q).", "'a.' . 'c.' .");
+
+		test("(?i)ABC", "i'abc'");
+
+		test("\\", "'\\'");
+
+		except("(abc", "missing ')'");
+		except("abc)def", "closing ) without opening (");
+
+		test("[^][]", "CharMatcher.anyOf(\"\\u005D\\u005B\").negate()");
+		test("[x\\]y]", "CharMatcher.anyOf(\"\\u005D\\u0078\\u0079\")");
 	}
 
 	void test(String rx, String expected) {
 		assertThat(Regex.compile(rx).toString().trim(), equalTo(expected));
 	}
 
-	void except(String rx) {
+	void except(String rx, String expected) {
 		try {
 			Regex.compile(rx);
 			assert false : "expected exception";
 		} catch (RuntimeException e) {
-			assert e.toString().contains("range invalid");
+			assert e.toString().contains(expected);
 		}
-	}
-
-	@Test
-	public void isolation() {
 	}
 
 	@Test
@@ -175,6 +184,11 @@ public class RegexTest {
 
 		amatch("aBc", "[aBc]+");
 		amatch("aBc", "(?i)[ABC]+");
+		amatch("ABC", "(?i)ABC");
+		amatch("ABC", "(?i)abc");
+		amatch("abc", "(?i)ABC");
+		amatch("abc", "(?i)abc");
+		noamatch("abc", "(?i)ark");
 
 		amatch("axb", "[\u0000-\u00ff]+");
 	}
@@ -295,6 +309,7 @@ public class RegexTest {
 	public void match_results() {
 		match("foo123", "([a-z]+)([0-9]+)", "foo123", "foo", "123");
 		match("hello there world", "(\\w+ )+", "hello there ", "there ");
+		match("hello world", "hello(x?)", "hello");
 	}
 
 	void match(String s, String rx, String... exp) {
