@@ -69,6 +69,7 @@
 	>
 		<mkdir dir="${main.destdir}"/>
 		<javac srcdir="${main.srcdir}" destdir="${main.destdir}"
+				classpathref="main.classpath"
 				includeAntRuntime="false"
 				debug="true"
 		>
