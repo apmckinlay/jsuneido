@@ -13,8 +13,6 @@ import javax.annotation.concurrent.Immutable;
 import com.google.common.base.CharMatcher;
 import com.google.common.primitives.Ints;
 
-// TODO replacement
-
 /*
  * regular expression grammar and compiled form:
  *
