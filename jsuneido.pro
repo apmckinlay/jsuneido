@@ -1,5 +1,5 @@
 -injars jsuneido-raw.jar
--injars lib/asm-all-4.2.jar (!META-INF/MANIFEST.MF)
+-injars lib/asm-all-5.0.2.jar (!META-INF/MANIFEST.MF)
 -injars lib/jsr305-1.3.9.jar (!META-INF/MANIFEST.MF)
 -injars lib/guava-16.0.jar (!META-INF/MANIFEST.MF)
 -injars lib/trove-3.0.3.jar (!META-INF/MANIFEST.MF)
