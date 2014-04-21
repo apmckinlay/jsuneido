@@ -227,23 +227,21 @@ public class StringMethods extends BuiltinMethods {
 		return sb.toString();
 	}
 
-	@Params("pattern, pos = 0")
-	public static Object Match(Object self, Object a, Object b) {
+	@Params("pattern, pos = false, prev = false")
+	public static Object Match(Object self, Object a, Object b, Object c) {
 		String s = toStr(self);
-		String pat = toStr(a);
-		int pos = toInt(b);
-		Regex.Result result = RegexCache.getPattern(pat).firstMatch(s, pos);
+		boolean prev = Ops.toBoolean_(c);
+		int pos = b == Boolean.FALSE ? (prev ? s.length() : 0) : toInt(b);
+		Regex.Pattern pat = RegexCache.getPattern(toStr(a));
+		Regex.Result result = prev ? pat.lastMatch(s, pos) : pat.firstMatch(s, pos);
 		if (result == null)
 			return Boolean.FALSE;
-		SuContainer c = new SuContainer();
+		SuContainer ob = new SuContainer();
 		for (int i = 0; i <= result.groupCount(); ++i) {
-			SuContainer c2 = new SuContainer();
 			int start = result.pos[i];
-			c2.add(start);
-			c2.add(result.end[i] - start);
-			c.add(c2);
+			ob.add(SuContainer.of(start, result.end[i] - start));
 		}
-		return c;
+		return ob;
 	}
 
 	public static Object NumberQ(Object self) {
