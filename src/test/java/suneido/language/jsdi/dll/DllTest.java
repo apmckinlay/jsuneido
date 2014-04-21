@@ -208,7 +208,7 @@ public class DllTest {
 
 	@Test
 	public void testSumTwoFloats() {
-		assertEquals(bd(3 * 98765432), eval("TestSumTwoFloats(98765432, 2 * 98765432)"));
+		assertEquals(bd(3 * 987654), eval("TestSumTwoFloats(987654, 2 * 987654)"));
 	}
 
 	@Test
