@@ -128,9 +128,7 @@ public class RunPiped extends SuValue {
 		return "RunPiped(" + cmd + ")";
 	}
 
-	/* temporarily split a single command line string into arguments
-	 * in the long run we should switch to passing multiple arguments instead
-	 */
+	/** split single command line string into arguments */
 	private static List<String> splitcmd(String s) {
 		ArrayList<String> args = new ArrayList<>();
 		while (true) {
