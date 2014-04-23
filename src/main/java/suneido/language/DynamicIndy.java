@@ -4,16 +4,7 @@
 
 package suneido.language;
 
-import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
-import static org.objectweb.asm.Opcodes.ACC_STATIC;
-import static org.objectweb.asm.Opcodes.ACC_SUPER;
-import static org.objectweb.asm.Opcodes.ALOAD;
-import static org.objectweb.asm.Opcodes.ILOAD;
-import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
-import static org.objectweb.asm.Opcodes.IRETURN;
-import static org.objectweb.asm.Opcodes.H_INVOKESTATIC;
-import static org.objectweb.asm.Opcodes.RETURN;
-import static org.objectweb.asm.Opcodes.V1_7;
+import static org.objectweb.asm.Opcodes.*;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -41,7 +32,7 @@ public class DynamicIndy extends ClassLoader {
     MethodVisitor init = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
     init.visitCode();
     init.visitVarInsn(ALOAD, 0);
-    init.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
+    init.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
     init.visitInsn(RETURN);
     init.visitMaxs(-1, -1);
     init.visitEnd();
