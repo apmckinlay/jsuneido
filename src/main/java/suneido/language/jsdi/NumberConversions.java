@@ -130,7 +130,7 @@ public final class NumberConversions {
 
 	/**
 	 * <p>
-	 * Converts an integer value which representing a 64-bit pointer into a Java
+	 * Converts an integer value representing a 64-bit pointer into a Java
 	 * {@code long} capable of being passed to native code.
 	 * </p>
 	 * <p>
