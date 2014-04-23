@@ -126,7 +126,7 @@ public class ClassGen {
 		mv.visitVarInsn(ALOAD, THIS);
 		mv.visitVarInsn(ALOAD, ARGS);
 		mv.visitMethodInsn(INVOKESPECIAL, "suneido/language/SuCallable",
-				"massage", "([Ljava/lang/Object;)[Ljava/lang/Object;");
+				"massage", "([Ljava/lang/Object;)[Ljava/lang/Object;", false);
 		mv.visitVarInsn(ASTORE, ARGS);
 	}
 
@@ -170,7 +170,7 @@ public class ClassGen {
 		else if (value instanceof Integer) {
 			iconst((Integer) value);
 			mv.visitMethodInsn(INVOKESTATIC, "java/lang/Integer", "valueOf",
-					"(I)Ljava/lang/Integer;");
+					"(I)Ljava/lang/Integer;", false);
 		} else {
 			int i = addConstant(value);
 			loadConstant(i);
@@ -238,7 +238,7 @@ public class ClassGen {
 	private void blockReturn() {
 		iconst(parentId);
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "blockReturnException",
-				"(Ljava/lang/Object;I)Lsuneido/language/BlockReturnException;");
+				"(Ljava/lang/Object;I)Lsuneido/language/BlockReturnException;", false);
 		mv.visitInsn(ATHROW);
 	}
 
@@ -248,28 +248,28 @@ public class ClassGen {
 
 	void unaryOp(String method, String type) {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", method,
-				"(Ljava/lang/Object;)Ljava/lang/" + type + ";");
+				"(Ljava/lang/Object;)Ljava/lang/" + type + ";", false);
 	}
 	void unaryOp(Token op, boolean intBool) {
 		if (intBool && op.resultType == TokenResultType.B)
 			op = op.other;
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", op.method,
-				"(Ljava/lang/Object;)" + op.resultType.type);
+				"(Ljava/lang/Object;)" + op.resultType.type, false);
 	}
 	void binaryOp(Token op, boolean intBool) {
 		if (intBool && op.resultType == TokenResultType.B)
 			op = op.other;
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", op.method,
-				"(Ljava/lang/Object;Ljava/lang/Object;)" + op.resultType.type);
+				"(Ljava/lang/Object;Ljava/lang/Object;)" + op.resultType.type, false);
 	}
 
 	void rangeTo() {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "rangeTo",
-				"(Ljava/lang/Object;Ljava/lang/Object;)Lsuneido/language/Range;");
+				"(Ljava/lang/Object;Ljava/lang/Object;)Lsuneido/language/Range;", false);
 	}
 	void rangeLen() {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "rangeLen",
-				"(Ljava/lang/Object;Ljava/lang/Object;)Lsuneido/language/Range;");
+				"(Ljava/lang/Object;Ljava/lang/Object;)Lsuneido/language/Range;", false);
 	}
 
 	void localLoad(String name) {
@@ -336,17 +336,17 @@ public class ClassGen {
 		mv.visitVarInsn(ALOAD, THIS);
 		iconst(slot);
 		mv.visitMethodInsn(INVOKESPECIAL, "suneido/language/SuCallable",
-				"contextGet", "(I)Ljava/lang/Object;");
+				"contextGet", "(I)Ljava/lang/Object;", false);
 	}
 
 	void memberLoad() {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "get",
-				"(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+				"(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;", false);
 	}
 
 	void memberStore() {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "put",
-				"(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V");
+				"(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V", false);
 	}
 
 	int dynamicRef(String name) {
@@ -361,13 +361,13 @@ public class ClassGen {
 
 	void dynamicLoad() {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Dynamic",
-				"get", "(Ljava/lang/String;)Ljava/lang/Object;");
+				"get", "(Ljava/lang/String;)Ljava/lang/Object;", false);
 	}
 
 	/** name and value should be on the stack already */
 	void dynamicStore() {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Dynamic",
-				"put", "(Ljava/lang/String;Ljava/lang/Object;)V");
+				"put", "(Ljava/lang/String;Ljava/lang/Object;)V", false);
 	}
 
 	void dup() {
@@ -401,37 +401,39 @@ public class ClassGen {
 		mv.visitInsn(DUP);
 		mv.visitJumpInsn(IFNONNULL, label);
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops",
-				"throw" + error, "()V");
+				"throw" + error, "()V", false);
 		mv.visitLabel(label);
 	}
 
 	void callFunction() {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "call",
-				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;", false);
 	}
 
 	void callFunction(int nargs) {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "call" + nargs,
-				"(" + directArgs[nargs + 1] + ")Ljava/lang/Object;");
+				"(" + directArgs[nargs + 1] + ")Ljava/lang/Object;", false);
 	}
 
 	void invokeGlobal() {
 		mv.visitMethodInsn(INVOKESPECIAL, "suneido/language/SuCallable", "invoke",
-				"(I[Ljava/lang/Object;)Ljava/lang/Object;");
+				"(I[Ljava/lang/Object;)Ljava/lang/Object;", false);
 	}
 	void invokeGlobal(int nargs) {
 		mv.visitMethodInsn(INVOKESPECIAL, "suneido/language/SuCallable", "invoke" + nargs,
-				"(I" + directArgs[nargs] + ")Ljava/lang/Object;");
+				"(I" + directArgs[nargs] + ")Ljava/lang/Object;", false);
 	}
 
 	void invokeMethod() {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "invoke",
-			"(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;");
+			"(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;",
+			false);
 	}
 
 	void invokeMethod(int nargs) {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "invoke" + nargs,
-			"(Ljava/lang/Object;Ljava/lang/String;" + directArgs[nargs] + ")Ljava/lang/Object;");
+			"(Ljava/lang/Object;Ljava/lang/String;" + directArgs[nargs] + ")Ljava/lang/Object;",
+			false);
 	}
 
 	private static final int MAX_DIRECT_ARGS = 11;
@@ -452,7 +454,7 @@ public class ClassGen {
 
 	void invokeDirect(String name) {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/builtin/" + name + "Class",
-				"create", "([Ljava/lang/Object;)Ljava/lang/Object;");
+				"create", "([Ljava/lang/Object;)Ljava/lang/Object;", false);
 	}
 
 	void superCallTarget(String method) {
@@ -463,7 +465,8 @@ public class ClassGen {
 
 	void invokeSuper() {
 		mv.visitMethodInsn(INVOKESPECIAL, "suneido/language/SuCallable", "superInvoke",
-				"(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;");
+				"(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;",
+				false);
 	}
 
 	void superInit() {
@@ -481,7 +484,7 @@ public class ClassGen {
 
 	void toMethodString() {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops",
-				"toMethodString", "(Ljava/lang/Object;)Ljava/lang/String;");
+				"toMethodString", "(Ljava/lang/Object;)Ljava/lang/String;", false);
 	}
 
 	void specialArg(String which) {
@@ -491,7 +494,7 @@ public class ClassGen {
 
 	void thrower() {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "exception",
-				"(Ljava/lang/Object;)Ljava/lang/Throwable;");
+				"(Ljava/lang/Object;)Ljava/lang/Throwable;", false);
 		mv.visitInsn(ATHROW);
 	}
 
@@ -529,10 +532,11 @@ public class ClassGen {
 		if (pattern != null) {
 			mv.visitLdcInsn(pattern);
 			mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "catchMatch",
-					"(Ljava/lang/Throwable;Ljava/lang/String;)Lsuneido/language/Except;");
+					"(Ljava/lang/Throwable;Ljava/lang/String;)Lsuneido/language/Except;",
+					false);
 		} else if (var != null)
 			mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "catchMatch",
-					"(Ljava/lang/Throwable;)Lsuneido/language/Except;");
+					"(Ljava/lang/Throwable;)Lsuneido/language/Except;", false);
 		if (var == null)
 			mv.visitInsn(POP);
 		else
@@ -584,15 +588,14 @@ public class ClassGen {
 
 	void toIntBool() {
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "toIntBool",
-				"(Ljava/lang/Object;)I");
+				"(Ljava/lang/Object;)I", false);
 	}
 
 	// for in
 
 	int iter() {
-		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops",
-				"iterator",
-				"(Ljava/lang/Object;)Ljava/lang/Object;");
+		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "iterator",
+				"(Ljava/lang/Object;)Ljava/lang/Object;", false);
 		return storeTemp();
 	}
 
@@ -609,12 +612,12 @@ public class ClassGen {
 	void hasNext(int temp) {
 		mv.visitVarInsn(ALOAD, temp);
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "hasNext",
-				"(Ljava/lang/Object;)Z");
+				"(Ljava/lang/Object;)Z", false);
 	}
 	void next(String var, int temp) {
 		loadTemp(temp);
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "next",
-				"(Ljava/lang/Object;)Ljava/lang/Object;");
+				"(Ljava/lang/Object;)Ljava/lang/Object;", false);
 		saveTopInVar(var);
 	}
 
@@ -644,7 +647,8 @@ public class ClassGen {
 		assert ARGS >= 0;
 		mv.visitVarInsn(ALOAD, ARGS); 		// locals
 		mv.visitMethodInsn(INVOKESPECIAL, className, "<init>",
-				"(Ljava/lang/Object;Ljava/lang/Object;[Ljava/lang/Object;)V");
+				"(Ljava/lang/Object;Ljava/lang/Object;[Ljava/lang/Object;)V",
+				false);
 		addBlockReturnCatcher();
 	}
 
@@ -658,7 +662,8 @@ public class ClassGen {
 		mv.visitLabel(blockReturnCatcher.label2);
 		iconst(parentId);
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "blockReturnHandler",
-				"(Lsuneido/language/BlockReturnException;I)Ljava/lang/Object;");
+				"(Lsuneido/language/BlockReturnException;I)Ljava/lang/Object;",
+				false);
 		areturn();
 	}
 
@@ -668,7 +673,8 @@ public class ClassGen {
 	}
 
 	private void dynamicPush() {
-		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Dynamic", "push", "()V");
+		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Dynamic", "push", "()V",
+				false);
 	}
 
 	/** catcher that just pops and rethrows */
@@ -680,7 +686,8 @@ public class ClassGen {
 	}
 
 	private void dynamicPop() {
-		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Dynamic", "pop", "()V");
+		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Dynamic", "pop", "()V",
+				false);
 	}
 
 	SuCallable end(SuClass suClass) {
@@ -785,14 +792,14 @@ public class ClassGen {
 		mv.visitFieldInsn(GETSTATIC, "suneido/language/ClassGen",
 				"shareConstants", "Ljava/lang/ThreadLocal;");
 		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/ThreadLocal",
-				"get", "()Ljava/lang/Object;");
+				"get", "()Ljava/lang/Object;", false);
 		mv.visitTypeInsn(CHECKCAST, "java/util/List");
 		mv.visitVarInsn(ASTORE, 0);
 		for (int i = 0; i < constants.size(); ++i) {
 			mv.visitVarInsn(ALOAD, 0);
 			iconst(mv, i);
 			mv.visitMethodInsn(INVOKEINTERFACE, "java/util/List",
-					"get", "(I)Ljava/lang/Object;");
+					"get", "(I)Ljava/lang/Object;", true);
 			mv.visitFieldInsn(PUTSTATIC, className,
 					"const" + i, "Ljava/lang/Object;");
 		}
@@ -812,7 +819,7 @@ public class ClassGen {
 		Label l0 = new Label();
 		mv.visitLabel(l0);
 		mv.visitVarInsn(ALOAD, 0);
-		mv.visitMethodInsn(INVOKESPECIAL, base, "<init>", "()V");
+		mv.visitMethodInsn(INVOKESPECIAL, base, "<init>", "()V", false);
 		mv.visitInsn(RETURN);
 		Label l1 = new Label();
 		mv.visitLabel(l1);
