@@ -12,11 +12,10 @@ public class TestByteBufferCopy {
 		ByteBuffer src = ByteBuffer.allocateDirect(4096);
 		long t = System.currentTimeMillis();
 		for (int i = 0; i < 5000000; ++i) {
-//			ByteBuffer dst = ByteBuffer.allocate(4096);
-//			src.position(0);
-//			src.limit(4096);
-//			dst.put(src);
-			ByteBuf.wrap(src).copy(4096);
+			ByteBuffer dst = ByteBuffer.allocate(4096);
+			src.position(0);
+			src.limit(4096);
+			dst.put(src);
 		}
 		t = System.currentTimeMillis() - t;
 		System.out.println(t + " ms");
