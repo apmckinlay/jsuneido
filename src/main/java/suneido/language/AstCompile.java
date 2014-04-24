@@ -879,6 +879,11 @@ public class AstCompile {
 			else
 				cg.rangeLen();
 			break;
+		case IN:
+			inExpression(cg, ast, option == ExprOption.INTBOOL);
+			if (option == ExprOption.INTBOOL)
+				resultType = ExprType.INTBOOL;
+			break;
 		default:
 			throw new SuException("expression: unhandled: " + ast.token);
 		}
@@ -921,6 +926,23 @@ public class AstCompile {
 		Object end = cg.jump();
 		cg.placeLabel(ifFalse);
 		expression(cg, ast.third());
+		cg.placeLabel(end);
+	}
+
+	private void inExpression(ClassGen cg, AstNode ast, boolean intBool) {
+		expression(cg, ast.first());
+		int temp = cg.storeTemp();
+		Object t = cg.label();
+		for (AstNode value : ast.second().children) {
+			expression(cg, value);
+			cg.loadTemp(temp);
+			cg.binaryOp(Token.IS, true);
+			cg.ifTrue(t);
+		}
+		cg.bool(false, intBool);
+		Object end = cg.jump();
+		cg.placeLabel(t);
+		cg.bool(true, intBool);
 		cg.placeLabel(end);
 	}
 
