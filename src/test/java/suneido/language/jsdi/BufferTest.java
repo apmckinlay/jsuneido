@@ -1,3 +1,7 @@
+/* Copyright 2013 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.jsdi;
 
 import static org.junit.Assert.*;
@@ -12,7 +16,7 @@ import suneido.language.Pack;
 
 /**
  * Test for {@link Buffer}.
- * 
+ *
  * @author Victor Schappert
  * @since 20130721
  */
@@ -124,7 +128,7 @@ public class BufferTest {
 				}
 			}
 		}
-		
+
 	}
 
 	@Test
@@ -167,6 +171,7 @@ public class BufferTest {
 	public void testSizeBigEnoughForContents() {
 		for (final String s : new String[] { "Buffer(2)", "'ab'" }) {
 			assertThrew(new Runnable() {
+				@Override
 				public void run() {
 					String code = String.format("Buffer(1, %s)", s);
 					Compiler.eval(code);

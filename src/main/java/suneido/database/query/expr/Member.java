@@ -1,3 +1,7 @@
+/* Copyright 2011 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database.query.expr;
 
 public class Member {

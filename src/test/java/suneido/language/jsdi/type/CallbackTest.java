@@ -1,3 +1,7 @@
+/* Copyright 2013 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.jsdi.type;
 
 import static org.junit.Assert.assertEquals;
@@ -250,7 +254,7 @@ public class CallbackTest {
 	public void testBasicValue2Block() {
 		assertEquals(
 			0x19820207,
-			eval("TestInvokeCallback_Long2( { |a,b| a | b }, 0x19820000, 0x207)") 
+			eval("TestInvokeCallback_Long2( { |a,b| a | b }, 0x19820000, 0x207)")
 		);
 		assertFalse(new Integer(0).equals(eval("Callbacks().Size()")));
 	}
@@ -355,6 +359,7 @@ public class CallbackTest {
 	public void testCantUnmarshallBuffer() {
 		assertThrew(
 			new Runnable() {
+				@Override
 				public void run() {
 					eval("TestInvokeCallback_Recursive_StringSum_Bad(" +
 							"SuTestSumString," +
@@ -375,6 +380,7 @@ public class CallbackTest {
 	@Test
 	public void testExceptionParamMismatch() {
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				eval("TestInvokeCallback_Long1(function(x) { x.Add('y') }, 2)");
 			}
@@ -398,6 +404,7 @@ public class CallbackTest {
 	@Test
 	public void testExceptionReturnValueNotConvertible() {
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				eval("TestInvokeCallback_Long1(function(a) { return 'Michalek/Spezza/Ryan' }, 2)");
 			}
@@ -412,6 +419,7 @@ public class CallbackTest {
 	public void testExceptionThrowBasic() {
 		// Straightforward test -- make sure it works as a one-off
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				eval("TestInvokeCallback_Long1(function(a) { throw a }, 444)");
 			}
@@ -426,6 +434,7 @@ public class CallbackTest {
 					.format("TestInvokeCallback_Long2(function(@a) { throw Display(a) }, %d, %d)",
 							x, y);
 			assertThrew(new Runnable() {
+				@Override
 				public void run() {
 					eval(code);
 				}
@@ -436,6 +445,7 @@ public class CallbackTest {
 	@Test
 	public void testExceptionThrowVi() {
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				eval(
 						"TestInvokeCallback_Recursive_StringSum(" +
@@ -463,6 +473,7 @@ public class CallbackTest {
 			"\t}\n" +
 			"f(20)";
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				eval(code);
 			}
@@ -481,11 +492,13 @@ public class CallbackTest {
 		//             to call a second callback, y(), before F() returns back
 		//             to Suneido.
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				eval("TestInvokeCallback_Long1_2({ throw 'a' }, 1, {  }, 2)");
 			}
 		}, SuException.class, "a");
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				eval("TestInvokeCallback_Long1_2({ throw 'a' }, 1, { throw 'b' }, 2)");
 			}
@@ -508,6 +521,7 @@ public class CallbackTest {
 			"\t}\n" +
 			"g(RSS(Object(), Object(), str: '15'))";
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				eval(code);
 			}
@@ -538,7 +552,7 @@ public class CallbackTest {
 	public void testSelfClearingCallback() {
 		// Callbacks must be able to clear themselves because this is supported
 		// in cSuneido, e.g. by WndProc.NCDESTROY(), so the below operation
-		// should work just fine. 
+		// should work just fine.
 		final String code =
 			"f = function(n) " +
 			"{ ClearCallback(this); return 2 * n; }\n" +

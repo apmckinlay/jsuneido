@@ -1,10 +1,14 @@
+/* Copyright 2013 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.jsdi;
 
 import suneido.language.jsdi.type.PrimitiveSize;
 
 /**
  * Helper functions for making {@link Marshaller}'s and {@link MarshallPlan}'s.
- * 
+ *
  * @author Victor Schappert
  * @since 20130725
  */

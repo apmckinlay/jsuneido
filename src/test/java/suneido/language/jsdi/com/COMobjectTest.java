@@ -1,3 +1,7 @@
+/* Copyright 2013 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.jsdi.com;
 
 import static org.junit.Assert.assertEquals;
@@ -19,7 +23,7 @@ import suneido.util.testing.Assumption;
 
 /**
  * Test for {@link COMobject}.
- * 
+ *
  * @author Victor Schappert
  * @since 20130928
  */
@@ -89,6 +93,7 @@ public class COMobjectTest {
 			final String code = "x = MakeTestObject(); x.Release(); x."
 					+ suffix;
 			assertThrew(new Runnable() {
+				@Override
 				public void run() {
 					eval(code);
 				}
@@ -147,6 +152,7 @@ public class COMobjectTest {
 		{
 			final String code = "MakeTestObject().Int32Value = 4 * 0x70000000";
 			assertThrew(new Runnable() {
+				@Override
 				public void run() {
 					eval(code);
 				}
@@ -183,7 +189,7 @@ public class COMobjectTest {
 	@Test
 	public void testPropDouble() {
 		final double BIG_NUMBER = 20131102.5;
-		final double SMALL_NUMBER = -0.5; 
+		final double SMALL_NUMBER = -0.5;
 		// Check we can set it to a positive double value
 		{
 			final String code = String.format(
@@ -372,7 +378,7 @@ public class COMobjectTest {
 
 	@Test
 	public void testIDispatchPut() {
-		// See the comment on testIUnknownPut() 
+		// See the comment on testIUnknownPut()
 		assertEquals(
 				"ok!",
 				eval(
@@ -390,6 +396,7 @@ public class COMobjectTest {
 	@Test
 	public void testNoSuchMethod() {
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				eval("MakeTestObject().FakeMethod(1)");
 			}
@@ -399,6 +406,7 @@ public class COMobjectTest {
 	@Test
 	public void testNoSuchPropGet() {
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				eval("x = MakeTestObject().FakeProperty");
 			}
@@ -408,6 +416,7 @@ public class COMobjectTest {
 	@Test
 	public void testNoSuchPropSet() {
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				eval("MakeTestObject().FakeProperty = 5");
 			}
@@ -418,7 +427,7 @@ public class COMobjectTest {
 	public void testPropSetReadOnly() {
 		eval("MakeTestObject().RefCount = 5");
 	}
-	
+
 	@Test
 	public void testMethodNoArgs() {
 		assertEquals(true,
@@ -447,11 +456,13 @@ public class COMobjectTest {
 	@Test
 	public void testErrorBadParamCount() {
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				eval("MakeTestObject().Sum2Ints(1)"); // Too few
 			}
 		}, COMException.class, "bad param count");
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				eval("MakeTestObject().SumProperties(1, 2, 3)"); // Too many
 			}
@@ -461,6 +472,7 @@ public class COMobjectTest {
 	@Test
 	public void testErrorTypeMismatch() {
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				eval("MakeTestObject().Sum2Ints(true, 'boron')");
 			}

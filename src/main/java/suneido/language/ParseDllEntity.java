@@ -1,7 +1,11 @@
+/* Copyright 2013 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language;
 
+import static suneido.language.Token.*;
 import suneido.SuException;
-import static suneido.language.Token.*; 
 import suneido.language.jsdi.DllInterface;
 
 /**

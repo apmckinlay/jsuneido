@@ -1,3 +1,7 @@
+/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.util;
 
 import java.io.IOException;
@@ -19,10 +23,12 @@ public class OutputBySocket implements NetworkOutput {
 		out = socket.getOutputStream();
 	}
 
+	@Override
 	public void add(ByteBuffer buf) {
 		queue.add(buf);
 	}
 
+	@Override
 	public void write() {
 //System.out.println("< " + bufferToString(queue.get(0)));
 		for (ByteBuffer buf : queue)

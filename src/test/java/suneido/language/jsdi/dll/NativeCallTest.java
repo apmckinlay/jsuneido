@@ -1,3 +1,7 @@
+/* Copyright 2013 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.jsdi.dll;
 
 import static org.junit.Assert.assertEquals;
@@ -21,7 +25,7 @@ import suneido.util.testing.Assumption;
 /**
  * Test for the native calling mechanism using the <code>_Test*@#</code>
  * functions exported from the JSDI DLL.
- * 
+ *
  * @author Victor Schappert
  * @since 20130723
  * @see NativeCall
@@ -91,7 +95,7 @@ public class NativeCallTest {
 	@Test
 	public void testDirect_AllZeroes_FastCalling() {
 		for (TestCall testcall : TestCall.values()) {
-			if (Mask.DOUBLE == testcall.returnValueMask) continue; 
+			if (Mask.DOUBLE == testcall.returnValueMask) continue;
 			long result = 0xbe5077eddeadbea7L;
 			switch (PrimitiveSize.minWholeWords(testcall.plan.getSizeDirect())) {
 			case 0:
@@ -291,7 +295,7 @@ public class NativeCallTest {
 			m.putLong(x);
 			long y = nativecall.invoke(testcall.ptr, testcall.plan.getSizeDirect(), m);
 			assertTrue(0 < y);
-			assertEquals(0xffffffffL, y); 
+			assertEquals(0xffffffffL, y);
 		}
 	}
 
@@ -402,6 +406,7 @@ public class NativeCallTest {
 				m.skipBasicArrayElements(1);
 				assertThrew( // should be at the end of the marshaller
 						new Runnable() {
+							@Override
 							public void run() {
 								m.putChar((byte) 0);
 							}
@@ -424,6 +429,7 @@ public class NativeCallTest {
 				m.putINTRESOURCE((short) 0);
 				assertThrew( // should be at the end of the marshaller
 						new Runnable() {
+							@Override
 							public void run() {
 								m.putChar((byte) 0);
 							}
@@ -491,6 +497,7 @@ public class NativeCallTest {
 			final Marshaller m = TestCall.marshall(
 					new TestCall.Recursive_StringSum("12345678", null), null);
 			assertThrew(new Runnable() {
+				@Override
 				public void run() {
 					m.putChar((byte) 0);
 				}
@@ -508,6 +515,7 @@ public class NativeCallTest {
 						new TestCall.Recursive_StringSum("987654321", buffer),
 						null);
 				assertThrew(new Runnable() {
+					@Override
 					public void run() {
 						m.putChar((byte) 0);
 					}
@@ -530,6 +538,7 @@ public class NativeCallTest {
 					new TestCall.Recursive_StringSum("-200", null, -100, -75,
 							-50, -25, 50, -25, 50, -25));
 			assertThrew(new Runnable() {
+				@Override
 				public void run() {
 					m.putChar((byte) 0);
 				}
@@ -552,6 +561,7 @@ public class NativeCallTest {
 									innerBuffer, -100, -75, -50, -25, 50, -25,
 									50, -25));
 					assertThrew(new Runnable() {
+						@Override
 						public void run() {
 							m.putChar((byte) 0);
 						}
@@ -691,11 +701,13 @@ public class NativeCallTest {
 				m.putNullStringPtr(RETURN_JAVA_STRING);
 				nativecall.invoke(testcall.ptr, sizeDirect, m);
 				assertThrew(
-					new Runnable() { public void run() { m.getBool(); } },
+					new Runnable() { @Override
+					public void run() { m.getBool(); } },
 					ArrayIndexOutOfBoundsException.class
 				);
 				assertThrew(
-					new Runnable() { public void run() { m.getStringPtr(); } },
+					new Runnable() { @Override
+					public void run() { m.getStringPtr(); } },
 					ArrayIndexOutOfBoundsException.class
 				);
 				m.rewind();

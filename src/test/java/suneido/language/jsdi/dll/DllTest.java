@@ -1,3 +1,7 @@
+/* Copyright 2013 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.jsdi.dll;
 
 import static org.junit.Assert.assertEquals;
@@ -131,6 +135,7 @@ public class DllTest {
 			final Class<? extends Throwable> exception, final String pattern) {
 		for (final String value : NOT_AN_OBJECT) {
 			assertThrew(new Runnable() {
+				@Override
 				public void run() {
 					eval(String.format(code, value));
 				}
@@ -190,7 +195,7 @@ public class DllTest {
 	public void testDouble() {
 		assertEquals(bd(-7777777777.25), eval("TestDouble(-7777777777.25)"));
 	}
-	
+
 	@Test
 	public void testSumTwoChars() {
 		assertEquals(3, eval("TestSumTwoChars(1, 2)"));
@@ -244,11 +249,13 @@ public class DllTest {
 		// more consistent behaviour is to throw. Why should the marshaller be
 		// exempt from the read-only object rule?
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				eval("TestSumPackedCharCharShortLong(#())");
 			}
 		}, SuException.class, "readonly");
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				eval("TestSumPackedCharCharShortLong(#(b: 25, c: 1050, d: -875))");
 			}
@@ -266,13 +273,15 @@ public class DllTest {
 		assertEquals(4, eval("TestStrLen(true)"));  // gets converted to "true"
 		assertEquals(34, eval("TestStrLen('supercalifragilisticexpialidocious')"));
 		assertThrew(
-			new Runnable() { public void run() { eval("TestStrLen(Buffer(1, 'a'))"); } },
+			new Runnable() { @Override
+			public void run() { eval("TestStrLen(Buffer(1, 'a'))"); } },
 			JSDIException.class, "cannot safely be marshalled"
 		);
 		assertEquals(0, eval("TestStrLen(Buffer(1))"));
 		assertEquals(0, eval("TestStrLen(Buffer(1000))"));
 		assertThrew(
-				new Runnable() { public void run() { eval("TestStrLen(Buffer(1, 'a'))"); } },
+				new Runnable() { @Override
+				public void run() { eval("TestStrLen(Buffer(1, 'a'))"); } },
 				JSDIException.class, "cannot safely be marshalled"
 			);
 		assertEquals(1, eval("TestStrLen(Buffer(2, 'a'))"));
@@ -290,7 +299,7 @@ public class DllTest {
 	public void testHelloWorldOutParam() {
 		assertEquals("hello world", eval("TestHelloWorldOutParam(ptr = Object()); ptr.x"));
 	}
-	
+
 	@Test
 	public void testHelloWorldOutBuffer() {
 		eval("TestHelloWorldOutBuffer(false, 0)");
@@ -410,7 +419,7 @@ public class DllTest {
 			assertEquals(s, eval(String.format("TestReturnPtrString(Object(x: '%s'))", s)));
 		}
 	}
-	
+
 
 	@Test
 	public void testReturnStringOutBuffer() {
@@ -501,7 +510,7 @@ public class DllTest {
 		Object addr = eval("TestReturnStatic_Recursive_StringSum(0)");
 		String array = "Object(Object(a: 10, b: 9, c: 8, d: 7), Object(a: 6, b: 5, c: 4, d: 3))";
 		String array0 = "#(#(a:0,b:0,c:0,d:0),#(a:0,b:0,c:0,d:0))";
-		String hello = "'Olá mundo'";
+		String hello = "'Olï¿½ mundo'";
 		assertFalse(Numbers.isZero(addr));
 		Object value = eval(String.format("TestReturnStatic_Recursive_StringSum(Object(x: %s, str: %s))", array, hello));
 		assertEquals(addr, value);
@@ -522,7 +531,7 @@ public class DllTest {
 			);
 		}
 		value = eval(String.format(
-					"TestReturnStatic_Recursive_StringSum(" + 
+					"TestReturnStatic_Recursive_StringSum(" +
 							"Object(x: %s, str: %s, " +
 							"inner: Object(str: 'inner1', " +
 								"inner: Object(x: %s, str: 'inner2'))))", array, hello, array));

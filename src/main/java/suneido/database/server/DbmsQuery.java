@@ -1,3 +1,7 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database.server;
 
 import java.util.List;
@@ -19,6 +23,7 @@ public interface DbmsQuery {
 
 	void rewind();
 
+	@Override
 	String toString();
 
 	void output(Record rec);

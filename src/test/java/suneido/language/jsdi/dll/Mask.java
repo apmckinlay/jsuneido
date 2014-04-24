@@ -1,3 +1,7 @@
+/* Copyright 2013 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.jsdi.dll;
 
 import suneido.language.jsdi.type.PrimitiveSize;
@@ -25,6 +29,7 @@ public enum Mask {
 		value = size < 8 ? ~(~0L << (8 * size)) : 0xffffffffffffffffL;
 	}
 
+	@Override
 	public String toString() {
 		return String.format("Mask[%s=0x%016x]", name(), value);
 	}

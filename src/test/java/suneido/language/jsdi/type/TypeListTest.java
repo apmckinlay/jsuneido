@@ -1,3 +1,7 @@
+/* Copyright 2013 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.jsdi.type;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -45,7 +49,7 @@ public class TypeListTest {
 		final TypeList.Args args = new TypeList.Args("params", N / 2);
 		int k = 0;
 		while (k < N) {
-			args.add((String)tuples[k++], (Type)tuples[k++]); 
+			args.add((String)tuples[k++], (Type)tuples[k++]);
 		}
 		return new TypeList(args);
 	}
@@ -78,7 +82,7 @@ public class TypeListTest {
 	}
 
 	//
-	// Test marshalling 
+	// Test marshalling
 	//
 
 	@Test
@@ -294,6 +298,7 @@ public class TypeListTest {
 		// This will throw because the native side is expected to place
 		// either a String or an Integer into variable indirect storage.
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				tl.marshallOutParams(m, new Object[1]);
 			}
@@ -319,6 +324,7 @@ public class TypeListTest {
 		// This will throw because the native side is expected to place
 		// either a String or an Integer into variable indirect storage.
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				tl.marshallOutParams(m, new Object[1]);
 			}

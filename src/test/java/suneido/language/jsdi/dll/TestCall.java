@@ -1,3 +1,7 @@
+/* Copyright 2013 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.jsdi.dll;
 
 import static suneido.language.jsdi.MarshallTestUtil.pointerPlan;
@@ -7,7 +11,7 @@ import suneido.language.jsdi.type.PrimitiveSize;
 
 /**
  * Should be kept in sync with {@code test_exports.h/cpp}.
- * 
+ *
  * @author Victor Schappert
  * @since 20130723
  * @see QuickDll
@@ -66,7 +70,7 @@ public enum TestCall {
 			"TestReturnStringOutBuffer", Mask.VOID,
 			makeReturnStringOutBufferPlan(), 2 * PrimitiveSize.POINTER
 					+ PrimitiveSize.LONG);
-	
+
 	private final QuickDll qp;
 	public final long ptr;
 	public final Mask returnValueMask;
@@ -321,7 +325,7 @@ public enum TestCall {
 		builder.variableIndirectPseudoArg();
 		return builder.makeMarshallPlan();
 	}
-	
+
 	public static MarshallPlan makeReturnPtrStringPlan() {
 		MarshallPlanBuilder builder = new MarshallPlanBuilder(
 				PrimitiveSize.POINTER,
