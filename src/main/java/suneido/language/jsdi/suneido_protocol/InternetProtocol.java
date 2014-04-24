@@ -1,3 +1,7 @@
+/* Copyright 2014 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.jsdi.suneido_protocol;
 
 import suneido.SuException;
@@ -11,12 +15,12 @@ import suneido.language.Ops;
  * </p>
  *
  * <p>
- * The architecture is as follows. 
+ * The architecture is as follows.
  * <ul>
  * <li>
  * When it is loaded, the JSDI library registers an instance of
  * <code>IInternetProtocol</code> to handle URLs beginning with the
- * <code>suneido://</code> protocol. 
+ * <code>suneido://</code> protocol.
  * </li>
  * <li>
  * Suneido code may create an embedded Microsoft browser (Internet Explorer),
@@ -48,7 +52,7 @@ import suneido.language.Ops;
  * @since 20140210
  */
 public final class InternetProtocol {
-	
+
 	/** Name of the callable object that #start(String) should invoke. */
 	private static final String CALLABLE_NAME = "SuneidoAPP";
 
@@ -80,9 +84,9 @@ public final class InternetProtocol {
 	 * by calling the Suneido language object.
 	 * </li>
 	 * </ul>
-	 * 
+	 *
 	 * </p>
-	 * 
+	 *
 	 * @param url Resource that the Suneido code should load.
 	 * @return Data suitable for display in a web browser.
 	 */

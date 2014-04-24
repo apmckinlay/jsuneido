@@ -1,3 +1,7 @@
+/* Copyright 2013 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.jsdi;
 
 import static org.junit.Assert.*;
@@ -47,6 +51,7 @@ public class MarshallerTest {
 		MarshallPlan NULL_PLAN = nullPlan();
 		final Marshaller NULL_MARSHALLER = NULL_PLAN.makeMarshaller();
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				NULL_MARSHALLER.putChar((byte)'X');
 			}
@@ -249,6 +254,7 @@ public class MarshallerTest {
 			assertArrayEquals(ba("404000"), mr.getData());
 			mr.rewind();
 			assertThrew(new Runnable() {
+				@Override
 				public void run() {
 					mr.getZeroTerminatedStringDirect(0);
 				}
@@ -295,6 +301,7 @@ public class MarshallerTest {
 		mr.putNonZeroTerminatedStringDirect("abc", 3);
 		mr.rewind();
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				mr.getZeroTerminatedStringDirect(LEN);
 			}
@@ -455,7 +462,8 @@ public class MarshallerTest {
 			final Marshaller mr = mp.makeMarshaller();
 			mr.putNullStringPtr(i);
 			assertThrew(
-				new Runnable() { public void run() { mr.putChar((byte)0); } },
+				new Runnable() { @Override
+				public void run() { mr.putChar((byte)0); } },
 				ArrayIndexOutOfBoundsException.class
 			);
 		}
@@ -554,6 +562,7 @@ public class MarshallerTest {
 		// byte[]. The native side is supposed to replace it with a String, but
 		// since we haven't invoked the native side, that didn't happen.
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				mr.getResource();
 			}
@@ -573,6 +582,7 @@ public class MarshallerTest {
 		// Simulate a NULL somehow getting into the variable indirect array.
 		mr.getViArray()[0] = null;
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				mr.getResource();
 			}
@@ -585,6 +595,7 @@ public class MarshallerTest {
 		final Marshaller mr = mp.makeMarshaller();
 		mr.skipBasicArrayElements(1);
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				mr.putChar((byte) 'a');
 			}
@@ -600,6 +611,7 @@ public class MarshallerTest {
 			mr.skipBasicArrayElements(1);
 		}
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				mr.putLong(1);
 			}
@@ -607,6 +619,7 @@ public class MarshallerTest {
 		mr.rewind();
 		mr.skipBasicArrayElements(NUM_ELEMS);
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				mr.putLong(1);
 			}
@@ -616,6 +629,7 @@ public class MarshallerTest {
 		mr.skipBasicArrayElements(1);
 		mr.putLong(19);
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				mr.putLong(6);
 			}
@@ -629,6 +643,7 @@ public class MarshallerTest {
 		final Marshaller mr = cp.makeMarshaller();
 		mr.skipComplexElement(skipper);
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				mr.putChar((byte) 'a');
 			}
@@ -647,6 +662,7 @@ public class MarshallerTest {
 			mr.skipComplexElement(skipper_1);
 		}
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				mr.putFloat(1.0f);
 			}
@@ -654,6 +670,7 @@ public class MarshallerTest {
 		mr.rewind();
 		mr.skipComplexElement(skipper_3);
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				mr.putFloat(1.0f);
 			}
@@ -665,6 +682,7 @@ public class MarshallerTest {
 		mr.putBool(true);
 		mr.skipComplexElement(skipper_1);
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				mr.putChar((byte)'a');
 			}
@@ -677,6 +695,7 @@ public class MarshallerTest {
 		final Marshaller mr = mp.makeMarshaller();
 		mr.skipStringPtr();
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				mr.putChar((byte) 'a');
 			}
@@ -694,6 +713,7 @@ public class MarshallerTest {
 		assertArrayEquals(new int[] { 0, RETURN_JAVA_STRING.ordinal() },
 				mr.getViInstArray());
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				mr.putNullStringPtr(RETURN_RESOURCE);
 			}
@@ -709,7 +729,8 @@ public class MarshallerTest {
 			final Marshaller mr = mp.makeMarshaller();
 			mr.putBool(b);
 			assertThrew(
-				new Runnable() { public void run() { mr.getBool(); } },
+				new Runnable() { @Override
+				public void run() { mr.getBool(); } },
 				ArrayIndexOutOfBoundsException.class
 			);
 			mr.rewind();

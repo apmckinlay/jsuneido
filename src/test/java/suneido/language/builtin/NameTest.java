@@ -1,6 +1,10 @@
+/* Copyright 2013 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static suneido.language.Compiler.compile;
 import static suneido.language.Compiler.eval;
 
@@ -40,7 +44,7 @@ public class NameTest {
 		test("Name(Object())", "");
 		test("Name(Record())", "");
 		test("Name(function() { })", "");
-//		test("Name(x = function() { })", "x"); FIXME: This test case should work, as it does on CSuneido 
+//		test("Name(x = function() { })", "x"); FIXME: This test case should work, as it does on CSuneido
 //		test("Name(class { })", "");           FIXME: This test case should work, as it does on CSuneido
 //		test("Name(x = class { })", "x");      FIXME: This test case should work, as it does on CSuneido
 		test("Name(new (class { }))", "");
@@ -65,7 +69,7 @@ public class NameTest {
 
 		define("A", "0");
 		test("Name(A)", "");
-	
+
 		define("A", "-1");
 		test("Name(A)", "");
 

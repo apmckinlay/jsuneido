@@ -1,3 +1,7 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
 import static org.junit.Assert.assertEquals;
@@ -55,7 +59,7 @@ public class NumberMethodsTest {
 	private static void hex(Object x, String expected) {
 		assertEquals(expected, NumberMethods.Hex(x).toString());
 	}
-	
+
 	@Test
 	public void test_round() {
 		Object bd = new BigDecimal("0");

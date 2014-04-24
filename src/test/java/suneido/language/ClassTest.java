@@ -1,3 +1,7 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language;
 
 import static org.junit.Assert.assertEquals;
@@ -178,18 +182,18 @@ public class ClassTest {
 				" }");
 		test("A.N", "'getter'");
 		notFound("A.X");
-		
+
 		define("B", "A { }");
 		test("B.N", "'getter'");
 		notFound("B.X");
-		
+
 		define("A", "class { " +
 				"Get_N() { 'getter' }" + // will never be used
 				"Get_(m) { 'get ' $ m }" +
 				" }");
 		test("A.N", "'get N'");
 		test("A.X", "'get X'");
-		
+
 		define("B", "A { }");
 		test("B.N", "'get N'");
 		test("B.X", "'get X'");
@@ -202,11 +206,11 @@ public class ClassTest {
 				+ "}");
 		test("A(1).N", "'1 getter'");
 		notFound("A(1).Z");
-		
+
 		define("B", "A { }");
 		test("B(2).N", "'2 getter'");
 		notFound("B(2).Z");
-		
+
 		define("A", "class { "
 				+ "New(x) { .X = x } "
 				+ "Get_N() { .X $ ' getter' } " // will never be used
@@ -214,7 +218,7 @@ public class ClassTest {
 				+ "}");
 		test("A(1).N", "'1 get N'");
 		test("A(1).Z", "'1 get Z'");
-		
+
 		define("B", "A { }");
 		test("B(2).N", "'2 get N'");
 		test("B(2).Z", "'2 get Z'");

@@ -54,7 +54,7 @@ public class AstVariables {
 
 	}
 
-	/** &#64;name .name .Name _name ._name ._Name => name */
+	/** @name .name .Name _name ._name ._Name => name */
 	static String paramToName(String name) {
 		int i = 0;
 		if (name.startsWith("@"))

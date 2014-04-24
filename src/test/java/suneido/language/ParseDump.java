@@ -1,3 +1,7 @@
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language;
 
 import suneido.SuException;
@@ -5,7 +9,6 @@ import suneido.database.query.StringGenerator;
 import suneido.intfc.database.Record;
 
 public class ParseDump implements DumpReader.Processor {
-
 	int name;
 	int text;
 

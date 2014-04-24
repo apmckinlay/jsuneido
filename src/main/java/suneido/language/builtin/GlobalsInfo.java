@@ -1,8 +1,12 @@
+/* Copyright 2013 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.builtin;
 
 /**
  * Implements the {@code GlobalsInfo()} built-in.
- * 
+ *
  * @author Victor Schappert
  * @since 20130819
  * @see SymbolsInfo

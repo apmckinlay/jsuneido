@@ -1,5 +1,8 @@
-package suneido.database.query;
+/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
 
+package suneido.database.query;
 
 public interface RequestGenerator<T> {
 

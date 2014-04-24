@@ -1,6 +1,11 @@
+/* Copyright 2013 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.jsdi.type;
 
 import static org.junit.Assert.assertEquals;
+import static suneido.util.testing.Throwing.assertThrew;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -10,11 +15,9 @@ import suneido.language.ContextLayered;
 import suneido.language.jsdi.*;
 import suneido.util.testing.Assumption;
 
-import static suneido.util.testing.Throwing.*;
-
 /**
  * Test for {@link Structure}.
- * 
+ *
  * @author Victor Schappert
  * @since 20130703
  * @see suneido.language.ParseAndCompileStructTest
@@ -144,7 +147,7 @@ public class StructureTest {
 					"{ 0, 4, 8, 12, 16, 260, 264, 268, 272, 20, 24, 28, 32, 36, " +
 						"40, 44, 48, 52, 56, 60, 276, " +
 						// ttp
-					"64, 280, 284, 288, 292, 296, 344, 348, 352, 356, 300, 304, "+ 
+					"64, 280, 284, 288, 292, 296, 344, 348, 352, 356, 300, 304, "+
 						"308, 312, 316, 320, 324, 328, 332, 336, 340, 360, " +
 						// tts2
 					"68, 72, 76, 80, 84, 364, 368, 372, 376, 88, 92, 96, 100, 104, " +
@@ -181,7 +184,8 @@ public class StructureTest {
 	@Test
 	public void testCycle() {
 		assertThrew(
-				new Runnable() { public void run() { eval("CycleA.Size()"); } },
+				new Runnable() { @Override
+				public void run() { eval("CycleA.Size()"); } },
 				JSDIException.class,
 				".*cycle.*"
 		);
@@ -191,7 +195,8 @@ public class StructureTest {
 	public void testSelfRef() {
 		for (final String selfRef : new String[] { "SelfRef", "SelfRef2", "SelfRef3" }) {
 			assertThrew(
-					new Runnable() { public void run() { eval(selfRef + ".Size()"); } },
+					new Runnable() { @Override
+					public void run() { eval(selfRef + ".Size()"); } },
 					JSDIException.class,
 					".*cycle.*"
 			);
@@ -227,6 +232,7 @@ public class StructureTest {
 	@Test
 	public void testCallOnObject_NoIndirect() {
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				eval("ThreeTierStruct(Object())");
 			}
@@ -236,6 +242,7 @@ public class StructureTest {
 	@Test
 	public void testCallOnBuffer_NoIndirect() {
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				eval("ThreeTierStruct(Buffer(100, ''))");
 			}
@@ -247,12 +254,14 @@ public class StructureTest {
 		for (String s : new String[] { "string", "buffer", "resource" } ) {
 			final String code = String.format("(struct { %s x })(Object())", s);
 			assertThrew(new Runnable() {
+				@Override
 				public void run() {
 					eval(code);
 				}
 			}, JSDIException.class, "does not support.*pointers");
 		}
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				eval("StringStruct2(Object(a: Object()))");
 			}
@@ -264,12 +273,14 @@ public class StructureTest {
 		for (String s : new String[] { "string", "buffer", "resource" } ) {
 			final String code = String.format("(struct { %s x })(Buffer(100, ''))", s);
 			assertThrew(new Runnable() {
+				@Override
 				public void run() {
 					eval(code);
 				}
 			}, JSDIException.class, "does not support.*pointers");
 		}
 		assertThrew(new Runnable() {
+			@Override
 			public void run() {
 				eval("StringStruct2(Buffer(100, ''))");
 			}
@@ -281,6 +292,7 @@ public class StructureTest {
 		for (final String s : new String[] { "(struct { short a })", "RECT",
 				"Recursive_StringSum1" }) {
 			assertThrew(new Runnable() {
+				@Override
 				public void run() {
 					eval(String.format("%s('\\x00'.Repeat(200))", s));
 				}

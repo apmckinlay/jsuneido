@@ -1,3 +1,7 @@
+/* Copyright 2013 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language;
 
 import static org.junit.Assert.assertEquals;
@@ -254,7 +258,8 @@ public class ParseAndCompileDllTest {
 			sb.append(returnType);
 			sb.append(" jsdi:_TestVoid@0()");
 			assertThrew(
-				new Runnable() { public void run() { compile(sb.toString()); } },
+				new Runnable() { @Override
+				public void run() { compile(sb.toString()); } },
 				SuException.class, "invalid dll return type"
 			);
 		}
@@ -269,7 +274,8 @@ public class ParseAndCompileDllTest {
 			sb.append(returnType);
 			sb.append(" jsdi:_TestVoid@0()");
 			assertThrew(
-				new Runnable() { public void run() { compile(sb.toString()); } },
+				new Runnable() { @Override
+				public void run() { compile(sb.toString()); } },
 				SuException.class, "syntax error"
 			);
 		}
@@ -339,6 +345,7 @@ public class ParseAndCompileDllTest {
 		};
 		for (final String s : bad)
 			assertThrew(new Runnable() {
+				@Override
 				public void run() {
 					compile(s);
 				}

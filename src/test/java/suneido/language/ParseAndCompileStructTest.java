@@ -1,3 +1,7 @@
+/* Copyright 2013 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language;
 
 import static org.junit.Assert.assertEquals;
@@ -166,7 +170,8 @@ public class ParseAndCompileStructTest {
 		};
 		for (final String s : bad)
 			assertThrew(
-				new Runnable() { public void run() { parse(s); } },
+				new Runnable() { @Override
+				public void run() { parse(s); } },
 				SuException.class, "syntax error"
 			);
 	}
@@ -236,7 +241,8 @@ public class ParseAndCompileStructTest {
 		};
 		for (final String s : bad)
 			assertThrew(
-				new Runnable() { public void run() { compile(s); } },
+				new Runnable() { @Override
+				public void run() { compile(s); } },
 				JSDIException.class
 			);
 	}

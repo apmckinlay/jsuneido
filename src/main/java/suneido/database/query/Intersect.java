@@ -1,8 +1,16 @@
+/* Copyright 2008 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.database.query;
 
-import static suneido.util.Util.*;
+import static suneido.util.Util.intersect;
+import static suneido.util.Util.setIntersect;
+import static suneido.util.Util.union;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 public class Intersect extends Compatible {
 	Intersect(Query source1, Query source2) {

@@ -1,3 +1,7 @@
+/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.util;
 
 import static suneido.Suneido.fatal;
@@ -5,7 +9,9 @@ import static suneido.Suneido.fatal;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -25,10 +31,12 @@ public class OutputByChannel implements NetworkOutput {
 		this.channel = channel;
 	}
 
+	@Override
 	public void add(ByteBuffer buf) {
 		queue.add(buf);
 	}
 
+	@Override
 	public void write() {
 		bufs = queue.toArray(bufs);
 		n = queue.size();

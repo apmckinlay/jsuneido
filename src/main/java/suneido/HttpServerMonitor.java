@@ -1,3 +1,7 @@
+/* Copyright 2010 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido;
 
 import java.io.IOException;
@@ -8,7 +12,9 @@ import java.util.List;
 
 import suneido.database.server.DbmsServer;
 
-import com.sun.net.httpserver.*;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
 
 public class HttpServerMonitor {
 
@@ -26,6 +32,7 @@ public class HttpServerMonitor {
 	}
 
 	private static class MyHandler implements HttpHandler {
+		@Override
 		public void handle(HttpExchange t) throws IOException {
 			List<String> conns = DbmsServer.connections();
 			Collections.sort(conns);

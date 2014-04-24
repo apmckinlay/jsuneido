@@ -1,6 +1,11 @@
+/* Copyright 2013 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.language.jsdi.type;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static suneido.language.jsdi.type.BasicType.*;
 
 import java.util.EnumSet;
