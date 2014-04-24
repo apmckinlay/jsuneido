@@ -20,6 +20,12 @@ import suneido.language.Pack;
 import suneido.language.builtin.RecordMethods;
 import suneido.language.builtin.SuTransaction;
 
+/**
+ * Implements a new version of SuRecord
+ * by layering {@link SuRules} and {@link SuObservers} on top of {@link SuContainer}
+ *
+ * NOTE: this version is not in use, it does not pass all the tests
+ */
 public class SuRecordNew extends SuObservers {
 	private Header hdr;
 	private SuTransaction tran;

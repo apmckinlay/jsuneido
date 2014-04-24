@@ -15,9 +15,8 @@ import suneido.util.Util;
 import com.google.common.collect.*;
 
 /**
- * Implements rules layered on top of {@link SuContainer}.
- * {@link SuObservers} is layered on top of this,
- * and then {@link SuRecord} on top of that.
+ * Used by {@link SuRecordNew} to implements rules.
+ * Layered on top of {@link SuContainer} and below {@link SuObservers}
  * <p>
  * usedBy is for invalidation.
  * It is cumulative and may contain extra fields if the dependencies change.
