@@ -15,6 +15,11 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
+/**
+ * Used by {@link SuRecordNew} to implements observers.
+ * Layered on top of {@link SuRules}
+ * which is layered on top of {@link SuContainer}.
+ */
 public class SuObservers extends SuRules {
 	private final List<Object> observers = Lists.newArrayList();
 	private final Set<Object> invalidated = Sets.newLinkedHashSet();
