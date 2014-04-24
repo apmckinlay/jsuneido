@@ -165,6 +165,12 @@ public class CompileTest {
 		test("a and b ? c : a",
 				"a, bool, IFFALSE L1, b, bool, IFFALSE L1, " +
 				"c, GOTO L2, L1, a, L2, ARETURN");
+		test("2 in (1, 2, 3)",
+				"2, ASTORE 2, "
+				+ "1, ALOAD 2, is_, IFTRUE L1, "
+				+ "2, ALOAD 2, is_, IFTRUE L1, "
+				+ "3, ALOAD 2, is_, IFTRUE L1, "
+				+ "false, GOTO L2, L1, true, L2, ARETURN");
 	}
 
 	@Test
