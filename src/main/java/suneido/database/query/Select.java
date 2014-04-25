@@ -283,6 +283,10 @@ public class Select extends Query1 {
 
 	// optimize =====================================================
 
+	private static void trace(String s) {
+		Trace.trace(Trace.Type.SELECT, s);
+	}
+
 	@Override
 	double optimize2(List<String> index, Set<String> needs,
 			Set<String> firstneeds, boolean is_cursor, boolean freeze) {
@@ -303,6 +307,9 @@ public class Select extends Query1 {
 			return cost;
 		}
 
+		trace("Select::optimize " + source.toString() + (freeze ? " FREEZE" : "") + 
+				" index " + index + ", needs " + needs);
+		trace("orig exprs: " + expr);
 		if (optFirst) {
 			optFirst = false;
 			optimize_setup();
@@ -386,6 +393,8 @@ public class Select extends Query1 {
 		}
 		if (new_exprs.size() != expr.exprs.size())
 			expr = new And(new_exprs);
+		trace("exprs: " + expr);
+		trace("cmps: " + cmps);
 		return cmps;
 	}
 	private void cmps_to_isels(List<Cmp> cmps) {
@@ -416,13 +425,23 @@ public class Select extends Query1 {
 				if (isel.none())
 					{ nrecs = 0; conflicting = true; return ; }
 				if (isel.values != null)
-					Collections.sort(isel.values);
+					Collections.sort(isel.values, bufcmp);
 				if (! isel.all())
 					isels.put(cmp.ident, isel);
 				isel = new Iselect();
 			}
 		}
+		trace("isels: " + isels);
 	}
+	
+	private static final Comparator<ByteBuffer> bufcmp = 
+			new Comparator<ByteBuffer>() {
+				@Override
+				public int compare(ByteBuffer buf1, ByteBuffer buf2) {
+					return bufferUcompare(buf1, buf2);
+				}
+	};
+	
 	private void identify_possible() {
 		// possible = indexes with isels
 		for (List<String> idx : theindexes)
@@ -667,6 +686,7 @@ public class Select extends Query1 {
 		processFilters();
 		hdr = source.header();
 		ranges = selects(source_index, iselects(source_index));
+		trace("ranges: " + ranges);
 	}
 
 	private void processFilters() {
@@ -869,6 +889,7 @@ public class Select extends Query1 {
 			values = null;
 		}
 
+		/** IN */
 		Cmp(String ident, Record rec) {
 			this.ident = ident;
 			op = null;
@@ -1033,7 +1054,7 @@ public class Select extends Query1 {
 		int pos = buf.position();
 		Object x = Pack.unpack(buf);
 		buf.position(pos);
-		return Ops.toStr(x);
+		return x.toString();
 	}
 
 	private static String valuesToString(List<ByteBuffer> values) {

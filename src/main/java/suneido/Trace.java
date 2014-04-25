@@ -23,6 +23,7 @@ public class Trace {
 	private static FileWriter fw;
 
 	public static void trace(Type type, String s) {
+		// comment out to avoid overhead (JIT should remove calls)
 //		if ((flags & type.bit) != 0)
 //			println(type + " " + s);
 	}
