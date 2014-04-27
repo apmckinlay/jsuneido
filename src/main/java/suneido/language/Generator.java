@@ -46,8 +46,6 @@ public abstract class Generator<T> {
 		return null;
 	}
 
-	public abstract T inConstant(T listOb, T constant);
-
 	public abstract T in(T expression, T list);
 
 	public T returnStatement(T expression, Object context) {

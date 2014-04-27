@@ -278,11 +278,6 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String inConstant(String list, String constant) {
-		return list == null ? constant : list + ", " + constant;
-	}
-
-	@Override
 	public String rvalue(String expr) {
 		return expr;
 	}

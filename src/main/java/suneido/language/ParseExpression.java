@@ -79,14 +79,14 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	private T inExpression() {
 		T expr = bitorExpression();
 		if (matchIf(IN)) {
-			T values = null;
+			T exprs = null;
 			match(L_PAREN);
 			while (token != R_PAREN) {
-				values = generator.inConstant(values, constant());
+				exprs = generator.expressionList(exprs, expression());
 				matchIf(COMMA);
 			}
 			match(R_PAREN);
-			return generator.in(expr, values);
+			return generator.in(expr, exprs);
 		}
 		return expr;
 	}

@@ -316,10 +316,14 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	}
 
 	@Override
-	public Object inConstant(Object listOb, Object constant) {
+	public Object expressionList(Object listOb, Object expr) {
+		// only used by "in" which in queries requires constants
+		if (! (expr instanceof Constant))
+			throw new RuntimeException("query in values must be constants");
+		Object value = ((Constant) expr).value;
 		List<Object> list =
 				listOb == null ? new ArrayList<>() : (List<Object>) listOb;
-		list.add(constant);
+		list.add(value);
 		return list;
 	}
 
