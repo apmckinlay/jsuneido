@@ -198,11 +198,6 @@ public class AstGenerator extends Generator<AstNode> {
 	}
 
 	@Override
-	public AstNode inConstant(AstNode list, AstNode constant) {
-		return list(list, constant);
-	}
-
-	@Override
 	public AstNode unaryExpression(Token op, AstNode expr) {
 		return new AstNode(op, expr);
 	}

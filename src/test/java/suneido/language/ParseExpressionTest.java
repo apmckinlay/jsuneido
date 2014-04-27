@@ -238,6 +238,8 @@ public class ParseExpressionTest {
 			"(CALL (MEMBER=Each (IDENTIFIER=args)) (LIST (ARG (STRING=block) (BLOCK (LIST (IDENTIFIER=x null) (IDENTIFIER=y null)) (LIST (IDENTIFIER=z)) null))))");
 		code("s[from .. to]",
 			"(SUBSCRIPT (IDENTIFIER=s) (RANGETO (IDENTIFIER=from) (IDENTIFIER=to)))");
+		code("a in (b, c)",
+			"(IN (IDENTIFIER=a) (LIST (IDENTIFIER=b) (IDENTIFIER=c)))");
 	}
 
 	private static void code(String code, String expected) {

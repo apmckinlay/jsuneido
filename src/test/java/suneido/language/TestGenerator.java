@@ -74,12 +74,6 @@ public class TestGenerator extends Generator<Object> {
 	}
 
 	@Override
-	public Object inConstant(Object listOb, Object constant) {
-		print("inConstant", constant);
-		return null;
-	}
-
-	@Override
 	public Object memberDefinition(Object name, Object value) {
 		print("memberDefinition", name, value);
 		return null;
