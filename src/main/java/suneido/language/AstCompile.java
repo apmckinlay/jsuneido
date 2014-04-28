@@ -930,6 +930,10 @@ public class AstCompile {
 	}
 
 	private void inExpression(ClassGen cg, AstNode ast, boolean intBool) {
+		if (ast.second() == null) {
+			cg.bool(false, intBool);
+			return;
+		}
 		expression(cg, ast.first());
 		int temp = cg.storeTemp();
 		Object t = cg.label();
