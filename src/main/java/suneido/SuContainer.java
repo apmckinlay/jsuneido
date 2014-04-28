@@ -309,8 +309,7 @@ public class SuContainer extends SuValue
 
 	@Override
 	public synchronized int hashCode() {
-		int h = 31 * 31 * vec.size() + 31 * map.size() +
-				SuContainer.class.hashCode();
+		int h = hashCodeContrib();
 		if (! vec.isEmpty()) {
 			// The nice thing about vectors: they have a canonical ordering, so
 			// we know we can satisfy the hashCode() contract by just looking at
