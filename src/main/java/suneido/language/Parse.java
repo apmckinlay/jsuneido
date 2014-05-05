@@ -21,6 +21,7 @@ public class Parse<T, G> {
 		this.generator = generator;
 		match();
 	}
+
 	protected Parse(Parse<T, G> parse) {
 		lexer = parse.lexer;
 		ahead = parse.ahead;
@@ -34,6 +35,7 @@ public class Parse<T, G> {
 		match();
 		return result;
 	}
+
 	protected T matchReturn(Token expected, T result) {
 		match(expected);
 		return result;
@@ -46,13 +48,15 @@ public class Parse<T, G> {
 		} else
 			return false;
 	}
+
 	protected void match(Token expected) {
 		verifyMatch(expected);
 		match();
 	}
+
 	protected void match() {
 		matchKeepNewline();
-		if (statementNest != 0 || lookAhead().infix())
+		if (statementNest != 0 || lookAhead().binop())
 			while (token == NEWLINE)
 				matchKeepNewline();
 	}
@@ -88,7 +92,7 @@ public class Parse<T, G> {
 		default:
 		}
 		token = lexer.next();
-		//System.out.println(token + " " + lexer.getValue());
+		// System.out.println(token + " " + lexer.getValue());
 	}
 
 	protected void matchNonNegativeInteger() {
@@ -108,6 +112,7 @@ public class Parse<T, G> {
 		String value = lexer.getValue();
 		syntaxError("unexpected " + token + (value == null ? "" : " " + value));
 	}
+
 	protected void syntaxError(String s) {
 		throw new SuException("syntax error at line " + lexer.getLineNumber()
 				+ ": " + s);
