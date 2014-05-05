@@ -335,7 +335,7 @@ public class SuContainer extends SuValue
 	/**
 	 * convert to standardized types so lookup works consistently
 	 * Number is converted to Integer if within range, else BigDecimal
-	 * Concat is converted to String
+	 * CharSequence (String, Concat, SuException) is converted to String
 	 */
 	private static Object canonical(Object x) {
 		if (x instanceof Number) {
