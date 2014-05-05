@@ -14,10 +14,6 @@ import suneido.util.NetworkOutput;
 
 /**
  * Each connection/session has it's own ServerData instance
- *
- * @author Andrew McKinlay
- * <p><small>Copyright 2008 Suneido Software Corp. All rights reserved.
- * Licensed under GPLv2.</small></p>
  */
 @NotThreadSafe
 public class ServerData {
