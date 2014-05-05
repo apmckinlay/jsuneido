@@ -5,7 +5,7 @@
 package suneido.language;
 
 import static suneido.language.TokenFeature.ASSIGN;
-import static suneido.language.TokenFeature.INFIX;
+import static suneido.language.TokenFeature.BINOP;
 import static suneido.language.TokenFeature.SUMOP;
 import static suneido.language.TokenFeature.TERMOP;
 import static suneido.language.TokenResultType.*;
@@ -21,21 +21,22 @@ import suneido.language.jsdi.DllInterface;
 public enum Token {
 	NIL, EOF, ERROR(1000),
 	IDENTIFIER(1001), NUMBER(1002), STRING(1003),
-	AND("and", INFIX), OR("or", INFIX),
+	AND("and", BINOP), OR("or", BINOP),
 	WHITE(1006), COMMENT(1007), NEWLINE(1008),
-	HASH, COMMA, COLON, SEMICOLON, Q_MARK(INFIX), AT, DOT,
+	HASH, COMMA, COLON, SEMICOLON, Q_MARK(BINOP), AT, DOT,
 	R_PAREN, L_PAREN(R_PAREN),
 	R_BRACKET, L_BRACKET(R_BRACKET),
 	R_CURLY, L_CURLY(R_CURLY),
 	IS("is", TERMOP, B), ISNT("isnt", TERMOP, B),
-	MATCH("=~", INFIX, B), MATCHNOT("!~", INFIX, B),
+	MATCH("=~", BINOP, B), MATCHNOT("!~", BINOP, B),
 	LT("<", TERMOP, B), LTE("<=", TERMOP, B),
 	GT(">", TERMOP, B), GTE(">=", TERMOP, B),
 	NOT("not", B), INC, DEC, BITNOT("~"),
-	ADD("+", INFIX, N), SUB("-", INFIX, N), CAT("$", INFIX, O),
-	MUL("*", INFIX, N), DIV("/", INFIX, N), MOD("%", INFIX, N),
-	LSHIFT("<<", INFIX, I), RSHIFT(">>", INFIX, I),
-	BITOR("|", INFIX, I), BITAND("&", INFIX, I), BITXOR("^", INFIX, I),
+	// NOTE: ADD and SUB are not BINOP because they can be unary
+	ADD("+", N), SUB("-", N), CAT("$", BINOP, O),
+	MUL("*", BINOP, N), DIV("/", BINOP, N), MOD("%", BINOP, N),
+	LSHIFT("<<", BINOP, I), RSHIFT(">>", BINOP, I),
+	BITOR("|", BINOP, I), BITAND("&", BINOP, I), BITXOR("^", BINOP, I),
 	EQ("=", ASSIGN),
 	ADDEQ("+=", ASSIGN, N), SUBEQ("-=", ASSIGN, N), CATEQ("$=", ASSIGN, O),
 	MULEQ("*=", ASSIGN, N), DIVEQ("/=", ASSIGN, N), MODEQ("%=", ASSIGN, N),
@@ -111,8 +112,8 @@ public enum Token {
 	public boolean isOperator() {
 		return ordinal() < IF.ordinal();
 	}
-	public boolean infix() {
-		return feature == INFIX || feature == TERMOP || feature == ASSIGN;
+	public boolean binop() {
+		return feature == BINOP || feature == TERMOP || feature == ASSIGN;
 	}
 	public boolean assign() {
 		return feature == ASSIGN;
