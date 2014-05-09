@@ -68,7 +68,7 @@ public class ContextLayered extends Context {
 	}
 
 	/***
-	 * Called by AstCompile when for classes that inherit from _Name
+	 * Called by AstCompile for classes that inherit from _Name
 	 */
 	public String overload(String base) {
 		assert base.startsWith("_");
