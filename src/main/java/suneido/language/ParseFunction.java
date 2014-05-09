@@ -67,9 +67,6 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		return statements;
 	}
 
-	public T statementList() {
-		return statementList(NORMAL);
-	}
 	public T statementList(Context context) {
 		T statements = null;
 		while (token != R_CURLY) {
