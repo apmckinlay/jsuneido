@@ -242,6 +242,14 @@ public class CompileTest {
 				"b, bool, IFFALSE L1, " +
 				"c, bool, IFFALSE L1, " +
 				"true, GOTO L2, L1, false, L2, ARETURN");
+		test("true or b",
+				"true, ARETURN");
+		test("a or true",
+				"true, ARETURN");
+		test("false and b",
+				"false, ARETURN");
+		test("a and false",
+				"false, ARETURN");
 	}
 
 	@Test
