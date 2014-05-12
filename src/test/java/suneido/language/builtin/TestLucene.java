@@ -25,7 +25,6 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.LockObtainFailedException;
-import org.apache.lucene.util.Version;
 
 public class TestLucene {
 
@@ -60,8 +59,8 @@ public class TestLucene {
 		try (Directory dir = FSDirectory.open(new File("index"));
 				IndexReader reader = IndexReader.open(dir); 
 				IndexSearcher searcher = new IndexSearcher(reader)) {
-			Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_31);
-			QueryParser parser = new QueryParser(Version.LUCENE_31, "text", analyzer);
+			Analyzer analyzer = new StandardAnalyzer(Lucene.version);
+			QueryParser parser = new QueryParser(Lucene.version, "text", analyzer);
 			Query query = parser.parse("good time");
 			System.out.println("Searching for: " + query.toString("text"));
 			TopDocs results = searcher.search(query, 10);

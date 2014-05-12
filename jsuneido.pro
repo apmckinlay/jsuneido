@@ -19,7 +19,6 @@
 
 -keep class org.objectweb.asm.MethodVisitor
 
--dontnote org.apache.lucene.**
 -dontnote com.google.common.**
 
 -dontwarn java.lang.invoke.MethodHandle
