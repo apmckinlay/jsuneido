@@ -147,7 +147,7 @@ public class Lucene extends BuiltinClass {
 		try {
 			dir = FSDirectory.open(new File(path));
 			Analyzer analyzer = new StandardAnalyzer(version);
-			IndexWriterConfig iwc = new IndexWriterConfig(Version.LUCENE_31, analyzer);
+			IndexWriterConfig iwc = new IndexWriterConfig(version, analyzer);
 			iwc.setOpenMode(create ? OpenMode.CREATE : OpenMode.APPEND);
 			return new IndexWriter(dir, iwc);
 		} catch (IOException e) {
