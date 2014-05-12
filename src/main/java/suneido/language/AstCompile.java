@@ -83,13 +83,27 @@ public class AstCompile {
 			return foldDll(name, ast);
 		case CALLBACK:
 			return foldCallback(name, ast);
-		case SUB:
+		case SUB: // unary
 			value = fold(ast.first());
 			if (value != null)
 				return Ops.uminus(value);
 			break;
-		case ADD:
+		case ADD: // unary
 			return fold(ast.first());
+		case AND:
+			for (AstNode expr : ast.children) {
+				value = fold(expr);
+				if (value == Boolean.FALSE)
+					return Boolean.FALSE;
+			}
+			break;
+		case OR:
+			for (AstNode expr : ast.children) {
+				value = fold(expr);
+				if (value == Boolean.TRUE)
+					return Boolean.TRUE;
+			}
+			break;
 		case NOT:
 			value = fold(ast.first());
 			if (value != null)
