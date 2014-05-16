@@ -50,7 +50,7 @@ class BufRecord extends Record {
 	@Override
 	public int size() {
 		int si = bufpos + Offset.NFIELDS;
-		return (buf.get(si) & 0xff) + ((buf.get(si + 1) & 0x3f) << 8);
+		return (buf.get(si) & 0xff) + ((buf.get(si + 1) & 0xff) << 8);
 	}
 
 	@Override
