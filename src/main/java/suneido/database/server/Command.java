@@ -620,18 +620,9 @@ public enum Command {
 		Record rec = row.firstData();
 		if (row.size() > 2) {
 			RecordBuilder rb = dbpkg.recordBuilder();
-			int nFields = 0;
-			int nonEmpty = 0;
-			for (String f : hdr.fields()) {
-				ByteBuffer x = row.getraw(hdr, f);
-				nFields++;
-				if (x.remaining() != 0)
-					nonEmpty = nFields;
-				rb.add(x);
-			}
-			// strip trailing empty fields
-			rb.truncate(nonEmpty);
-			rec = rb.build();
+			for (String f : hdr.fields())
+				rb.add(row.getraw(hdr, f));
+			rec = rb.trim().build();
 		}
 		return rec.squeeze();
 	}
