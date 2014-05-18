@@ -1,8 +1,17 @@
 package suneido.language.jsdi.suneido_protocol;
 
+import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
+
+import suneido.SuContainer;
 import suneido.SuException;
 import suneido.Suneido;
+import suneido.language.Except;
 import suneido.language.Ops;
+import suneido.language.jsdi.Buffer;
 
 /**
  * <p>
@@ -62,14 +71,12 @@ public final class InternetProtocol {
 	 * <ul>
 	 * <li>
 	 * If the Suneido language object does not exist, or is not callable, this
-	 * function behaves as if the relevant excception was thrown (see below).
+	 * function behaves as if the relevant exception was thrown (see below).
 	 * </li>
 	 * <li>
 	 * If the Suneido language object throws an exception, this function
-	 * returns a UTF-8 string with the following format:
-	 * "{@code fn(url) => error}", where {@code fn} is the Suneido language
-	 * function name, {@code url} is the argument to this function, and
-	 * {@code error} is the exception message.
+	 * returns a UTF-8 string containing a simple XHTML page with the stack
+	 * trace of the error message.
 	 * </li>
 	 * <li>
 	 * If the Suneido language object returns {@code false} or has no return
@@ -86,23 +93,89 @@ public final class InternetProtocol {
 	 * @param url Resource that the Suneido code should load.
 	 * @return Data suitable for display in a web browser.
 	 */
-	public static String start(String url) {
-		// NOTE: At the moment returning a String is fine, but we have to keep
-		//       in mind that the data returned to the web browser may be binary
-		//       data, e.g. a PNG image. This raises two problems. First, it's
-		//       inefficient to constantly be "packing" 1 byte of binary data
-		//       into two-byte Java UTF-16 characters. Second, it means the
-		//       consumer of the return value--the JSDI layer--must assume that
-		//       it can always eliminate the high-order byte of the characters
-		//       in the string. In other words, it is impossible to actually
-		//       return a UTF-16 string because the JSDI layer will always kill
-		//       the high-order byte.
+	public static byte[] start(String url) {
 		try {
 			final Object object = Suneido.context.get(CALLABLE_NAME);
 			final Object result = Ops.call(object, url);
-			return null == result || Boolean.FALSE == result ? null : Ops.toStr(result);
+			if (null == result || Boolean.FALSE == result)
+				return null;
+			else if (result instanceof Buffer) {
+				return ((Buffer)result).getInternalData();
+			} else {
+				final String str = Ops.toStr(result);
+				final Buffer buf = new Buffer(str.length(), str);
+				return buf.getInternalData();
+			}
 		} catch (SuException e) {
-			return Ops.toStr(CALLABLE_NAME + '(' + url + ") => " + e.getMessage());
+			return makeStackTraceHTMLPage(new Except(e));
 		}
 	}
+
+	private static byte[] makeStackTraceHTMLPage(Except e) {
+		// NOTE: This works adequately mainly because Internet Explorer is
+		//       pretty good at parsing badly-formed HTML. But because a lot of
+		//       characters that could appear in the error message may require
+		//       escaping to avoid breaking the HTML parser, we should really be
+		//       outputting XHTML and using a proper XML escaping library. 
+		final ByteArrayOutputStream os = new ByteArrayOutputStream();
+		final BufferedWriter w = new BufferedWriter(new OutputStreamWriter(os,
+				Charset.forName("ISO-8859-1")));
+		try {
+			addLines(w, HTML_BEFORE);
+			addLine(w, "<p><strong>Message:</strong> &quot;" + e.toString() + "&quot;</p>");
+			addLines(w, HTML_MIDDLE);
+			final SuContainer callstack = (SuContainer)Except.Callstack(e);
+			final int N = callstack.vecSize();
+			for (int k = 0; k < N; ++k) {
+				SuContainer callob = (SuContainer)callstack.get(k);
+				addLine(w, callob.get("fn").toString());
+			}
+			addLines(w, HTML_AFTER);
+			w.close();
+		} catch (Exception e2) {
+			Suneido.errlog("Can't make HTML stack trace", e2);
+		}
+try{
+java.io.FileOutputStream fos = new java.io.FileOutputStream("fos.txt");
+byte[] x = os.toByteArray();
+fos.write(x);
+fos.close();
+} catch (Exception xxxxxxx)
+{ }
+		return os.toByteArray();
+	}
+
+	private static void addLine(BufferedWriter w, String line)
+			throws IOException {
+		w.append(line);
+		w.newLine();
+	}
+
+	private static void addLines(BufferedWriter w, String[] lines)
+			throws IOException {
+		for (String line : lines) {
+			addLine(w, line);
+		}
+	}
+
+	private static final String[] HTML_BEFORE = new String[] {
+		"<html>",
+		"",
+		"<head>",
+		"<title>Exception invoking '" + CALLABLE_NAME + "'</title>",
+		"</head>",
+		"",
+		"<body>",
+		"<p>An exception occurred invoking the Suneido callable <code>" + CALLABLE_NAME + "</code>:</p>",
+	};
+	private static final String[] HTML_MIDDLE = new String[] {
+		"<p><strong>Stack Trace:</strong></p>",
+		"<pre>"
+	};
+	private static final String[] HTML_AFTER = new String[] {
+		"</pre>",
+		"</body>",
+		"",
+		"</html>"
+	};
 }
