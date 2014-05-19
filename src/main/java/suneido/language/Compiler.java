@@ -48,7 +48,7 @@ public class Compiler {
 		AstNode ast = parse(src);
 		if (pw != null)
 			pw.append(ast.toString() + "\n\n");
-		return new AstCompile(name, pw, context, warnings).fold(ast);
+		return AstCompile.fold(name, pw, context, warnings, ast);
 	}
 
 	public static AstNode parse(String src) {

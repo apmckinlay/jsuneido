@@ -40,7 +40,12 @@ public class AstCompile {
 	@SuppressWarnings("unused")
 	private final SuContainer warnings;
 
-	public AstCompile(String globalName, PrintWriter pw, ContextLayered context,
+	public static Object fold(String globalName, PrintWriter pw,
+			ContextLayered context, SuContainer warnings, AstNode ast) {
+		return new AstCompile(globalName, pw, context, warnings).fold(ast);
+	}
+
+	private AstCompile(String globalName, PrintWriter pw, ContextLayered context,
 			SuContainer warnings) {
 		this.globalName = globalName;
 		this.pw = pw;
@@ -48,12 +53,12 @@ public class AstCompile {
 		this.warnings = warnings;
 	}
 
-	public Object fold(AstNode ast) {
+	private Object fold(AstNode ast) {
 		return fold(null, ast);
 	}
 
 	/** @returns value if ast can be evaluated at compile time, otherwise null */
-	public Object fold(String name, AstNode ast) {
+	private Object fold(String name, AstNode ast) {
 		if (ast == null)
 			return null;
 		Object value;
@@ -174,7 +179,7 @@ public class AstCompile {
 		return name;
 	}
 
-	public SuCallable foldFunction(String name, AstNode ast) {
+	private SuCallable foldFunction(String name, AstNode ast) {
 		int prevFnId = fnId;
 		fnId = nextFnId.incrementAndGet();
 		boolean prevInMethod = inMethod;
@@ -195,7 +200,7 @@ public class AstCompile {
 		return fn;
 	}
 
-	public void block(ClassGen cg, AstNode ast) {
+	private void block(ClassGen cg, AstNode ast) {
 		if (ast.third() == null) {
 			SuCallable f = function(null, ast);
 			cg.constant(f);
@@ -213,7 +218,7 @@ public class AstCompile {
 		}
 	}
 
-	public SuCallable closure(ClassGen cg, AstNode ast) {
+	private SuCallable closure(ClassGen cg, AstNode ast) {
 		// needed to check if child blocks share with this block
 		AstSharesVars.check(ast);
 		nameBegin(null, "$b");
@@ -297,7 +302,7 @@ public class AstCompile {
 	}
 
 	@DllInterface
-	public Object foldStruct(String name, AstNode ast) {
+	private Object foldStruct(String name, AstNode ast) {
 		nameBegin(name, "$s");
 		TypeList members = typeList(Token.STRUCT, ast.first().children);
 		Structure struct = JSDI.getInstance().getTypeFactory()
@@ -307,7 +312,7 @@ public class AstCompile {
 	}
 
 	@DllInterface
-	public Object foldDll(String name, AstNode ast) {
+	private Object foldDll(String name, AstNode ast) {
 		nameBegin(name, "$d");
 		TypeList params = typeList(Token.DLL, ast.fourth().children);
 		Type returnType = null;
@@ -331,7 +336,7 @@ public class AstCompile {
 	}
 
 	@DllInterface
-	public Object foldCallback(String name, AstNode ast) {
+	private Object foldCallback(String name, AstNode ast) {
 		nameBegin(name, "$C");
 		TypeList params = typeList(Token.CALLBACK, ast.first().children);
 		Callback callback = JSDI.getInstance().getTypeFactory()
