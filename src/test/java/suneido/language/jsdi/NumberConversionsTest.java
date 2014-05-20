@@ -68,6 +68,13 @@ public class NumberConversionsTest {
 					JSDIException.class, "can't convert"
 				);
 		}
+		// Ensure numbers outside range of Long truncate correctly
+		assertEquals(1, toLong(1.55555));
+		assertEquals(-123, toLong(-123.89898989898));
+		assertEquals(Long.MAX_VALUE, toLong(Double.MAX_VALUE));
+		assertEquals(0, toLong(Double.MIN_VALUE));
+		assertEquals(Long.MIN_VALUE, toLong(Numbers.BD_LONG_MAX.add(BigDecimal.ONE)));
+		assertEquals(Long.MAX_VALUE, toLong(Numbers.BD_LONG_MIN.subtract(BigDecimal.ONE)));
 	}
 
 	@Test
@@ -106,6 +113,10 @@ public class NumberConversionsTest {
 		assertEquals(-1f, toFloat("-1.000000"), 0f);
 		assertEquals(Float.MIN_VALUE, toFloat(Float.toString(Float.MIN_VALUE)), 0f);
 		assertEquals(Float.MAX_VALUE, toFloat(Float.toString(Float.MAX_VALUE)), 0f);
+		// Ensure numbers outside range of float truncate appropriately
+		assertEquals(Float.POSITIVE_INFINITY, toFloat(Double.MAX_VALUE), 0f);
+		assertEquals(0f, toFloat(Double.MIN_VALUE), 0f);
+		assertEquals(Float.POSITIVE_INFINITY, toFloat("16777216E" + Float.MAX_EXPONENT), 0f);
 	}
 
 	@Test
@@ -148,6 +159,14 @@ public class NumberConversionsTest {
 		assertEquals((double)Float.MAX_VALUE, toDouble(Double.toString(Float.MAX_VALUE)), 0.0);
 		assertEquals(Double.MIN_VALUE, toDouble(new Buffer(Double.toString(Double.MIN_VALUE))), 0.0);
 		assertEquals(Double.MAX_VALUE, toDouble(new Buffer(Double.toString(Double.MAX_VALUE))), 0.0);
+		// Ensure numbers outside range of float truncate appropriately
+		assertEquals(Double.POSITIVE_INFINITY, toDouble(new BigDecimal(
+				Double.MAX_VALUE).multiply(new BigDecimal(2))), 0.0);
+		assertEquals(-1.0,
+				toDouble(new BigDecimal(Double.MIN_VALUE)
+						.subtract(BigDecimal.ONE)), 0.0);
+		assertEquals(Double.POSITIVE_INFINITY, toFloat("4503599627370497E"
+				+ Double.MAX_EXPONENT), 0f);
 	}
 
 	@Test
