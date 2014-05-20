@@ -51,6 +51,7 @@ public final class Buffer extends JSDIValue implements CharSequence {
 	// CONSTRUCTORS
 	//
 
+	// TODO: docs
 	public Buffer(int size, String str) {
 		this.data = new byte[size];
 		this.size = size;
@@ -59,6 +60,7 @@ public final class Buffer extends JSDIValue implements CharSequence {
 		copyStr(str, data, 0, N);
 	}
 
+	// TODO: docs
 	public Buffer(int size, Buffer buf) {
 		this.data = new byte[size];
 		this.size = size;
@@ -66,9 +68,25 @@ public final class Buffer extends JSDIValue implements CharSequence {
 		System.arraycopy(buf.data, 0, this.data, 0, buf.size);
 	}
 
+	// TODO: docs
 	public Buffer(byte[] src, int start, int end) {
 		this.data = new byte[end - start];
 		setAndSetSizeInternal(src, start, end);
+	}
+
+	/**
+	 * Equivalent to constructing with {@link #Buffer(int, String)} where
+	 * with <code>size</code> parameter set to <code>str.length()</code>.
+	 * @param str String to construct buffer with
+	 * @author Victor Schappert
+	 * @since 20140520
+	 *
+	 * Constructs a buffer whose capacity is equal to the length of the string
+	 * <code>str</code> and which contains the contents of <code>str</code>
+	 * truncated to 8-bit characters.
+	 */
+	public Buffer(String str) {
+		this(str.length(), str);
 	}
 
 	// TODO -- docs -- since 20130814
