@@ -62,7 +62,7 @@ public final class Structure extends ComplexType {
 		return marshallPlan;
 	}
 
-	private Object copyOut(int structAddr) {
+	private Object copyOut(long structAddr) {
 		Marshaller m = getMarshallPlan().makeMarshaller();
 		putMarshallOutInstruction(m);
 		switch (callGroup) {
@@ -221,7 +221,7 @@ public final class Structure extends ComplexType {
 	@Override
 	public Object call1(Object arg) {
 		if (arg instanceof Number) {
-			int ptr = NumberConversions.toPointer32(arg);
+			long ptr = NumberConversions.toPointer64(arg);
 			if (0 != ptr) {
 				return copyOut(ptr);
 			}
@@ -293,11 +293,12 @@ public final class Structure extends ComplexType {
 	// NATIVE METHODS
 	//
 
-	static native void copyOutDirect(int structAddr, byte[] data, int sizeDirect);
+	static native void copyOutDirect(long structAddr, byte[] data,
+			int sizeDirect);
 
-	static native void copyOutIndirect(int structAddr, byte[] data,
+	static native void copyOutIndirect(long structAddr, byte[] data,
 			int sizeDirect, int[] ptrArray);
 
-	static native void copyOutVariableIndirect(int structAddr, byte[] data,
+	static native void copyOutVariableIndirect(long structAddr, byte[] data,
 			int sizeDirect, int[] ptrArray, Object[] viArray, int[] viInstArray);
 }
