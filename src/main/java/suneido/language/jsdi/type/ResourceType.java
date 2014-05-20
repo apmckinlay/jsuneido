@@ -77,6 +77,7 @@ public final class ResourceType extends StringIndirect {
 	 *         of Short containing the signed 16-bit integer that is bitwise
 	 *         equivalent to the unsigned 16-bit {@code INTRESOURCE} value
 	 */
+	@_64BitIssue
 	public static Short AS_INTRESOURCE(Object value) {
 		try
 		{

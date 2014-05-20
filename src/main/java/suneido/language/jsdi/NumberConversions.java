@@ -30,7 +30,22 @@ public final class NumberConversions {
 	// PUBLIC INTERFACE
 	//
 
-	// TODO: docs
+	/**
+	 * Converts a Suneido value representable as a 64-bit Java {@code long} into
+	 * a {@code long}.
+	 *
+	 * If {@code x} contains a numeric value (for example, a Float or
+	 * BigDecimal) that is outside the range of a {@code long}, it will be
+	 * truncated.
+	 *
+	 * @param x Object to convert
+	 * @return Value of {@code x} as a {@code long}
+	 * @throws JSDIException If {@code x} has no conversion to {@code long}
+	 * @since 20130717
+	 * @see #toFloat(Object)
+	 * @see #toDouble(Object)
+	 * @see #toPointer64(Object)
+	 */
 	public static long toLong(Object x) {
 		if (x instanceof Number)
 			return ((Number) x).longValue();
@@ -43,7 +58,23 @@ public final class NumberConversions {
 		throw new JSDIException("can't convert " + Ops.typeName(x) + " to long");
 	}
 
-	// TODO: docs
+	/**
+	 * Converts a Suneido value representable as a Java {@code float} into
+	 * a {@code float}.
+	 *
+	 * If {@code x} contains a numeric value that is outside the range of a
+	 * {@code float}, it will be truncated. For numbers whose <em>magnitude</em>
+	 * is not representable as {@code float}, this may result in a value of
+	 * zero or {@link Float#POSITIVE_INFINITY}.
+	 *
+	 * @param x Object to convert
+	 * @return Value of {@code x} as a {@code float}
+	 * @throws JSDIException If {@code x} has no conversion to {@code float}
+	 * @since 20130717
+	 * @see #toLong(Object)
+	 * @see #toDouble(Object)
+	 * @see #toPointer64(Object)
+	 */
 	public static float toFloat(Object x) {
 		if (x instanceof Number)
 			return ((Number) x).floatValue();
@@ -56,7 +87,23 @@ public final class NumberConversions {
 		throw new JSDIException("can't convert " + Ops.typeName(x) + " to float");
 	}
 
-	// TODO: docs
+	/**
+	 * Converts a Suneido value representable as a Java {@code double} into
+	 * a {@code double}.
+	 *
+	 * If {@code x} contains a numeric value that is outside the range of a
+	 * {@code double}, it will be truncated. For numbers whose
+	 * <em>magnitude</em> is not representable as {@code float}, this may result
+	 * in a value of zero or {@link Double#POSITIVE_INFINITY}.
+	 *
+	 * @param x Object to convert
+	 * @return Value of {@code x} as a {@code double}
+	 * @throws JSDIException If {@code x} has no conversion to {@code double}
+	 * @since 20130717
+	 * @see #toLong(Object)
+	 * @see #toFloat(Object)
+	 * @see #toPointer64(Object)
+	 */
 	public static double toDouble(Object x) {
 		if (x instanceof Number)
 			return ((Number) x).doubleValue();
@@ -71,7 +118,7 @@ public final class NumberConversions {
 
 	/**
 	 * <p>
-	 * Converts an integer value which representing a 32-bit pointer into a Java
+	 * Converts an integer value representing a 32-bit pointer into a Java
 	 * {@code int} capable of being passed to native code.
 	 * </p>
 	 * <p>
@@ -91,10 +138,15 @@ public final class NumberConversions {
 	 * 32-bit pointer.
 	 * </p>
 	 * <p>
-	 * TODO: This function is deprecated and needs to be removed. The current
-	 * barriers to removal (20131013) are that it is still being used for
-	 * callback thunk pointers, and it is still being used for the resource
-	 * type. Once these are cleaned up, it can be removed.
+	 * <strong>NOTE:</strong> This function represents a problem for using JSDI
+	 * with 64-bit shared libraries, and hence using a 64-bit JVM. To minimize
+	 * the pain of transitioning to 64-bit, do <em>NOT</em>, for any reason,
+	 * use 32-bit pointers in your JNI interfaces. If you make a
+	 * <code>native</code> function that requires pointer arguments, the
+	 * pointers should be passed as <code>long</code> and converted using
+	 * {@link #toPointer64(Object)}. This function should be restricted to
+	 * marshalling parameters for 32-bit <code>dll</code> functions which
+	 * expect 32-bit pointers. 
 	 * </p>
 	 * @param a Value to convert
 	 * @return Value that is bitwise equivalent to the pointer represented by
@@ -103,13 +155,8 @@ public final class NumberConversions {
 	 * pointer
 	 * @since 20130912
 	 */
-	@Deprecated
+	@_64BitIssue
 	public static int toPointer32(Object a) {
-		// TODO: This should be completely removed in favour of toPointer64.
-		//       The various places in which we assume 32-bit pointers
-		//       (callback thunks, resources) should be changed to use 64-bit
-		//       integers. Otherwise converting to 64-bit will be even more
-		//       difficult.
 		if (a instanceof Number) {
 			if (a instanceof Integer) {
 				return (int)a;
@@ -203,7 +250,7 @@ public final class NumberConversions {
 		try {
 			return Long.parseLong(t, radix);
 		} catch (NumberFormatException e) {
-			throw new JSDIException("can't convert string to long: " + s);
+			throw new JSDIException("can't convert string to long: " + s, e);
 		}
 	}
 
@@ -219,7 +266,7 @@ public final class NumberConversions {
 				//       converts to NaN (i.e. "NaN"). In the current
 				//       implementation, that is the user's problem.
 			} catch (NumberFormatException e) {
-				throw new JSDIException("can't convert string to float: " + s);
+				throw new JSDIException("can't convert string to float: " + s, e);
 			}
 		}
 		return result;
@@ -233,13 +280,13 @@ public final class NumberConversions {
 				// The NOTE in 'toFloatFromString' regarding infinity and NaN
 				// values applies equally here.
 			} catch (NumberFormatException e) {
-				throw new JSDIException("can't convert string to double: " + s);
+				throw new JSDIException("can't convert string to double: " + s, e);
 			}
 		}
 		return result;
 	}
 
-	@Deprecated
+	@_64BitIssue
 	private static int toPointer32FromLong(long x) {
 		if ((long)Integer.MIN_VALUE <= x && x <= (long)Integer.MAX_VALUE) {
 			return (int)x;
@@ -248,7 +295,7 @@ public final class NumberConversions {
 		}
 	}
 
-	@Deprecated
+	@_64BitIssue
 	private static int toPointer32FromNumber(Number x) {
 		BigDecimal d = Numbers.toBigDecimal(x);
 		if (Numbers.integral(x)
