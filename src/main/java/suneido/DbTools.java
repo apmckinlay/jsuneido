@@ -8,6 +8,7 @@ import static suneido.Suneido.errlog;
 import static suneido.Suneido.fatal;
 import static suneido.intfc.database.DatabasePackage.printObserver;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.channels.ReadableByteChannel;
@@ -187,6 +188,8 @@ public class DbTools {
 		String tempfile = FileUtils.tempfile().toString();
 		if (! Jvm.runWithNewJvm("-rebuild:" + dbFilename + SEPARATOR + tempfile))
 			fatal("Rebuild FAILED");
+		if (! new File(tempfile + "dbd").isFile())
+			return; // assume db was ok, rebuild not needed
 		if (! Jvm.runWithNewJvm("-check:" + tempfile))
 			fatal("Rebuild ABORTED - check failed after rebuild");
 		dbpkg.renameDbWithBackup(tempfile, dbFilename);
