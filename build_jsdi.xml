@@ -46,8 +46,8 @@
 		<java classname="${jsdi-tools-package}.GenerateGlobalReferences">
 			<classpath>
 				<pathelement path="${java-dest-dir}"/>
-				<pathelement location="lib/asm-all-4.2.jar"/>
-				<pathelement location="lib/guava-16.0.jar"/>
+				<pathelement location="lib/asm-all-5.0.2.jar"/>
+				<pathelement location="lib/guava-17.0.jar"/>
 			</classpath>
 			<arg path="${jsdi-path}/src/${jsdi-global-ref-file-stem}.h"/>
 			<arg path="${jsdi-path}/src/${jsdi-global-ref-file-stem}.cpp"/>
@@ -61,7 +61,7 @@
 		<java classname="${jsdi-tools-package}.GenerateSharedEnums">
 			<classpath>
 				<pathelement path="${java-dest-dir}"/>
-				<pathelement location="lib/guava-14.0.1.jar"/>
+				<pathelement location="lib/guava-17.0.jar"/>
 			</classpath>
 			<arg path="${jsdi-path}/src/${jsdi-enum-file-stem}.h"/>
 			<arg path="${jsdi-path}/src/${jsdi-enum-file-stem}.cpp"/>
