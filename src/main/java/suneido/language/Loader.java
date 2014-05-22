@@ -4,6 +4,11 @@
 
 package suneido.language;
 
+/**
+ *
+ *
+ * NOTE: not currently used, work in progress
+ */
 interface Loader {
 
 	/** @return The definition of name in module */

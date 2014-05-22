@@ -7,6 +7,8 @@ package suneido.language;
 /**
  * The {@link Module} for the builtins.
  * Doesn't need to cache.
+ *
+ * NOTE: not currently used, work in progress
  */
 class ModuleBuiltins implements Module {
 

@@ -13,6 +13,8 @@ import com.google.common.cache.LoadingCache;
 /**
  * A {@link Module} that loads using a {@link Loader} and
  * caches the definitions that are loaded.
+ *
+ * NOTE: not currently used, work in progress
  */
 @ThreadSafe
 public class ModuleLoader implements Module {
