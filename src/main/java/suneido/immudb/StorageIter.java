@@ -18,7 +18,7 @@ import com.google.common.base.Objects;
  * @see StorageIterReverse
  */
 class StorageIter {
-	enum Status { OK, SIZE_MISMATCH, CHECKSUM_FAIL };
+	enum Status { OK, SIZE_MISMATCH, CHECKSUM_FAIL, BAD_SIZE };
 	private static final byte[] zero_tail = new byte[Tran.TAIL_SIZE];
 	final Storage stor;
 	/** address (not offset) of current commit/persist */
@@ -40,6 +40,7 @@ class StorageIter {
 		seek(adr);
 	}
 
+	/** used by dump */
 	StorageIter dontChecksum() {
 		verifyChecksums = false;
 		return this;
@@ -52,7 +53,12 @@ class StorageIter {
 		ByteBuffer buf = stor.buffer(adr);
 		size = Storage.intToSize(buf.getInt());
 		date = buf.getInt();
-		ByteBuffer endbuf = stor.buffer(stor.advance(adr, size - Tran.TAIL_SIZE));
+		int end = stor.advance(adr, size - Tran.TAIL_SIZE);
+		if (! stor.isValidAdr(end)) {
+			status = Status.BAD_SIZE;
+			return;
+		}
+		ByteBuffer endbuf = stor.buffer(end);
 		cksum = endbuf.getInt();
 		long endsize = Storage.intToSize(endbuf.getInt());
 		if (endsize != size) {
