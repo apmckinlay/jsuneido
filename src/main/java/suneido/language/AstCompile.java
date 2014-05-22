@@ -57,7 +57,11 @@ public class AstCompile {
 		return fold(null, ast);
 	}
 
-	/** @returns value if ast can be evaluated at compile time, otherwise null */
+	/**
+	 * Evaluate constant expressions at compile time.
+	 * Only processes the top level of the AST, does not recurse.
+	 * @returns value if ast can be evaluated at compile time, otherwise null
+	 */
 	private Object fold(String name, AstNode ast) {
 		if (ast == null)
 			return null;
