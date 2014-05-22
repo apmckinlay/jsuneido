@@ -15,6 +15,9 @@ import java.util.ArrayList;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import com.google.common.base.Objects;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 
 /**
@@ -648,41 +651,60 @@ class Btree implements TranIndex {
 		return totalSize;
 	}
 
+	private static final float MIN_FRAC = .001f;
+
 	/** from is inclusive, end is exclusive */
 	@Override
 	public float rangefrac(Record from, Record to) {
-		return rangefrac(new BtreeKey(from), new BtreeKey(to));
-	}
-
-	private static final float MIN_FRAC = .001f;
-
-	private float rangefrac(BtreeKey from, BtreeKey to) {
 		if (rootNode.size() == 0)
 			return MIN_FRAC; // can this be zero? careful - subtle bugs
-		boolean fromMinimal = isMinimal(from.key);
-		boolean toMaximal = isMaximal(to.key);
+		boolean fromMinimal = isMinimal(from);
+		boolean toMaximal = isMaximal(to);
 		if (fromMinimal && toMaximal)
 			return 1;
-		float[] rootChildFracs = childFracs(rootNode);
-		float fromPos = fromMinimal ? 0 : fracPos(from, rootChildFracs);
-		float toPos = toMaximal ? 1 : fracPos(to, rootChildFracs);
+		float fromPos = fromMinimal ? 0 : fracPos.getUnchecked(from);
+		float toPos = toMaximal ? 1 : fracPos.getUnchecked(to);
 		//trace("fromPos " + fromPos + " toPos " + toPos + " = " + (toPos - fromPos));
 		return Math.max(toPos - fromPos, MIN_FRAC);
 	}
 
-	private float[] childFracs(BtreeNode node) { 
-		int total = 0;
-		int[] sizes = new int[node.size()];
-		for (int i = 0; i < node.size(); ++i)
-			total += sizes[i] = (node.level == 0 ? 1 : childNode(node, i).size());
-		//trace("childSizes " + Arrays.toString(sizes));
-		float[] fracs = new float[node.size()];
-		for (int i = 0; i < node.size(); ++i)
-			fracs[i] = (float) sizes[i] / total;
-		return fracs;
+	private static boolean isMinimal(Record key) {
+		for (int i = 0; i < key.size(); ++i)
+			if (! key.getRaw(i).equals(Record.MIN_FIELD))
+				return false;
+		return true;
 	}
 
-	private float fracPos(BtreeKey key, float[] childFracs) {
+	private static boolean isMaximal(Record key) {
+		if (key.size() == 0)
+			return false;
+		for (int i = 0; i < key.size(); ++i)
+			if (! key.getRaw(i).equals(Record.MAX_FIELD))
+				return false;
+		return true;
+	}
+
+	// cache fracPos
+	// on our tests this reduces fracPos calls from 2,200,000 to 960,000
+	private final LoadingCache<Record, Float> fracPos =
+			CacheBuilder.newBuilder().build(
+					new CacheLoader<Record, Float>() {
+						@Override
+						public Float load(Record rec) {
+							return fracPos(rec);
+						}});
+
+	/** cache root childFracs */
+	private float[] rootChildFracs;
+	private int rootChildFracsValid;
+
+	private float fracPos(Record rec) {
+		if (rootChildFracs == null || rootChildFracsValid != modified) {
+			rootChildFracs = childFracs(rootNode);
+			rootChildFracsValid = modified;
+		}
+		float[] childFracs = rootChildFracs;
+		BtreeKey key = new BtreeKey(rec);
 		BtreeNode node = rootNode;
 		int pos = node.findPos(key);
 		float fracPos = 0;
@@ -717,22 +739,18 @@ class Btree implements TranIndex {
 		return fracPos > 1.0 ? 1.0f : fracPos;
 	}
 
-	private static boolean isMinimal(Record key) {
-		for (int i = 0; i < key.size(); ++i)
-			if (! key.getRaw(i).equals(Record.MIN_FIELD))
-				return false;
-		return true;
+	private float[] childFracs(BtreeNode node) {
+		int total = 0;
+		int[] sizes = new int[node.size()];
+		for (int i = 0; i < node.size(); ++i)
+			total += sizes[i] = (node.level == 0 ? 1 : childNode(node, i).size());
+		//trace("childSizes " + Arrays.toString(sizes));
+		float[] fracs = new float[node.size()];
+		for (int i = 0; i < node.size(); ++i)
+			fracs[i] = (float) sizes[i] / total;
+		return fracs;
 	}
 
-	private static boolean isMaximal(Record key) {
-		if (key.size() == 0)
-			return false;
-		for (int i = 0; i < key.size(); ++i)
-			if (! key.getRaw(i).equals(Record.MAX_FIELD))
-				return false;
-		return true;
-	}
-	
 //	void trace(String s) {
 //		suneido.database.query.Table.trace(s);
 //	}
