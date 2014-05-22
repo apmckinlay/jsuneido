@@ -9,6 +9,11 @@ import suneido.TheDbms;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.Dbms.HeaderAndRow;
 
+/**
+ *
+ *
+ * NOTE: not currently used, work in progress
+ */
 public class LoaderLibrary implements Loader {
 
 	@Override

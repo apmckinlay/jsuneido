@@ -8,6 +8,8 @@ import com.google.common.collect.ImmutableList;
 
 /**
  * A {@link Context} for {@link Module}'s
+ *
+ * NOTE: not currently used, work in progress
  */
 public class ContextModules extends Context {
 	private final ImmutableList<Module> modules;

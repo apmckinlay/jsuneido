@@ -6,7 +6,8 @@ package suneido.language;
 
 /**
  * The interface to a module.
- * Initially module = library, but could have sub-modules later.
+ *
+ * NOTE: not currently used, work in progress
  *
  * @see ModuleBuiltins
  * @see ModuleLoader
