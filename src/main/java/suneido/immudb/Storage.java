@@ -220,6 +220,11 @@ abstract class Storage {
 		return 0 <= pos && pos < storSize;
 	}
 
+	boolean isValidAdr(int adr) {
+		long off = adrToOffset(adr);
+		return 0 <= off && off < storSize;
+	}
+
 	void force() {
 	}
 
