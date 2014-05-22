@@ -4,15 +4,9 @@
 
 package suneido.language;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import suneido.SuException;
 import suneido.TheDbms;
 import suneido.database.server.Dbms.LibGet;
-
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 
 /**
  * Old style context with a stack of layered libraries "in use"
@@ -22,31 +16,19 @@ import com.google.common.cache.LoadingCache;
  * - reference in code - "previous" value becomes constant
  */
 public class ContextLayered extends Context {
-	private static final Object nonExistent = new Object();
-	private final LoadingCache<String, Object> loader =
-			CacheBuilder.newBuilder().build(
-					new CacheLoader<String, Object>() {
-						@Override
-						public Object load(String name) {
-							return myload(name);
-						}});
-	private static final AtomicInteger overload = new AtomicInteger();
+	private static int overload = 0;
 
 	public ContextLayered(Contexts contexts) {
 		super(contexts);
 	}
 
+	/** caller (i.e. Context) must synchronize */
 	@Override
 	protected Object fetch(String name) {
-		Object value = loader.getUnchecked(name);
-		return (value == nonExistent) ? null : value;
-	}
-
-	private Object myload(String name) {
 		Object x = Builtins.get(name);
 		if (x == null)
 			x = libget(name);
-		return (x == null) ? nonExistent : x;
+		return x;
 	}
 
 	private Object libget(String name) {
@@ -67,30 +49,13 @@ public class ContextLayered extends Context {
 		return result;
 	}
 
-	/***
-	 * Called by AstCompile for classes that inherit from _Name
-	 */
-	public String overload(String base) {
+	/** Called by AstCompile for classes that inherit from _Name */
+	synchronized String overload(String base) {
 		assert base.startsWith("_");
 		String name = base.substring(1); // remove leading underscore
-		Object x = get(name);
-		assert x != null;
-		int n = overload.getAndIncrement();
-		String nameForPreviousValue = n + base;
-		set(nameForPreviousValue, x);
+		String nameForPreviousValue = overload++ + base;
+		set(nameForPreviousValue, get(name));
 		return nameForPreviousValue;
-	}
-
-	@Override
-	public void clear(String name) {
-		loader.invalidate(name);
-		super.clear(name);
-	};
-
-	@Override
-	public void clearAll() {
-		loader.invalidateAll();
-		super.clearAll();
 	}
 
 }

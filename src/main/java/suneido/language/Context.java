@@ -4,9 +4,9 @@
 
 package suneido.language;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuException;
@@ -33,13 +33,11 @@ public abstract class Context {
 					new CacheLoader<String, Integer>() {
 						@Override
 						public Integer load(String name) {
-							int slot = names.add(name);
-							values.add(null);
-							nameToSlot.put(name, slot);
-							return slot;
+							return newSlot(name);
 						}});
-	private final GrowableArray<String> names = new GrowableArray<>();
-	private final GrowableArray<Object> values = new GrowableArray<>();
+	private final List<String> names = new ArrayList<>(1000);
+	private final List<Object> values = new ArrayList<>(1000);
+	private static final Object nonExistent = new Object();
 
 	/** VCS 20130703 -- I made this protected so we can derive a trivial context
 	 *                  for testing purposes...
@@ -52,101 +50,78 @@ public abstract class Context {
 		values.add(null);
 	}
 
-	/** @return The slot for a name, assigning a new slot for a new name */
-	public int slotForName(String name) {
+	/**
+	 * Called by compile. Cache handles synchronization for existing names.
+	 * @return The slot for a name, assigning a new slot for a new name.
+	 */
+	public final int slotForName(String name) {
 		return nameToSlot.getUnchecked(name);
 	}
 
-	public Object get(String name) {
+	private synchronized int newSlot(String name) {
+		assert names.size() == values.size();
+		int slot = names.size();
+		names.add(name);
+		values.add(null);
+		return slot;
+	}
+
+	public final synchronized Object get(String name) {
 		return get(slotForName(name));
 	}
 
-	public Object tryget(String name) {
-		return tryget(slotForName(name));
-	}
-
-	Object get(int slot) {
+	/** Called by compiled code to get the value of a global */
+	final synchronized Object get(int slot) {
 		Object value = tryget(slot);
 		if (value == null)
 			throw new SuException("can't find " + nameForSlot(slot));
 		return value;
 	}
 
+	/** Called for rules and triggers and UserDefined */
+	public synchronized final Object tryget(String name) {
+		return tryget(slotForName(name));
+	}
+
 	/** Get the value for a slot. If no cached value, then do lookup
-	 *  VCS 20130702 -- I made this public because it is needed by the jsdi
-	 *                  package...
+	 *  VCS 20130702 -- public because it is needed by the jsdi package
 	 */
-	public Object tryget(int slot) {
+	public synchronized final Object tryget(int slot) {
 		Object value = values.get(slot);
 		if (value == null) {
 			String name = nameForSlot(slot);
 			value = name.contains("@") ? contexts.fetchExplicit(name) : fetch(name);
+			values.set(slot, value == null ? nonExistent : value);
+			// nonExistent is used to avoid repeating failing fetches
 		}
-		if (value != null)
-			values.set(slot, value);
-		return value;
+		return value == nonExistent ? null : value;
 	}
 
-	/**
-	 * VCS 20130702 -- I made this public because it is needed by the jsdi
-	 *                 package.
-	 */
-	public String nameForSlot(int slot) {
+	/** VCS 20130702 - public because it is needed by the jsdi package. */
+	public synchronized final String nameForSlot(int slot) {
 		return names.get(slot);
 	}
 
 	/** Lookup the value for a name in this context */
 	abstract protected Object fetch(String name);
 
-	/** Remove the cached value for a slot. */
-	public void clear(String name) {
-		clear(slotForName(name));
+	/** Remove the cached value for a slot. Called by Unload */
+	public synchronized final void clear(String name) {
+		values.set(slotForName(name), null);
 	}
 
-	/** Remove the cached value for a slot. */
-	void clear(int slot) {
-		values.set(slot, null);
+	/** Remove the cached values for all slots. Called by Use & Unuse */
+	public synchronized final void clearAll() {
+		for (int i = 0; i < values.size(); ++i)
+			values.set(i, null);
 	}
 
-	/** Remove the cached values for all slots. */
-	public synchronized void clearAll() {
-		values.nullFill();
-	}
-
-	/** used by overloading and tests */
-	public void set(String name, Object value) {
+	/**
+	 * Used by ContextLayered overloading.
+	 * Also used by tests which is why it is public.
+	 */
+	public synchronized final void set(String name, Object value) {
 		values.set(slotForName(name), value);
-	}
-
-	@NotThreadSafe
-	private static class GrowableArray<T> {
-		private Object[] data = new Object[8];
-		private int size = 0; // only accessed by add & size
-
-		/** Can be used unsynchronized if you can tolerate stale data */
-		@SuppressWarnings("unchecked")
-		T get(int i) {
-			// NOTE: do NOT access size since it may be inconsistent
-			return (T) data[i];
-		}
-
-		/** Can be used unsynchronized */
-		void set(int i, T x) {
-			data[i] = x;
-		}
-
-		/** Should be synchronized */
-		int add(T x) {
-			if (size >= data.length)
-				data = Arrays.copyOf(data, (size * 3) / 2 + 1);
-			data[size] = x;
-			return size++;
-		}
-
-		/** Should be synchronized */
-		void nullFill() {
-			Arrays.fill(data, null);
-		}
 	}
 
 }
