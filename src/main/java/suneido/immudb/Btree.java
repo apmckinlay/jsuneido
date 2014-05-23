@@ -687,7 +687,7 @@ class Btree implements TranIndex {
 	// cache fracPos
 	// on our tests this reduces fracPos calls from 2,200,000 to 960,000
 	private final LoadingCache<Record, Float> fracPos =
-			CacheBuilder.newBuilder().build(
+			CacheBuilder.newBuilder().maximumSize(1000).build(
 					new CacheLoader<Record, Float>() {
 						@Override
 						public Float load(Record rec) {
