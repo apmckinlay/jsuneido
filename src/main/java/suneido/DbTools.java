@@ -188,7 +188,7 @@ public class DbTools {
 		String tempfile = FileUtils.tempfile().toString();
 		if (! Jvm.runWithNewJvm("-rebuild:" + dbFilename + SEPARATOR + tempfile))
 			fatal("Rebuild FAILED");
-		if (! new File(tempfile + "dbd").isFile())
+		if (! new File(tempfile + "d").isFile())
 			return; // assume db was ok, rebuild not needed
 		if (! Jvm.runWithNewJvm("-check:" + tempfile))
 			fatal("Rebuild ABORTED - check failed after rebuild");
