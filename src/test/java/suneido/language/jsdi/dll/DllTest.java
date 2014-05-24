@@ -543,4 +543,19 @@ public class DllTest {
 						array, hello, array0, array)),
 				eval(String.format("Recursive_StringSum2(%d)", addr)));
 	}
+
+	@Test
+	public void testDllAsClassMember() {
+		assertEquals(12,
+			eval("class { CallClass(@x) { .mydll(@x) } mydll: dll long jsdi:_TestStrLen@4([in] string str) }('hello, world')")
+		);
+	}
+
+	@Test
+	public void testDllAsInstanceMember() {
+		assertEquals(
+			-19800725L,
+			eval("class { Call(@x) { .mydll(@x) } mydll: dll int64 jsdi:_TestInt64@8(int64 a) }()(-19800725)")
+		);
+	}
 }

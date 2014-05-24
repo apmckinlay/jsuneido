@@ -140,7 +140,7 @@ public class Dll extends SuCallable {
 
 	@Override
 	public Object call(Object... args) { // TODO: should this method be final?
-		Args.massage(super.params, args);
+		args = Args.massage(super.params, args);
 		final MarshallPlan plan = getMarshallPlan();
 		final Marshaller m = plan.makeMarshaller();
 		dllParams.marshallInParams(m, args);
@@ -152,6 +152,14 @@ public class Dll extends SuCallable {
 		m.rewind();
 		dllParams.marshallOutParams(m, args);
 		return returnType.marshallOutReturnValue(returnValueRaw, m);
+	}
+
+	@Override
+	public Object eval(Object self, Object... args) {
+		// Need to implement 'eval' because a Dll could be a class or object
+		// member as well as a standalone object, in which case calling it will
+		// look like a method call to the compiler.
+		return call(args);
 	}
 
 	//
