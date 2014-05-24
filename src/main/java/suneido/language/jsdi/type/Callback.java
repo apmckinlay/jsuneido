@@ -140,6 +140,7 @@ public final class Callback extends ComplexType {
 	}
 
 	@Override
+	@_64BitIssue
 	public void marshallIn(Marshaller marshaller, Object value) {
 		if (null == value) {
 			marshaller.putLong(0);
