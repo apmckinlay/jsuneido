@@ -19,14 +19,18 @@ import java.util.regex.Pattern;
 
 import suneido.SuContainer;
 import suneido.SuException;
+import suneido.SuValue;
 import suneido.Suneido;
 import suneido.TheDbms;
 import suneido.language.BuiltinMethods;
 import suneido.language.Compiler;
 import suneido.language.Ops;
 import suneido.language.Params;
-import suneido.util.*;
+import suneido.util.Regex;
 import suneido.util.Regex.Result;
+import suneido.util.RegexCache;
+import suneido.util.Tabs;
+import suneido.util.Util;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
@@ -199,6 +203,50 @@ public class StringMethods extends BuiltinMethods {
 				return i;
 		}
 		return Boolean.FALSE;
+	}
+
+	public static Object Iter(Object self) {
+		return new Iterate((CharSequence) self);
+	}
+
+	private static final class Iterate extends SuValue {
+		final CharSequence seq;
+		final int length;
+		int index;
+
+		Iterate(CharSequence seq) {
+			this.seq = seq;
+			this.length = seq.length();
+			this.index = 0;
+		}
+
+		@Override
+		public SuValue lookup(String method) {
+			return IterateMethods.singleton.lookup(method);
+		}
+	}
+
+	public static final class IterateMethods extends BuiltinMethods {
+		public static final SuValue singleton = new IterateMethods();
+
+		protected IterateMethods() {
+			super(IterateMethods.class, null);
+		}
+
+		public static Object Next(Object self) {
+			Iterate iter = (Iterate) self;
+			// NOTE: A Buffer can be modified during iteration, in the sense
+			//       that the contents of the buffer can be overwritten with
+			//       other data. However, the *length* of any character sequence
+			//       cannot change once the object is created.
+			return iter.index < iter.length ? Character.toString(
+					iter.seq.charAt(iter.index++)) : self;
+		}
+
+		@Override
+		public String typeName() {
+			return "StringIter";
+		}
 	}
 
 	public static Object Lower(Object self) {
