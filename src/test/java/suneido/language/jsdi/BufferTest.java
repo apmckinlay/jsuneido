@@ -382,4 +382,22 @@ public class BufferTest {
 			assertEquals(b.toString(), u);
 		}
 	}
+
+	@Test
+	public void testIter() {
+		assertEquals("gfedcba",
+			eval(
+				"x = Buffer(7, 'abcdefg')\n" +
+				"y = x.Iter()\n" +
+				"z = y.Next()\n" +
+				"a = ''\n" +
+				"while (z isnt y)\n" +
+				"    {\n" +
+				"    a = z $ a\n" +
+				"    z = y.Next()\n" +
+				"    }\n" +
+				"a"
+			)
+		);
+	}
 }
