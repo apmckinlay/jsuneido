@@ -5,6 +5,9 @@
 package suneido.database.query;
 
 import static suneido.Suneido.dbpkg;
+import static suneido.Trace.trace;
+import static suneido.Trace.tracing;
+import static suneido.Trace.Type.QUERYOPT;
 import static suneido.util.Util.nil;
 import static suneido.util.Util.setUnion;
 import static suneido.util.Verify.verify;
@@ -14,7 +17,6 @@ import java.util.List;
 import java.util.Set;
 
 import suneido.SuException;
-import suneido.Trace;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.RecordBuilder;
 import suneido.intfc.database.Transaction;
@@ -96,23 +98,22 @@ public abstract class Query {
 		return this;
 	}
 
-	private static void trace(String s) {
-		Trace.trace(Trace.Type.QUERYOPT, s);
-	}
-
 	double optimize(List<String> index, Set<String> needs,
 			Set<String> firstneeds, boolean is_cursor, boolean freeze) {
-		trace("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
-		trace("START " + this + "\n"
-				+ "\tindex=" + index
-				+ " needs=" + needs	+ " firstneeds=" + firstneeds
-				+ (is_cursor ? " CURSOR" : "")
-				+ (freeze ? " FREEZE" : ""));
+		if (tracing(QUERYOPT)) {
+			trace(QUERYOPT, "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
+			trace(QUERYOPT, "START " + this + "\n"
+					+ "\tindex=" + index
+					+ " needs=" + needs	+ " firstneeds=" + firstneeds
+					+ (is_cursor ? " CURSOR" : "")
+					+ (freeze ? " FREEZE" : ""));
+		}
 		if (is_cursor || nil(index)) {
 			double cost = optimize1(index, needs, firstneeds, is_cursor, freeze);
-			trace("END " + this + "\n"
-					+ "\tcost " + cost);
-			trace("--------------------------------------------");
+			if (tracing(QUERYOPT)) {
+				trace(QUERYOPT, "END " + this + "\n" + "\tcost " + cost);
+				trace(QUERYOPT, "--------------------------------------------");
+			}
 			return cost;
 		}
 		if (!columns().containsAll(index))
@@ -129,15 +130,17 @@ public abstract class Query {
 				is_cursor, false);
 		double tempindex_cost = nrecords() * keysize * WRITE_FACTOR // write index
 				+ nrecords() * keysize // read index
-				+ 4000;
-		cost2 = no_index_cost + tempindex_cost; // minimum fixed cost
+				+ 4000; // minimum fixed cost
+		cost2 = no_index_cost + tempindex_cost;
 		verify(cost2 >= 0);
-		trace("END " + this + "\n"
-				+ "\twith " + index + " cost1 " + cost1 + "\n"
-				+ "\twith TEMPINDEX cost2 " + cost2
-				+ " (" + no_index_cost + " + " + tempindex_cost + ")"
-				+ " nrecords " + nrecords() + " keysize " + keysize);
-		trace("--------------------------------------------");
+		if (tracing(QUERYOPT)) {
+			trace(QUERYOPT, "END " + this + "\n"
+					+ "\twith " + index + " cost1 " + cost1 + "\n"
+					+ "\twith TEMPINDEX cost2 " + cost2
+					+ " (" + no_index_cost + " + " + tempindex_cost + ")"
+					+ " nrecords " + nrecords() + " keysize " + keysize);
+			trace(QUERYOPT, "--------------------------------------------");
+		}
 
 		double cost = Math.min(cost1, cost2);
 		if (!freeze)

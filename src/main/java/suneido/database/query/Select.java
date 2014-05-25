@@ -7,6 +7,9 @@ package suneido.database.query;
 import static java.util.Arrays.asList;
 import static suneido.SuException.unreachable;
 import static suneido.Suneido.dbpkg;
+import static suneido.Trace.trace;
+import static suneido.Trace.tracing;
+import static suneido.Trace.Type.SELECT;
 import static suneido.Trace.Type.SLOWQUERY;
 import static suneido.intfc.database.Record.MAX_FIELD;
 import static suneido.intfc.database.Record.MIN_FIELD;
@@ -21,7 +24,6 @@ import java.nio.ByteBuffer;
 import java.util.*;
 
 import suneido.SuException;
-import suneido.Trace;
 import suneido.database.query.expr.*;
 import suneido.database.server.DbmsTranLocal;
 import suneido.intfc.database.Record;
@@ -281,12 +283,6 @@ public class Select extends Query1 {
 		return false;
 	}
 
-	// optimize =====================================================
-
-	private static void trace(String s) {
-		Trace.trace(Trace.Type.SELECT, s);
-	}
-
 	@Override
 	double optimize2(List<String> index, Set<String> needs,
 			Set<String> firstneeds, boolean is_cursor, boolean freeze) {
@@ -307,9 +303,11 @@ public class Select extends Query1 {
 			return cost;
 		}
 
-		trace("Select::optimize " + source.toString() + (freeze ? " FREEZE" : "") + 
-				" index " + index + ", needs " + needs);
-		trace("orig exprs: " + expr);
+		if (tracing(SELECT)) {
+			trace(SELECT, "Select::optimize " + source + (freeze ? " FREEZE" : "") +
+					" index " + index + ", needs " + needs);
+			trace(SELECT, "orig exprs: " + expr);
+		}
 		if (optFirst) {
 			optFirst = false;
 			optimize_setup();
@@ -393,8 +391,10 @@ public class Select extends Query1 {
 		}
 		if (new_exprs.size() != expr.exprs.size())
 			expr = new And(new_exprs);
-		trace("exprs: " + expr);
-		trace("cmps: " + cmps);
+		if (tracing(SELECT)) {
+			trace(SELECT, "exprs: " + expr);
+			trace(SELECT, "cmps: " + cmps);
+		}
 		return cmps;
 	}
 	private void cmps_to_isels(List<Cmp> cmps) {
@@ -431,17 +431,18 @@ public class Select extends Query1 {
 				isel = new Iselect();
 			}
 		}
-		trace("isels: " + isels);
+		if (tracing(SELECT))
+			trace(SELECT, "isels: " + isels);
 	}
-	
-	private static final Comparator<ByteBuffer> bufcmp = 
+
+	private static final Comparator<ByteBuffer> bufcmp =
 			new Comparator<ByteBuffer>() {
 				@Override
 				public int compare(ByteBuffer buf1, ByteBuffer buf2) {
 					return bufferUcompare(buf1, buf2);
 				}
 	};
-	
+
 	private void identify_possible() {
 		// possible = indexes with isels
 		for (List<String> idx : theindexes)
@@ -575,12 +576,13 @@ public class Select extends Query1 {
 			} else
 				unreachable();
 		}
-	Record rorg = org.build();
-	Record rend = end.build();
-	float frac = tran.rangefrac(tbl.num(), listToCommas(index), rorg, rend);
-	Table.trace(tbl.tbl.name() + "^" + index +
-			" from " + rorg + " to " + rend + " => " + frac);
-	return frac;
+		Record rorg = org.build();
+		Record rend = end.build();
+		float frac = tran.rangefrac(tbl.num(), listToCommas(index), rorg, rend);
+		if (tracing(SELECT))
+			trace(SELECT, tbl.tbl.name() + "^" + index +
+					" from " + rorg + " to " + rend + " => " + frac);
+		return frac;
 	}
 
 	private double datafrac(List<List<String>> indexes) {
@@ -686,7 +688,8 @@ public class Select extends Query1 {
 		processFilters();
 		hdr = source.header();
 		ranges = selects(source_index, iselects(source_index));
-		trace("ranges: " + ranges);
+		if (tracing(SELECT))
+			trace(SELECT, "ranges: " + ranges);
 	}
 
 	private void processFilters() {
@@ -1068,8 +1071,8 @@ public class Select extends Query1 {
 
 	@Override
 	public void close() {
-		if (n_in > 100 && n_in > 100 * n_out)
-			Trace.trace(SLOWQUERY, n_in + "->" + n_out + "  " + this);
+		if (tracing(SLOWQUERY) && n_in > 100 && n_in > 100 * n_out)
+			trace(SLOWQUERY, n_in + "->" + n_out + "  " + this);
 		super.close();
 	}
 

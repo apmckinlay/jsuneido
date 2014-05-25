@@ -6,6 +6,7 @@ package suneido.database.server;
 
 import static suneido.Suneido.dbpkg;
 import static suneido.Trace.trace;
+import static suneido.Trace.tracing;
 import static suneido.Trace.Type.CLIENTSERVER;
 
 import java.net.InetAddress;
@@ -82,7 +83,8 @@ public class DbmsRemote extends Dbms {
 	@Override
 	public DbmsQuery cursor(String s) {
 		writeLineBuf("CURSOR", "Q" + s.length());
-		trace(CLIENTSERVER, " => " + s);
+		if (tracing(CLIENTSERVER))
+			trace(CLIENTSERVER, " => " + s);
 		io.write(s);
 		int cn = readInt('C');
 		return new DbmsCursorRemote(cn);
@@ -336,7 +338,8 @@ public class DbmsRemote extends Dbms {
 		@Override
 		public int request(String s) {
 			writeLineBuf("REQUEST", "T" + tn + " Q" + s.length());
-			trace(CLIENTSERVER, "    " + s);
+			if (tracing(CLIENTSERVER))
+				trace(CLIENTSERVER, "    " + s);
 			io.write(s);
 			return readInt('R');
 		}
@@ -344,7 +347,8 @@ public class DbmsRemote extends Dbms {
 		@Override
 		public DbmsQuery query(String s) {
 			writeLineBuf("QUERY", "T" + tn + " Q" + s.length());
-			trace(CLIENTSERVER, "    " + s);
+			if (tracing(CLIENTSERVER))
+				trace(CLIENTSERVER, "    " + s);
 			io.write(s);
 			return new DbmsQueryRemote(readInt('Q'));
 		}
@@ -376,7 +380,8 @@ public class DbmsRemote extends Dbms {
 			writeLineBuf("GET1",
 					(dir == Dir.PREV ? "- " : (one ? "1 " : "+ ")) +
 					"T" + tn + " Q" + query.length());
-			trace(CLIENTSERVER, "    " + query);
+			if (tracing(CLIENTSERVER))
+				trace(CLIENTSERVER, "    " + query);
 			io.write(query);
 			return readRecord(true);
 		}

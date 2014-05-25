@@ -5,6 +5,7 @@
 package suneido.language.builtin;
 
 import static suneido.Trace.trace;
+import static suneido.Trace.tracing;
 import static suneido.Trace.Type.QUERY;
 import static suneido.language.FunctionSpec.NA;
 import static suneido.util.Util.array;
@@ -80,7 +81,8 @@ public class SuTransaction extends SuValue {
 		args = Args.massage(QueryParams, args);
 		String query = Ops.toStr(args[0]) + where;
 		SuTransaction tran = (SuTransaction) self;
-		trace(QUERY, tran + " " + query);
+		if (tracing(QUERY))
+			trace(QUERY, tran + " " + query);
 		if (CompileQuery.isRequest(query)) {
 			if (args[1] != Boolean.FALSE)
 				throw new SuException(
@@ -121,9 +123,10 @@ public class SuTransaction extends SuValue {
 
 	public static Object queryOne(SuTransaction ti, String query, Dir dir,
 			boolean single) {
-		trace(QUERY, (ti == null ? "" : ti + " ") +
-				(single ? "ONE" : dir == Dir.NEXT ? "FIRST" : "LAST") +
-				" " + query);
+		if (tracing(QUERY))
+			trace(QUERY, (ti == null ? "" : ti + " ") +
+					(single ? "ONE" : dir == Dir.NEXT ? "FIRST" : "LAST") +
+					" " + query);
 		HeaderAndRow hr = (ti == null)
 				? TheDbms.dbms().get(dir, query, single)
 				: ti.t.get(dir, query, single);
