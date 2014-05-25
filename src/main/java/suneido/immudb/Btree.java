@@ -15,9 +15,6 @@ import java.util.ArrayList;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import com.google.common.base.Objects;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Lists;
 
 /**
@@ -662,8 +659,8 @@ class Btree implements TranIndex {
 		boolean toMaximal = isMaximal(to);
 		if (fromMinimal && toMaximal)
 			return 1;
-		float fromPos = fromMinimal ? 0 : fracPos.getUnchecked(from);
-		float toPos = toMaximal ? 1 : fracPos.getUnchecked(to);
+		float fromPos = fromMinimal ? 0 : fracPos(from);
+		float toPos = toMaximal ? 1 : fracPos(to);
 		//trace("fromPos " + fromPos + " toPos " + toPos + " = " + (toPos - fromPos));
 		return Math.max(toPos - fromPos, MIN_FRAC);
 	}
@@ -683,16 +680,6 @@ class Btree implements TranIndex {
 				return false;
 		return true;
 	}
-
-	// cache fracPos
-	// on our tests this reduces fracPos calls from 2,200,000 to 960,000
-	private final LoadingCache<Record, Float> fracPos =
-			CacheBuilder.newBuilder().maximumSize(1000).build(
-					new CacheLoader<Record, Float>() {
-						@Override
-						public Float load(Record rec) {
-							return fracPos(rec);
-						}});
 
 	/** cache root childFracs */
 	private float[] rootChildFracs;
@@ -740,14 +727,13 @@ class Btree implements TranIndex {
 	}
 
 	private float[] childFracs(BtreeNode node) {
-		int total = 0;
-		int[] sizes = new int[node.size()];
-		for (int i = 0; i < node.size(); ++i)
-			total += sizes[i] = (node.level == 0 ? 1 : childNode(node, i).size());
-		//trace("childSizes " + Arrays.toString(sizes));
+		float total = 0;
 		float[] fracs = new float[node.size()];
 		for (int i = 0; i < node.size(); ++i)
-			fracs[i] = (float) sizes[i] / total;
+			total += fracs[i] = (node.level == 0 ? 1 : childNode(node, i).size());
+		//trace("childSizes " + Arrays.toString(sizes));
+		for (int i = 0; i < node.size(); ++i)
+			fracs[i] /= total;
 		return fracs;
 	}
 
