@@ -13,6 +13,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import suneido.SuException;
 import suneido.Suneido;
 
 public class ExecuteTest {
@@ -307,6 +308,26 @@ public class ExecuteTest {
 		test("_p = 123; function(_p = 0){ p }()", "123");
 		test("c = class { New(._p) { } A() { .p } }; _p = 123; i = c(); i.A()", "123");
 		test("c = class { New(._P) { } A() { .P } }; _p = 123; i = c(); i.A()", "123");
+	}
+
+	@Test
+	public void test_call_string() {
+		test("#Size('abc')", "3");
+		test("x = #(abc); #Size(@x)", "3");
+		test("x = #(#(a b c), ' '); #Size(#Join(@x))", "5");
+		test("x = #(0, (a b c), ':'); #Size(#Join(@+1x))", "5");
+		needsThis("#Size(x: 10)");
+		needsThis("#Size()");
+		needsThis("x = #(a, z: 4); #Size(@+1 x)");
+	}
+
+	private static void needsThis(String expr) {
+		try {
+			eval(expr);
+			fail();
+		} catch (SuException e) {
+			assertEquals(e.getMessage(), "string call requires 'this' argument");
+		}
 	}
 
 	private static void def(String name, String source) {

@@ -579,11 +579,40 @@ public final class Ops {
 
 	/** string(object, ...) => object[string](...) */
 	static Object callString(Object x, Object... args) {
-		if (args.length < 1)
-			throw new SuException("string call requires 'this' argument");
+		if (args.length < 1) 
+			throw callStringNoThis();
 		Object ob = args[0];
-		args = Arrays.copyOfRange(args, 1, args.length);
+		// Handle @args, @+1 args, 
+		if (Args.Special.EACH == args[0] || Args.Special.EACH1 == args[0]) {
+			assert 2 == args.length;
+			SuContainer c = Ops.toContainer(args[1]);
+			if (null == c)
+				throw new SuException("@args requires object"); // TODO: This duplicates a throw in Args.massage, Args.java:53
+			if (Args.Special.EACH == args[0]) {
+				if (c.vecSize() < 1)
+					throw callStringNoThis();
+				ob = c.vecGet(0);
+				args = new Object[] { Args.Special.EACH, c.slice(1) };
+			} else /* EACH1 */ {
+				if (c.vecSize() < 2)
+					throw callStringNoThis();
+				ob = c.vecGet(1);
+				args = new Object[] { Args.Special.EACH, c.slice(2) };
+			}
+		// If nothing but named arguments, there's no 'this' object, since it
+		// has to be the first argument and named arguments have no order.
+		} else if (Args.Special.NAMED == args[0]) {
+			throw callStringNoThis();
+		// General case: regular argument list where first argument was the
+		// 'this' object and subsequent arugments to be passed to the method.
+		} else {
+			args = Arrays.copyOfRange(args, 1, args.length);
+		}
 		return invoke(ob, x.toString(), args);
+	}
+
+	private static SuException callStringNoThis() {
+		return new SuException("string call requires 'this' argument");
 	}
 
 	/** Used by generated code to call methods */
