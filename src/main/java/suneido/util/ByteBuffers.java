@@ -60,11 +60,11 @@ public class ByteBuffers {
 	}
 
 	public static int bufferUcompare(ByteBuffer b1, ByteBuffer b2) {
-		int n = Math.min(b1.remaining(), b2.remaining());
 		int b1pos = b1.position();
 		int b2pos = b2.position();
-		for (int i = 0; i < n; ++i) {
-			int cmp = (b1.get(b1pos + i) & 0xff) - (b2.get(b2pos + i) & 0xff);
+		int b1lim = b1pos + Math.min(b1.remaining(), b2.remaining());
+		for (; b1pos < b1lim; ++b1pos, ++b2pos) {
+			int cmp = (b1.get(b1pos) & 0xff) - (b2.get(b2pos) & 0xff);
 			if (cmp != 0)
 				return cmp;
 		}
