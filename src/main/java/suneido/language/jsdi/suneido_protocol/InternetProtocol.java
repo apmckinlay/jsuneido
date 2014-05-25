@@ -139,13 +139,6 @@ public final class InternetProtocol {
 		} catch (Exception e2) {
 			Suneido.errlog("Can't make HTML stack trace", e2);
 		}
-try{
-java.io.FileOutputStream fos = new java.io.FileOutputStream("fos.txt");
-byte[] x = os.toByteArray();
-fos.write(x);
-fos.close();
-} catch (Exception xxxxxxx)
-{ }
 		return os.toByteArray();
 	}
 
