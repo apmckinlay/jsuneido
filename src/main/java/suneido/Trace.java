@@ -22,10 +22,12 @@ public class Trace {
 	public static int flags = 0;
 	private static FileWriter fw;
 
+	public static boolean tracing(Type type) {
+		return (flags & type.bit) == type.bit;
+	}
+
 	public static void trace(Type type, String s) {
-		// comment out to avoid overhead (JIT should remove calls)
-//		if ((flags & type.bit) != 0)
-//			println(type + " " + s);
+		println(type + " " + s);
 	}
 
 	public static void println(String s) {

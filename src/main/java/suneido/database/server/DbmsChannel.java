@@ -5,6 +5,7 @@
 package suneido.database.server;
 
 import static suneido.Trace.trace;
+import static suneido.Trace.tracing;
 import static suneido.Trace.Type.CLIENTSERVER;
 import static suneido.util.ByteBuffers.putStringToByteBuffer;
 
@@ -94,7 +95,8 @@ public class DbmsChannel {
 		rbuf.flip();
 		String s = getString(rbuf, nl + 1);
 		rbuf.compact();
-		trace(CLIENTSERVER, "    => " + s);
+		if (tracing(CLIENTSERVER))
+			trace(CLIENTSERVER, "    => " + s);
 		if (s.startsWith("ERR"))
 			throw new SuException(s.substring(4) + " (from server)");
 		return s;
@@ -124,12 +126,14 @@ public class DbmsChannel {
 	}
 
 	public void writeLine(String cmd) {
-		trace(CLIENTSERVER, cmd);
+		if (tracing(CLIENTSERVER))
+			trace(CLIENTSERVER, cmd);
 		write(cmd + "\n");
 	}
 
 	public void writeLine(String cmd, String s) {
-		trace(CLIENTSERVER, cmd + " " + s);
+		if (tracing(CLIENTSERVER))
+			trace(CLIENTSERVER, cmd + " " + s);
 		assert rbuf.position() == 0;
 		write(cmd + " " + Tr.tr(s, " \r\n", " ").trim() + "\r\n");
 	}
@@ -147,7 +151,8 @@ public class DbmsChannel {
 	}
 
 	public void writeLineBuf(String cmd, String s) {
-		trace(CLIENTSERVER, cmd + " " + s);
+		if (tracing(CLIENTSERVER))
+			trace(CLIENTSERVER, cmd + " " + s);
 		assert rbuf.position() == 0;
 		writeBuf(cmd + " " + Tr.tr(s, " \r\n", " ").trim() + "\r\n");
 	}

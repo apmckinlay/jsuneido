@@ -6,6 +6,9 @@ package suneido.database.query;
 
 import static java.util.Arrays.asList;
 import static suneido.SuException.unreachable;
+import static suneido.Trace.trace;
+import static suneido.Trace.tracing;
+import static suneido.Trace.Type.TABLE;
 import static suneido.util.Util.listToCommas;
 import static suneido.util.Util.listToParens;
 import static suneido.util.Util.nil;
@@ -17,7 +20,6 @@ import java.util.List;
 import java.util.Set;
 
 import suneido.Suneido;
-import suneido.Trace;
 import suneido.intfc.database.IndexIter;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.RecordBuilder;
@@ -55,10 +57,6 @@ public class Table extends Query {
 		return table + (nil(idx) ? "" : "^" + listToParens(idx));
 	}
 
-	public static void trace(String s) {
-		Trace.trace(Trace.Type.TABLE, s);
-	}
-
 	@Override
 	double optimize2(List<String> index, Set<String> needs,
 			Set<String> firstneeds, boolean is_cursor, boolean freeze) {
@@ -93,13 +91,14 @@ public class Table extends Query {
 			cost3 = totalSize() + // cost of reading data
 					idx3.size; // cost of reading index
 
-		trace(table + " index " + index +
-				(is_cursor ? " is_cursor" : "") + (freeze ? " FREEZE" : "") +
-				"\n\tneeds: " + needs +
-				"\n\tfirstneeds: " + firstneeds + "\n" +
-				"\tidx1 " + idx1 + " cost1 " + cost1 + "\n" +
-				"\tidx2 " + idx2 + " cost2 " + cost2 + "\n" +
-				"\tidx3 " + idx3 + " cost3 " + cost3);
+		if (tracing(TABLE))
+			trace(TABLE, table + " index " + index +
+					(is_cursor ? " is_cursor" : "") + (freeze ? " FREEZE" : "") +
+					"\n\tneeds: " + needs +
+					"\n\tfirstneeds: " + firstneeds + "\n" +
+					"\tidx1 " + idx1 + " cost1 " + cost1 + "\n" +
+					"\tidx2 " + idx2 + " cost2 " + cost2 + "\n" +
+					"\tidx3 " + idx3 + " cost3 " + cost3);
 
 		if (cost1 <= cost2 && cost1 <= cost3) {
 			idx = (idx1 == null) ? null : idx1.index;
