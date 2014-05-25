@@ -604,7 +604,7 @@ public final class Ops {
 		} else if (Args.Special.NAMED == args[0]) {
 			throw callStringNoThis();
 		// General case: regular argument list where first argument was the
-		// 'this' object and subsequent arugments to be passed to the method.
+		// 'this' object and subsequent arguments to be passed to the method.
 		} else {
 			args = Arrays.copyOfRange(args, 1, args.length);
 		}
