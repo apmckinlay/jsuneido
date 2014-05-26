@@ -13,10 +13,20 @@ import static suneido.language.Args.Special.NAMED;
 import java.util.AbstractMap;
 import java.util.Iterator;
 
+import suneido.language.builtin.ContainerMethods;
 import suneido.util.NullIterator;
 
 import com.google.common.collect.Iterators;
 
+/**
+ * Iterates through the arguments passed to a Suneido function.
+ * Handles EACH, EACH1, NAMED.
+ * Returns Map.Entry for named arguments.
+ *
+ * Used by {@link ContainerMethods.evaluate} and {@link Ops.callString}
+ *
+ * @see Args
+ */
 public class ArgsIterator implements Iterator<Object>, Iterable<Object> {
 	private final Object[] args;
 	private boolean named = true;
@@ -56,6 +66,7 @@ public class ArgsIterator implements Iterator<Object>, Iterable<Object> {
 		return x;
 	}
 
+	/** @return the remaining arguments as Object[] */
 	public Object[] rest() {
 		named = false;
 		return Iterators.toArray(this, Object.class);
