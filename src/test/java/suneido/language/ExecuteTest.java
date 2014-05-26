@@ -326,7 +326,7 @@ public class ExecuteTest {
 			eval(expr);
 			fail();
 		} catch (SuException e) {
-			assertEquals(e.getMessage(), "string call requires 'this' argument");
+			assertEquals("string call requires 'this' argument", e.getMessage());
 		}
 	}
 
