@@ -1,0 +1,74 @@
+FASTDLL IMPLEMENTATION
+======================
+
+NOTE: I think a 'pointer' type call can and should be considered a 'fast' call
+      because the "point" of it is the pointer is opaque. Actually, come to
+      think of it, maybe a better term for it is "opaque".
+
++ Dll
+|
++---+ GenericDll
+|
++---+ FastDll
+    |
+    +--- FastDll0
+    |
+    +--- FastDll0NoRet
+    |
+    +--- FastDll1
+    |
+    +--- FastDll1NoRet
+    |
+    +--- FastDll2
+    |
+    +--- FastDll2NoRet
+    |
+    +--- FastDll3
+    |
+    +--- FastDll3NoRet
+
+    
+    
+================================================================================
+DllBase               extends SuCallable
+================================================================================
+
+final long     funcPtr;    // Pointer to the function to invoke on the native side
+final TypeList dllParams;  // Needed for documentation etc.
+final Type     returnType;
+
+    // Don't need ReturnTypeGroup because it is always INTEGER in the FastDll
+    // subclass.
+
+    // Don't store NativeCall here because there's a difference in availability
+    // of null-ness.
+
+final String     valueName;
+final DllFactory dllFactory;
+final String     libraryName;
+final String     userFunctionName;
+final String     actualFunctionName;
+
+    // These are all needed.
+    
+    // Don't need to store the MarshallPlan since it can be generated for DLL
+    // based on the TypeList dllParams and the Type returnType.
+
+
+================================================================================
+OLD DLL 
+================================================================================
+
+	final long            funcPtr;
+	final TypeList        dllParams; // not to confuse with SuCallable.params
+	final Type            returnType;
+	final ReturnTypeGroup returnTypeGroup; // never null
+	final NativeCall      nativeCall;      // null if params isn't closed
+
+	final String     valueName;
+	final DllFactory dllFactory;
+	final String     libraryName;
+	final String     userFunctionName;
+	final String     actualFunctionName;
+
+	MarshallPlan marshallPlan;
