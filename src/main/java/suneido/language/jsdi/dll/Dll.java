@@ -72,7 +72,6 @@ public class Dll extends SuCallable {
 		//
 		// Initialize SuCallable fields
 		//
-		
 		super.params = functionSpec;
 	}
 
