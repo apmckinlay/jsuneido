@@ -18,6 +18,7 @@ public final class PrimitiveSize {
 	/**
 	 * Size of the native word size, in bytes.
 	 */
+	@_64BitIssue
 	public static final int WORD = 4;
 	/**
 	 * Size of a native pointer type, in bytes. This should give the same
