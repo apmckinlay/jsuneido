@@ -5,6 +5,7 @@
 package suneido.language.jsdi.type;
 
 import suneido.language.jsdi.DllInterface;
+import suneido.language.jsdi._64BitIssue;
 
 /**
  * Contains the "direct" size of various native types supported by JSDI. The
@@ -23,6 +24,7 @@ public final class PrimitiveSize {
 	 * result as the value reported by a C compiler for {@code sizeof(void *)}
 	 * on the native platform. 
 	 */
+	@_64BitIssue
 	public static final int POINTER = WORD;
 	/**
 	 * <p>
