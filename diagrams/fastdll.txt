@@ -54,6 +54,17 @@ final String     actualFunctionName;
     // Don't need to store the MarshallPlan since it can be generated for DLL
     // based on the TypeList dllParams and the Type returnType.
 
+================================================================================
+For FastDll, should "extract" parameters as BasicValue from dllParams? Probably
+not because it doesn't have to be a BasicValue: really anything that is not a
+proxy can be passed by assumption. EXCEPT THAT the way the compiler works,
+every parameter type has to be either a proxy or a basicvalue. So now that I
+think about it, yes, we should collapse dllParams to an array of BasicValue.
+
+I think we should add a method to BasicValue called marshallIntoLong(...) or
+whatever the word we use to mean a JAVA long...
+================================================================================
+
 
 ================================================================================
 OLD DLL 
