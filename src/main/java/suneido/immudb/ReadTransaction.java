@@ -10,6 +10,7 @@ import java.util.TreeMap;
 
 import suneido.SuException;
 import suneido.immudb.Bootstrap.TN;
+import suneido.immudb.IndexedData.Mode;
 import suneido.intfc.database.IndexIter;
 import suneido.util.ThreadConfined;
 
@@ -226,8 +227,24 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	@Override
 	public float rangefrac(int tblnum, String columns,
 			suneido.intfc.database.Record from, suneido.intfc.database.Record to) {
-		// PERF cache
-		return getIndex(tblnum, columns).rangefrac((Record) from, (Record) to);
+		Index index = index(tblnum, columns);
+		if (index.mode() == Mode.KEY && sameKey(from, to)) {
+			int n = tableCount(tblnum);
+			return n > 0 ? 1.0f / n : Btree.MIN_FRAC;
+		}
+		return getIndex(index).rangefrac((Record) from, (Record) to);
+	}
+
+	private static boolean sameKey(
+			suneido.intfc.database.Record from, suneido.intfc.database.Record to) {
+		if (from.size() != to.size() - 1)
+			return false;
+		if (!to.getRaw(to.size() - 1).equals(suneido.intfc.database.Record.MAX_FIELD))
+			return false;
+		for (int i = 0; i < from.size(); ++i)
+			if (! from.getRaw(i).equals(to.getRaw(i)))
+				return false;
+		return true;
 	}
 
 	@Override
