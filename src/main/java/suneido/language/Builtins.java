@@ -149,7 +149,7 @@ public class Builtins {
 
 	private static Object lucene() {
 		try {
-			Class.forName("org.apache.lucene.analysis.Analyzer");
+			Class.forName("org.apache.lucene.analysis.standard.StandardAnalyzer");
 			return Lucene.singleton;
 		} catch (ClassNotFoundException e) {
 			Suneido.errlog("ERROR: lucene not found");
