@@ -3,7 +3,9 @@
 -injars lib/jsr305-1.3.9.jar (!META-INF/MANIFEST.MF)
 -injars lib/guava-17.0.jar (!META-INF/MANIFEST.MF)
 -injars lib/trove-3.0.3.jar (!META-INF/MANIFEST.MF)
--libraryjars lib/lucene-core-3.6.2.jar
+-libraryjars lib/lucene-core-4.8.1.jar
+-libraryjars lib/lucene-analyzers-common-4.8.1.jar
+-libraryjars lib/lucene-queryparser-4.8.1.jar
 -libraryjars  <java.home>/lib/rt.jar
 -outjars jsuneido.jar
 
