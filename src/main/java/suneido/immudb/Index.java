@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
 
 /**
- * Wrapper for a record from the indexes table.
+ * Wrapper for a record from the indexes table, i.e. the schema
  * Used by {@link Indexes}.
  */
 @Immutable
