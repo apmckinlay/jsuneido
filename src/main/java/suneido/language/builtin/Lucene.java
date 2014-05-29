@@ -11,9 +11,11 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.*;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
-import org.apache.lucene.queryParser.QueryParser;
+import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
@@ -35,7 +37,7 @@ Lucene.Search("lucene", "good") {|key| Print(key: key) }
 */
 
 public class Lucene extends BuiltinClass {
-	public static final Version version = Version.LUCENE_32;
+	public static final Version version = Version.LUCENE_48;
 	public static final Lucene singleton = new Lucene();
 
 	private Lucene() {
@@ -50,10 +52,9 @@ public class Lucene extends BuiltinClass {
 	@Params("dir")
 	public static Object AvailableQ(Object self, Object a) {
 		String path = Ops.toStr(a);
-		try {
-			FSDirectory dir = FSDirectory.open(new File(path));
-			IndexSearcher searcher = new IndexSearcher(IndexReader.open(dir));
-			searcher.close();
+		try (FSDirectory dir = FSDirectory.open(new File(path));
+				DirectoryReader reader = DirectoryReader.open(dir);) {
+			new IndexSearcher(reader);
 			return true;
 		} catch (IOException e) {
 			return false;
@@ -91,10 +92,8 @@ public class Lucene extends BuiltinClass {
 		public static Object Insert(Object self, Object key, Object text) {
 			IndexWriter writer = ((Updater) self).writer;
 			Document doc = new Document();
-			doc.add(new Field("key", Ops.toStr(key), Field.Store.YES,
-					Field.Index.NOT_ANALYZED));
-			doc.add(new Field("text", Ops.toStr(text), Field.Store.NO,
-					Field.Index.ANALYZED));
+			doc.add(new StringField("key", Ops.toStr(key), Field.Store.YES));
+			doc.add(new TextField("text", Ops.toStr(text), Field.Store.NO));
 			try {
 				writer.addDocument(doc);
 			} catch (IOException e) {
@@ -109,10 +108,8 @@ public class Lucene extends BuiltinClass {
 			String key = Ops.toStr(a);
 			Term term = new Term("key", key);
 			Document doc = new Document();
-			doc.add(new Field("key", key, Field.Store.YES,
-					Field.Index.NOT_ANALYZED));
-			doc.add(new Field("text", Ops.toStr(text), Field.Store.NO,
-					Field.Index.ANALYZED));
+			doc.add(new StringField("key", key, Field.Store.YES));
+			doc.add(new TextField("text", Ops.toStr(text), Field.Store.NO));
 			try {
 				writer.updateDocument(term, doc);
 			} catch (IOException e) {
@@ -143,9 +140,8 @@ public class Lucene extends BuiltinClass {
 	}
 
 	static IndexWriter writer(String path, boolean create) {
-		Directory dir;
 		try {
-			dir = FSDirectory.open(new File(path));
+			Directory dir = FSDirectory.open(new File(path));
 			Analyzer analyzer = new StandardAnalyzer(version);
 			IndexWriterConfig iwc = new IndexWriterConfig(version, analyzer);
 			iwc.setOpenMode(create ? OpenMode.CREATE : OpenMode.APPEND);
@@ -160,9 +156,9 @@ public class Lucene extends BuiltinClass {
 		String path = Ops.toStr(a);
 		String queryStr = Ops.toStr(b);
 		int limit = Ops.toInt(d);
-		try (Directory dir = FSDirectory.open(new File(path));
-			IndexReader ir = IndexReader.open(dir);
-			IndexSearcher searcher = new IndexSearcher(ir)) {
+		try (FSDirectory dir = FSDirectory.open(new File(path));
+				IndexReader ir = DirectoryReader.open(dir)) {
+			IndexSearcher searcher = new IndexSearcher(ir);
 			Analyzer analyzer = new StandardAnalyzer(version);
 			QueryParser parser = new QueryParser(version, "text", analyzer);
 			Query query = parser.parse(queryStr);
