@@ -1,9 +1,36 @@
-FASTDLL IMPLEMENTATION
-======================
+In May 2014 I tried to implement fastcalls under the naive assumption I could
+pass Java longs (int64) for every parameter. This can't possibly work because
+you can't cast <TYPE> stdcall (*)(char, int, long, short) to
+<TYPE> stdcall (*)(int64, int64, int64, int64), which is what I was naively
+trying to do. So this was a failed attempt and I have had to revert it.
+
+The original design intention, which had faded away into my memory, didn't
+suffer from this design flaw because it assumed 32-bit integer parameters which
+is how __stdcall works on x86. (i.e. If you have a 'char', it still takes up an
+'int').
+
+The reason I screwed up the May 2014 attempt is that I wanted to resolve the
+latent 64-bit issue. In other words, I wanted an implementation that would
+translate with minimal fuss into x64. This requires knowing how parameters
+actually get marshalled in Microsoft's x64 calling convention, so that needs to
+be figured out before proceeding. Also: do long, int, char, etc. still retain
+their size under MSx64 convention?
+
+Also before proceeding, I need to implement the "pointer" primitive and ensure
+it gets changed on all the libraries. Then update DllSummarizer to show the
+hypothetical 64-bit parameters everything that would be "pointer" is "long" in
+the libraries and shows up as 32-bits, which gives a misleading picture of how
+fastcalls will NEED to be implemented under x64.
+
+
+
+FAILED FASTDLL IMPLEMENTATION OF 20140531
+=========================================
 
 NOTE: I think a 'pointer' type call can and should be considered a 'fast' call
       because the "point" of it is the pointer is opaque. Actually, come to
-      think of it, maybe a better term for it is "opaque".
+      think of it, maybe a better term for it is "opaque". NO! Andrew doesn't
+      like this.
 
 + Dll
 |
@@ -11,24 +38,22 @@ NOTE: I think a 'pointer' type call can and should be considered a 'fast' call
 |
 +---+ FastDll
     |
-    +--- FastDll0
-    |
-    +--- FastDll0NoRet
-    |
-    +--- FastDll1
-    |
-    +--- FastDll1NoRet
-    |
-    +--- FastDll2
-    |
-    +--- FastDll2NoRet
-    |
-    +--- FastDll3
-    |
-    +--- FastDll3NoRet
+    +---+ FastDll0Base
+        |
+        +--- FastDll0
+        |
+        +--- FastDll0NoRet
+        |
+        +---+ FastDll1Base [dllParam0]
+            |
+            +---+ FastDll2Base [dllParam0, dllParam1]
+                |
+                +---+ FastDll3Base [dllParam0, dllParam1, dllParam2]
+                    |
+                    +---+ FastDll4Base [dllParam0, dllParam1, dllParam3]
 
-    
-    
+Array usage => 8 [ref to array] + 12 [array header] + typeSize x numElems
+
 ================================================================================
 DllBase               extends SuCallable
 ================================================================================
@@ -83,3 +108,34 @@ OLD DLL
 	final String     actualFunctionName;
 
 	MarshallPlan marshallPlan;
+
+    
+================================================================================
+HOW TO DO PARAMETERIZED JUNITS
+================================================================================
+
+Parameterized Tests: JUnit 4 comes with another special runner: Parameterized,
+which allows you to run the same test with different data. For example, in the
+following peice of code will imply that the tests will run four times, with the
+parameter "number" changed each time to the value in the array.
+
+@RunWith(value = Parameterized.class)
+public class StackTest {
+ Stack<Integer> stack;
+ private int number;
+
+ public StackTest(int number) {
+   this.number = number;
+ }
+
+ @Parameters
+ public static Collection data() {
+   Object[][] data = new Object[][] { { 1 }, { 2 }, { 3 }, { 4 } };
+   return Arrays.asList(data);
+ }
+ ...
+}
+The requirement for parameterized tests is to
+Have the annotation @RunWith for the Test Class
+Have a public static method that returns a Collection for data. Each element of the collection must be an Array of the various paramters used for the test.
+You will also need a public constructor that uses the parameters
