@@ -8,7 +8,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
@@ -142,7 +142,7 @@ public class Lucene extends BuiltinClass {
 	static IndexWriter writer(String path, boolean create) {
 		try {
 			Directory dir = FSDirectory.open(new File(path));
-			Analyzer analyzer = new StandardAnalyzer(version);
+			Analyzer analyzer = analyzer();
 			IndexWriterConfig iwc = new IndexWriterConfig(version, analyzer);
 			iwc.setOpenMode(create ? OpenMode.CREATE : OpenMode.APPEND);
 			return new IndexWriter(dir, iwc);
@@ -159,7 +159,7 @@ public class Lucene extends BuiltinClass {
 		try (FSDirectory dir = FSDirectory.open(new File(path));
 				IndexReader ir = DirectoryReader.open(dir)) {
 			IndexSearcher searcher = new IndexSearcher(ir);
-			Analyzer analyzer = new StandardAnalyzer(version);
+			Analyzer analyzer = analyzer();
 			QueryParser parser = new QueryParser(version, "text", analyzer);
 			Query query = parser.parse(queryStr);
 			TopDocs results = searcher.search(query, limit);
@@ -173,5 +173,9 @@ public class Lucene extends BuiltinClass {
 		} catch (Exception e) {
 			throw new SuException("Lucene.Search: failed", e);
 		}
+	}
+
+	private static Analyzer analyzer() {
+		return new EnglishAnalyzer(version);
 	}
 }
