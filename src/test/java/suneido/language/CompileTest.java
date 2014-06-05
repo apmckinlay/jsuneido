@@ -348,15 +348,18 @@ public class CompileTest {
 	@Test
 	public void test_switch() {
 		test("switch (a) { }",
-				"a, ASTORE 2");
+				"a, ASTORE 2, 'unhandled switch case', throw, L1, L2");
 		test("switch (a) { default: b() }",
 				"a, ASTORE 2, b, call, POP, L1, L2");
 		test("switch (a) { case 123: b() }",
-				"a, ASTORE 2, 123, ALOAD 2, is_, IFFALSE L1, L2, b, call, POP, L1, L3");
-		test("switch (a = b) { case 123: b() }",
-				"&a, b, DUP_X2, AASTORE, ASTORE 2, 123, ALOAD 2, is_, IFFALSE L1, L2, b, call, POP, L1, L3");
+				"a, ASTORE 2, 123, ALOAD 2, is_, IFFALSE L1, L2, b, call, POP, GOTO L3, L1, "
+				+ "'unhandled switch case', throw, L4, L3");
+		test("switch (a = b) { case 123: c() }",
+				"&a, b, DUP_X2, AASTORE, ASTORE 2, 123, ALOAD 2, is_, IFFALSE L1, L2, "
+				+ "c, call, POP, GOTO L3, L1, 'unhandled switch case', throw, L4, L3");
 		test("switch (a) { case 123,456: b() }",
-				"a, ASTORE 2, 123, ALOAD 2, is_, IFTRUE L1, 456, ALOAD 2, is_, IFFALSE L2, L1, b, call, POP, L2, L3");
+				"a, ASTORE 2, 123, ALOAD 2, is_, IFTRUE L1, 456, ALOAD 2, is_, IFFALSE L2, L1, "
+				+ "b, call, POP, GOTO L3, L2, 'unhandled switch case', throw, L4, L3");
 	}
 
 	@Test
