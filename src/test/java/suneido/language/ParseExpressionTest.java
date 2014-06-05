@@ -205,9 +205,12 @@ public class ParseExpressionTest {
 		code("try f catch(e, 'p') g",
 			"(TRY (IDENTIFIER=f) (CATCH=e (STRING=p) (IDENTIFIER=g)))");
 		code("switch a \n { }",
-			"(SWITCH (RVALUE (IDENTIFIER=a)) (LIST))");
+			"(SWITCH (RVALUE (IDENTIFIER=a)) (LIST "
+			+ "(CASE (LIST) (LIST (THROW (STRING=unhandled switch case))))))");
 		code("switch (a) { case b: f }",
-			"(SWITCH (RVALUE (IDENTIFIER=a)) (LIST (CASE (LIST (IDENTIFIER=b)) (LIST (IDENTIFIER=f)))))");
+			"(SWITCH (RVALUE (IDENTIFIER=a)) (LIST "
+			+ "(CASE (LIST (IDENTIFIER=b)) (LIST (IDENTIFIER=f))) "
+			+ "(CASE (LIST) (LIST (THROW (STRING=unhandled switch case))))))");
 		code("switch a \n { default: f }",
 			"(SWITCH (RVALUE (IDENTIFIER=a)) (LIST (CASE (LIST) (LIST (IDENTIFIER=f)))))");
 		code("switch (a) { case b: f \n case c,d: g; h; default: i }",
