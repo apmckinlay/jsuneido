@@ -6,7 +6,7 @@ package suneido.language;
 
 import org.junit.Test;
 
-public class ParseExpressionTest {
+public class ParseTest {
 
     @Test
     public void test() {
