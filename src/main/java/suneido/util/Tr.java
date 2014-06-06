@@ -26,7 +26,7 @@ public class Tr {
 
 	public static String tr(String src, String from, String to) {
 		int srclen = src.length();
-		if (srclen == 0 | from.length() == 0)
+		if (srclen == 0 || from.length() == 0)
 			return src;
 
 		boolean allbut = from.startsWith("^");
