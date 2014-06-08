@@ -53,6 +53,7 @@ public class BasicValueTest {
 		new BasicTypeSet(SHORT, (int)Short.MIN_VALUE, -1, 0, 1, 0x01ff, (int)Short.MAX_VALUE),
 		new BasicTypeSet(LONG, Integer.MIN_VALUE, -1, 0, 1, Integer.MAX_VALUE),
 		new BasicTypeSet(INT64, Long.MIN_VALUE, -1L, 0L, 1L, 0x01ffffffffL, Long.MAX_VALUE),
+		new BasicTypeSet(OPAQUE_POINTER, Integer.MIN_VALUE, -1, 0, 1, Integer.MAX_VALUE),
 		// VS@20130808: I took out the tests for infinity/NaN because BigDecimal
 		//              doesn't handle them, but this does create an issue: we
 		//              can still get NaN's, if only due to the dll interface,
@@ -105,7 +106,7 @@ public class BasicValueTest {
 		assertEquals(0, bv(SHORT).marshallOutReturnValue(0xf0000L, null)); // truncated
 		assertEquals(-1, bv(SHORT).marshallOutReturnValue(0xffffL, null));
 		assertEquals(-1, bv(SHORT).marshallOutReturnValue(-1L, null));
-		for (BasicType type : new BasicType[] { LONG, HANDLE, GDIOBJ }) {
+		for (BasicType type : new BasicType[] { LONG, HANDLE, GDIOBJ, OPAQUE_POINTER }) {
 			assertEquals(0, bv(type).marshallOutReturnValue(0L, null));
 			assertEquals(0, bv(type).marshallOutReturnValue(0xf00000000L, null)); // truncated
 			assertEquals(-1, bv(type).marshallOutReturnValue(0x0ffffffffL, null));

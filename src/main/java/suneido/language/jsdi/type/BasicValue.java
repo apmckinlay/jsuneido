@@ -12,6 +12,7 @@ import suneido.language.jsdi.DllInterface;
 import suneido.language.jsdi.Marshaller;
 import suneido.language.jsdi.NumberConversions;
 import suneido.language.jsdi.StorageType;
+import suneido.language.jsdi._64BitIssue;
 
 // TODO doc
 @DllInterface
@@ -85,6 +86,8 @@ public final class BasicValue extends Type {
 				// intentional fall-through
 			case HANDLE:
 				// intentional fall-through
+			case OPAQUE_POINTER:
+				// intentional fall-through
 			case LONG:
 				marshaller.putLong(Ops.toInt(value));
 				break;
@@ -115,6 +118,8 @@ public final class BasicValue extends Type {
 		case GDIOBJ:
 			// intentional fall-through
 		case HANDLE:
+			// intentional fall-through
+		case OPAQUE_POINTER:
 			// intentional fall-through
 		case LONG:
 			return marshaller.getLong();
@@ -149,6 +154,8 @@ public final class BasicValue extends Type {
 			// intentional fall-through
 		case HANDLE:
 			// intentional fall-through
+		case OPAQUE_POINTER:
+			// intentional fall-through
 		case LONG:
 			return (int)returnValue;
 		case INT64:
@@ -179,6 +186,8 @@ public final class BasicValue extends Type {
 			case GDIOBJ:
 				// intentional fall-through
 			case HANDLE:
+				// intentional fall-through
+			case OPAQUE_POINTER:
 				// intentional fall-through
 			case LONG:
 				target[pos] = Ops.toInt(value);

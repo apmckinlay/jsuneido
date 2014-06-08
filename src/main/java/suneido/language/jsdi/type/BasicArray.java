@@ -116,6 +116,8 @@ public final class BasicArray extends Type {
 					// intentional fall-through
 				case HANDLE:
 					// intentional fall-through
+				case OPAQUE_POINTER:
+					// intentional fall-through
 				case LONG:
 					marshaller.putLong(Ops.toInt(elem));
 					break;
@@ -155,6 +157,8 @@ public final class BasicArray extends Type {
 			case GDIOBJ:
 				// intentional fall-through
 			case HANDLE:
+				// intentional fall-through
+			case OPAQUE_POINTER:
 				// intentional fall-through
 			case LONG:
 				c.insert(k, marshaller.getLong());
