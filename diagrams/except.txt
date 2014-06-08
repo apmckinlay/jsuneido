@@ -1,0 +1,30 @@
+=======================================
+CURRENT WAY EXCEPTION STACK TRACE WORKS
+=======================================
+
+- Except::getStack() recursively chains together all the StackTraceElements from
+  all of the exceptions, with frames from the deepest-nested cause first.
+    + This chaining of frames eliminates duplicates.
+- Then Except::Callstack(), which implements the Suneido-exposed call, loops
+  through the chained deduped frame list and eliminates anything it knows is
+  from a Java file -- e.g. Anything that contains the string ".java:".
+     + I expect this is why we need to keep "Debug" symbols in the JAR.
+
+===============================
+WHAT IS IN A STACKTRACEELEMENT?
+===============================
+
+These are the data members:
+
+  private java.lang.String declaringClass;
+  private java.lang.String methodName;
+  private java.lang.String fileName;
+  private int lineNumber;
+
+These are the method members:
+
+  public java.lang.String getFileName();
+  public int getLineNumber();
+  public java.lang.String getClassName();
+  public java.lang.String getMethodName();
+  public boolean isNativeMethod(); // works by checking for special value of lineNumber
