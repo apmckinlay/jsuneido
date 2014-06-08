@@ -50,25 +50,27 @@ public class ParseAndCompileStructTest {
 			"\tint64 e\n" +
 			"\tint64 * pe\n" +
 			"\tint64[2] ae\n" +
-			"\tfloat f\n" +
-			"\tfloat * pf\n" +
-			"\tfloat[2] af\n" +
-			"\tdouble g\n" +
-			"\tdouble * pg\n" +
-			"\tdouble [2] ag\n" +
-			"\thandle h\n" +
-			"\thandle * ph\n" +
-			"\thandle [2] ah\n" +
-			"\tgdiobj i\n" +
-			"\tgdiobj * pi\n" +
-			"\tgdiobj [2] ai\n" +
-			"\tstring j\n" +
-			"\tstring [2] aj\n" +
-			"\tbuffer k\n" +
-			"\tbuffer [2] ak\n" +
-			"\tresource l\n" +
+			"\tpointer f\n" +
+			"\tpointer[2] af\n" +
+			"\tfloat g\n" +
+			"\tfloat * pg\n" +
+			"\tfloat[2] ag\n" +
+			"\tdouble h\n" +
+			"\tdouble * ph\n" +
+			"\tdouble [2] ah\n" +
+			"\thandle i\n" +
+			"\thandle * pi\n" +
+			"\thandle [2] ai\n" +
+			"\tgdiobj j\n" +
+			"\tgdiobj * pj\n" +
+			"\tgdiobj [2] aj\n" +
+			"\tstring k\n" +
+			"\tstring [2] ak\n" +
+			"\tbuffer l\n" +
+			"\tbuffer [2] al\n" +
+			"\tresource m\n" +
+			"\tcallback n\n" +
 		"\t}";
-		// TODO: add callback
 
 	//
 	// PARSING TESTS
