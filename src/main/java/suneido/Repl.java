@@ -39,6 +39,7 @@ public class Repl {
 		Compiler.eval("Init()");
 		PrintWriter out = new PrintWriter(System.out);
 		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+		out.println("Built: " + WhenBuilt.when());
 		while (true) {
 			out.print("> ");
 			out.flush();
