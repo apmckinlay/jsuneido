@@ -21,6 +21,13 @@ public class BlockReturnException extends RuntimeException {
 		this.parent = parent;
 	}
 
+	// disable stack trace for performance (not needed/used)
+	@Override
+	public Throwable fillInStackTrace()
+		{
+		return this;
+		}
+
 	@Override
 	public String toString() {
 		return "block-return(" + Ops.display(returnValue) + ")";
