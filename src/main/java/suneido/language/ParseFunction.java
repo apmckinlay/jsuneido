@@ -10,12 +10,10 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 
 	public ParseFunction(Lexer lexer, G generator) {
 		super(lexer, generator);
-		expectingCompound = false;
 	}
 
 	ParseFunction(Parse<T, G> parse) {
 		super(parse);
-		expectingCompound = false;
 	}
 
 	public T parse() {
