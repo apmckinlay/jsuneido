@@ -184,8 +184,10 @@ public class ParseTest {
 			"(WHILE (IDENTIFIER=a) (IDENTIFIER=b))");
 		code("while (a) ;",
 			"(WHILE (IDENTIFIER=a) null)");
+		code("while (a) { b }",
+				"(WHILE (IDENTIFIER=a) (LIST (IDENTIFIER=b)))");
 		code("while a \n { b }",
-			"(WHILE (IDENTIFIER=a) (LIST (IDENTIFIER=b)))");
+				"(WHILE (IDENTIFIER=a) (LIST (IDENTIFIER=b)))");
 		code("do a while b",
 			"(DO (IDENTIFIER=a) (IDENTIFIER=b))");
 		code("do { a; } while (b)",
