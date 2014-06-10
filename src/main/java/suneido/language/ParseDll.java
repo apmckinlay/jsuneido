@@ -26,12 +26,10 @@ public final class ParseDll<T, G extends Generator<T>> extends ParseDllEntity<T,
 
 	public ParseDll(Lexer lexer, G generator) {
 		super(lexer, generator);
-		expectingCompound = false;
 	}
 
 	ParseDll(Parse<T, G> parse) {
 		super(parse);
-		expectingCompound = false;
 	}
 
 	//

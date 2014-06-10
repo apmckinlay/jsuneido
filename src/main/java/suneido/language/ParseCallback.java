@@ -28,12 +28,10 @@ public final class ParseCallback<T, G extends Generator<T>> extends ParseDllEnti
 
 	public ParseCallback(Lexer lexer, G generator) {
 		super(lexer, generator);
-		expectingCompound = false;
 	}
 
 	ParseCallback(Parse<T, G> parse) {
 		super(parse);
-		expectingCompound = false;
 	}
 
 	//
