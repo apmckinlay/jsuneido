@@ -5,10 +5,19 @@ CURRENT WAY EXCEPTION STACK TRACE WORKS
 - Except::getStack() recursively chains together all the StackTraceElements from
   all of the exceptions, with frames from the deepest-nested cause first.
     + This chaining of frames eliminates duplicates.
+
 - Then Except::Callstack(), which implements the Suneido-exposed call, loops
   through the chained deduped frame list and eliminates anything it knows is
   from a Java file -- e.g. Anything that contains the string ".java:".
      + I expect this is why we need to keep "Debug" symbols in the JAR.
+
+- Generated code (i.e. anonymous evals and compiled classes) get stuffed into
+  the "suneido.language" namespace in the following way:
+     + A Global/context member named "X" goes into suneido.language.X
+     + An anonymous function goes into suneido.language.eval$f
+     + An anonymous class goes into suneido.language.eval$c
+     + etc.
+  This is a bad scheme with lots of information loss.
 
 ===============================
 WHAT IS IN A STACKTRACEELEMENT?
@@ -28,3 +37,184 @@ These are the method members:
   public java.lang.String getClassName();
   public java.lang.String getMethodName();
   public boolean isNativeMethod(); // works by checking for special value of lineNumber
+
+How do the contents depend on "debug symbols" being added by the compiler?
+
+================
+TENTATIVE DESIGN
+================
+
+1) Put compiled objects into suneido.compiled.* with a predictable naming
+   scheme.
+       + It may be appropriate to prepend the Context name or Library name, as
+         in: suneido.compiled.stdlib#Window where '#' is some character that is
+         a legal class name in the Java class format.
+       + Perhaps also may be appropriate to split:
+             [ ] suneido.compiled.named.*
+             [ ] suneido.compiled.anon.*
+2) Examine stack trace and:
+      (a) If from suneido.compiled.named.context#object, decipher the context,
+          object name, and method name (if any).
+      (b) If from suneido.compiled.anon.XYZ, need a way to look up what XYZ
+          really is.
+      (c) If from suneido.language.jsdi.dll.*, route it to the JSDI package to
+          get the true lowdown.
+             [ ] How to get argument values? One way is to have the various
+                 "call" functions on DLLs wrapped in a try/catch block and have
+                 them catch any exception and rethrow it with annotations for
+                 the local variable.
+             [ ] How is this going to work with nesting?
+
+=======================
+IMPLEMENTING DEBUG INFO
+=======================
+
+org.objectweb.asm.ClassVisitor::visitSource(String source[file], String debug)
+    [ ] The first parameter lets you tag a [Java] class with a string ("source")
+        identifying the source file from which it came. But it could identify
+        anything else too.
+    [ ] The combination of "source", which probably corresponds to the
+        StackTraceElement "fileName" member, and "debug", may allow us to
+        encode a lot of info about the where the compiled Suneido code comes
+        from.
+
+org.objectweb.asm.MethodVisitor::visitLineNumber(int line, Label start)
+    [ ] Allows you to tag labels in a compiled [Java] method with line numbers.
+    [ ] This is how we can get the line number info in/out of the JVM.
+
+=============================================
+HOW ARE SUNEIDO TRY/CATCH BLOCKS IMPLEMENTED?
+=============================================
+
+They catch "Throwable" and then check 
+
+Here's what AstCompile.tryStatement(ClassGen cg, AstNode ast, Labels labels)
+does:
+
+	private void tryStatement(ClassGen cg, AstNode ast, Labels labels) {
+		Object tc = cg.tryCatch("java/lang/Throwable");
+		compound(cg, ast.first(), labels);
+		AstNode catcher = ast.second();
+		if (catcher == null)
+			cg.startCatch(null, null, tc);
+		else {
+			String var = catcher.value;
+			String pattern = (catcher.first() == null) ? null : Ops
+					.toStr(fold(catcher.first()));
+			cg.startCatch(var, pattern, tc);
+			compound(cg, catcher.second(), labels);
+		}
+		cg.endCatch(tc);
+	}
+
+================================
+POSSIBLE REFACTOR OF SuException
+================================
+
++ SuException
+|
++----+ InternalError [unreachable code]
+     |
+     + SyntaxError [compiler] -or- CompilerError
+     |
+     +----+ JSDISyntaxError
+     |
+     + LanguageException [pack error, can't modify readonly objects]
+     |
+     +----+ JSDILanguageException
+     |
+     +----+ SuDateBad ???? [nested class in SuDate]
+
+=====================
+WHO USES SuException?
+=====================
+
+[IE] : InternalError
+[CE] : CompilerError
+[LE] : LanguageException
+
+[LE] suneido.SuContainer.checkNest(int nest) @ 501
+
+	private static void checkNest(int nest) {
+		if (nest > NESTING_LIMIT)
+			throw new SuException("pack: object nesting limit ("
+					+ NESTING_LIMIT + ") exceeded");
+	}
+
+[LE] suneido.SuContainer.checkReadonly() @ 142
+
+	private void checkReadonly() {
+		if (readonly)
+			throw new SuException("can't modify readonly objects");
+	}
+
+[IE] suneido.SuContainer.Iter.result() @ 665
+ 
+ 		private Object result(Object key, Object value) {
+			switch (iterResult) {
+			case KEY:
+				return key;
+			case VALUE:
+			case ENTRY:
+				return value;
+			case ASSOC:
+				return SuContainer.of(key, value);
+			default:
+				throw SuException.unreachable();
+			}
+		}
+
+[??] suneido.SuDate.getSyspat() @ 694
+
+	private static char[] getSyspat(String order, String[] date_patterns) {
+		char[] syspat = new char[3];
+		int i = 0;
+		char oc = 0;
+		char prev = 0;
+		for (int oi = 0; oi < order.length() && i < 3; prev = oc, ++oi) {
+			oc = order.charAt(oi);
+			if (oc != prev && (oc == 'y' || oc == 'M' || oc == 'd'))
+				syspat[i++] = Character.toLowerCase(oc);
+		}
+		if (i != 3)
+			throw new SuException("invalid date format: '" + order + "'");
+		date_patterns[0] = new String(syspat);
+
+		// swap month-day patterns if system setting is day first
+		for (i = 0; i < 3; ++i)
+			if (syspat[i] == 'm')
+				break ;
+			else if (syspat[i] == 'd')
+				swap(date_patterns, 1, 2);
+		return syspat;
+	}
+
+[IE] suneido.SuDate.parse(String s, String order) @ 614
+
+				else
+					throw SuException.unreachable();
+
+[IE] suneido.SuDate.parse(String s, String order) @ 638
+
+				else
+					throw SuException.unreachable();
+
+[LE or SuDateBad] suneido.SuDate.SuDate @ 37
+
+	public SuDate(int date, int time) {
+		this.date = date;
+		this.time = time;
+		if (! valid(year(), month(), day(),
+				hour(), minute(), second(), millisecond()))
+			throw new SuDateBad();
+	}
+                    
+[LE or SuDateBad] suneido.SuDate.SuDate @ 42
+
+	public SuDate(int year, int month, int day,
+			int hour, int minute, int second, int millisecond) {
+		if (! valid(year, month, day, hour, minute, second, millisecond))
+			throw new SuDateBad();
+		date = (year << 9) | (month << 5) | day;
+		time = (hour << 22) | (minute << 16) | (second << 10) | millisecond;
+	}
