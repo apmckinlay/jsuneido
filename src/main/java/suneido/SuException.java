@@ -43,9 +43,4 @@ public class SuException extends RuntimeException {
 				+ Ops.typeName(object) + "." + method
 				+ " (" + object + ")");
 	}
-
-	public static void fatal(String msg) {
-		throw new SuException("FATAL " + msg);
-	}
-
 }
