@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
+import suneido.InternalError;
 import suneido.SuContainer;
 import suneido.SuDate;
 import suneido.SuException;
@@ -459,7 +460,7 @@ public class DbmsRemote extends Dbms {
 		@Override
 		public boolean updateable() {
 			// only used with DbmsLocal
-			throw SuException.unreachable();
+			throw InternalError.unreachable();
 		}
 
 		@Override

@@ -4,8 +4,26 @@
 
 package suneido.database.query.expr;
 
-import static suneido.SuException.unreachable;
-import static suneido.language.Ops.*;
+import static suneido.InternalError.unreachable;
+import static suneido.language.Ops.add;
+import static suneido.language.Ops.bitand;
+import static suneido.language.Ops.bitor;
+import static suneido.language.Ops.bitxor;
+import static suneido.language.Ops.cat;
+import static suneido.language.Ops.div;
+import static suneido.language.Ops.gt;
+import static suneido.language.Ops.gte;
+import static suneido.language.Ops.is;
+import static suneido.language.Ops.isnt;
+import static suneido.language.Ops.lshift;
+import static suneido.language.Ops.lt;
+import static suneido.language.Ops.lte;
+import static suneido.language.Ops.match;
+import static suneido.language.Ops.matchnot;
+import static suneido.language.Ops.mod;
+import static suneido.language.Ops.mul;
+import static suneido.language.Ops.rshift;
+import static suneido.language.Ops.sub;
 import static suneido.language.Token.GT;
 import static suneido.language.Token.GTE;
 import static suneido.language.Token.LT;

@@ -5,7 +5,7 @@
 package suneido.database.query;
 
 import static java.util.Arrays.asList;
-import static suneido.SuException.unreachable;
+import static suneido.InternalError.unreachable;
 import static suneido.util.Util.listToCommas;
 import static suneido.util.Util.listToParens;
 import static suneido.util.Util.nil;
