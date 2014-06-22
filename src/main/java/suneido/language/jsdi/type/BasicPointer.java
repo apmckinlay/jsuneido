@@ -4,6 +4,7 @@
 
 package suneido.language.jsdi.type;
 
+import static suneido.InternalError.unhandledEnum;
 import suneido.language.jsdi.DllInterface;
 import suneido.language.jsdi.MarshallPlanBuilder;
 import suneido.language.jsdi.Marshaller;
@@ -103,13 +104,13 @@ public final class BasicPointer extends Type {
 //				marshaller.putDoublePtr(NumberConversions.toDouble(value));
 //				break;
 			default:
-				throw new IllegalStateException("unhandled BasicType in switch");
+				throw unhandledEnum(BasicType.class);
 			}
 		}
 	}
 
 	@Override
 	public Object marshallOut(Marshaller marshaller, Object oldValue) {
-		throw new IllegalStateException("BasicPointer is deprecated");
+		throw new InternalError("BasicPointer is deprecated");
 	}
 }

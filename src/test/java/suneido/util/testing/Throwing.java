@@ -79,7 +79,7 @@ public final class Throwing {
 		try {
 			r.run();
 			return false;
-		} catch (Exception e) {
+		} catch (Throwable t) {
 			return true;
 		}
 	}
@@ -105,8 +105,8 @@ public final class Throwing {
 	public static boolean threw(Runnable r, Class<? extends Throwable> clazz) {
 		try {
 			r.run();
-		} catch (Exception e) {
-			if (clazz == e.getClass()) {
+		} catch (Throwable t) {
+			if (clazz == t.getClass()) {
 				return true;
 			}
 		}

@@ -566,7 +566,7 @@ public class MarshallerTest {
 			public void run() {
 				mr.getResource();
 			}
-		}, IllegalStateException.class);
+		}, InternalError.class);
 		// Simulate native side re-converting to String
 		mr.getViArray()[0] = "res";
 		mr.rewind();
@@ -586,7 +586,7 @@ public class MarshallerTest {
 			public void run() {
 				mr.getResource();
 			}
-		}, IllegalStateException.class);
+		}, InternalError.class);
 	}
 
 	@Test

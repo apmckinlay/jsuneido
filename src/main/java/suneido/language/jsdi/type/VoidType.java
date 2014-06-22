@@ -6,7 +6,10 @@ package suneido.language.jsdi.type;
 
 import javax.annotation.concurrent.Immutable;
 
-import suneido.language.jsdi.*;
+import suneido.language.jsdi.DllInterface;
+import suneido.language.jsdi.MarshallPlanBuilder;
+import suneido.language.jsdi.Marshaller;
+import suneido.language.jsdi.StorageType;
 
 /**
  * Pseudo-type representing the "type" of the return value of a {@code void}
@@ -51,25 +54,22 @@ public final class VoidType extends Type {
 
 	@Override
 	public int getSizeDirectIntrinsic() {
-		throw new IllegalStateException(getDisplayName()
-				+ " has no intrinsic size");
+		throw new InternalError(getDisplayName() + " has no intrinsic size");
 	}
 
 	@Override
 	public int getSizeDirectWholeWords() {
-		throw new IllegalStateException(getDisplayName()
-				+ " has no whole word size");
+		throw new InternalError(getDisplayName() + " has no whole word size");
 	}
 
 	@Override
 	public int getSizeIndirect() {
-		throw new IllegalStateException(getDisplayName()
-				+ " has no indirect size");
+		throw new InternalError(getDisplayName() + " has no indirect size");
 	}
 
 	@Override
 	public void addToPlan(MarshallPlanBuilder builder, boolean isCallbackPlan) {
-		throw new IllegalStateException(getDisplayName()
+		throw new InternalError(getDisplayName()
 				+ " cannot be added to a marshall plan");
 	}
 
