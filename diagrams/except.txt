@@ -125,6 +125,17 @@ POSSIBLE REFACTOR OF SuException
      |
      +----+ SuDateBad ???? [nested class in SuDate]
 
+    == OR ==
+
++ InternalError [inherits from java.lang.Error]
+
++ SuException
+|
++----+ SyntaxError
+     |
+     +----+ JSDISyntaxError ?
+     
+
 =====================
 WHO USES SuException?
 =====================
@@ -218,3 +229,66 @@ WHO USES SuException?
 		date = (year << 9) | (month << 5) | day;
 		time = (hour << 22) | (minute << 16) | (second << 10) | millisecond;
 	}
+
+[IE] suneido.SuException.unreachable() @ 38
+
+	public static final Error unreachable() {
+		return new Error("should not reach here");
+	}
+
+[LE] suneido.SuException.methodNotFound() @ 42
+
+	public static final SuException methodNotFound(Object object, String method) {
+		return new SuException("method not found: "
+				+ Ops.typeName(object) + "." + method
+				+ " (" + object + ")");
+	}
+
+[IE] suneido.Suneido.doAction() @ 160
+
+		default:
+			throw SuException.unreachable();
+
+
+[LE?] suneido.SuObservers.callObservers2 @ 112
+
+	private void callObservers2(Object member) {
+		for (Object observer : observers) {
+			ActiveObserver ao = new ActiveObserver(observer, member);
+			if (activeObservers.contains(ao))
+				continue;
+			activeObservers.add(ao);
+			try {
+				if (observer instanceof SuBoundMethod)
+					((SuBoundMethod) observer).call(Args.Special.NAMED, "member",
+							member);
+				else if (observer instanceof SuValue)
+					((SuValue) observer).eval(this, Args.Special.NAMED,
+							"member", member);
+				else
+					throw new SuException("invalid observer");
+			} finally {
+				activeObservers.remove(ao);
+			}
+		}
+	}
+
+[LE] suneido.SuRecordNew.ck_modify() @ 155, 157, 160, 162
+
+	private void ck_modify(String op) {
+		if (tran == null)
+			throw new SuException("record." + op + ": no Transaction");
+		if (tran.isEnded())
+			throw new SuException("record." + op
+					+ ": Transaction already completed");
+		if (status != Status.OLD)
+			throw new SuException("record." + op + ": not an old record");
+		if (recadr == 0)
+			throw new SuException("record." + op + ": not a database record");
+	}
+
+[LE] suneido.SuRecordOld.callObservers2() @ 404
+
+[LE] suneido.SuRecordOld.callRule() @ 241
+
+[LE] suneido.SuRecordOld.ck_modify() @ 307, 309, 312, 314
