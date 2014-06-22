@@ -7,6 +7,22 @@ User-friendly stack trace project
 JAR size before refactor, 20140622: 1692778 (1.61 MB)
 JAR size after Phase 2, 20140622: 1462413 (1.39 MB) (13.61% reduction in size)
 
+======
+ISSUES
+======
+
+NOTE: As a result of removing debug symbols, I have broken Suneido language
+      tests. In particular:
+
+RethrowCallstackTest
+    Setup
+    Test_main
+        ERROR: expected the value to be a string or object containing "Inner" but it was '"suneido.language.Ops.exception(Unknown Source)"'
+    Teardown
+    .013 sec
+db growth: 600864
+1 test FAILED, all tests took 29 sec
+
 =======================================
 CURRENT WAY EXCEPTION STACK TRACE WORKS
 =======================================
