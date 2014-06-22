@@ -34,10 +34,6 @@ public class SuException extends RuntimeException {
 		return getMessage();
 	}
 
-	public static final Error unreachable() {
-		return new Error("should not reach here");
-	}
-
 	public static final SuException methodNotFound(Object object, String method) {
 		return new SuException("method not found: "
 				+ Ops.typeName(object) + "." + method

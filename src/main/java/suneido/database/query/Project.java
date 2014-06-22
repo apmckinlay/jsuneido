@@ -4,10 +4,21 @@
 
 package suneido.database.query;
 
-import static suneido.SuException.unreachable;
-import static suneido.util.Util.*;
+import static suneido.InternalError.unreachable;
+import static suneido.util.Util.addAllUnique;
+import static suneido.util.Util.difference;
+import static suneido.util.Util.intersect;
+import static suneido.util.Util.listToParens;
+import static suneido.util.Util.nil;
+import static suneido.util.Util.setEquals;
+import static suneido.util.Util.startsWithSet;
+import static suneido.util.Util.withoutDups;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 import suneido.SuException;
 import suneido.database.query.expr.Expr;
@@ -373,7 +384,7 @@ public class Project extends Query1 {
 			currow = row;
 			return row;
 		default:
-			throw SuException.unreachable();
+			throw unreachable();
 		}
 	}
 

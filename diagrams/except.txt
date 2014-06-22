@@ -1,3 +1,10 @@
+PROJECT TAG:
+
+User-friendly stack trace project
+[PHASE 1: Factor internal errors out of SuException]
+
+JAR size before refactor, 20140622: 1692778 (1.61 MB)
+
 =======================================
 CURRENT WAY EXCEPTION STACK TRACE WORKS
 =======================================
@@ -134,6 +141,9 @@ POSSIBLE REFACTOR OF SuException
 +----+ SyntaxError
      |
      +----+ JSDISyntaxError ?
+     |
+     + LanguageException
+     
      
 
 =====================

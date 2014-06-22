@@ -5,8 +5,15 @@
 package suneido.database.query;
 
 import static java.util.Collections.disjoint;
-import static suneido.SuException.unreachable;
-import static suneido.util.Util.*;
+import static suneido.InternalError.unreachable;
+import static suneido.util.Util.addUnique;
+import static suneido.util.Util.intersect;
+import static suneido.util.Util.listToParens;
+import static suneido.util.Util.nil;
+import static suneido.util.Util.setEquals;
+import static suneido.util.Util.setIntersect;
+import static suneido.util.Util.setUnion;
+import static suneido.util.Util.union;
 import static suneido.util.Verify.verify;
 
 import java.util.ArrayList;
