@@ -4,6 +4,7 @@
 
 package suneido.language.jsdi.dll;
 
+import static suneido.InternalError.unhandledEnum;
 import static suneido.language.jsdi.dll.CallGroup.DIRECT;
 import static suneido.language.jsdi.dll.CallGroup.FAST;
 import static suneido.language.jsdi.dll.CallGroup.INDIRECT;
@@ -124,7 +125,7 @@ enum NativeCall {
 					marshaller.getViArray(), marshaller.getViInstArray());
 			return 0L;
 		default:
-			throw new IllegalStateException("unhandled NativeCall type in switch");
+			throw unhandledEnum(NativeCall.class);
 		}
 	}
 

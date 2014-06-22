@@ -4,7 +4,23 @@
 
 package suneido.language;
 
-import static suneido.language.Token.*;
+import static suneido.InternalError.unreachable;
+import static suneido.language.Token.ARRAYTYPE;
+import static suneido.language.Token.CALLBACK;
+import static suneido.language.Token.COMMA;
+import static suneido.language.Token.DLL;
+import static suneido.language.Token.IDENTIFIER;
+import static suneido.language.Token.IN;
+import static suneido.language.Token.L_BRACKET;
+import static suneido.language.Token.MUL;
+import static suneido.language.Token.NEWLINE;
+import static suneido.language.Token.POINTERTYPE;
+import static suneido.language.Token.R_BRACKET;
+import static suneido.language.Token.R_CURLY;
+import static suneido.language.Token.R_PAREN;
+import static suneido.language.Token.SEMICOLON;
+import static suneido.language.Token.STRUCT;
+import static suneido.language.Token.VALUETYPE;
 import suneido.SuException;
 import suneido.language.jsdi.DllInterface;
 
@@ -49,8 +65,7 @@ public abstract class ParseDllEntity<T, G extends Generator<T>> extends Parse<T,
 			case CALLBACK:
 				throw new SuException("too many callback parameters");
 			default:
-				throw new IllegalStateException(
-						"control should never pass here");
+				throw unreachable();
 			}
 		}
 	}
@@ -65,7 +80,7 @@ public abstract class ParseDllEntity<T, G extends Generator<T>> extends Parse<T,
 			return IDENTIFIER == token ||
 				   L_BRACKET == token /* for [in] parameters */;
 		default:
-			throw new IllegalStateException("control should never pass here");
+			throw unreachable();
 		}
 	}
 
@@ -90,7 +105,7 @@ public abstract class ParseDllEntity<T, G extends Generator<T>> extends Parse<T,
 				return false;
 			}
 		default:
-			throw new IllegalStateException("control should never pass here");
+			throw unreachable();
 		}
 	}
 
@@ -106,7 +121,7 @@ public abstract class ParseDllEntity<T, G extends Generator<T>> extends Parse<T,
 			match(IDENTIFIER);
 			break;
 		default:
-			throw new IllegalStateException("control should never pass here");
+			throw unreachable();
 		}
 		return name;
 	}
@@ -122,7 +137,7 @@ public abstract class ParseDllEntity<T, G extends Generator<T>> extends Parse<T,
 			match(R_PAREN);
 			break;
 		default:
-			throw new IllegalStateException("control should never pass here");
+			throw unreachable();
 		}
 	}
 

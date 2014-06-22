@@ -4,6 +4,8 @@
 
 package suneido.language.jsdi.type;
 
+import static suneido.InternalError.unhandledEnum;
+
 import javax.annotation.concurrent.Immutable;
 
 import suneido.language.Numbers;
@@ -12,7 +14,6 @@ import suneido.language.jsdi.DllInterface;
 import suneido.language.jsdi.Marshaller;
 import suneido.language.jsdi.NumberConversions;
 import suneido.language.jsdi.StorageType;
-import suneido.language.jsdi._64BitIssue;
 
 // TODO doc
 @DllInterface
@@ -101,7 +102,7 @@ public final class BasicValue extends Type {
 				marshaller.putDouble(NumberConversions.toDouble(value));
 				break;
 			default:
-				throw new IllegalStateException("unhandled BasicType in switch");
+				throw unhandledEnum(BasicType.class);
 			}
 		}
 	}
@@ -130,7 +131,7 @@ public final class BasicValue extends Type {
 		case DOUBLE:
 			return Numbers.toBigDecimal(marshaller.getDouble());
 		default:
-			throw new IllegalStateException("unhandled BasicType in switch");
+			throw unhandledEnum(BasicType.class);
 		}
 	}
 
@@ -167,7 +168,7 @@ public final class BasicValue extends Type {
 		case DOUBLE:
 			return Numbers.toBigDecimal(Double.longBitsToDouble(returnValue));
 		default:
-			throw new IllegalStateException("unhandled BasicType in switch");
+			throw unhandledEnum(BasicType.class);
 		}
 	}
 
