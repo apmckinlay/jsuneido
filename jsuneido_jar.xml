@@ -75,6 +75,9 @@
 		>
 			<!--  Exclude JDBC stuff. Not currently implemented. -->
 			<exclude name="**/jdbc/**"/>
+			<!-- TODO: Refactor this build file so there are targets to -->
+			<!--       a debugging version (containing debug symbols) -->
+			<!--       and for building a 'release' version without them. -->
 		</javac>
 	</target>
 
