@@ -550,6 +550,10 @@ class Btree implements TranIndex {
 			return rewound;
 		}
 
+		public Tran tran() {
+			return tran;
+		}
+
 	} // end of Iter
 
 	private static class Stack {

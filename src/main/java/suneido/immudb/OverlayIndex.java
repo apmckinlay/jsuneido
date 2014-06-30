@@ -180,7 +180,7 @@ class OverlayIndex implements TranIndex {
 					ir.hi = to;
 					return;
 				}
-			} while (deletes.contains(keyadr()));
+			} while (shouldSkip());
 			if (curKey().compareTo(ir.hi) > 0)
 				ir.hi = curKey();
 		}
@@ -197,10 +197,22 @@ class OverlayIndex implements TranIndex {
 					ir.lo = from;
 					return;
 				}
-			} while (deletes.contains(keyadr()));
+			} while (shouldSkip());
 			if (curKey().compareTo(ir.lo) < 0)
 				ir.lo = curKey();
 		}
+
+		private boolean shouldSkip() {
+			int adr = keyadr();
+			if (IntRefs.isIntRef(adr)) {
+				Tran tran = ((Btree.Iter) iter1).tran();
+				Object ref = tran.intToRef(adr);
+				if (ref == IndexedData.UPDATED || ref == IndexedData.REMOVED)
+					return true;
+			}
+			return deletes.contains(adr);
+		}
+
 	}
 
 }
