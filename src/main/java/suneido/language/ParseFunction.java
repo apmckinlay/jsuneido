@@ -39,9 +39,7 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		} else {
 			T defaultValue = null;
 			while (token != R_PAREN) {
-				boolean dot = (token == DOT);
-				if (dot)
-					match(DOT);
+				boolean dot = matchIf(DOT);
 				String name = lexer.getValue();
 				if (dot)
 					name = "." + name;
