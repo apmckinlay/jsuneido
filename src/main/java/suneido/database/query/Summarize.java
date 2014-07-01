@@ -380,6 +380,8 @@ public class Summarize extends Query1 {
 			SuContainer list = new SuContainer();
 			for (Object x : set)
 				list.add(x);
+			if (list.size() <= 3) // to ensure consistent order for tests
+				list.sort(Boolean.FALSE);
 			return list;
 		}
 	}

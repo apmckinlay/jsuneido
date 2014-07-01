@@ -7,7 +7,6 @@ package suneido.language;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static suneido.language.Compiler.eval;
-import static suneido.language.Ops.display;
 
 import org.junit.After;
 import org.junit.Before;
@@ -202,7 +201,7 @@ public class ExecuteTest {
 	}
 
 	@Test public void test_nested_class() {
-		test("c = class { }; new c", "eval$c()");
+		testDisp("c = class { }; new c", "eval$c()");
 		test("c = class { F() { 123 } }; c.F()", "123");
 	}
 
@@ -226,14 +225,14 @@ public class ExecuteTest {
 	@Test
 	public void test_naming() {
 		def("F", "function () { }");
-		test("F", "F");
+		testDisp("F", "F");
 
 		def("C", "class { }");
-		test("C", "C");
-		test("C()", "C()");
+		testDisp("C", "C");
+		testDisp("C()", "C()");
 
 		def("C", "class { M() { } }");
-		test("C.M", "C.M");
+		testDisp("C.M", "C.M");
 	}
 
 	@Test
@@ -338,7 +337,16 @@ public class ExecuteTest {
 		Object result = eval(expr);
 		if (result instanceof SuBoundMethod)
 			result = ((SuBoundMethod) result).method;
-		assertEquals(expected, display(result));
+		Object exptd = eval(expected);
+		assert Ops.is_(exptd, result) : "expected: " + expected +
+				" but was " + Ops.display(result);
+	}
+
+	public static void testDisp(String expr, String expected) {
+		Object result = eval(expr);
+		if (result instanceof SuBoundMethod)
+			result = ((SuBoundMethod) result).method;
+		assertEquals(expected, Ops.display(result));
 	}
 
 }

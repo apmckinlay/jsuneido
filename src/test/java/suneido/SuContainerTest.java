@@ -67,7 +67,7 @@ public class SuContainerTest {
 		assertEquals(12, c.get(0));
 		assertEquals(34, c.get("ab"));
 		assertEquals("cd", c.get(2));
-		assertEquals("#(12, 2: 'cd', ab: 34)", c.toString());
+		equals(c, "", 12,  2, "cd",  "ab", 34);
 
 		c.put(1, "ef");
 		assertEquals(4, c.size());
@@ -75,6 +75,16 @@ public class SuContainerTest {
 		assertEquals(34, c.get("ab"));
 		assertEquals("ef", c.get(1));
 		assertEquals("#(12, 'ef', 'cd', ab: 34)", c.toString());
+	}
+
+	private static void equals(SuContainer c, Object... members) {
+		assert members.length % 2 == 0 : "usage: pairs of key,value";
+		assertEquals(members.length / 2, c.size());
+		int i = 0;
+		for (; i < members.length && members[i].equals(""); i += 2)
+			assertEquals(members[i+1], c.get(i / 2));
+		for (; i < members.length; i += 2)
+			assertEquals(members[i+1], c.get(members[i]));
 	}
 
 	@Test
@@ -199,9 +209,8 @@ public class SuContainerTest {
 			c.add(s);
 		for (String s : strings)
 			c.put(s, true);
-		assertEquals("#('plain', \"single's\", 'double\"s', `back\\slash`, " +
-				"`back\\slash`: true, 'double\"s': true, \"single's\": true, plain: true)",
-				c.toString());
+		equals(c, "", "plain", "", "single's", "", "double\"s", "", "back\\slash",
+				"back\\slash", true, "double\"s", true, "single's", true, "plain", true);
 	}
 
 }
