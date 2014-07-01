@@ -9,6 +9,7 @@ import static org.junit.Assert.fail;
 import static suneido.language.Compiler.compile;
 import static suneido.language.Compiler.eval;
 import static suneido.language.ExecuteTest.test;
+import static suneido.language.ExecuteTest.testDisp;
 
 import org.junit.After;
 import org.junit.Before;
@@ -115,21 +116,21 @@ public class ClassTest {
 
 		define("A", "class { B: class { F() { 123 } } }");
 		test("(new A.B).F()", "123");
-		test("new A.B", "A.B()");
+		testDisp("new A.B", "A.B()");
 
 		define("A", "class { F() { 123 } N: 123 }");
 		define("B", "A { }");
-		test("A.F", "A.F");
-		test("B.F", "A.F");
-		test("B.N", "123");
+		testDisp("A.F", "A.F");
+		testDisp("B.F", "A.F");
+		testDisp("B.N", "123");
 		notFound("B.M");
 
 		define("A", "class { New(args) { super(@args) } }");
 
 		define("A", "class { ToString() { 'an A' } }");
-		test("A()", "an A");
+		testDisp("A()", "an A");
 		define("A", "class { New(n) { .n = n } ToString() { 'A' $ .n } }");
-		test("A(123)", "A123");
+		testDisp("A(123)", "A123");
 
 		define("A", "class { CallClass() { 123 } }");
 		define("B", "A { }");
@@ -242,11 +243,11 @@ public class ClassTest {
 		define("C", "class { CallClass() { this } }");
 		test("#(1).Eval(C)", "#(1)");
 
-		test("C.Eval(F)", "C");
-		test("(new C).Eval(F)", "C()");
+		testDisp("C.Eval(F)", "C");
+		testDisp("(new C).Eval(F)", "C()");
 
 		define("B", "C { }");
-		test("B.Eval(F)", "B");
+		testDisp("B.Eval(F)", "B");
 	}
 
 	@Test
@@ -293,12 +294,12 @@ public class ClassTest {
 		test("C.GetDefault('X', 456)", "123");
 		test("C.GetDefault('Y', 456)", "456");
 		test("C.GetDefault('Y', { 456 })", "456");
-		test("C.GetDefault('Y', function () { 456 })", "eval$f");
+		testDisp("C.GetDefault('Y', function () { 456 })", "eval$f");
 		test("x = C(); x.GetDefault('X', 456)", "123");
 		test("x = C(); x.GetDefault('Y', 456)", "456");
 		test("x = C(); x.GetDefault('Y', { 456 })", "456");
 		test("x = C(); x.GetDefault('Y', { x; 456 })", "456"); // closure
-		test("x = C(); x.GetDefault('Y', function () { 456 })", "eval$f");
+		testDisp("x = C(); x.GetDefault('Y', function () { 456 })", "eval$f");
 		test("x = C(); x.X = 999; x.GetDefault('X', 456)", "999");
 	}
 

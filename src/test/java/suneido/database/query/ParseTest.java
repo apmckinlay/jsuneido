@@ -63,7 +63,7 @@ public class ParseTest extends TestBase {
 		test("test EXTEND Z, x = 12, y = (b + a), f = fn(), g = fn(1), h = fn(1,2,3)");
 		test("DELETE test WHERE (a is 5)");
 		test("UPDATE test SET a=5, b=3");
-		test("INSERT [b: 6, a: 4] INTO test");
+		test("INSERT [a: 4] INTO test");
 		test("test WHERE (a is #20081216.1523)");
 		test("test WHERE (a is #20081216.152301)");
 		test("test WHERE (a is #20081216.152301234)");
