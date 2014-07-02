@@ -37,13 +37,14 @@ public enum VariableIndirectInstruction {
 	 * In other words,
 	 * <ul>
 	 * <li>
-	 * if the pointer field's high-order bits are zero, leave the variable
+	 * if the pointer field's high-order bits are all zero, leave the variable
 	 * indirect storage alone and allow the low-order 16-bits to propagate back
 	 * into Java; and
 	 * </li>
 	 * <li>
-	 * if the pointer field's high-order bits are zero, treat it as a pointer to
-	 * a zero-terminated ASCII string and behave like {@link #RETURN_JAVA_STRING}.
+	 * if the pointer field's high-order bits contain a non-zero value, treat it
+	 * as a pointer to a zero-terminated ASCII string and behave like
+	 * {@link #RETURN_JAVA_STRING}.
 	 * </li>
 	 * </ul>
 	 * </p>
