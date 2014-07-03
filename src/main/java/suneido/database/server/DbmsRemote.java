@@ -24,7 +24,6 @@ import suneido.database.query.Row;
 import suneido.intfc.database.Record;
 import suneido.language.Pack;
 
-import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -129,25 +128,8 @@ public class DbmsRemote extends Dbms {
 	@Override
 	public List<Integer> tranlist() {
 		Iterable<String> iter = readList("TRANLIST");
-		return ImmutableList.copyOf(Iterables.transform(iter, toInteger));
+		return ImmutableList.copyOf(Iterables.transform(iter, Integer::parseInt));
 	}
-
-	private static Function<String,Integer> toInteger =
-		new Function<String,Integer>() {
-			@Override
-			public Integer apply(String s) {
-				return Integer.parseInt(s);
-			}
-		};
-
-	private static Function<String,List<String>> stringToList =
-		new Function<String,List<String>>() {
-			@Override
-			public List<String> apply(String s) {
-				Iterable<String> fields = Splitter.on(',').split(s);
-				return ImmutableList.copyOf(fields);
-			}
-		};
 
 	@Override
 	public SuDate timestamp() {
@@ -426,7 +408,10 @@ public class DbmsRemote extends Dbms {
 				s = s.substring(1, s.length() - 1); // remove outer parens
 				Iterable<String> list = splitList(s, Splitter.on("),("));
 				keys = ImmutableList.copyOf(
-						Iterables.transform(list, stringToList));
+						Iterables.transform(list, (String t) -> {
+							Iterable<String> fields = Splitter.on(',').split(t);
+							return ImmutableList.copyOf(fields);
+						}));
 			}
 			return keys;
 		}

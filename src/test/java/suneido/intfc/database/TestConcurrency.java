@@ -47,19 +47,9 @@ public class TestConcurrency {
 		ScheduledExecutorService scheduler
 				= Executors.newSingleThreadScheduledExecutor(threadFactory);
 		scheduler.scheduleAtFixedRate(
-				new Runnable() {
-					@Override
-					public void run() {
-						db.force();
-					}
-				}, 5, 5, TimeUnit.SECONDS);
+				db::force, 5, 5, TimeUnit.SECONDS);
 		scheduler.scheduleAtFixedRate(
-				new Runnable() {
-					@Override
-					public void run() {
-						db.limitOutstandingTransactions();
-					}
-				}, 200, 200, TimeUnit.MILLISECONDS);
+				db::limitOutstandingTransactions, 200, 200, TimeUnit.MILLISECONDS);
 
 		for (int i = 0; i < NTHREADS; ++i) {
 			threads[i] = new Thread(new Client());

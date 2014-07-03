@@ -5,11 +5,7 @@
 package suneido.language.jsdi;
 
 import static org.junit.Assert.assertEquals;
-import static suneido.language.jsdi.NumberConversions.toLong;
-import static suneido.language.jsdi.NumberConversions.toFloat;
-import static suneido.language.jsdi.NumberConversions.toDouble;
-import static suneido.language.jsdi.NumberConversions.toPointer32;
-import static suneido.language.jsdi.NumberConversions.toPointer64;
+import static suneido.language.jsdi.NumberConversions.*;
 import static suneido.util.testing.Throwing.assertThrew;
 
 import java.math.BigDecimal;
@@ -62,11 +58,8 @@ public class NumberConversionsTest {
 		assertEquals(-1L, toLong(new Buffer(2, "-1")));
 		assertEquals(286L, toLong(new Buffer(3, "286")));
 		for (final Object bad : new Object[] { "hello", new SuContainer() }) {
-			assertThrew(
-					new Runnable() { @Override
-					public void run() { toLong(bad); } },
-					JSDIException.class, "can't convert"
-				);
+			assertThrew(() -> { toLong(bad); },
+					JSDIException.class, "can't convert");
 		}
 		// Ensure numbers outside range of Long truncate correctly
 		assertEquals(1, toLong(1.55555));
@@ -155,8 +148,8 @@ public class NumberConversionsTest {
 		assertEquals(-1.0, toDouble("-1"), 0.0);
 		assertEquals(-1.0, toDouble("-1.0"), 0.0);
 		assertEquals(-1.0, toDouble("-1.000000"), 0.0);
-		assertEquals((double)Float.MIN_VALUE, toDouble(Double.toString(Float.MIN_VALUE)), 0.0);
-		assertEquals((double)Float.MAX_VALUE, toDouble(Double.toString(Float.MAX_VALUE)), 0.0);
+		assertEquals(Float.MIN_VALUE, toDouble(Double.toString(Float.MIN_VALUE)), 0.0);
+		assertEquals(Float.MAX_VALUE, toDouble(Double.toString(Float.MAX_VALUE)), 0.0);
 		assertEquals(Double.MIN_VALUE, toDouble(new Buffer(Double.toString(Double.MIN_VALUE))), 0.0);
 		assertEquals(Double.MAX_VALUE, toDouble(new Buffer(Double.toString(Double.MAX_VALUE))), 0.0);
 		// Ensure numbers outside range of float truncate appropriately
@@ -186,16 +179,10 @@ public class NumberConversionsTest {
 		assertEquals(Integer.MIN_VALUE, toPointer32((long)Integer.MIN_VALUE));
 		assertEquals(0xffffffff, toPointer32((long)0xffffffff));
 		assertEquals(0xcafebabe, toPointer32((long)0xcafebabe));
-		assertThrew(
-				new Runnable() { @Override
-				public void run() { toPointer32((long)Integer.MAX_VALUE + 1L); }},
-				JSDIException.class
-		);
-		assertThrew(
-				new Runnable() { @Override
-				public void run() { toPointer32((long)Integer.MIN_VALUE - 1L); }},
-				JSDIException.class
-		);
+		assertThrew(() -> { toPointer32(Integer.MAX_VALUE + 1L); },
+				JSDIException.class);
+		assertThrew(() -> { toPointer32(Integer.MIN_VALUE - 1L); },
+				JSDIException.class);
 		assertEquals(0, toPointer32(Numbers.toBigDecimal(0)));
 		assertEquals(1, toPointer32(Numbers.toBigDecimal(1)));
 		assertEquals(-1, toPointer32(Numbers.toBigDecimal(-1)));
@@ -203,50 +190,28 @@ public class NumberConversionsTest {
 		assertEquals(Integer.MIN_VALUE, toPointer32(Numbers.BD_INT_MIN));
 		assertEquals(0xffffffff, toPointer32(Numbers.toBigDecimal(0xffffffff)));
 		assertEquals(0xacc01ade, toPointer32(Numbers.toBigDecimal(0xacc01ade)));
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
+		assertThrew(() -> {
 				toPointer32(Numbers.BD_INT_MAX.add(Numbers.toBigDecimal(1)));
-			}
-		}, JSDIException.class);
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
+				}, JSDIException.class);
+		assertThrew(() -> {
 				toPointer32(Numbers.BD_INT_MIN.subtract(Numbers.toBigDecimal(1)));
-			}
-		}, JSDIException.class);
-		assertThrew(new Runnable() {
-			@Override
-			public void run() { toPointer32(1.5); }
-		}, JSDIException.class);
+				}, JSDIException.class);
+		assertThrew(() -> { toPointer32(1.5); }, JSDIException.class);
 		assertEquals(0, toPointer32(""));
 		assertEquals(1, toPointer32("1"));
 		assertEquals(-1, toPointer32("-1"));
 		assertEquals(Integer.MIN_VALUE, toPointer32(Integer.toString(Integer.MIN_VALUE)));
 		assertEquals(Integer.MAX_VALUE, toPointer32(Integer.toString(Integer.MAX_VALUE)));
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				toPointer32(Long.toString((long)Integer.MAX_VALUE + 1L));
-			}
-		}, JSDIException.class);
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				toPointer32(Long.toString((long)Integer.MIN_VALUE - 1L));
-			}
-		}, JSDIException.class);
+		assertThrew(() -> { toPointer32(Long.toString(Integer.MAX_VALUE + 1L)); },
+				JSDIException.class);
+		assertThrew(() -> { toPointer32(Long.toString(Integer.MIN_VALUE - 1L)); },
+				JSDIException.class);
 		assertEquals(0, toPointer32(new Buffer(0, "")));
 		assertEquals(0, toPointer32(new Buffer(1, "0")));
 		assertEquals(16, toPointer32(new Buffer(3, "020")));
 		assertEquals(0xff, toPointer32(new Buffer(4, "0xff")));
 		assertEquals(-20, toPointer32(new Buffer(3, "-20")));
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				toPointer32(new SuContainer());
-			}
-		}, JSDIException.class);
+		assertThrew(() -> { toPointer32(new SuContainer()); }, JSDIException.class);
 	}
 
 	@Test
@@ -279,50 +244,31 @@ public class NumberConversionsTest {
 		assertEquals(Integer.MIN_VALUE, toPointer64(Numbers.BD_INT_MIN));
 		assertEquals(0xffffffff, toPointer64(Numbers.toBigDecimal(0xffffffff)));
 		assertEquals(0xacc01ade, toPointer64(Numbers.toBigDecimal(0xacc01ade)));
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
+		assertThrew(() -> {
 				toPointer64(Numbers.BD_LONG_MAX.add(Numbers.toBigDecimal(1)));
-			}
-		}, JSDIException.class);
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
+				}, JSDIException.class);
+		assertThrew(() -> {
 				toPointer64(Numbers.BD_LONG_MIN.subtract(Numbers.toBigDecimal(1)));
-			}
-		}, JSDIException.class);
-		assertThrew(new Runnable() {
-			@Override
-			public void run() { toPointer64(1.5); }
-		}, JSDIException.class);
+				}, JSDIException.class);
+		assertThrew(() -> { toPointer64(1.5); }, JSDIException.class);
 		assertEquals(0, toPointer64(""));
 		assertEquals(1, toPointer64("1"));
 		assertEquals(-1, toPointer64("-1"));
 		assertEquals(Integer.MIN_VALUE, toPointer64(Integer.toString(Integer.MIN_VALUE)));
 		assertEquals(Integer.MAX_VALUE, toPointer64(Integer.toString(Integer.MAX_VALUE)));
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
+		assertThrew(() -> {
 				toPointer64(Numbers.BI_LONG_MAX.add(BigInteger.ONE).toString());
-			}
-		}, JSDIException.class);
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
+				}, JSDIException.class);
+		assertThrew(() -> {
 				toPointer64(Numbers.BI_LONG_MIN.subtract(BigInteger.ONE).toString());
-			}
-		}, JSDIException.class);
+				}, JSDIException.class);
 		assertEquals(0, toPointer64(new Buffer(0, "")));
 		assertEquals(0, toPointer64(new Buffer(1, "0")));
 		assertEquals(16, toPointer64(new Buffer(3, "020")));
 		assertEquals(0xff, toPointer64(new Buffer(4, "0xff")));
 		assertEquals(-20, toPointer64(new Buffer(3, "-20")));
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				toPointer64(new SuContainer());
-			}
-		}, JSDIException.class);
+		assertThrew(() -> { toPointer64(new SuContainer()); },
+				JSDIException.class);
 	}
 
 }

@@ -114,11 +114,7 @@ public class DbHashTrieTest {
 		}
 	}
 
-	Translator nullTranslator = new Translator() {
-		@Override public Entry translate(Entry e) {
-			return e; // no translation
-		}
-	};
+	Translator nullTranslator = (Entry e) -> e;
 
 	@Test
 	public void store() {

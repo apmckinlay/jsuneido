@@ -71,17 +71,14 @@ public class TheDbms {
 	/**
 	 * Run regularly to close connections owned by threads that have ended
 	 */
-	public static Runnable closer = new Runnable() {
-		@Override
-		public void run() {
-			synchronized(dbmsRemotes) {
-				Iterator<DbmsRemote> iter = dbmsRemotes.iterator();
-				while (iter.hasNext()) {
-					DbmsRemote dr = iter.next();
-					if (! dr.owner.isAlive()) {
-						iter.remove();
-						dr.close();
-					}
+	public static Runnable closer = () -> {
+		synchronized(dbmsRemotes) {
+			Iterator<DbmsRemote> iter = dbmsRemotes.iterator();
+			while (iter.hasNext()) {
+				DbmsRemote dr = iter.next();
+				if (! dr.owner.isAlive()) {
+					iter.remove();
+					dr.close();
 				}
 			}
 		}

@@ -29,7 +29,7 @@ public class TestDbHashTrie {
 	public static void main(String[] args) {
 		createRandom(N);
 		proc.run();
-		int adr = t.store(translate);
+		int adr = t.store((e) -> e);
 		t = DbHashTrie.from(stor, adr);
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
@@ -51,29 +51,23 @@ public class TestDbHashTrie {
 		}
 	}
 
-	static final DbHashTrie.Translator translate = new DbHashTrie.Translator() {
-		@Override
-		public Entry translate(Entry e) {
-			return e;
-		} };
+	static final DbHashTrie.Translator translate = (Entry e) -> e;
 
-	static final Runnable proc = new Runnable() {
-		@Override
-		public void run() {
-			try {
-				Random rand = new Random();
-				for (int i = 0; i < N_OPS; ++i) {
-					int j = nextNonZero(rand);
-					Entry e = t.get(j);
-					if (entries.containsKey(j))
-						assertThat(e.value(), equalTo(entries.get(j)));
-					else
-						assertThat(e, equalTo((Entry) null));
-				}
-			} catch (Throwable e) {
-				e.printStackTrace();
+	static final Runnable proc = () -> {
+		try {
+			Random rand = new Random();
+			for (int i = 0; i < N_OPS; ++i) {
+				int j = nextNonZero(rand);
+				Entry e = t.get(j);
+				if (entries.containsKey(j))
+					assertThat(e.value(), equalTo(entries.get(j)));
+				else
+					assertThat(e, equalTo((Entry) null));
 			}
-		} };
+		} catch (Throwable e) {
+			e.printStackTrace();
+		}
+	};
 
 	private static int nextNonZero(Random rand) {
 		int n;

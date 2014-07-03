@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 /**
  * Automatic C++ code generator for the JSDI {@code java_enum} translation unit.
- * 
+ *
  * @author Victor Schappert
  * @since 20130630
  */

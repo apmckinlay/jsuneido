@@ -169,11 +169,8 @@ public class ParseAndCompileStructTest {
 			"string { [in] char a }",
 		};
 		for (final String s : bad)
-			assertThrew(
-				new Runnable() { @Override
-				public void run() { parse(s); } },
-				SuException.class, "syntax error"
-			);
+			assertThrew(() -> { parse(s); },
+					SuException.class, "syntax error");
 	}
 
 	@Test(expected=SuException.class)
@@ -241,8 +238,9 @@ public class ParseAndCompileStructTest {
 		};
 		for (final String s : bad)
 			assertThrew(
-				new Runnable() { @Override
-				public void run() { compile(s); } },
+				() -> {
+					compile(s);
+		},
 				JSDIException.class
 			);
 	}

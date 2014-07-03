@@ -134,12 +134,8 @@ public class DllTest {
 	private static void assertNeedObject(final String code,
 			final Class<? extends Throwable> exception, final String pattern) {
 		for (final String value : NOT_AN_OBJECT) {
-			assertThrew(new Runnable() {
-				@Override
-				public void run() {
-					eval(String.format(code, value));
-				}
-			}, exception, pattern);
+			assertThrew(() -> { eval(String.format(code, value)); },
+					exception, pattern);
 		}
 	}
 
@@ -248,18 +244,10 @@ public class DllTest {
 		// dll marshaller, which happily modifies them. However, it seems like
 		// more consistent behaviour is to throw. Why should the marshaller be
 		// exempt from the read-only object rule?
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				eval("TestSumPackedCharCharShortLong(#())");
-			}
-		}, SuException.class, "readonly");
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				eval("TestSumPackedCharCharShortLong(#(b: 25, c: 1050, d: -875))");
-			}
-		}, SuException.class, "readonly");
+		assertThrew(() -> { eval("TestSumPackedCharCharShortLong(#())"); },
+				SuException.class, "readonly");
+		assertThrew(() -> { eval("TestSumPackedCharCharShortLong(#(b: 25, c: 1050, d: -875))"); },
+				SuException.class, "readonly");
 	}
 
 	@Test
@@ -272,18 +260,12 @@ public class DllTest {
 		assertEquals(2, eval("TestStrLen(20)"));    // gets converted to "20"
 		assertEquals(4, eval("TestStrLen(true)"));  // gets converted to "true"
 		assertEquals(34, eval("TestStrLen('supercalifragilisticexpialidocious')"));
-		assertThrew(
-			new Runnable() { @Override
-			public void run() { eval("TestStrLen(Buffer(1, 'a'))"); } },
-			JSDIException.class, "cannot safely be marshalled"
-		);
+		assertThrew(() -> { eval("TestStrLen(Buffer(1, 'a'))"); },
+			JSDIException.class, "cannot safely be marshalled");
 		assertEquals(0, eval("TestStrLen(Buffer(1))"));
 		assertEquals(0, eval("TestStrLen(Buffer(1000))"));
-		assertThrew(
-				new Runnable() { @Override
-				public void run() { eval("TestStrLen(Buffer(1, 'a'))"); } },
-				JSDIException.class, "cannot safely be marshalled"
-			);
+		assertThrew(() -> { eval("TestStrLen(Buffer(1, 'a'))"); },
+				JSDIException.class, "cannot safely be marshalled");
 		assertEquals(1, eval("TestStrLen(Buffer(2, 'a'))"));
 		assertEquals(1, eval("TestStrLen(Buffer(20, 'a'))"));
 		assertEquals(11, eval("TestStrLen(Buffer(20, 'hello world'))"));

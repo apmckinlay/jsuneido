@@ -32,6 +32,7 @@ import suneido.intfc.database.Transaction;
 import suneido.language.Ops;
 import suneido.language.Pack;
 import suneido.language.Token;
+import suneido.util.ByteBuffers;
 import suneido.util.CommaStringBuilder;
 
 import com.google.common.base.Objects;
@@ -425,7 +426,7 @@ public class Select extends Query1 {
 				if (isel.none())
 					{ nrecs = 0; conflicting = true; return ; }
 				if (isel.values != null)
-					Collections.sort(isel.values, bufcmp);
+					Collections.sort(isel.values, ByteBuffers::bufferUcompare);
 				if (! isel.all())
 					isels.put(cmp.ident, isel);
 				isel = new Iselect();
@@ -435,13 +436,6 @@ public class Select extends Query1 {
 			trace(SELECT, "isels: " + isels);
 	}
 
-	private static final Comparator<ByteBuffer> bufcmp =
-			new Comparator<ByteBuffer>() {
-				@Override
-				public int compare(ByteBuffer buf1, ByteBuffer buf2) {
-					return bufferUcompare(buf1, buf2);
-				}
-	};
 
 	private void identify_possible() {
 		// possible = indexes with isels

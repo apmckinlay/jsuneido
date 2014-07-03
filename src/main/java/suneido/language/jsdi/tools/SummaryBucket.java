@@ -94,15 +94,11 @@ public final class SummaryBucket<K> {
 	 * @see #summarize(PrintStream)
 	 * @see #top(PrintStream, int, Comparator)
 	 */
+	@SuppressWarnings("unchecked")
 	public void top(PrintStream ps, int number) {
-		top(ps, number, new Comparator<K>()
-		{
-			@Override
-			public int compare(K k1, K k2) {
-				@SuppressWarnings("unchecked")
-				Comparable<K> kk1 = (Comparable<K>)k1;
-				return kk1.compareTo(k2);
-			}
+		top(ps, number, (K k1, K k2) -> {
+					Comparable<K> kk1 = (Comparable<K>)k1;
+					return kk1.compareTo(k2);
 		});
 	}
 
@@ -119,12 +115,9 @@ public final class SummaryBucket<K> {
 	public void top(PrintStream ps, int number, final Comparator<? super K> comparator) {
 		@SuppressWarnings("unchecked")
 		Entry<K>[] arr = map.values().toArray(new Entry[map.size()]);
-		Arrays.sort(arr, new Comparator<Entry<K>>() {
-			@Override
-			public int compare(Entry<K> a, Entry<K> b) {
-				int diff = b.count - a.count; // sort high to low
-				return 0 == diff ? comparator.compare(a.key, b.key) : diff;
-			}
+		Arrays.sort(arr, (Entry<K> a, Entry<K> b) -> {
+			int diff = b.count - a.count; // sort high to low
+			return 0 == diff ? comparator.compare(a.key, b.key) : diff;
 		});
 		final int N = arr.length;
 		final int M = Math.min(number, N);

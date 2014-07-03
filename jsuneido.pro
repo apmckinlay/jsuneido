@@ -25,3 +25,5 @@
 
 -dontwarn java.lang.invoke.MethodHandle
 -dontwarn com.google.common.util.concurrent.ServiceManager
+
+-keepattributes *Annotation*

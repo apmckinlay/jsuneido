@@ -169,7 +169,7 @@ public class NativeCallTest {
 					throw new RuntimeException("This test is busted");
 				for (NativeCall nativecall : DOF_NORET_VI_OR_FLOAT) {
 					assertEquals(
-							(long) x[k],
+							x[k],
 							nativecall.invoke(f[k].ptr,
 									f[k].plan.getSizeDirect(), m)
 									& f[k].returnValueMask.value);
@@ -223,8 +223,8 @@ public class NativeCallTest {
 			m.putShort(Short.MIN_VALUE);
 			m.putLong(Integer.MAX_VALUE);
 			assertEquals(
-					(int) Byte.MIN_VALUE + (int) Byte.MAX_VALUE
-							+ (int) Short.MIN_VALUE + Integer.MAX_VALUE,
+					Byte.MIN_VALUE + Byte.MAX_VALUE
+							+ Short.MIN_VALUE + Integer.MAX_VALUE,
 					(int) (NativeCall.DIRECT_RETURN_INT64.invoke(
 							TestCall.SUM_PACKED_CHAR_CHAR_SHORT_LONG.ptr,
 							TestCall.SUM_PACKED_CHAR_CHAR_SHORT_LONG.plan
@@ -405,12 +405,8 @@ public class NativeCallTest {
 				m.skipBasicArrayElements(1);
 				m.skipBasicArrayElements(1);
 				assertThrew( // should be at the end of the marshaller
-						new Runnable() {
-							@Override
-							public void run() {
-								m.putChar((byte) 0);
-							}
-						}, ArrayIndexOutOfBoundsException.class);
+						() -> { m.putChar((byte) 0); },
+						ArrayIndexOutOfBoundsException.class);
 				long result = nativecall.invoke(testcall.ptr,
 						plan.getSizeDirect(), m);
 				assertEquals(0L, result & testcall.returnValueMask.value);
@@ -428,12 +424,8 @@ public class NativeCallTest {
 				m.putNullPtr();
 				m.putINTRESOURCE((short) 0);
 				assertThrew( // should be at the end of the marshaller
-						new Runnable() {
-							@Override
-							public void run() {
-								m.putChar((byte) 0);
-							}
-						}, ArrayIndexOutOfBoundsException.class);
+						() -> { m.putChar((byte) 0); },
+						ArrayIndexOutOfBoundsException.class);
 				long result = nativecall.invoke(testcall.ptr,
 						plan.getSizeDirect(), m);
 				assertEquals(0L, result & testcall.returnValueMask.value);
@@ -454,7 +446,7 @@ public class NativeCallTest {
 				m.putStringPtr(strings[k], NO_ACTION);
 				long result = nativecall.invoke(testcall.ptr,
 						plan.getSizeDirect(), m);
-				assertEquals((long) k, result & testcall.returnValueMask.value);
+				assertEquals(k, result & testcall.returnValueMask.value);
 			}
 		}
 	}
@@ -496,12 +488,8 @@ public class NativeCallTest {
 		{
 			final Marshaller m = TestCall.marshall(
 					new TestCall.Recursive_StringSum("12345678", null), null);
-			assertThrew(new Runnable() {
-				@Override
-				public void run() {
-					m.putChar((byte) 0);
-				}
-			}, ArrayIndexOutOfBoundsException.class);
+			assertThrew(() -> { m.putChar((byte) 0); },
+					ArrayIndexOutOfBoundsException.class);
 			assertEquals(12345678L,
 					nativecall.invoke(testcall.ptr, sizeDirect, m) & mask);
 		}
@@ -514,12 +502,8 @@ public class NativeCallTest {
 				final Marshaller m = TestCall.marshall(
 						new TestCall.Recursive_StringSum("987654321", buffer),
 						null);
-				assertThrew(new Runnable() {
-					@Override
-					public void run() {
-						m.putChar((byte) 0);
-					}
-				}, ArrayIndexOutOfBoundsException.class);
+				assertThrew(() -> { m.putChar((byte) 0); },
+						ArrayIndexOutOfBoundsException.class);
 				assertEquals(987654321L,
 						nativecall.invoke(testcall.ptr, sizeDirect, m) & mask);
 				String got = buffer.toString();
@@ -537,12 +521,8 @@ public class NativeCallTest {
 							-6, 5, -8, 7),
 					new TestCall.Recursive_StringSum("-200", null, -100, -75,
 							-50, -25, 50, -25, 50, -25));
-			assertThrew(new Runnable() {
-				@Override
-				public void run() {
-					m.putChar((byte) 0);
-				}
-			}, ArrayIndexOutOfBoundsException.class);
+			assertThrew(() -> { m.putChar((byte) 0); },
+					ArrayIndexOutOfBoundsException.class);
 			assertEquals(0L, nativecall.invoke(testcall.ptr, sizeDirect, m)
 					& mask);
 		}
@@ -560,12 +540,8 @@ public class NativeCallTest {
 							new TestCall.Recursive_StringSum("-200",
 									innerBuffer, -100, -75, -50, -25, 50, -25,
 									50, -25));
-					assertThrew(new Runnable() {
-						@Override
-						public void run() {
-							m.putChar((byte) 0);
-						}
-					}, ArrayIndexOutOfBoundsException.class);
+					assertThrew(() -> { m.putChar((byte) 0); },
+							ArrayIndexOutOfBoundsException.class);
 					assertEquals(0L,
 							nativecall.invoke(testcall.ptr, sizeDirect, m)
 									& mask);
@@ -700,14 +676,10 @@ public class NativeCallTest {
 				m.putBool(flag[k]);
 				m.putNullStringPtr(RETURN_JAVA_STRING);
 				nativecall.invoke(testcall.ptr, sizeDirect, m);
-				assertThrew(
-					new Runnable() { @Override
-					public void run() { m.getBool(); } },
+				assertThrew(m::getBool,
 					ArrayIndexOutOfBoundsException.class
 				);
-				assertThrew(
-					new Runnable() { @Override
-					public void run() { m.getStringPtr(); } },
+				assertThrew(m::getStringPtr,
 					ArrayIndexOutOfBoundsException.class
 				);
 				m.rewind();

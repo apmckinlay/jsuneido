@@ -25,12 +25,7 @@ public class IntMergeTree {
 	private int size = 0;
 
 	public IntMergeTree() {
-		this.cmp = new IntComparator() {
-			@Override
-			public int compare(int x, int y) {
-				return Ints.compare(x, y);
-			}
-		};
+		this.cmp = Ints::compare;
 	}
 
 	public IntMergeTree(IntComparator cmp) {
