@@ -695,49 +695,33 @@ public class SuContainer extends SuValue
 		if (fn == Boolean.FALSE)
 			Collections.sort(vec, Ops.comp);
 		else
-			Collections.sort(vec, new Comparator<Object>() {
-				@Override
-				public int compare(Object x, Object y) {
-					return Ops.call(fn, x, y) == Boolean.TRUE ? -1
-							: Ops.call(fn, y, x) == Boolean.TRUE ? 1 : 0;
-				}
-			});
+			Collections.sort(vec, (Object x, Object y) ->
+					Ops.call(fn, x, y) == Boolean.TRUE ? -1
+							: Ops.call(fn, y, x) == Boolean.TRUE ? 1 : 0);
 	}
 
 	public int lowerBound(Object value, final Object fn) {
 		if (fn == Boolean.FALSE)
 			return Util.lowerBound(vec, value, Ops.comp);
 		else
-			return Util.lowerBound(vec, value, new Comparator<Object>() {
-				@Override
-				public int compare(Object x, Object y) {
-					return Ops.call(fn, x, y) == Boolean.TRUE ? -1 : 1;
-				}
-			});
+			return Util.lowerBound(vec, value, (Object x, Object y) ->
+					Ops.call(fn, x, y) == Boolean.TRUE ? -1 : 1);
 	}
 
 	public int upperBound(Object value, final Object fn) {
 		if (fn == Boolean.FALSE)
 			return Util.upperBound(vec, value, Ops.comp);
 		else
-			return Util.upperBound(vec, value, new Comparator<Object>() {
-				@Override
-				public int compare(Object x, Object y) {
-					return Ops.call(fn, x, y) == Boolean.TRUE ? -1 : 1;
-				}
-			});
+			return Util.upperBound(vec, value, (Object x, Object y) ->
+					Ops.call(fn, x, y) == Boolean.TRUE ? -1 : 1);
 	}
 
 	public Util.Range equalRange(Object value, final Object fn) {
 		if (fn == Boolean.FALSE)
 			return Util.equalRange(vec, value, Ops.comp);
 		else
-			return Util.equalRange(vec, value, new Comparator<Object>() {
-				@Override
-				public int compare(Object x, Object y) {
-					return Ops.call(fn, x, y) == Boolean.TRUE ? -1 : 1;
-				}
-			});
+			return Util.equalRange(vec, value, (Object x, Object y) ->
+					Ops.call(fn, x, y) == Boolean.TRUE ? -1 : 1);
 	}
 
 	public Record toDbRecord(Header hdr) {

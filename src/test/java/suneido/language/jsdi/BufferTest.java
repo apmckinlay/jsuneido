@@ -170,12 +170,9 @@ public class BufferTest {
 	@Test
 	public void testSizeBigEnoughForContents() {
 		for (final String s : new String[] { "Buffer(2)", "'ab'" }) {
-			assertThrew(new Runnable() {
-				@Override
-				public void run() {
-					String code = String.format("Buffer(1, %s)", s);
-					Compiler.eval(code);
-				}
+			assertThrew(() -> {
+				String code = String.format("Buffer(1, %s)", s);
+				Compiler.eval(code);
 			}, JSDIException.class, "Buffer must be large enough for initial");
 		}
 	}
@@ -245,16 +242,10 @@ public class BufferTest {
 				for (int k = 0; k < N; ++k) {
 					assertEquals(s2.charAt(k), b.charAt(k));
 				}
-				assertThrew(
-						new Runnable() { @Override
-						public void run() { b.charAt(N); } },
-						IndexOutOfBoundsException.class
-				);
-				assertThrew(
-						new Runnable() { @Override
-						public void run() { b.charAt(-1); } },
-						IndexOutOfBoundsException.class
-				);
+				assertThrew(() -> { b.charAt(N); },
+						IndexOutOfBoundsException.class);
+				assertThrew(() -> { b.charAt(-1); },
+						IndexOutOfBoundsException.class);
 			}
 		}
 	}
@@ -283,16 +274,10 @@ public class BufferTest {
 						assertEquals(y, x);
 					}
 				}
-				assertThrew(
-						new Runnable() { @Override
-						public void run() { b.subSequence(0, N + 1); } },
-						StringIndexOutOfBoundsException.class
-				);
-				assertThrew(
-						new Runnable() { @Override
-						public void run() { b.subSequence(-1, N); } },
-						StringIndexOutOfBoundsException.class
-				);
+				assertThrew(() -> { b.subSequence(0, N + 1); },
+						StringIndexOutOfBoundsException.class);
+				assertThrew(() -> { b.subSequence(-1, N); },
+						StringIndexOutOfBoundsException.class);
 
 			}
 		}

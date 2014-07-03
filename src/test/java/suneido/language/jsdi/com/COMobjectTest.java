@@ -92,12 +92,8 @@ public class COMobjectTest {
 		for (final String suffix : suffixes) {
 			final String code = "x = MakeTestObject(); x.Release(); x."
 					+ suffix;
-			assertThrew(new Runnable() {
-				@Override
-				public void run() {
-					eval(code);
-				}
-			}, COMException.class, "already released");
+			assertThrew(() -> { eval(code); },
+					COMException.class, "already released");
 		}
 	}
 
@@ -151,19 +147,15 @@ public class COMobjectTest {
 		// Check overflow
 		{
 			final String code = "MakeTestObject().Int32Value = 4 * 0x70000000";
-			assertThrew(new Runnable() {
-				@Override
-				public void run() {
-					eval(code);
-				}
-			}, COMException.class, "overflow");
+			assertThrew(() -> { eval(code); },
+					COMException.class, "overflow");
 		}
 	}
 
 	@Test
 	public void testPropInt64() {
-		final long BIG_NUMBER = (long)Integer.MAX_VALUE * 10L;
-		final long SMALL_NUMBER = (long)Integer.MIN_VALUE * 10L;
+		final long BIG_NUMBER = Integer.MAX_VALUE * 10L;
+		final long SMALL_NUMBER = Integer.MIN_VALUE * 10L;
 		// Check we can set it to a positive number outside the 32-bit range
 		{
 			final String code = String.format(
@@ -395,32 +387,20 @@ public class COMobjectTest {
 
 	@Test
 	public void testNoSuchMethod() {
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				eval("MakeTestObject().FakeMethod(1)");
-			}
-		}, COMException.class, "no member named.*FakeMethod");
+		assertThrew(() -> { eval("MakeTestObject().FakeMethod(1)"); },
+				COMException.class, "no member named.*FakeMethod");
 	}
 
 	@Test
 	public void testNoSuchPropGet() {
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				eval("x = MakeTestObject().FakeProperty");
-			}
-		}, COMException.class, "no member named.*FakeProperty");
+		assertThrew(() -> { eval("x = MakeTestObject().FakeProperty"); },
+				COMException.class, "no member named.*FakeProperty");
 	}
 
 	@Test
 	public void testNoSuchPropSet() {
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				eval("MakeTestObject().FakeProperty = 5");
-			}
-		}, COMException.class, "no member named.*FakeProperty");
+		assertThrew(() -> { eval("MakeTestObject().FakeProperty = 5"); },
+				COMException.class, "no member named.*FakeProperty");
 	}
 
 	@Test(expected=COMException.class)
@@ -455,28 +435,16 @@ public class COMobjectTest {
 
 	@Test
 	public void testErrorBadParamCount() {
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				eval("MakeTestObject().Sum2Ints(1)"); // Too few
-			}
-		}, COMException.class, "bad param count");
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				eval("MakeTestObject().SumProperties(1, 2, 3)"); // Too many
-			}
-		}, COMException.class, "bad param count");
+		assertThrew(() -> { eval("MakeTestObject().Sum2Ints(1)"); },
+				COMException.class, "bad param count");
+		assertThrew(() -> { eval("MakeTestObject().SumProperties(1, 2, 3)"); },
+				COMException.class, "bad param count");
 	}
 
 	@Test
 	public void testErrorTypeMismatch() {
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				eval("MakeTestObject().Sum2Ints(true, 'boron')");
-			}
-		}, COMException.class, "type mismatch");
+		assertThrew(() -> { eval("MakeTestObject().Sum2Ints(true, 'boron')"); },
+				COMException.class, "type mismatch");
 	}
 
 	@Test

@@ -185,27 +185,9 @@ public class Suneido {
 				fatal("could not open database after rebuild");
 		}
 		TheDbms.set(db);
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			@Override
-			public void run() {
-				// db.check();
-				db.close();
-			}
-		});
-		scheduleAtFixedRate(
-				new Runnable() {
-					@Override
-					public void run() {
-						db.limitOutstandingTransactions();
-					}
-				}, 1, TimeUnit.SECONDS);
-		scheduleAtFixedRate(
-				new Runnable() {
-					@Override
-					public void run() {
-						db.force();
-					}
-				}, 1, TimeUnit.MINUTES);
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> Suneido.db.close()));
+		scheduleAtFixedRate(db::limitOutstandingTransactions, 1, TimeUnit.SECONDS);
+		scheduleAtFixedRate(db::force, 1, TimeUnit.MINUTES);
 	}
 
 	private static void tryToCloseMemoryMappings() {

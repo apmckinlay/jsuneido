@@ -72,29 +72,26 @@ class Persist {
 
 	/** stores btrees and frees up memory */
 	void storeBtrees() {
-		dbinfo.traverseUnstored(proc);
-	}
-
-	DbHashTrie.Process proc = new DbHashTrie.Process() {
-		@Override
-		public void apply(Entry e) {
+		dbinfo.traverseUnstored((Entry e) -> {
 			if (e instanceof TableInfo) {
 				boolean modified = false;
 				TableInfo ti = (TableInfo) e;
 				ImmutableList.Builder<IndexInfo> b = ImmutableList.builder();
 				for (IndexInfo ii : ti.indexInfo)
 					if (ii.rootNode != null) {
-						BtreeDbNode root = ii.rootNode.store(istor);
+						BtreeDbNode root = ii.rootNode.store(this.istor);
 						b.add(new IndexInfo(ii, root));
 						modified = true;
 					} else
 						b.add(ii);
 				if (modified) {
 					TableInfo ti2 = new TableInfo(ti, b.build());
-					dbinfo = dbinfo.with(ti2);
+					this.dbinfo = this.dbinfo.with(ti2);
 				}
 			}
-		}};
+		});
+	}
+
 
 	/** also called by BulkTransaction */
 	void finish(Database db, Tables schema, int lastcksum, int lastadr) {

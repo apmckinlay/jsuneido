@@ -25,14 +25,9 @@ public class MergeTree<T> {
 	private final Comparator<? super T> cmp;
 	private int size = 0;
 
+	@SuppressWarnings("unchecked")
 	public MergeTree() {
-		this(new Comparator<T>() {
-				@SuppressWarnings("unchecked")
-				@Override
-				public int compare(T x, T y) {
-					return ((Comparable<T>) x).compareTo(y);
-				}
-			});
+		this((T x, T y) -> ((Comparable<T>) x).compareTo(y));
 	}
 
 	public MergeTree(Comparator<? super T> cmp) {

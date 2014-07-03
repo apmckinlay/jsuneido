@@ -183,9 +183,7 @@ public class StructureTest {
 
 	@Test
 	public void testCycle() {
-		assertThrew(
-				new Runnable() { @Override
-				public void run() { eval("CycleA.Size()"); } },
+		assertThrew(() -> { eval("CycleA.Size()"); },
 				JSDIException.class,
 				".*cycle.*"
 		);
@@ -194,9 +192,7 @@ public class StructureTest {
 	@Test
 	public void testSelfRef() {
 		for (final String selfRef : new String[] { "SelfRef", "SelfRef2", "SelfRef3" }) {
-			assertThrew(
-					new Runnable() { @Override
-					public void run() { eval(selfRef + ".Size()"); } },
+			assertThrew(() -> { eval(selfRef + ".Size()"); },
 					JSDIException.class,
 					".*cycle.*"
 			);
@@ -231,72 +227,44 @@ public class StructureTest {
 
 	@Test
 	public void testCallOnObject_NoIndirect() {
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				eval("ThreeTierStruct(Object())");
-			}
-		}, JSDIException.class, "does not support.*pointers");
+		assertThrew(() -> { eval("ThreeTierStruct(Object())"); },
+				JSDIException.class, "does not support.*pointers");
 	}
 
 	@Test
 	public void testCallOnBuffer_NoIndirect() {
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				eval("ThreeTierStruct(Buffer(100, ''))");
-			}
-		}, JSDIException.class, "does not support.*pointers");
+		assertThrew(() -> { eval("ThreeTierStruct(Buffer(100, ''))"); },
+				JSDIException.class, "does not support.*pointers");
 	}
 
 	@Test
 	public void testCallOnObject_NoVariableIndirect() {
 		for (String s : new String[] { "string", "buffer", "resource" } ) {
 			final String code = String.format("(struct { %s x })(Object())", s);
-			assertThrew(new Runnable() {
-				@Override
-				public void run() {
-					eval(code);
-				}
-			}, JSDIException.class, "does not support.*pointers");
+			assertThrew(() -> { eval(code); },
+					JSDIException.class, "does not support.*pointers");
 		}
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				eval("StringStruct2(Object(a: Object()))");
-			}
-		}, JSDIException.class, "does not support.*pointers");
+		assertThrew(() -> { eval("StringStruct2(Object(a: Object()))"); },
+				JSDIException.class, "does not support.*pointers");
 	}
 
 	@Test
 	public void testCallOnBuffer_NoVariableIndirect() {
 		for (String s : new String[] { "string", "buffer", "resource" } ) {
 			final String code = String.format("(struct { %s x })(Buffer(100, ''))", s);
-			assertThrew(new Runnable() {
-				@Override
-				public void run() {
-					eval(code);
-				}
-			}, JSDIException.class, "does not support.*pointers");
+			assertThrew(() -> { eval(code); },
+					JSDIException.class, "does not support.*pointers");
 		}
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				eval("StringStruct2(Buffer(100, ''))");
-			}
-		}, JSDIException.class, "does not support.*pointers");
+		assertThrew(() -> { eval("StringStruct2(Buffer(100, ''))"); },
+				JSDIException.class, "does not support.*pointers");
 	}
 
 	@Test
 	public void testCallOnString() {
 		for (final String s : new String[] { "(struct { short a })", "RECT",
 				"Recursive_StringSum1" }) {
-			assertThrew(new Runnable() {
-				@Override
-				public void run() {
-					eval(String.format("%s('\\x00'.Repeat(200))", s));
-				}
-			}, JSDIException.class, "does not support Struct\\(string\\)");
+			assertThrew(() -> { eval(String.format("%s('\\x00'.Repeat(200))", s)); },
+					JSDIException.class, "does not support Struct\\(string\\)");
 		}
 	}
 

@@ -297,12 +297,7 @@ public class TypeListTest {
 		m.rewind();
 		// This will throw because the native side is expected to place
 		// either a String or an Integer into variable indirect storage.
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				tl.marshallOutParams(m, new Object[1]);
-			}
-		});
+		assertThrew(() -> { tl.marshallOutParams(m, new Object[1]); });
 		// Simulate native side putting an Integer into the viArray.
 		m.rewind();
 		m.getViArray()[0] = new Integer(intResource);
@@ -323,12 +318,7 @@ public class TypeListTest {
 		m.rewind();
 		// This will throw because the native side is expected to place
 		// either a String or an Integer into variable indirect storage.
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				tl.marshallOutParams(m, new Object[1]);
-			}
-		});
+		assertThrew(() -> { tl.marshallOutParams(m, new Object[1]); });
 		// Simulate native side putting an Integer into the viArray.
 		m.rewind();
 		m.getViArray()[0] = "simulation of native side returning a string";

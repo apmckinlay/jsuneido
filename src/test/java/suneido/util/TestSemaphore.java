@@ -11,12 +11,10 @@ public class TestSemaphore {
 
 	public static void main(String[] args) {
 		sem.acquireUninterruptibly();
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				sem.release();
-				System.out.println("worked!");
-			} }).start();
+		new Thread(() -> {
+			sem.release();
+			System.out.println("worked!");
+		}).start();
 	}
 
 }

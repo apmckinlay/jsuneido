@@ -16,11 +16,7 @@ public class TestReadWriteLock {
 
 	public static void main(String[] args) {
 		lock.readLock().lock();
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				lock.readLock().unlock();
-			} }).start();
+		new Thread(() -> { lock.readLock().unlock(); }).start();
 	}
 
 }

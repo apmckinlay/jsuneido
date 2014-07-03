@@ -50,12 +50,8 @@ public class MarshallerTest {
 	public void testNullMarshaller() {
 		MarshallPlan NULL_PLAN = nullPlan();
 		final Marshaller NULL_MARSHALLER = NULL_PLAN.makeMarshaller();
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				NULL_MARSHALLER.putChar((byte)'X');
-			}
-		}, ArrayIndexOutOfBoundsException.class);
+		assertThrew(() -> { NULL_MARSHALLER.putChar((byte)'X'); },
+				ArrayIndexOutOfBoundsException.class);
 	}
 
 	@Test
@@ -253,12 +249,8 @@ public class MarshallerTest {
 			mr.putZeroTerminatedStringDirect("@@@", LEN);
 			assertArrayEquals(ba("404000"), mr.getData());
 			mr.rewind();
-			assertThrew(new Runnable() {
-				@Override
-				public void run() {
-					mr.getZeroTerminatedStringDirect(0);
-				}
-			}, JSDIException.class);
+			assertThrew(() -> {	mr.getZeroTerminatedStringDirect(0); },
+					JSDIException.class);
 		}
 		//
 		// With Buffer
@@ -300,12 +292,8 @@ public class MarshallerTest {
 		final Marshaller mr = mp.makeMarshaller();
 		mr.putNonZeroTerminatedStringDirect("abc", 3);
 		mr.rewind();
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				mr.getZeroTerminatedStringDirect(LEN);
-			}
-		}, JSDIException.class);
+		assertThrew(() -> { mr.getZeroTerminatedStringDirect(LEN); },
+				JSDIException.class);
 	}
 
 	@Test(expected=ArrayIndexOutOfBoundsException.class)
@@ -461,11 +449,8 @@ public class MarshallerTest {
 		for (VariableIndirectInstruction i : VariableIndirectInstruction.values()) {
 			final Marshaller mr = mp.makeMarshaller();
 			mr.putNullStringPtr(i);
-			assertThrew(
-				new Runnable() { @Override
-				public void run() { mr.putChar((byte)0); } },
-				ArrayIndexOutOfBoundsException.class
-			);
+			assertThrew(() -> { mr.putChar((byte)0); },
+				ArrayIndexOutOfBoundsException.class);
 		}
 	}
 
@@ -561,12 +546,7 @@ public class MarshallerTest {
 		// This should throw, because outgoing variable indirect array was a
 		// byte[]. The native side is supposed to replace it with a String, but
 		// since we haven't invoked the native side, that didn't happen.
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				mr.getResource();
-			}
-		}, IllegalStateException.class);
+		assertThrew(mr::getResource, IllegalStateException.class);
 		// Simulate native side re-converting to String
 		mr.getViArray()[0] = "res";
 		mr.rewind();
@@ -581,12 +561,7 @@ public class MarshallerTest {
 		mr.rewind();
 		// Simulate a NULL somehow getting into the variable indirect array.
 		mr.getViArray()[0] = null;
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				mr.getResource();
-			}
-		}, IllegalStateException.class);
+		assertThrew(mr::getResource, IllegalStateException.class);
 	}
 
 	@Test
@@ -594,12 +569,8 @@ public class MarshallerTest {
 		MarshallPlan mp = directPlan(PrimitiveSize.CHAR);
 		final Marshaller mr = mp.makeMarshaller();
 		mr.skipBasicArrayElements(1);
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				mr.putChar((byte) 'a');
-			}
-		}, ArrayIndexOutOfBoundsException.class);
+		assertThrew(() -> { mr.putChar((byte) 'a'); },
+				ArrayIndexOutOfBoundsException.class);
 	}
 
 	@Test
@@ -610,30 +581,18 @@ public class MarshallerTest {
 		for (int k = 0; k < NUM_ELEMS; ++k) {
 			mr.skipBasicArrayElements(1);
 		}
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				mr.putLong(1);
-			}
-		}, ArrayIndexOutOfBoundsException.class);
+		assertThrew(() -> { mr.putLong(1); },
+				ArrayIndexOutOfBoundsException.class);
 		mr.rewind();
 		mr.skipBasicArrayElements(NUM_ELEMS);
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				mr.putLong(1);
-			}
-		}, ArrayIndexOutOfBoundsException.class);
+		assertThrew(() -> { mr.putLong(1); },
+				ArrayIndexOutOfBoundsException.class);
 		mr.rewind();
 		mr.putLong(9);
 		mr.skipBasicArrayElements(1);
 		mr.putLong(19);
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				mr.putLong(6);
-			}
-		}, ArrayIndexOutOfBoundsException.class);
+		assertThrew(() -> { mr.putLong(6); },
+				ArrayIndexOutOfBoundsException.class);
 	}
 
 	@Test
@@ -642,12 +601,8 @@ public class MarshallerTest {
 		ElementSkipper skipper = new ElementSkipper(2, 0);
 		final Marshaller mr = cp.makeMarshaller();
 		mr.skipComplexElement(skipper);
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				mr.putChar((byte) 'a');
-			}
-		}, ArrayIndexOutOfBoundsException.class);
+		assertThrew(() -> { mr.putChar((byte) 'a'); },
+				ArrayIndexOutOfBoundsException.class);
 	}
 
 	@Test
@@ -661,32 +616,20 @@ public class MarshallerTest {
 		for (int k = 0; k < NUM_ELEMS; ++k) {
 			mr.skipComplexElement(skipper_1);
 		}
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				mr.putFloat(1.0f);
-			}
-		}, ArrayIndexOutOfBoundsException.class);
+		assertThrew(() -> { mr.putFloat(1.0f); },
+				ArrayIndexOutOfBoundsException.class);
 		mr.rewind();
 		mr.skipComplexElement(skipper_3);
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				mr.putFloat(1.0f);
-			}
-		}, ArrayIndexOutOfBoundsException.class);
+		assertThrew(() -> { mr.putFloat(1.0f); },
+				ArrayIndexOutOfBoundsException.class);
 		mr.rewind();
 		mr.putFloat(091906.0f);
 		mr.skipBasicArrayElements(1);
 		mr.putFloat(890714.0f);
 		mr.putBool(true);
 		mr.skipComplexElement(skipper_1);
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				mr.putChar((byte)'a');
-			}
-		}, ArrayIndexOutOfBoundsException.class);
+		assertThrew(() -> { mr.putChar((byte)'a'); },
+				ArrayIndexOutOfBoundsException.class);
 	}
 
 	@Test
@@ -694,12 +637,8 @@ public class MarshallerTest {
 		MarshallPlan mp = variableIndirectPlan();
 		final Marshaller mr = mp.makeMarshaller();
 		mr.skipStringPtr();
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				mr.putChar((byte) 'a');
-			}
-		}, ArrayIndexOutOfBoundsException.class);
+		assertThrew(() -> { mr.putChar((byte) 'a'); },
+				ArrayIndexOutOfBoundsException.class);
 	}
 
 	@Test
@@ -712,12 +651,8 @@ public class MarshallerTest {
 				mr.getViArray());
 		assertArrayEquals(new int[] { 0, RETURN_JAVA_STRING.ordinal() },
 				mr.getViInstArray());
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				mr.putNullStringPtr(RETURN_RESOURCE);
-			}
-		}, ArrayIndexOutOfBoundsException.class);
+		assertThrew(() -> { mr.putNullStringPtr(RETURN_RESOURCE); },
+				ArrayIndexOutOfBoundsException.class);
 	}
 
 	@Test
@@ -728,11 +663,8 @@ public class MarshallerTest {
 			MarshallPlan mp = directPlan(PrimitiveSize.BOOL);
 			final Marshaller mr = mp.makeMarshaller();
 			mr.putBool(b);
-			assertThrew(
-				new Runnable() { @Override
-				public void run() { mr.getBool(); } },
-				ArrayIndexOutOfBoundsException.class
-			);
+			assertThrew(mr::getBool,
+				ArrayIndexOutOfBoundsException.class);
 			mr.rewind();
 			assertEquals(b, mr.getBool());
 		}

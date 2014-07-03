@@ -459,18 +459,10 @@ class UpdateTransaction extends ReadWriteTransaction {
 	}
 
 	// needed for PriorityQueue's in Transactions
-	static final Comparator<UpdateTransaction> byCommit = new Comparator<UpdateTransaction>() {
-		@Override
-		public int compare(UpdateTransaction t1, UpdateTransaction t2) {
-			return Longs.compare(t1.commitTime, t2.commitTime);
-		}
-	};
-	static final Comparator<UpdateTransaction> byAsof = new Comparator<UpdateTransaction>() {
-		@Override
-		public int compare(UpdateTransaction t1, UpdateTransaction t2) {
-			return Longs.compare(t1.asof, t2.asof);
-		}
-	};
+	static final Comparator<UpdateTransaction> byCommit =
+			(t1, t2) -> Longs.compare(t1.commitTime, t2.commitTime);
+	static final Comparator<UpdateTransaction> byAsof =
+			(t1, t2) -> Longs.compare(t1.asof, t2.asof);
 
 	@Override
 	public String toString() {

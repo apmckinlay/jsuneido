@@ -257,11 +257,8 @@ public class ParseAndCompileDllTest {
 			sb.delete(4, sb.length());
 			sb.append(returnType);
 			sb.append(" jsdi:_TestVoid@0()");
-			assertThrew(
-				new Runnable() { @Override
-				public void run() { compile(sb.toString()); } },
-				SuException.class, "invalid dll return type"
-			);
+			assertThrew(() -> { compile(sb.toString()); },
+				SuException.class, "invalid dll return type");
 		}
 	}
 
@@ -273,11 +270,8 @@ public class ParseAndCompileDllTest {
 			sb.delete(4, sb.length());
 			sb.append(returnType);
 			sb.append(" jsdi:_TestVoid@0()");
-			assertThrew(
-				new Runnable() { @Override
-				public void run() { compile(sb.toString()); } },
-				SuException.class, "syntax error"
-			);
+			assertThrew(() -> { compile(sb.toString()); },
+				SuException.class, "syntax error");
 		}
 	}
 
@@ -344,11 +338,6 @@ public class ParseAndCompileDllTest {
 			"dll void jsdi:_TestVoid@0(resource[2] ar)"
 		};
 		for (final String s : bad)
-			assertThrew(new Runnable() {
-				@Override
-				public void run() {
-					compile(s);
-				}
-			});
+			assertThrew(() -> { compile(s); });
 	}
 }

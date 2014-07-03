@@ -357,17 +357,12 @@ public class CallbackTest {
 
 	@Test
 	public void testCantUnmarshallBuffer() {
-		assertThrew(
-			new Runnable() {
-				@Override
-				public void run() {
-					eval("TestInvokeCallback_Recursive_StringSum_Bad(" +
-							"SuTestSumString," +
-							"RSS(PCCSL(), PCCSL(5, 6, 7, 8))" +
-						")"
-					);
-				}
-			},
+		assertThrew(() -> {
+				eval("TestInvokeCallback_Recursive_StringSum_Bad(" +
+						"SuTestSumString," +
+						"RSS(PCCSL(), PCCSL(5, 6, 7, 8))" +
+						")");
+				},
 			JSDIException.class,
 			"buffer may not directly or indirectly be passed to a callback"
 		);
@@ -379,12 +374,9 @@ public class CallbackTest {
 
 	@Test
 	public void testExceptionParamMismatch() {
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				eval("TestInvokeCallback_Long1(function(x) { x.Add('y') }, 2)");
-			}
-		}, SuException.class, "method not found:.*Add");
+		assertThrew(() -> {
+			eval("TestInvokeCallback_Long1(function(x) { x.Add('y') }, 2)");
+			}, SuException.class, "method not found:.*Add");
 	}
 
 	//
@@ -403,12 +395,9 @@ public class CallbackTest {
 
 	@Test
 	public void testExceptionReturnValueNotConvertible() {
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				eval("TestInvokeCallback_Long1(function(a) { return 'Michalek/Spezza/Ryan' }, 2)");
-			}
-		}, SuException.class, "can't convert");
+		assertThrew(() -> {
+			eval("TestInvokeCallback_Long1(function(a) { return 'Michalek/Spezza/Ryan' }, 2)");
+			}, SuException.class, "can't convert");
 	}
 
 	//
@@ -418,12 +407,9 @@ public class CallbackTest {
 	@Test
 	public void testExceptionThrowBasic() {
 		// Straightforward test -- make sure it works as a one-off
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				eval("TestInvokeCallback_Long1(function(a) { throw a }, 444)");
-			}
-		}, SuException.class, "444");
+		assertThrew(() -> {
+			eval("TestInvokeCallback_Long1(function(a) { throw a }, 444)");
+			}, SuException.class, "444");
 		// In case exception throwing causes subtle problems which might be
 		// detected later, run a stress test...
 		for (int k = 0; k < 100; ++k) {
@@ -433,28 +419,21 @@ public class CallbackTest {
 			final String code = String
 					.format("TestInvokeCallback_Long2(function(@a) { throw Display(a) }, %d, %d)",
 							x, y);
-			assertThrew(new Runnable() {
-				@Override
-				public void run() {
-					eval(code);
-				}
+			assertThrew(() -> {
+				eval(code);
 			}, SuException.class, expected);
 		}
 	}
 
 	@Test
 	public void testExceptionThrowVi() {
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				eval(
-						"TestInvokeCallback_Recursive_StringSum(" +
-								"{ |x| throw SuTestSumString(x) }, " +
-								"RSS(PCCSL(102, -1, 0, -1), PCCSL(1, 1, 1, 97), '55', inner: RSS(PCCSL(50, 50, 50, 50), PCCSL(0, 0, 25, 25), '50'))" +
-						")"
-				);
-			}
-		}, SuException.class, "555");
+		assertThrew(() -> {
+			eval("TestInvokeCallback_Recursive_StringSum(" +
+					"{ |x| throw SuTestSumString(x) }, " +
+					"RSS(PCCSL(102, -1, 0, -1), PCCSL(1, 1, 1, 97), '55', inner: RSS(PCCSL(50, 50, 50, 50), PCCSL(0, 0, 25, 25), '50'))" +
+					")");
+			},
+			SuException.class, "555");
 	}
 
 	@Test
@@ -472,12 +451,7 @@ public class CallbackTest {
 			"\telse throw 0\n" +
 			"\t}\n" +
 			"f(20)";
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				eval(code);
-			}
-		}, SuException.class, "20");
+		assertThrew(() -> { eval(code); }, SuException.class, "20");
 	}
 
 	@Test
@@ -491,18 +465,12 @@ public class CallbackTest {
 		//         F() doesn't know about the exception thrown by x() and wants
 		//             to call a second callback, y(), before F() returns back
 		//             to Suneido.
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				eval("TestInvokeCallback_Long1_2({ throw 'a' }, 1, {  }, 2)");
-			}
-		}, SuException.class, "a");
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				eval("TestInvokeCallback_Long1_2({ throw 'a' }, 1, { throw 'b' }, 2)");
-			}
-		}, SuException.class, "a");
+		assertThrew(() -> {
+			eval("TestInvokeCallback_Long1_2({ throw 'a' }, 1, {  }, 2)");
+			}, SuException.class, "a");
+		assertThrew(() -> {
+			eval("TestInvokeCallback_Long1_2({ throw 'a' }, 1, { throw 'b' }, 2)");
+			}, SuException.class, "a");
 	}
 
 	@Test
@@ -520,12 +488,7 @@ public class CallbackTest {
 			"\telse throw 0\n" +
 			"\t}\n" +
 			"g(RSS(Object(), Object(), str: '15'))";
-		assertThrew(new Runnable() {
-			@Override
-			public void run() {
-				eval(code);
-			}
-		}, SuException.class, "15");
+		assertThrew(() -> { eval(code); }, SuException.class, "15");
 	}
 
 	//

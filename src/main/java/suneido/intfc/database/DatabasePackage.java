@@ -62,16 +62,9 @@ public interface DatabasePackage {
 	Record minRecord();
 	Record maxRecord();
 
-	Observer printObserver = new Observer() {
-		@Override
-		public void print(String msg) {
-			System.out.print(msg);
-		} };
+	Observer printObserver = System.out::print;
 
-	Observer nullObserver = new Observer() {
-		@Override
-		public void print(String msg) {
-		} };
+	Observer nullObserver = (String msg) -> { };
 
 	/** used by Built() */
 	String name();
