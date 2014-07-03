@@ -143,15 +143,18 @@ class IndexedData {
 		return fromAdr;
 	}
 
-	static final Object REMOVED = new Object();
-	static final Object UPDATED = new Object();
+	static class Special { }
+	static class Removed extends Special { }
+	static final Removed REMOVED = new Removed();
+	static class Updated extends Special { }
+	static final Updated UPDATED = new Updated();
 
 	/**
 	 * If new record (intref) then updates intref
 	 * to either REMOVED or UPDATED.
 	 * This is used by UpdateTransaction storeData.
 	 */
-	private Object trackRemove(int adr, Object how) {
+	private Object trackRemove(int adr, Special how) {
 		Object oldref = null;
 		if (IntRefs.isIntRef(adr)) {
 			oldref = tran.intToRef(adr);
