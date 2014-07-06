@@ -64,7 +64,7 @@ public final class StringDirect extends StringType {
 
 	@Override
 	public int getSizeDirectIntrinsic() {
-		return numChars * PrimitiveSize.CHAR;
+		return numChars * PrimitiveSize.INT8;
 	}
 
 	@Override

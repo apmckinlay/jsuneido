@@ -39,15 +39,15 @@ public final class PrimitiveSize {
 	/**
 	 * Size of a native {@code char} in bytes.
 	 */
-	public static final int CHAR = 1;
+	public static final int INT8 = 1;
 	/**
 	 * Size of a native {@code short} in bytes.
 	 */
-	public static final int SHORT = 2;
+	public static final int INT16 = 2;
 	/**
 	 * Size of a native {@code long} in bytes.
 	 */
-	public static final int LONG = 4;
+	public static final int INT32 = 4;
 	/**
 	 * Size of a 64-bit integer in bytes. This is, somewhat coincidentally,
 	 * equal to the number of bytes taken up by 64 bits.

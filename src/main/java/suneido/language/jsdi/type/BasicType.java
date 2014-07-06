@@ -27,32 +27,32 @@ public enum BasicType {
 	BOOL("bool", PrimitiveSize.BOOL),
 	/**
 	 * Enumerator for a signed single-byte number/character value.
-	 * @see #SHORT
-	 * @see #LONG
+	 * @see #INT16
+	 * @see #INT32
 	 * @see #INT64
 	 */
-	CHAR("char", PrimitiveSize.CHAR),
+	INT8("int8", PrimitiveSize.INT8),
 	/**
 	 * Enumerator for a signed short integer value, which is represented in
 	 * native DLL calls as a signed 16-bit integer.
-	 * @see #CHAR
-	 * @see #LONG
+	 * @see #INT8
+	 * @see #INT32
 	 * @see #INT64
 	 */
-	SHORT("short", PrimitiveSize.SHORT),
+	INT16("int16", PrimitiveSize.INT16),
 	/**
 	 * Enumerator for a signed long integer value, which is represented in
 	 * native DLL calls as a signed 32-bit integer.
-	 * @see #CHAR
-	 * @see #SHORT
+	 * @see #INT8
+	 * @see #INT16
 	 * @see #INT64
 	 */
-	LONG("long", PrimitiveSize.LONG),
+	INT32("int32", PrimitiveSize.INT32),
 	/**
 	 * Enumerator for a 64-bit signed integer value.
-	 * @see #CHAR
-	 * @see #SHORT
-	 * @see #LONG
+	 * @see #INT8
+	 * @see #INT16
+	 * @see #INT32
 	 */
 	INT64("int64", PrimitiveSize.INT64),
 	/**
@@ -131,6 +131,10 @@ public enum BasicType {
 		for (BasicType type : values()) {
 			identifierMap.put(type.identifierString, type);
 		}
+		// TEMP - accept old types during transition
+		identifierMap.put("char", INT8);
+		identifierMap.put("short", INT16);
+		identifierMap.put("long", INT32);
 	}
 
 	public static final BasicType fromIdentifier(String identifierString) {

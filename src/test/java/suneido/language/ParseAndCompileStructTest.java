@@ -217,13 +217,13 @@ public class ParseAndCompileStructTest {
 
 	@Test
 	public void compileStructWhoseSizeNotDivisibleByWordSize() {
-		assertTrue(PrimitiveSize.CHAR < PrimitiveSize.WORD);
+		assertTrue(PrimitiveSize.INT8 < PrimitiveSize.WORD);
 		compile("struct { char x }");
 	}
 
 	@Test
 	public void compileMisalignedWord() {
-		assertTrue(PrimitiveSize.CHAR < PrimitiveSize.WORD);
+		assertTrue(PrimitiveSize.INT8 < PrimitiveSize.WORD);
 		compile("struct { char x ; long y }");
 	}
 

@@ -15,9 +15,9 @@ import suneido.language.jsdi.type.PrimitiveSize;
 public enum Mask {
 
 	VOID(0),
-	CHAR(PrimitiveSize.CHAR),
-	SHORT(PrimitiveSize.SHORT),
-	LONG(PrimitiveSize.LONG),
+	INT8(PrimitiveSize.INT8),
+	INT16(PrimitiveSize.INT16),
+	INT32(PrimitiveSize.INT32),
 	INT64(PrimitiveSize.INT64),
 	DOUBLE(PrimitiveSize.DOUBLE);
 

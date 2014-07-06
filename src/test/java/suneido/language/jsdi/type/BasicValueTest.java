@@ -49,9 +49,9 @@ public class BasicValueTest {
 	}
 	private static final BasicTypeSet[] SETS = new BasicTypeSet[] {
 		new BasicTypeSet(BOOL, Boolean.TRUE, Boolean.FALSE),
-		new BasicTypeSet(CHAR, (int)Byte.MIN_VALUE, -1, 0, 1, (int)Byte.MAX_VALUE),
-		new BasicTypeSet(SHORT, (int)Short.MIN_VALUE, -1, 0, 1, 0x01ff, (int)Short.MAX_VALUE),
-		new BasicTypeSet(LONG, Integer.MIN_VALUE, -1, 0, 1, Integer.MAX_VALUE),
+		new BasicTypeSet(INT8, (int)Byte.MIN_VALUE, -1, 0, 1, (int)Byte.MAX_VALUE),
+		new BasicTypeSet(INT16, (int)Short.MIN_VALUE, -1, 0, 1, 0x01ff, (int)Short.MAX_VALUE),
+		new BasicTypeSet(INT32, Integer.MIN_VALUE, -1, 0, 1, Integer.MAX_VALUE),
 		new BasicTypeSet(INT64, Long.MIN_VALUE, -1L, 0L, 1L, 0x01ffffffffL, Long.MAX_VALUE),
 		// VS@20130808: I took out the tests for infinity/NaN because BigDecimal
 		//              doesn't handle them, but this does create an issue: we
@@ -97,15 +97,15 @@ public class BasicValueTest {
 	public void testMarshallOutReturnValue() {
 		assertEquals(Boolean.FALSE, bv(BOOL).marshallOutReturnValue(0L, null));
 		assertEquals(Boolean.TRUE, bv(BOOL).marshallOutReturnValue(1L, null));
-		assertEquals(0, bv(CHAR).marshallOutReturnValue(0L, null));
-		assertEquals(0, bv(CHAR).marshallOutReturnValue(0xf00L, null)); // truncated
-		assertEquals(-1, bv(CHAR).marshallOutReturnValue(0xffL, null));
-		assertEquals(-1, bv(CHAR).marshallOutReturnValue(-1L, null));
-		assertEquals(0, bv(SHORT).marshallOutReturnValue(0L, null));
-		assertEquals(0, bv(SHORT).marshallOutReturnValue(0xf0000L, null)); // truncated
-		assertEquals(-1, bv(SHORT).marshallOutReturnValue(0xffffL, null));
-		assertEquals(-1, bv(SHORT).marshallOutReturnValue(-1L, null));
-		for (BasicType type : new BasicType[] { LONG, HANDLE, GDIOBJ }) {
+		assertEquals(0, bv(INT8).marshallOutReturnValue(0L, null));
+		assertEquals(0, bv(INT8).marshallOutReturnValue(0xf00L, null)); // truncated
+		assertEquals(-1, bv(INT8).marshallOutReturnValue(0xffL, null));
+		assertEquals(-1, bv(INT8).marshallOutReturnValue(-1L, null));
+		assertEquals(0, bv(INT16).marshallOutReturnValue(0L, null));
+		assertEquals(0, bv(INT16).marshallOutReturnValue(0xf0000L, null)); // truncated
+		assertEquals(-1, bv(INT16).marshallOutReturnValue(0xffffL, null));
+		assertEquals(-1, bv(INT16).marshallOutReturnValue(-1L, null));
+		for (BasicType type : new BasicType[] { INT32, HANDLE, GDIOBJ }) {
 			assertEquals(0, bv(type).marshallOutReturnValue(0L, null));
 			assertEquals(0, bv(type).marshallOutReturnValue(0xf00000000L, null)); // truncated
 			assertEquals(-1, bv(type).marshallOutReturnValue(0x0ffffffffL, null));
