@@ -12,7 +12,7 @@ import suneido.language.jsdi.DllInterface;
 /**
  * Enumerates the available 'basic' (<em>ie</em> non-structure, non-callback)
  * types in the JSDI type hierarchy.
- * 
+ *
  * @author Victor Schappert
  * @since 20130627
  * @see PrimitiveSize
@@ -64,7 +64,7 @@ public enum BasicType {
 	FLOAT("float", PrimitiveSize.FLOAT),
 	/**
 	 * Enumerator for a 64-bit floating-point number (<em>ie</em> a double-
-	 * precision IEEE floating-point number, nkown as <code>double</code> in C,
+	 * precision IEEE floating-point number, known as <code>double</code> in C,
 	 * C++, and Java).
 	 * @see #SINGLE
 	 */
