@@ -143,13 +143,13 @@ public final class Callback extends ComplexType {
 	@_64BitIssue
 	public void marshallIn(Marshaller marshaller, Object value) {
 		if (null == value) {
-			marshaller.putLong(0);
+			marshaller.putInt32(0);
 		} else if (value instanceof SuValue) {
 			int thunkFuncAddr = thunkManager.lookupOrCreateBoundThunk(
 					(SuValue) value, this);
-			marshaller.putLong(thunkFuncAddr);
+			marshaller.putInt32(thunkFuncAddr);
 		} else try {
-			marshaller.putLong(NumberConversions.toPointer32(value));
+			marshaller.putInt32(NumberConversions.toPointer32(value));
 		} catch (SuException e) {
 			throw new JSDIException("can't marshall " + value + " into "
 					+ toString());

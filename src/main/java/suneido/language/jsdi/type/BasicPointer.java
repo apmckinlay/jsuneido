@@ -80,17 +80,17 @@ public final class BasicPointer extends Type {
 //			case BOOL:
 //				marshaller.putBoolPtr(Ops.toBoolean_(value));
 //				break;
-//			case CHAR:
+//			case INT8:
 //				marshaller.putCharPtr((byte)Ops.toInt(value));
 //				break;
-//			case SHORT:
+//			case INT16:
 //				marshaller.putShortPtr((short)Ops.toInt(value));
 //				break;
 //			case GDIOBJ:
 //				// intentional fall-through
 //			case HANDLE:
 //				// intentional fall-through
-//			case LONG:
+//			case INT32:
 //				marshaller.putLongPtr(Ops.toInt(value));
 //				break;
 //			case INT64:

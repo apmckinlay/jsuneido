@@ -19,37 +19,38 @@ import suneido.language.jsdi.type.PrimitiveSize;
 public enum TestCall {
 
 	VOID("TestVoid", Mask.VOID, 0),
-	CHAR("TestChar", Mask.CHAR, PrimitiveSize.CHAR),
-	SHORT("TestShort", Mask.SHORT, PrimitiveSize.SHORT),
-	LONG("TestLong", Mask.LONG, PrimitiveSize.LONG),
+	INT8("TestInt8", Mask.INT8, PrimitiveSize.INT8),
+	INT16("TestShort", Mask.INT16, PrimitiveSize.INT16),
+	INT32("TestInt32", Mask.INT32, PrimitiveSize.INT32),
 	INT64("TestInt64", Mask.INT64, PrimitiveSize.INT64),
 	RETURN1_0FLOAT("TestReturn1_0Float", Mask.DOUBLE, 0),
 	RETURN1_0DOUBLE("TestReturn1_0Double", Mask.DOUBLE, 0),
 	FLOAT("TestFloat", Mask.DOUBLE, PrimitiveSize.FLOAT),
 	DOUBLE("TestDouble", Mask.DOUBLE, PrimitiveSize.DOUBLE),
-	REMOVE_SIGN_FROM_LONG("TestRemoveSignFromLong", Mask.INT64,
-			PrimitiveSize.LONG),
-	SUM_TWO_CHARS("TestSumTwoChars", Mask.CHAR,
-			PrimitiveSize.CHAR, PrimitiveSize.CHAR),
-	SUM_TWO_SHORTS("TestSumTwoShorts", Mask.SHORT,
-			PrimitiveSize.SHORT, PrimitiveSize.SHORT),
-	SUM_TWO_LONGS("TestSumTwoLongs", Mask.LONG,
-			PrimitiveSize.LONG, PrimitiveSize.LONG),
+	REMOVE_SIGN_FROM_INT32
+	("TestRemoveSignFromInt32", Mask.INT64,
+			PrimitiveSize.INT32),
+	SUM_TWO_INT8("TestSumTwoInt8", Mask.INT8,
+			PrimitiveSize.INT8, PrimitiveSize.INT8),
+	SUM_TWO_INT16("TestSumTwoShorts", Mask.INT16,
+			PrimitiveSize.INT16, PrimitiveSize.INT16),
+	SUM_TWO_INT32("TestSumTwoInt32", Mask.INT32,
+			PrimitiveSize.INT32, PrimitiveSize.INT32),
 	SUM_TWO_FLOATS("TestSumTwoFloats", Mask.DOUBLE,
 			PrimitiveSize.FLOAT, PrimitiveSize.FLOAT),
 	SUM_TWO_DOUBLES("TestSumTwoDoubles", Mask.DOUBLE,
 			PrimitiveSize.DOUBLE, PrimitiveSize.DOUBLE),
-	SUM_THREE_LONGS("TestSumThreeLongs", Mask.LONG,
-			PrimitiveSize.LONG, PrimitiveSize.LONG, PrimitiveSize.LONG),
-	SUM_FOUR_LONGS("TestSumFourLongs", Mask.LONG,
-			PrimitiveSize.LONG, PrimitiveSize.LONG, PrimitiveSize.LONG,
-			PrimitiveSize.LONG),
-	SUM_CHAR_PLUS_INT64("TestSumCharPlusInt64", Mask.INT64,
-			PrimitiveSize.CHAR, PrimitiveSize.INT64),
-	SUM_PACKED_CHAR_CHAR_SHORT_LONG("TestSumPackedCharCharShortLong", Mask.LONG,
-			makePackedCharCharShortLongPlan()),
-	STRLEN("TestStrLen", Mask.LONG, makeInStringPlan()),
-	HELLO_WORLD_RETURN("TestHelloWorldReturn", Mask.LONG,
+	SUM_THREE_INT32("TestSumThreeInt32", Mask.INT32,
+			PrimitiveSize.INT32, PrimitiveSize.INT32, PrimitiveSize.INT32),
+	SUM_FOUR_INT32("TestSumFourInt32", Mask.INT32,
+			PrimitiveSize.INT32, PrimitiveSize.INT32, PrimitiveSize.INT32,
+			PrimitiveSize.INT32),
+	SUM_INT8_PLUS_INT64("TestSumInt8PlusInt64", Mask.INT64,
+			PrimitiveSize.INT8, PrimitiveSize.INT64),
+	SUM_PACKED_INT8_INT8_INT16_INT32("TestSumPackedInt8Int8Int16Int32", Mask.INT32,
+			makePackedInt8Int8Int16Int32Plan()),
+	STRLEN("TestStrLen", Mask.INT32, makeInStringPlan()),
+	HELLO_WORLD_RETURN("TestHelloWorldReturn", Mask.INT32,
 			makeHelloWorldReturnPlan(), PrimitiveSize.BOOL),
 	HELLO_WORLD_OUT_PARAM("TestHelloWorldOutParam", Mask.VOID,
 			pointerPlan(PrimitiveSize.WORD)),
@@ -59,9 +60,9 @@ public enum TestCall {
 			pointerPlan(PrimitiveSize.WORD)),
 	RETURN_PTR_PTR_PTR_DOUBLE("TestReturnPtrPtrPtrDoubleAsUInt64", Mask.INT64,
 			makePtrPtrPtrDoublePlan()),
-	SUM_STRING("TestSumString", Mask.LONG, makeSumStringPlan_TwoTier()),
-	SUM_RESOURCE("TestSumResource", Mask.LONG, makeSumResourcePlan()),
-	SWAP("TestSwap", Mask.LONG, makeSwapPlan()),
+	SUM_STRING("TestSumString", Mask.INT32, makeSumStringPlan_TwoTier()),
+	SUM_RESOURCE("TestSumResource", Mask.INT32, makeSumResourcePlan()),
+	SWAP("TestSwap", Mask.INT32, makeSwapPlan()),
 	RETURN_STRING("TestReturnString", Mask.VOID, makeReturnStringPlan(),
 			PrimitiveSize.POINTER),
 	RETURN_PTR_STRING("TestReturnPtrString", Mask.VOID,
@@ -69,7 +70,7 @@ public enum TestCall {
 	RETURN_STRING_OUT_BUFFER(
 			"TestReturnStringOutBuffer", Mask.VOID,
 			makeReturnStringOutBufferPlan(), 2 * PrimitiveSize.POINTER
-					+ PrimitiveSize.LONG);
+					+ PrimitiveSize.INT32);
 
 	private final QuickDll qp;
 	public final long ptr;
@@ -95,16 +96,16 @@ public enum TestCall {
 		this.plan = marshallPlan;
 	}
 
-	private static MarshallPlan makePackedCharCharShortLongPlan() {
+	private static MarshallPlan makePackedInt8Int8Int16Int32Plan() {
 		MarshallPlanBuilder builder = new MarshallPlanBuilder(
-				PrimitiveSize.sizeWholeWords(PrimitiveSize.CHAR
-						+ PrimitiveSize.CHAR + PrimitiveSize.SHORT
-						+ PrimitiveSize.LONG), 0, 0, true);
+				PrimitiveSize.sizeWholeWords(PrimitiveSize.INT8
+						+ PrimitiveSize.INT8 + PrimitiveSize.INT16
+						+ PrimitiveSize.INT32), 0, 0, true);
 		builder.containerBegin();
-		builder.pos(PrimitiveSize.CHAR);
-		builder.pos(PrimitiveSize.CHAR);
-		builder.pos(PrimitiveSize.SHORT);
-		builder.pos(PrimitiveSize.LONG);
+		builder.pos(PrimitiveSize.INT8);
+		builder.pos(PrimitiveSize.INT8);
+		builder.pos(PrimitiveSize.INT16);
+		builder.pos(PrimitiveSize.INT32);
 		builder.containerEnd();
 		return builder.makeMarshallPlan();
 	}
@@ -132,18 +133,18 @@ public enum TestCall {
 	private static MarshallPlan makeHelloWorldOutBufferPlan() {
 		MarshallPlanBuilder builder = new MarshallPlanBuilder(
 				PrimitiveSize.pointerWholeWordBytes()
-						+ PrimitiveSize.sizeWholeWords(PrimitiveSize.LONG), 0,
+						+ PrimitiveSize.sizeWholeWords(PrimitiveSize.INT32), 0,
 				1, true);
 		builder.variableIndirectPtr();
-		builder.pos(PrimitiveSize.LONG);
+		builder.pos(PrimitiveSize.INT32);
 		return builder.makeMarshallPlan();
 	}
 
 	private static MarshallPlan makeSumStringPlan_TwoTier() {
 		final int sizeOf_RecursiveStringSum = (2
-				* (PrimitiveSize.CHAR + PrimitiveSize.CHAR
-						+ PrimitiveSize.SHORT + PrimitiveSize.LONG) + 3
-				* PrimitiveSize.POINTER + PrimitiveSize.LONG);
+				* (PrimitiveSize.INT8 + PrimitiveSize.INT8
+						+ PrimitiveSize.INT16 + PrimitiveSize.INT32) + 3
+				* PrimitiveSize.POINTER + PrimitiveSize.INT32);
 		MarshallPlanBuilder builder = new MarshallPlanBuilder(
 				PrimitiveSize.pointerWholeWordBytes(),
 				2 * sizeOf_RecursiveStringSum,
@@ -151,41 +152,41 @@ public enum TestCall {
 		builder.ptrBegin(sizeOf_RecursiveStringSum);
 			builder.containerBegin();              // struct RecursiveStringSum
 				builder.arrayBegin();
-					builder.containerBegin();          // struct Packed_CharCharShortLong
-					builder.pos(PrimitiveSize.CHAR);
-					builder.pos(PrimitiveSize.CHAR);
-					builder.pos(PrimitiveSize.SHORT);
-					builder.pos(PrimitiveSize.LONG);
+					builder.containerBegin();          // struct Packed_Int8Int8Int16Int32
+					builder.pos(PrimitiveSize.INT8);
+					builder.pos(PrimitiveSize.INT8);
+					builder.pos(PrimitiveSize.INT16);
+					builder.pos(PrimitiveSize.INT32);
 					builder.containerEnd();
-					builder.containerBegin();          // struct Packed_CharCharShortLong
-					builder.pos(PrimitiveSize.CHAR);
-					builder.pos(PrimitiveSize.CHAR);
-					builder.pos(PrimitiveSize.SHORT);
-					builder.pos(PrimitiveSize.LONG);
+					builder.containerBegin();          // struct Packed_Int8Int8Int16Int32
+					builder.pos(PrimitiveSize.INT8);
+					builder.pos(PrimitiveSize.INT8);
+					builder.pos(PrimitiveSize.INT16);
+					builder.pos(PrimitiveSize.INT32);
 					builder.containerEnd();
 				builder.arrayEnd();
 				builder.variableIndirectPtr();
 				builder.variableIndirectPtr();
-				builder.pos(PrimitiveSize.LONG);
+				builder.pos(PrimitiveSize.INT32);
 				builder.ptrBegin(sizeOf_RecursiveStringSum);
 					builder.containerBegin();
 						builder.arrayBegin();
-							builder.containerBegin();          // struct Packed_CharCharShortLong
-							builder.pos(PrimitiveSize.CHAR);
-							builder.pos(PrimitiveSize.CHAR);
-							builder.pos(PrimitiveSize.SHORT);
-							builder.pos(PrimitiveSize.LONG);
+							builder.containerBegin();          // struct Packed_Int8Int8Int16Int32
+							builder.pos(PrimitiveSize.INT8);
+							builder.pos(PrimitiveSize.INT8);
+							builder.pos(PrimitiveSize.INT16);
+							builder.pos(PrimitiveSize.INT32);
 							builder.containerEnd();
-							builder.containerBegin();          // struct Packed_CharCharShortLong
-							builder.pos(PrimitiveSize.CHAR);
-							builder.pos(PrimitiveSize.CHAR);
-							builder.pos(PrimitiveSize.SHORT);
-							builder.pos(PrimitiveSize.LONG);
+							builder.containerBegin();          // struct Packed_Int8Int8Int16Int32
+							builder.pos(PrimitiveSize.INT8);
+							builder.pos(PrimitiveSize.INT8);
+							builder.pos(PrimitiveSize.INT16);
+							builder.pos(PrimitiveSize.INT32);
 							builder.containerEnd();
 						builder.arrayEnd();
 						builder.variableIndirectPtr();
 						builder.variableIndirectPtr();
-						builder.pos(PrimitiveSize.LONG);
+						builder.pos(PrimitiveSize.INT32);
 						builder.pos(PrimitiveSize.POINTER);
 					builder.containerEnd();
 				builder.ptrEnd();
@@ -229,14 +230,14 @@ public enum TestCall {
 			Recursive_StringSum rssInner) {
 		Marshaller m = TestCall.SUM_STRING.plan.makeMarshaller();
 		m.putPtr();
-		m.putChar(rssOuter.a1);
-		m.putChar(rssOuter.b1);
-		m.putShort(rssOuter.c1);
-		m.putLong(rssOuter.d1);
-		m.putChar(rssOuter.a2);
-		m.putChar(rssOuter.b2);
-		m.putShort(rssOuter.c2);
-		m.putLong(rssOuter.d2);
+		m.putInt8(rssOuter.a1);
+		m.putInt8(rssOuter.b1);
+		m.putInt16(rssOuter.c1);
+		m.putInt32(rssOuter.d1);
+		m.putInt8(rssOuter.a2);
+		m.putInt8(rssOuter.b2);
+		m.putInt16(rssOuter.c2);
+		m.putInt32(rssOuter.d2);
 		if (null != rssOuter.str) {
 			m.putStringPtr(rssOuter.str, NO_ACTION);
 		} else {
@@ -244,10 +245,10 @@ public enum TestCall {
 		}
 		if (null != rssOuter.buffer) {
 			m.putStringPtr(rssOuter.buffer, NO_ACTION);
-			m.putLong(rssOuter.buffer.length());
+			m.putInt32(rssOuter.buffer.length());
 		} else {
 			m.putNullStringPtr(NO_ACTION);
-			m.putLong(0);
+			m.putInt32(0);
 		}
 		if (null == rssInner) {
 			m.putNullPtr();
@@ -257,14 +258,14 @@ public enum TestCall {
 			m.skipBasicArrayElements(2);
 		} else {
 			m.putPtr();
-			m.putChar(rssInner.a1);
-			m.putChar(rssInner.b1);
-			m.putShort(rssInner.c1);
-			m.putLong(rssInner.d1);
-			m.putChar(rssInner.a2);
-			m.putChar(rssInner.b2);
-			m.putShort(rssInner.c2);
-			m.putLong(rssInner.d2);
+			m.putInt8(rssInner.a1);
+			m.putInt8(rssInner.b1);
+			m.putInt16(rssInner.c1);
+			m.putInt32(rssInner.d1);
+			m.putInt8(rssInner.a2);
+			m.putInt8(rssInner.b2);
+			m.putInt16(rssInner.c2);
+			m.putInt32(rssInner.d2);
 			if (null != rssInner.str) {
 				m.putStringPtr(rssInner.str, NO_ACTION);
 			} else {
@@ -272,12 +273,12 @@ public enum TestCall {
 			}
 			if (null != rssInner.buffer) {
 				m.putStringPtr(rssInner.buffer, NO_ACTION);
-				m.putLong(rssInner.buffer.length());
+				m.putInt32(rssInner.buffer.length());
 			} else {
 				m.putNullStringPtr(NO_ACTION);
-				m.putLong(0);
+				m.putInt32(0);
 			}
-			m.putLong(0);
+			m.putInt32(0);
 		}
 		return m;
 	}
@@ -295,12 +296,12 @@ public enum TestCall {
 	public static MarshallPlan makeSwapPlan() {
 		MarshallPlanBuilder builder = new MarshallPlanBuilder(
 				PrimitiveSize.POINTER, PrimitiveSize.POINTER + 2
-						* PrimitiveSize.LONG, 1, true);
-		builder.ptrBegin(PrimitiveSize.POINTER + 2 * PrimitiveSize.LONG);
+						* PrimitiveSize.INT32, 1, true);
+		builder.ptrBegin(PrimitiveSize.POINTER + 2 * PrimitiveSize.INT32);
 		builder.containerBegin();
 		builder.variableIndirectPtr();
-		builder.pos(PrimitiveSize.LONG);
-		builder.pos(PrimitiveSize.LONG);
+		builder.pos(PrimitiveSize.INT32);
+		builder.pos(PrimitiveSize.INT32);
 		builder.containerEnd();
 		builder.ptrEnd();
 		return builder.makeMarshallPlan();
@@ -340,13 +341,13 @@ public enum TestCall {
 
 	public static MarshallPlan makeReturnStringOutBufferPlan() {
 		MarshallPlanBuilder builder = new MarshallPlanBuilder(2
-				* PrimitiveSize.POINTER + PrimitiveSize.LONG,
+				* PrimitiveSize.POINTER + PrimitiveSize.INT32,
 				PrimitiveSize.POINTER /* for return value */,
 				3 /* one is for return value */, true
 		);
 		builder.variableIndirectPtr();
 		builder.variableIndirectPtr();
-		builder.pos(PrimitiveSize.LONG);
+		builder.pos(PrimitiveSize.INT32);
 		builder.variableIndirectPseudoArg();
 		return builder.makeMarshallPlan();
 	}

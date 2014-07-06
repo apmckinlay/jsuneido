@@ -247,7 +247,7 @@ public final class Marshaller {
 	 * @param value Single-byte character value
 	 * @see #getChar()
 	 */
-	public void putChar(byte value) {
+	public void putInt8(byte value) {
 		data[nextData()] = (byte)value;
 	}
 
@@ -257,7 +257,7 @@ public final class Marshaller {
 	 * @see #getShort()
 	 * @see #putIntResource(short)
 	 */
-	public void putShort(short value) {
+	public void putInt16(short value) {
 		int dataIndex = nextData();
 		data[dataIndex + 0] = (byte) (value >>> 000);
 		data[dataIndex + 1] = (byte) (value >>> 010);
@@ -268,7 +268,7 @@ public final class Marshaller {
 	 * @param value 32-bit JSDI {@code long} value
 	 * @see #getLong()
 	 */
-	public void putLong(int value) {
+	public void putInt32(int value) {
 		int dataIndex = nextData();
 		data[dataIndex + 0] = (byte) (value >>> 000);
 		data[dataIndex + 1] = (byte) (value >>> 010);
@@ -299,7 +299,7 @@ public final class Marshaller {
 	 * @see #getFloat()
 	 */
 	public void putFloat(float value) {
-		putLong(Float.floatToRawIntBits(value));
+		putInt32(Float.floatToRawIntBits(value));
 	}
 
 	/**
@@ -474,10 +474,10 @@ public final class Marshaller {
 	 * @see #putStringPtr(String, VariableIndirectInstruction)
 	 * @see #putStringPtr(Buffer, VariableIndirectInstruction)
 	 * @see #putNullStringPtr(VariableIndirectInstruction)
-	 * @see #putShort(short)
+	 * @see #putInt16(short)
 	 */
 	public void putINTRESOURCE(short value) {
-		putShort(value);
+		putInt16(value);
 		ptrIndex += 2;
 		int viIndex = nextVi();
 		viInstArray[viIndex] = RETURN_RESOURCE.ordinal();
@@ -512,7 +512,7 @@ public final class Marshaller {
 		Buffer.copyStr(value, data, dataIndex, Math.min(maxChars - 1, value.length()));
 	}
 
-	// TODO: in docs note that maxchars includes the zero terminator 
+	// TODO: in docs note that maxchars includes the zero terminator
 	public void putZeroTerminatedStringDirect(Buffer value, int maxChars) {
 		int dataIndex = nextData();
 		value.copyInternalData(data, dataIndex, maxChars - 1);
@@ -618,7 +618,7 @@ public final class Marshaller {
 	}
 
 	/**
-	 * Extracts the Win32 resource value at the next position in the marshaller. 
+	 * Extracts the Win32 resource value at the next position in the marshaller.
 	 * @return A non-{@code null} Integer or String reference representing,
 	 * respectively, an INTRESOURCE value or a string {@code resource}
 	 * @since 20130801

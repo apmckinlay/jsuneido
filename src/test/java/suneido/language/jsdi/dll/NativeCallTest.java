@@ -120,49 +120,49 @@ public class NativeCallTest {
 	@Test
 	public void testDirect_32bit_FastCalling() {
 		// little-endian
-		assertEquals(27L, NativeCall.callLReturnInt64(TestCall.CHAR.ptr, 27)
-				& TestCall.CHAR.returnValueMask.value);
+		assertEquals(27L, NativeCall.callLReturnInt64(TestCall.INT8.ptr, 27)
+				& TestCall.INT8.returnValueMask.value);
 		assertEquals(0x2728L,
-				NativeCall.callLReturnInt64(TestCall.SHORT.ptr, 0x2728)
-						& TestCall.SHORT.returnValueMask.value);
+				NativeCall.callLReturnInt64(TestCall.INT16.ptr, 0x2728)
+						& TestCall.INT16.returnValueMask.value);
 		assertEquals(0x18120207,
-				NativeCall.callLReturnInt64(TestCall.LONG.ptr, 0x18120207)
-						& TestCall.LONG.returnValueMask.value);
+				NativeCall.callLReturnInt64(TestCall.INT32.ptr, 0x18120207)
+						& TestCall.INT32.returnValueMask.value);
 		// little-endian, and pushed on the stack in reverse order
 		assertEquals(0xdeadbeef19820207L, NativeCall.callLLReturnInt64(
 				TestCall.INT64.ptr, 0x19820207, 0xdeadbeef));
 		// sum functions
 		assertEquals(3L,
-				NativeCall.callLLReturnInt64(TestCall.SUM_TWO_LONGS.ptr, 1, 2)
-						& TestCall.SUM_TWO_LONGS.returnValueMask.value);
+				NativeCall.callLLReturnInt64(TestCall.SUM_TWO_INT32.ptr, 1, 2)
+						& TestCall.SUM_TWO_INT32.returnValueMask.value);
 		assertEquals(
 				-1,
-				(int)(NativeCall.callLLReturnInt64(TestCall.SUM_TWO_LONGS.ptr,
+				(int)(NativeCall.callLLReturnInt64(TestCall.SUM_TWO_INT32.ptr,
 						Integer.MAX_VALUE, Integer.MIN_VALUE)
-						& TestCall.SUM_TWO_LONGS.returnValueMask.value));
+						& TestCall.SUM_TWO_INT32.returnValueMask.value));
 		assertEquals(
 				6L,
-				NativeCall.callLLLReturnInt64(TestCall.SUM_THREE_LONGS.ptr, 3,
-						2, 1) & TestCall.SUM_THREE_LONGS.returnValueMask.value);
+				NativeCall.callLLLReturnInt64(TestCall.SUM_THREE_INT32.ptr, 3,
+						2, 1) & TestCall.SUM_THREE_INT32.returnValueMask.value);
 		assertEquals(
 				0L,
-				NativeCall.callLLLReturnInt64(TestCall.SUM_THREE_LONGS.ptr, 1,
+				NativeCall.callLLLReturnInt64(TestCall.SUM_THREE_INT32.ptr, 1,
 						Integer.MIN_VALUE, Integer.MAX_VALUE)
-						& TestCall.SUM_THREE_LONGS.returnValueMask.value);
+						& TestCall.SUM_THREE_INT32.returnValueMask.value);
 	}
 
 	@Test
 	public void testDirect_Misc() {
 		// functions that return the same value
 		{
-			final TestCall[] f = new TestCall[] { TestCall.CHAR,
-					TestCall.SHORT, TestCall.LONG, TestCall.INT64 };
+			final TestCall[] f = new TestCall[] { TestCall.INT8,
+					TestCall.INT16, TestCall.INT32, TestCall.INT64 };
 			final long[] x = new long[] { 27L, 0x2728L, 0x18120207L,
 					0xdeadbeef19820207L };
 			for (int k = 0; k < f.length; ++k) {
 				Marshaller m = f[k].plan.makeMarshaller();
-				if (PrimitiveSize.LONG == f[k].plan.getSizeDirect())
-					m.putLong((int) x[k]);
+				if (PrimitiveSize.INT32 == f[k].plan.getSizeDirect())
+					m.putInt32((int) x[k]);
 				else if (PrimitiveSize.INT64 == f[k].plan.getSizeDirect())
 					m.putInt64(x[k]);
 				else
@@ -178,57 +178,57 @@ public class NativeCallTest {
 		}
 		// sum functions
 		{
-			Marshaller m = TestCall.SUM_TWO_LONGS.plan.makeMarshaller();
-			m.putLong(1);
-			m.putLong(2);
+			Marshaller m = TestCall.SUM_TWO_INT32.plan.makeMarshaller();
+			m.putInt32(1);
+			m.putInt32(2);
 			for (NativeCall nativecall : DOF_NORET_VI_OR_FLOAT) {
 				assertEquals(
 						3,
-						nativecall.invoke(TestCall.SUM_TWO_LONGS.ptr,
-								TestCall.SUM_TWO_LONGS.plan.getSizeDirect(), m)
-								& TestCall.SUM_TWO_LONGS.returnValueMask.value);
+						nativecall.invoke(TestCall.SUM_TWO_INT32.ptr,
+								TestCall.SUM_TWO_INT32.plan.getSizeDirect(), m)
+								& TestCall.SUM_TWO_INT32.returnValueMask.value);
 			}
 		}
 		{
-			Marshaller m = TestCall.SUM_THREE_LONGS.plan.makeMarshaller();
-			m.putLong(3);
-			m.putLong(2);
-			m.putLong(1);
+			Marshaller m = TestCall.SUM_THREE_INT32.plan.makeMarshaller();
+			m.putInt32(3);
+			m.putInt32(2);
+			m.putInt32(1);
 			for (NativeCall nativecall : DOF_NORET_VI_OR_FLOAT) {
 				assertEquals(
 						6,
-						nativecall.invoke(TestCall.SUM_THREE_LONGS.ptr,
-								TestCall.SUM_THREE_LONGS.plan.getSizeDirect(),
+						nativecall.invoke(TestCall.SUM_THREE_INT32.ptr,
+								TestCall.SUM_THREE_INT32.plan.getSizeDirect(),
 								m)
-								& TestCall.SUM_THREE_LONGS.returnValueMask.value);
+								& TestCall.SUM_THREE_INT32.returnValueMask.value);
 			}
 		}
 		{
-			Marshaller m = TestCall.SUM_FOUR_LONGS.plan.makeMarshaller();
-			m.putLong(-100);
-			m.putLong(99);
-			m.putLong(-200);
-			m.putLong(199);
+			Marshaller m = TestCall.SUM_FOUR_INT32.plan.makeMarshaller();
+			m.putInt32(-100);
+			m.putInt32(99);
+			m.putInt32(-200);
+			m.putInt32(199);
 			assertEquals(
 					-2,
 					(int) (NativeCall.DIRECT_RETURN_INT64.invoke(
-							TestCall.SUM_FOUR_LONGS.ptr,
-							TestCall.SUM_FOUR_LONGS.plan.getSizeDirect(), m) & TestCall.SUM_FOUR_LONGS.returnValueMask.value));
+							TestCall.SUM_FOUR_INT32.ptr,
+							TestCall.SUM_FOUR_INT32.plan.getSizeDirect(), m) & TestCall.SUM_FOUR_INT32.returnValueMask.value));
 		}
 		{
-			Marshaller m = TestCall.SUM_PACKED_CHAR_CHAR_SHORT_LONG.plan
+			Marshaller m = TestCall.SUM_PACKED_INT8_INT8_INT16_INT32.plan
 					.makeMarshaller();
-			m.putChar(Byte.MIN_VALUE);
-			m.putChar(Byte.MAX_VALUE);
-			m.putShort(Short.MIN_VALUE);
-			m.putLong(Integer.MAX_VALUE);
+			m.putInt8(Byte.MIN_VALUE);
+			m.putInt8(Byte.MAX_VALUE);
+			m.putInt16(Short.MIN_VALUE);
+			m.putInt32(Integer.MAX_VALUE);
 			assertEquals(
 					Byte.MIN_VALUE + Byte.MAX_VALUE
 							+ Short.MIN_VALUE + Integer.MAX_VALUE,
 					(int) (NativeCall.DIRECT_RETURN_INT64.invoke(
-							TestCall.SUM_PACKED_CHAR_CHAR_SHORT_LONG.ptr,
-							TestCall.SUM_PACKED_CHAR_CHAR_SHORT_LONG.plan
-									.getSizeDirect(), m) & TestCall.SUM_PACKED_CHAR_CHAR_SHORT_LONG.returnValueMask.value));
+							TestCall.SUM_PACKED_INT8_INT8_INT16_INT32.ptr,
+							TestCall.SUM_PACKED_INT8_INT8_INT16_INT32.plan
+									.getSizeDirect(), m) & TestCall.SUM_PACKED_INT8_INT8_INT16_INT32.returnValueMask.value));
 		}
 	}
 
@@ -287,12 +287,12 @@ public class NativeCallTest {
 	public void testSignedIntAsPointer() {
 		// This test asserts that we can send 32-bit unsigned pointer values to
 		// the native side packed into 32-bit Java ints.
-		TestCall testcall = TestCall.REMOVE_SIGN_FROM_LONG;
+		TestCall testcall = TestCall.REMOVE_SIGN_FROM_INT32;
 		for (NativeCall nativecall : DOF_NORET_VI_OR_FLOAT) {
 			Marshaller m = testcall.plan.makeMarshaller();
 			int x = 0xffffffff;
 			assertTrue(x < 0);
-			m.putLong(x);
+			m.putInt32(x);
 			long y = nativecall.invoke(testcall.ptr, testcall.plan.getSizeDirect(), m);
 			assertTrue(0 < y);
 			assertEquals(0xffffffffL, y);
@@ -333,7 +333,7 @@ public class NativeCallTest {
 			for (NativeCall nativecall : IND_NORET_VI_OR_FLOAT) {
 				Marshaller m = plan.makeMarshaller();
 				m.putPtr();
-				m.putLong(100); // This will be replaced by 0
+				m.putInt32(100); // This will be replaced by 0
 				nativecall.invoke(TestCall.NULL_PTR_OUT_PARAM.ptr,
 						plan.getSizeDirect(), m);
 				m.rewind();
@@ -381,7 +381,7 @@ public class NativeCallTest {
 			for (NativeCall nativecall : VI_NORET_VI_OR_FLOAT) {
 				Marshaller m = plan.makeMarshaller();
 				m.putNullStringPtr(NO_ACTION);
-				m.putLong(0);
+				m.putInt32(0);
 				nativecall.invoke(testcall.ptr, plan.getSizeDirect(), m);
 			}
 		}
@@ -405,7 +405,7 @@ public class NativeCallTest {
 				m.skipBasicArrayElements(1);
 				m.skipBasicArrayElements(1);
 				assertThrew( // should be at the end of the marshaller
-						() -> { m.putChar((byte) 0); },
+						() -> { m.putInt8((byte) 0); },
 						ArrayIndexOutOfBoundsException.class);
 				long result = nativecall.invoke(testcall.ptr,
 						plan.getSizeDirect(), m);
@@ -424,7 +424,7 @@ public class NativeCallTest {
 				m.putNullPtr();
 				m.putINTRESOURCE((short) 0);
 				assertThrew( // should be at the end of the marshaller
-						() -> { m.putChar((byte) 0); },
+						() -> { m.putInt8((byte) 0); },
 						ArrayIndexOutOfBoundsException.class);
 				long result = nativecall.invoke(testcall.ptr,
 						plan.getSizeDirect(), m);
@@ -464,7 +464,7 @@ public class NativeCallTest {
 				Buffer buffer = new Buffer(src, 0, size); // has a copy of src
 				Marshaller m = plan.makeMarshaller();
 				m.putStringPtr(buffer, NO_ACTION);
-				m.putLong(size);
+				m.putInt32(size);
 				nativecall.invoke(testcall.ptr, plan.getSizeDirect(), m);
 				int endIndex = hello_world.length() < size ? hello_world
 						.length() : size;
@@ -488,7 +488,7 @@ public class NativeCallTest {
 		{
 			final Marshaller m = TestCall.marshall(
 					new TestCall.Recursive_StringSum("12345678", null), null);
-			assertThrew(() -> { m.putChar((byte) 0); },
+			assertThrew(() -> { m.putInt8((byte) 0); },
 					ArrayIndexOutOfBoundsException.class);
 			assertEquals(12345678L,
 					nativecall.invoke(testcall.ptr, sizeDirect, m) & mask);
@@ -502,7 +502,7 @@ public class NativeCallTest {
 				final Marshaller m = TestCall.marshall(
 						new TestCall.Recursive_StringSum("987654321", buffer),
 						null);
-				assertThrew(() -> { m.putChar((byte) 0); },
+				assertThrew(() -> { m.putInt8((byte) 0); },
 						ArrayIndexOutOfBoundsException.class);
 				assertEquals(987654321L,
 						nativecall.invoke(testcall.ptr, sizeDirect, m) & mask);
@@ -521,7 +521,7 @@ public class NativeCallTest {
 							-6, 5, -8, 7),
 					new TestCall.Recursive_StringSum("-200", null, -100, -75,
 							-50, -25, 50, -25, 50, -25));
-			assertThrew(() -> { m.putChar((byte) 0); },
+			assertThrew(() -> { m.putInt8((byte) 0); },
 					ArrayIndexOutOfBoundsException.class);
 			assertEquals(0L, nativecall.invoke(testcall.ptr, sizeDirect, m)
 					& mask);
@@ -540,7 +540,7 @@ public class NativeCallTest {
 							new TestCall.Recursive_StringSum("-200",
 									innerBuffer, -100, -75, -50, -25, 50, -25,
 									50, -25));
-					assertThrew(() -> { m.putChar((byte) 0); },
+					assertThrew(() -> { m.putInt8((byte) 0); },
 							ArrayIndexOutOfBoundsException.class);
 					assertEquals(0L,
 							nativecall.invoke(testcall.ptr, sizeDirect, m)
@@ -653,8 +653,8 @@ public class NativeCallTest {
 			final Marshaller m = testcall.plan.makeMarshaller();
 			m.putPtr();
 			m.putNullStringPtr(RETURN_JAVA_STRING);
-			m.putLong(1);
-			m.putLong(2);
+			m.putInt32(1);
+			m.putInt32(2);
 			assertEquals(0, nativecall.invoke(testcall.ptr, sizeDirect, m) & mask);
 			m.rewind();
 			assertFalse(m.isPtrNull());
@@ -767,7 +767,7 @@ public class NativeCallTest {
 					}
 					Buffer buffer = new Buffer(bufferSize, "");
 					m.putStringPtr(buffer, NO_ACTION);
-					m.putLong(bufferSize);
+					m.putInt32(bufferSize);
 					// Return value placeholder
 					m.putNullStringPtr(RETURN_JAVA_STRING);
 					nativecall.invoke(testcall.ptr, sizeDirect, m);

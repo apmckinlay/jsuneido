@@ -106,18 +106,18 @@ public final class BasicArray extends Type {
 				case BOOL:
 					marshaller.putBool(Ops.toBoolean_(elem));
 					break;
-				case CHAR:
-					marshaller.putChar((byte)Ops.toInt(elem));
+				case INT8:
+					marshaller.putInt8((byte)Ops.toInt(elem));
 					break;
-				case SHORT:
-					marshaller.putShort((short)Ops.toInt(elem));
+				case INT16:
+					marshaller.putInt16((short)Ops.toInt(elem));
 					break;
 				case GDIOBJ:
 					// intentional fall-through
 				case HANDLE:
 					// intentional fall-through
-				case LONG:
-					marshaller.putLong(Ops.toInt(elem));
+				case INT32:
+					marshaller.putInt32(Ops.toInt(elem));
 					break;
 				case INT64:
 					marshaller.putInt64(NumberConversions.toLong(elem));
@@ -146,17 +146,17 @@ public final class BasicArray extends Type {
 			case BOOL:
 				c.insert(k, marshaller.getBool());
 				break;
-			case CHAR:
+			case INT8:
 				c.insert(k, (int)marshaller.getChar());
 				break;
-			case SHORT:
+			case INT16:
 				c.insert(k, (int)marshaller.getShort());
 				break;
 			case GDIOBJ:
 				// intentional fall-through
 			case HANDLE:
 				// intentional fall-through
-			case LONG:
+			case INT32:
 				c.insert(k, marshaller.getLong());
 				break;
 			case INT64:

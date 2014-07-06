@@ -101,8 +101,8 @@ public class TypeListTest {
 	@Test
 	public void marshallParamsBasicValue() {
 		for (boolean isCallbackPlan : FALSETRUE) {
-			TypeList tl = makeParams("bool_", bv(BOOL), "char_", bv(CHAR),
-					"short_", bv(SHORT), "long_", bv(LONG), "int64_",
+			TypeList tl = makeParams("bool_", bv(BOOL), "char_", bv(INT8),
+					"short_", bv(INT16), "long_", bv(INT32), "int64_",
 					bv(INT64), "float_", bv(FLOAT), "double_", bv(DOUBLE),
 					"handle_", bv(HANDLE), "gdiobj_", bv(GDIOBJ));
 			Object[] args1 = new Object[] { Boolean.TRUE, -99, 9999,
@@ -123,8 +123,8 @@ public class TypeListTest {
 	@Test
 	public void marshallParamsBasicArray() {
 		for (boolean isCallbackPlan : FALSETRUE) {
-			TypeList tl = makeParams("bool_", ba2(BOOL), "char_", ba2(CHAR),
-					"short_", ba2(SHORT), "long_", ba2(LONG), "int64_",
+			TypeList tl = makeParams("bool_", ba2(BOOL), "char_", ba2(INT8),
+					"short_", ba2(INT16), "long_", ba2(INT32), "int64_",
 					ba2(INT64), "float_", ba2(FLOAT), "double_", ba2(DOUBLE),
 					"handle_", ba2(HANDLE), "gdiobj_", ba2(GDIOBJ));
 			Object[] args1 = new Object[] { ca(Boolean.TRUE, Boolean.FALSE),
@@ -200,7 +200,7 @@ public class TypeListTest {
 			tl.marshallInParams(m, args1);
 			m.rewind();
 			// Simulate native side storing a non-null pointer
-			m.putChar((byte) 1);
+			m.putInt8((byte) 1);
 			m.rewind();
 			tl.marshallOutParams(m, args2);
 			assertArrayEquals(new Object[] { CIRCLE(-1.0, -2.0, 123456.125) },

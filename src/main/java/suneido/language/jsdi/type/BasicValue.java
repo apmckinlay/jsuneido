@@ -75,18 +75,18 @@ public final class BasicValue extends Type {
 			case BOOL:
 				marshaller.putBool(Ops.toBoolean_(value));
 				break;
-			case CHAR:
-				marshaller.putChar((byte)Ops.toInt(value));
+			case INT8:
+				marshaller.putInt8((byte)Ops.toInt(value));
 				break;
-			case SHORT:
-				marshaller.putShort((short)Ops.toInt(value));
+			case INT16:
+				marshaller.putInt16((short)Ops.toInt(value));
 				break;
 			case GDIOBJ:
 				// intentional fall-through
 			case HANDLE:
 				// intentional fall-through
-			case LONG:
-				marshaller.putLong(Ops.toInt(value));
+			case INT32:
+				marshaller.putInt32(Ops.toInt(value));
 				break;
 			case INT64:
 				marshaller.putInt64(NumberConversions.toLong(value));
@@ -108,15 +108,15 @@ public final class BasicValue extends Type {
 		switch (basicType) {
 		case BOOL:
 			return marshaller.getBool();
-		case CHAR:
+		case INT8:
 			return marshaller.getChar();
-		case SHORT:
+		case INT16:
 			return marshaller.getShort();
 		case GDIOBJ:
 			// intentional fall-through
 		case HANDLE:
 			// intentional fall-through
-		case LONG:
+		case INT32:
 			return marshaller.getLong();
 		case INT64:
 			return marshaller.getInt64();
@@ -139,17 +139,17 @@ public final class BasicValue extends Type {
 		switch (basicType) {
 		case BOOL:
 			return 0L == returnValue ? Boolean.FALSE : Boolean.TRUE;
-		case CHAR:
+		case INT8:
 			// Cast once to truncate, twice to box the result into an Integer.
 			return (int)(byte)returnValue;
-		case SHORT:
+		case INT16:
 			// Cast once to truncate, twice to box the result into an Integer.
 			return (int)(short)returnValue;
 		case GDIOBJ:
 			// intentional fall-through
 		case HANDLE:
 			// intentional fall-through
-		case LONG:
+		case INT32:
 			return (int)returnValue;
 		case INT64:
 			return returnValue;
@@ -166,7 +166,7 @@ public final class BasicValue extends Type {
 
 	@Override
 	public boolean isMarshallableToJSDILong() {
-		return PrimitiveSize.LONG == basicType.getSizeWholeWords();
+		return PrimitiveSize.INT32 == basicType.getSizeWholeWords();
 	}
 
 	@Override
@@ -180,7 +180,7 @@ public final class BasicValue extends Type {
 				// intentional fall-through
 			case HANDLE:
 				// intentional fall-through
-			case LONG:
+			case INT32:
 				target[pos] = Ops.toInt(value);
 				break;
 			case FLOAT:
