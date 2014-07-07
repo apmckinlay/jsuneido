@@ -144,6 +144,7 @@ public class Builtins {
 			.put("UnixTime", function(UnixTime.class))
 			.put("Use", function(Use.class))
 			.put("UuidString", function(UuidString.class))
+			.put("Zlib", Zlib.singleton)
 			.build();
 	}
 

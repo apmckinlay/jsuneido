@@ -19,6 +19,7 @@ iminstall.bat
 dropsrc.bat
 .settings/org.eclipse.jdt.ui.prefs
 lucene*.jar
+zlibwapi.dll
 syntax: regexp
 ^\.externalToolBuilders$
 syntax: regexp
