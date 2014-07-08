@@ -9,6 +9,7 @@ import javax.annotation.concurrent.Immutable;
 import suneido.SuContainer;
 import suneido.language.Ops;
 import suneido.language.jsdi.*;
+import static suneido.InternalError.unhandledEnum;
 
 /**
  * TODO: docs
@@ -116,6 +117,8 @@ public final class BasicArray extends Type {
 					// intentional fall-through
 				case HANDLE:
 					// intentional fall-through
+				case OPAQUE_POINTER:
+					// intentional fall-through
 				case INT32:
 					marshaller.putInt32(Ops.toInt(elem));
 					break;
@@ -129,7 +132,7 @@ public final class BasicArray extends Type {
 					marshaller.putDouble(NumberConversions.toDouble(elem));
 					break;
 				default:
-					throw new IllegalStateException("unhandled BasicType in switch");
+					unhandledEnum(BasicType.class);
 				}
 			}
 		}
@@ -156,6 +159,8 @@ public final class BasicArray extends Type {
 				// intentional fall-through
 			case HANDLE:
 				// intentional fall-through
+			case OPAQUE_POINTER:
+				// intentional fall-through
 			case INT32:
 				c.insert(k, marshaller.getLong());
 				break;
@@ -169,7 +174,7 @@ public final class BasicArray extends Type {
 				c.insert(k, marshaller.getDouble()); // TODO: this should insert a BigDecimal, not a double
 				break;
 			default:
-				throw new IllegalStateException("unhandled BasicType in switch");
+				throw unhandledEnum(BasicType.class);
 			}
 		}
 		return c;

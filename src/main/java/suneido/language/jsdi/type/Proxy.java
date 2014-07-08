@@ -4,10 +4,15 @@
 
 package suneido.language.jsdi.type;
 
+import static suneido.InternalError.unhandledEnum;
 import suneido.SuContainer;
 import suneido.language.Context;
 import suneido.language.Ops;
-import suneido.language.jsdi.*;
+import suneido.language.jsdi.ElementSkipper;
+import suneido.language.jsdi.MarshallPlanBuilder;
+import suneido.language.jsdi.Marshaller;
+import suneido.language.jsdi.ObjectConversions;
+import suneido.language.jsdi.StorageType;
 
 /**
  * TODO: docs
@@ -108,8 +113,7 @@ public final class Proxy extends Type {
 			return sb.append(typeName).append('[').append(numElems).append(']')
 					.toString();
 		default:
-			throw new IllegalStateException(
-					"Missing switch case in Proxy.getDisplayName()");
+			throw unhandledEnum(StorageType.class);
 		}
 	}
 
@@ -123,8 +127,7 @@ public final class Proxy extends Type {
 		case POINTER:
 			return PrimitiveSize.POINTER;
 		default:
-			throw new IllegalStateException(
-					"Missing switch case in Proxy.getSizeDirectIntrinsic()");
+			throw unhandledEnum(StorageType.class);
 		}
 	}
 
@@ -139,8 +142,7 @@ public final class Proxy extends Type {
 		case POINTER:
 			return PrimitiveSize.pointerWholeWordBytes();
 		default:
-			throw new IllegalStateException(
-					"Missing switch case in Proxy.getSizeDirectWholeWords()");
+			throw unhandledEnum(StorageType.class);
 		}
 	}
 
@@ -155,8 +157,7 @@ public final class Proxy extends Type {
 			return lastResolvedType.getSizeDirectIntrinsic() +
 					lastResolvedType.getSizeIndirect();
 		default:
-			throw new IllegalStateException(
-					"Missing switch case in Proxy.getSizeIndirect()");
+			throw unhandledEnum(StorageType.class);
 		}
 	}
 
@@ -169,8 +170,7 @@ public final class Proxy extends Type {
 		case ARRAY:
 			return numElems * lastResolvedType.getVariableIndirectCount();
 		default:
-			throw new IllegalStateException(
-					"Missing switch case in Proxy.getVariableIndirectCount()");
+			throw unhandledEnum(StorageType.class);
 		}
 	}
 
@@ -230,7 +230,7 @@ public final class Proxy extends Type {
 			}
 			break;
 		default:
-			throw new IllegalStateException("unhandled StorageType in switch");
+			throw unhandledEnum(StorageType.class);
 		}
 	}
 
@@ -270,7 +270,7 @@ public final class Proxy extends Type {
 			}
 			return c;
 		default:
-			throw new IllegalStateException("unhandled StorageType in switch");
+			throw unhandledEnum(StorageType.class);
 		}
 	}
 

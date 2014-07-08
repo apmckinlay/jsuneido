@@ -4,6 +4,8 @@
 
 package suneido.language.jsdi.type;
 
+import static suneido.InternalError.unhandledEnum;
+
 import javax.annotation.concurrent.Immutable;
 
 import suneido.language.Numbers;
@@ -85,6 +87,8 @@ public final class BasicValue extends Type {
 				// intentional fall-through
 			case HANDLE:
 				// intentional fall-through
+			case OPAQUE_POINTER:
+				// intentional fall-through
 			case INT32:
 				marshaller.putInt32(Ops.toInt(value));
 				break;
@@ -98,7 +102,7 @@ public final class BasicValue extends Type {
 				marshaller.putDouble(NumberConversions.toDouble(value));
 				break;
 			default:
-				throw new IllegalStateException("unhandled BasicType in switch");
+				throw unhandledEnum(BasicType.class);
 			}
 		}
 	}
@@ -116,6 +120,8 @@ public final class BasicValue extends Type {
 			// intentional fall-through
 		case HANDLE:
 			// intentional fall-through
+		case OPAQUE_POINTER:
+			// intentional fall-through
 		case INT32:
 			return marshaller.getLong();
 		case INT64:
@@ -125,7 +131,7 @@ public final class BasicValue extends Type {
 		case DOUBLE:
 			return Numbers.toBigDecimal(marshaller.getDouble());
 		default:
-			throw new IllegalStateException("unhandled BasicType in switch");
+			throw unhandledEnum(BasicType.class);
 		}
 	}
 
@@ -149,6 +155,8 @@ public final class BasicValue extends Type {
 			// intentional fall-through
 		case HANDLE:
 			// intentional fall-through
+		case OPAQUE_POINTER:
+			// intentional fall-through
 		case INT32:
 			return (int)returnValue;
 		case INT64:
@@ -160,7 +168,7 @@ public final class BasicValue extends Type {
 		case DOUBLE:
 			return Numbers.toBigDecimal(Double.longBitsToDouble(returnValue));
 		default:
-			throw new IllegalStateException("unhandled BasicType in switch");
+			throw unhandledEnum(BasicType.class);
 		}
 	}
 
@@ -179,6 +187,8 @@ public final class BasicValue extends Type {
 			case GDIOBJ:
 				// intentional fall-through
 			case HANDLE:
+				// intentional fall-through
+			case OPAQUE_POINTER:
 				// intentional fall-through
 			case INT32:
 				target[pos] = Ops.toInt(value);

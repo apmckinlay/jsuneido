@@ -46,31 +46,32 @@ public class ParseAndCompileDllTest {
 				"\tint64 e,\n" +
 				"\tint64 * pe,\n" +
 				"\tint64[2] ae,\n" +
-				"\tfloat f,\n" +
-				"\tfloat * pf,\n" +
-				"\tfloat[2] af,\n" +
-				"\tdouble g,\n" +
-				"\tdouble * pg,\n" +
-				"\tdouble [2] ag,\n" +
-				"\thandle h,\n" +
-				"\thandle * ph,\n" +
-				"\thandle [2] ah,\n" +
-				"\tgdiobj i,\n" +
-				"\tgdiobj * pi,\n" +
-				"\tgdiobj [2] ai,\n" +
-				"\tstring j,\n" +
-				"\tstring [2] aj,\n" +
-				"\tbuffer k,\n" +
-				"\tbuffer [2] ak,\n" +
-				"\t[in] string l,\n" +
-				"\tresource m\n" +
+				"\tpointer f,\n" +
+				"\tpointer[2] af,\n" +
+				"\tfloat g,\n" +
+				"\tfloat * pg,\n" +
+				"\tfloat[2] ag,\n" +
+				"\tdouble h,\n" +
+				"\tdouble * ph,\n" +
+				"\tdouble [2] ah,\n" +
+				"\thandle i,\n" +
+				"\thandle * pi,\n" +
+				"\thandle [2] ai,\n" +
+				"\tgdiobj j,\n" +
+				"\tgdiobj * pj,\n" +
+				"\tgdiobj [2] aj,\n" +
+				"\tstring k,\n" +
+				"\tstring [2] ak,\n" +
+				"\tbuffer l,\n" +
+				"\tbuffer [2] al,\n" +
+				"\t[in] string m,\n" +
+				"\tresource n\n" +
 			"\t)";
 			// TODO: add callback
 
-	public final String[] VALID_RETURN_TYPES = {
-		"void", "bool", "char", "short", "long", "int64", "float", "double",
-		"handle", "gdiobj", "string"
-	};
+	public final String[] VALID_RETURN_TYPES = { "void", "bool", "char",
+			"short", "long", "int64", "pointer", "float", "double", "handle",
+			"gdiobj", "string" };
 
 	public final String[] INVALID_RETURN_TYPES = {
 		"resource", "buffer", "FakeTypeABC1"

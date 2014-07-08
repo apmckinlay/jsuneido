@@ -145,9 +145,9 @@ public final class Callback extends ComplexType {
 		if (null == value) {
 			marshaller.putInt32(0);
 		} else if (value instanceof SuValue) {
-			int thunkFuncAddr = thunkManager.lookupOrCreateBoundThunk(
+			long thunkFuncAddr = thunkManager.lookupOrCreateBoundThunk(
 					(SuValue) value, this);
-			marshaller.putInt32(thunkFuncAddr);
+			marshaller.putInt32(NumberConversions.toPointer32(thunkFuncAddr));
 		} else try {
 			marshaller.putInt32(NumberConversions.toPointer32(value));
 		} catch (SuException e) {

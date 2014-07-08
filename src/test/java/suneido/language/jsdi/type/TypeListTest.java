@@ -103,11 +103,12 @@ public class TypeListTest {
 		for (boolean isCallbackPlan : FALSETRUE) {
 			TypeList tl = makeParams("bool_", bv(BOOL), "char_", bv(INT8),
 					"short_", bv(INT16), "long_", bv(INT32), "int64_",
-					bv(INT64), "float_", bv(FLOAT), "double_", bv(DOUBLE),
-					"handle_", bv(HANDLE), "gdiobj_", bv(GDIOBJ));
+					bv(INT64), "pointer_", bv(OPAQUE_POINTER), "float_",
+					bv(FLOAT), "double_", bv(DOUBLE), "handle_", bv(HANDLE),
+					"gdiobj_", bv(GDIOBJ));
 			Object[] args1 = new Object[] { Boolean.TRUE, -99, 9999,
-					0x19830206, 0x8080808080808080L, -99.5f, 111111.5,
-					0x19900606, 0x19840209 };
+					0x19830206, 0x8080808080808080L, 0x19800725, -99.5f,
+					111111.5, 0x19900606, 0x19840209 };
 			Object[] args2 = new Object[args1.length];
 			Marshaller m = tl.makeParamsMarshallPlan(isCallbackPlan, false)
 					.makeMarshaller();
@@ -125,11 +126,13 @@ public class TypeListTest {
 		for (boolean isCallbackPlan : FALSETRUE) {
 			TypeList tl = makeParams("bool_", ba2(BOOL), "char_", ba2(INT8),
 					"short_", ba2(INT16), "long_", ba2(INT32), "int64_",
-					ba2(INT64), "float_", ba2(FLOAT), "double_", ba2(DOUBLE),
-					"handle_", ba2(HANDLE), "gdiobj_", ba2(GDIOBJ));
+					ba2(INT64), "pointer_", ba2(OPAQUE_POINTER), "float_",
+					ba2(FLOAT), "double_", ba2(DOUBLE), "handle_", ba2(HANDLE),
+					"gdiobj_", ba2(GDIOBJ));
 			Object[] args1 = new Object[] { ca(Boolean.TRUE, Boolean.FALSE),
 					ca(0xf0, 0x0f), ca(0xff00, 0x00ff), ca(1, 2), ca(3L, 4L),
-					ca(99999f, -99999f), ca(-300, 300.0), ca(5, 6), ca(7, 8) };
+					ca(5, 6), ca(99999f, -99999f), ca(-300, 300.0), ca(5, 6),
+					ca(7, 8) };
 			Object[] args2 = new Object[args1.length];
 			Marshaller m = tl.makeParamsMarshallPlan(isCallbackPlan, false)
 					.makeMarshaller();

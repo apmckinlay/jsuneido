@@ -4,6 +4,8 @@
 
 package suneido.language.jsdi.type;
 
+import static suneido.InternalError.unreachable;
+
 import java.util.EnumMap;
 
 import suneido.language.jsdi.DllInterface;
@@ -84,8 +86,7 @@ public final class TypeFactory {
 		case ARRAY:
 			return makeBasicArray(basicValues.get(basicType), numElements);
 		}
-		assert false : "control should never pass here";
-		return null;
+		throw unreachable();
 	}
 
 	@SuppressWarnings("static-method")
@@ -107,8 +108,7 @@ public final class TypeFactory {
 			throw new JSDIException(
 					"jSuneido does not support string* or buffer*");
 		}
-		assert false : "control should never pass here";
-		return null;
+		throw unreachable();
 	}
 
 	@SuppressWarnings("static-method")
@@ -125,8 +125,7 @@ public final class TypeFactory {
 			throw new JSDIException("jSuneido does not support " +
 					ResourceType.IDENTIFIER + "*");
 		}
-		assert false : "control should never pass here";
-		return null;
+		throw unreachable();
 	}
 
 	@SuppressWarnings("static-method")

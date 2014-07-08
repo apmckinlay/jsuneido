@@ -6,7 +6,12 @@ package suneido.language.jsdi.type;
 
 import suneido.SuContainer;
 import suneido.language.Numbers;
-import suneido.language.jsdi.*;
+import suneido.language.jsdi.DllInterface;
+import suneido.language.jsdi.JSDIException;
+import suneido.language.jsdi.JSDIValue;
+import suneido.language.jsdi.MarshallPlanBuilder;
+import suneido.language.jsdi.Marshaller;
+import suneido.language.jsdi.StorageType;
 
 /**
  * TODO: Docs
@@ -105,8 +110,7 @@ public abstract class Type extends JSDIValue {
 	 * @since 20130716
 	 */
 	public void marshallIn(Marshaller marshaller, Object value) {
-		throw new IllegalStateException(getDisplayName()
-				+ " cannot be marshalled in");
+		throw new InternalError(getDisplayName() + " cannot be marshalled in");
 	}
 
 	/**
@@ -130,8 +134,7 @@ public abstract class Type extends JSDIValue {
 	 * @since 20130717
 	 */
 	public Object marshallOut(Marshaller marshaller, Object oldValue) {
-		throw new IllegalStateException(getDisplayName()
-				+ " cannot be marshalled out");
+		throw new InternalError(getDisplayName() + " cannot be marshalled out");
 	}
 
 	/**
@@ -153,13 +156,13 @@ public abstract class Type extends JSDIValue {
 
 	// TODO: docs since 20130808
 	public void marshallInReturnValue(Marshaller marshaller) {
-		throw new IllegalStateException(getDisplayName()
+		throw new InternalError(getDisplayName()
 				+ " cannot be marshalled into a return value");
 	}
 
 	// TODO: docs since 20130717
 	public Object marshallOutReturnValue(long returnValue, Marshaller marshaller) {
-		throw new IllegalStateException(getDisplayName()
+		throw new InternalError(getDisplayName()
 				+ " cannot be marshalled out of a return value");
 	}
 
@@ -170,7 +173,7 @@ public abstract class Type extends JSDIValue {
 
 	// TODO: docs since 20130717
 	public void marshallInToJSDILong(int[] target, int pos, Object value) {
-		throw new IllegalStateException(getDisplayName()
+		throw new InternalError(getDisplayName()
 				+ " cannot be marshalled into a long");
 	}
 

@@ -16,6 +16,7 @@ import java.util.*;
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.*;
+import suneido.InternalError;
 import suneido.language.builtin.NumberMethods;
 import suneido.language.builtin.StringMethods;
 import suneido.language.jsdi.Buffer;
@@ -331,7 +332,7 @@ public final class Ops {
 			return -(Float) x;
 		if (x instanceof Double)
 			return -(Double) x;
-		throw SuException.unreachable();
+		throw InternalError.unreachable();
 	}
 
 	public static boolean not_(Object x) {
