@@ -132,7 +132,7 @@ public final class BasicArray extends Type {
 					marshaller.putDouble(NumberConversions.toDouble(elem));
 					break;
 				default:
-					unhandledEnum(BasicType.class);
+					throw unhandledEnum(BasicType.class);
 				}
 			}
 		}
