@@ -62,7 +62,6 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 		private final TreeSet<String> names; // deliberate
 		private boolean isClosed;
 		private boolean isUsed;
-		private int numMarshallableToJSDILong;
 
 		public Args(String memberType, int size) {
 			this.memberType = memberType;
@@ -70,7 +69,6 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 			this.names = new TreeSet<>();
 			this.isClosed = true;
 			this.isUsed = false;
-			this.numMarshallableToJSDILong = 0;
 		}
 
 		public void add(String name, Type type) {
@@ -84,9 +82,6 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 			}
 			entries.add(new Entry(name, type));
 			isClosed &= type.isClosed();
-			if (type.isMarshallableToJSDILong()) {
-				++numMarshallableToJSDILong;
-			}
 		}
 	}
 
@@ -116,7 +111,6 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 
 	private final Entry[] entries;
 	private final boolean isClosed;
-	private final int     numMarshallableToJSDILong;
 	private int           sizeDirectIntrinsic;
 	private int           sizeDirectWholeWords;
 	private int           sizeIndirect;
@@ -130,7 +124,6 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 		args.isUsed = true;
 		this.entries = args.entries.toArray(new Entry[args.entries.size()]);
 		this.isClosed = args.isClosed;
-		this.numMarshallableToJSDILong = args.numMarshallableToJSDILong;
 		if (isClosed) {
 			calcSizes();
 		} else {
@@ -189,10 +182,6 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 	 */
 	public boolean isClosed() {
 		return isClosed;
-	}
-
-	public boolean isFastMarshallable() {
-		return numMarshallableToJSDILong == entries.length;
 	}
 
 	// TODO: docs since 20130724
@@ -314,16 +303,6 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 		return result;
 	}
 	
-	public int[] marshallInParamsFast(Object[] args) {
-		final int N = entries.length;
-		assert N == args.length && N == numMarshallableToJSDILong;
-		int[] marshalledArgs = new int[N];
-		for (int k = 0; k < N; ++k) {
-			entries[k].type.marshallInToJSDILong(marshalledArgs, k, args[k]);
-		}
-		return marshalledArgs;
-	}
-
 	// TODO: docs -- since 20130717
 	public void marshallInMembers(Marshaller marshaller, SuContainer value) {
 		for (Entry entry : entries)
