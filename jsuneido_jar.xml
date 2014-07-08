@@ -73,6 +73,7 @@
 		<javac srcdir="${main.srcdir}" destdir="${main.destdir}"
 				classpathref="main.classpath"
 				includeAntRuntime="false"
+				target="1.8"
 				debug="true"
 		>
 			<!--  Exclude JDBC stuff. Not currently implemented. -->
