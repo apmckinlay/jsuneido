@@ -4,7 +4,7 @@
 
 package suneido.database.query;
 
-import static suneido.SuException.unreachable;
+import static suneido.InternalError.unreachable;
 
 import java.util.List;
 

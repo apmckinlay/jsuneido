@@ -53,6 +53,7 @@ public class BasicValueTest {
 		new BasicTypeSet(INT16, (int)Short.MIN_VALUE, -1, 0, 1, 0x01ff, (int)Short.MAX_VALUE),
 		new BasicTypeSet(INT32, Integer.MIN_VALUE, -1, 0, 1, Integer.MAX_VALUE),
 		new BasicTypeSet(INT64, Long.MIN_VALUE, -1L, 0L, 1L, 0x01ffffffffL, Long.MAX_VALUE),
+		new BasicTypeSet(OPAQUE_POINTER, Integer.MIN_VALUE, -1, 0, 1, Integer.MAX_VALUE),
 		// VS@20130808: I took out the tests for infinity/NaN because BigDecimal
 		//              doesn't handle them, but this does create an issue: we
 		//              can still get NaN's, if only due to the dll interface,

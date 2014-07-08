@@ -39,12 +39,12 @@ public final class ThunkManager {
 	private static class BoundThunk implements Comparable<BoundThunk> {
 		public final SuValue boundValue;
 		public final Callback callback;
-		public final int thunkFuncAddr;
-		public final int thunkObjectAddr;
+		public final long thunkFuncAddr;
+		public final long thunkObjectAddr;
 		public final Date createTime;
 
 		public BoundThunk(SuValue boundValue, Callback callback,
-				int thunkFuncAddr, int thunkObjectAddr) {
+				long thunkFuncAddr, long thunkObjectAddr) {
 			assert null != boundValue && null != callback;
 			if (0 == thunkFuncAddr) {
 				throw new IllegalArgumentException(
@@ -77,8 +77,8 @@ public final class ThunkManager {
 		{
 			return new StringBuilder(128).append(boundValue.toString())
 					.append(" + ").append(callback.toString())
-					.append(" => (0x").append(Integer.toHexString(thunkFuncAddr))
-					.append(", 0x").append(Integer.toHexString(thunkObjectAddr))
+					.append(" => (0x").append(Long.toHexString(thunkFuncAddr))
+					.append(", 0x").append(Long.toHexString(thunkObjectAddr))
 					.append(')').toString();
 		}
 	}
@@ -120,7 +120,7 @@ public final class ThunkManager {
 	 * @throws JSDIException If {@code boundValue} has already been bound to a
 	 *         {@link Callback} that is not reference-equal to {@code callback}
 	 */
-	public int lookupOrCreateBoundThunk(
+	public long lookupOrCreateBoundThunk(
 		SuValue boundValue,
 		Callback callback
 	)
@@ -137,7 +137,7 @@ public final class ThunkManager {
 			boundThunk = boundValueMap.get(boundValue);
 			if (null == boundThunk)
 			{
-				int[] addrs = new int[2];
+				long[] addrs = new long[2];
 				newThunk(callback, boundValue, plan.getSizeDirect(),
 						plan.getSizeIndirect(), plan.getPtrArray(),
 						plan.getVariableIndirectCount(), addrs);
@@ -202,9 +202,9 @@ public final class ThunkManager {
 
 	private static native void newThunk(Callback callback, SuValue boundValue,
 			int sizeDirect, int sizeIndirect, int[] ptrArray,
-			int variableIndirectCount, int[] outThunkAddrs);
+			int variableIndirectCount, long[] outThunkAddrs);
 
-	private static native void deleteThunk(int thunkObjectAddr);
+	private static native void deleteThunk(long thunkObjectAddr);
 
 	//
 	// BUILT-IN FUNCTIONS

@@ -4,7 +4,7 @@
 
 package suneido.immudb;
 
-import static suneido.SuException.unreachable;
+import static suneido.InternalError.unreachable;
 
 import java.nio.ByteBuffer;
 import java.util.Iterator;

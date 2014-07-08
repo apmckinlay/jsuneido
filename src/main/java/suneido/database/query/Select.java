@@ -5,7 +5,7 @@
 package suneido.database.query;
 
 import static java.util.Arrays.asList;
-import static suneido.SuException.unreachable;
+import static suneido.InternalError.unreachable;
 import static suneido.Suneido.dbpkg;
 import static suneido.Trace.trace;
 import static suneido.Trace.tracing;
@@ -16,15 +16,34 @@ import static suneido.intfc.database.Record.MIN_FIELD;
 import static suneido.language.Token.IS;
 import static suneido.language.Token.ISNT;
 import static suneido.util.ByteBuffers.bufferUcompare;
-import static suneido.util.Util.*;
+import static suneido.util.Util.addAllUnique;
+import static suneido.util.Util.concat;
+import static suneido.util.Util.difference;
+import static suneido.util.Util.intersect;
+import static suneido.util.Util.listToCommas;
+import static suneido.util.Util.listToParens;
+import static suneido.util.Util.nil;
+import static suneido.util.Util.setUnion;
+import static suneido.util.Util.startsWith;
 import static suneido.util.Verify.verify;
 import gnu.trove.set.hash.TIntHashSet;
 
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import suneido.SuException;
-import suneido.database.query.expr.*;
+import suneido.database.query.expr.And;
+import suneido.database.query.expr.BinOp;
+import suneido.database.query.expr.Constant;
+import suneido.database.query.expr.Expr;
+import suneido.database.query.expr.Identifier;
+import suneido.database.query.expr.In;
+import suneido.database.query.expr.Multi;
 import suneido.database.server.DbmsTranLocal;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.RecordBuilder;
@@ -568,7 +587,7 @@ public class Select extends Query1 {
 					addMax(i, n, end);
 				break ;
 			} else
-				unreachable();
+				throw unreachable();
 		}
 		Record rorg = org.build();
 		Record rend = end.build();

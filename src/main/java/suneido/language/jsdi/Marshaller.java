@@ -633,7 +633,7 @@ public final class Marshaller {
 		assert RETURN_RESOURCE.ordinal() == viInstArray[viIndex];
 		Object value = viArray[viIndex];
 		if (! (value instanceof Integer || value instanceof String)) {
-			throw new IllegalStateException(
+			throw new InternalError(
 				"getResource() expects a non-null Integer or String in the " +
 				"variable indirect storage, but got a " +
 				(null == value ? "null" : value.getClass().getCanonicalName())

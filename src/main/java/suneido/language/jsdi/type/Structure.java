@@ -4,6 +4,8 @@
 
 package suneido.language.jsdi.type;
 
+import static suneido.InternalError.unhandledEnum;
+
 import java.util.Map;
 
 import suneido.SuContainer;
@@ -12,7 +14,14 @@ import suneido.language.BuiltinMethods;
 import suneido.language.Ops;
 import suneido.language.Params;
 import suneido.language.SuCallable;
-import suneido.language.jsdi.*;
+import suneido.language.jsdi.Buffer;
+import suneido.language.jsdi.DllInterface;
+import suneido.language.jsdi.JSDIException;
+import suneido.language.jsdi.MarshallPlan;
+import suneido.language.jsdi.MarshallPlanBuilder;
+import suneido.language.jsdi.Marshaller;
+import suneido.language.jsdi.NumberConversions;
+import suneido.language.jsdi.ObjectConversions;
 import suneido.language.jsdi.dll.CallGroup;
 
 /**
@@ -79,7 +88,7 @@ public final class Structure extends ComplexType {
 					m.getViArray(), m.getViInstArray());
 			break;
 		default:
-			throw new IllegalStateException("unhandled CallGroup in switch");
+			throw unhandledEnum(CallGroup.class);
 		}
 		m.rewind();
 		return typeList.marshallOutMembers(m, null);

@@ -546,7 +546,7 @@ public class MarshallerTest {
 		// This should throw, because outgoing variable indirect array was a
 		// byte[]. The native side is supposed to replace it with a String, but
 		// since we haven't invoked the native side, that didn't happen.
-		assertThrew(mr::getResource, IllegalStateException.class);
+		assertThrew(mr::getResource, InternalError.class);
 		// Simulate native side re-converting to String
 		mr.getViArray()[0] = "res";
 		mr.rewind();
@@ -561,7 +561,7 @@ public class MarshallerTest {
 		mr.rewind();
 		// Simulate a NULL somehow getting into the variable indirect array.
 		mr.getViArray()[0] = null;
-		assertThrew(mr::getResource, IllegalStateException.class);
+		assertThrew(mr::getResource, InternalError.class);
 	}
 
 	@Test

@@ -611,7 +611,7 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 				else if (p.charAt(t) == 'd')
 					part = Field.DAY;
 				else
-					throw SuException.unreachable();
+					throw InternalError.unreachable();
 				if ((type[t] != Field.UNK && type[t] != part) ||
 					tokens[t] < part.min || tokens[t] > part.max)
 					break ;
@@ -635,7 +635,7 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 				else if (p.charAt(t) == 'd')
 					day = tokens[t];
 				else
-					throw SuException.unreachable();
+					throw InternalError.unreachable();
 			}
 		} else if (got_time && ntokens == 0) {
 			year = now.year();

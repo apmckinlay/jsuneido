@@ -73,7 +73,7 @@ public final class TypeList implements Iterable<TypeList.Entry> {
 
 		public void add(String name, Type type) {
 			if (isUsed) {
-				throw new IllegalStateException(
+				throw new InternalError(
 						"This Args object has already been used to construct a TypeList");
 			}
 			if (!names.add(name)) {

@@ -5,13 +5,23 @@
 package suneido.database.query;
 
 import static java.util.Arrays.asList;
-import static suneido.util.Util.*;
+import static suneido.util.Util.concat;
+import static suneido.util.Util.difference;
+import static suneido.util.Util.listToParens;
+import static suneido.util.Util.nil;
+import static suneido.util.Util.setDifference;
+import static suneido.util.Util.setUnion;
+import static suneido.util.Util.startsWith;
+import static suneido.util.Util.startsWithSet;
+import static suneido.util.Util.union;
+import static suneido.util.Util.without;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import suneido.InternalError;
 import suneido.SuContainer;
 import suneido.SuException;
 import suneido.intfc.database.Record;
@@ -70,7 +80,7 @@ public class Summarize extends Query1 {
 		case COPY: sb.append("-COPY"); break;
 		case SEQUENTIAL: sb.append("-SEQ"); break;
 		case MAP: sb.append("-MAP"); break;
-		default: throw SuException.unreachable();
+		default: throw InternalError.unreachable();
 		}
 		sb.append(" ");
 		if (!nil(via))
@@ -256,7 +266,7 @@ public class Summarize extends Query1 {
 				return new Min();
 			if ("list".equals(summary))
 				return new ListSum();
-			throw SuException.unreachable();
+			throw InternalError.unreachable();
 		}
 	}
 	private static class Count extends Summary {

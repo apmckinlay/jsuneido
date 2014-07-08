@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import suneido.language.jsdi.DllInterface;
+import suneido.language.jsdi._64BitIssue;
 
 /**
  * Enumerates the available 'basic' (<em>ie</em> non-structure, non-callback)
@@ -55,6 +56,19 @@ public enum BasicType {
 	 * @see #INT32
 	 */
 	INT64("int64", PrimitiveSize.INT64),
+	/**
+	 * Enumerator for a C-style pointer that is opaque from the point of view
+	 * of the Suneido programmer. This means Suneido represents the value as a
+	 * signed integer having the same width as the operating environment's
+	 * native pointer type. For example, in an x86 application, the number is
+	 * 32 bits wide while in an x64 application, the number would be 64 bits
+	 * wide.
+	 */
+	@_64BitIssue
+	OPAQUE_POINTER("pointer", PrimitiveSize.INT32 /*
+												 * change to 64 bits to port to
+												 * x64
+												 */),
 	/**
 	 * Enumerator for a 32-bit floating-point number (<em>ie</em> a single-
 	 * precision IEEE floating-point number, known as <code>float</code> in
