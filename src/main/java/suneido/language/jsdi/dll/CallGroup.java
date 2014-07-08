@@ -15,7 +15,6 @@ import suneido.language.jsdi.type.TypeList;
 @DllInterface
 public enum CallGroup {
 
-	FAST,
 	DIRECT,
 	INDIRECT,
 	VARIABLE_INDIRECT;
@@ -25,10 +24,7 @@ public enum CallGroup {
 	}
 
 	public static CallGroup fromTypeList(TypeList typeList, boolean resolved) {
-		if (typeList.isFastMarshallable() &&
-				typeList.size() <= NativeCall.MAX_FAST_MARSHALL_PARAMS) {
-			return FAST;
-		} else if (typeList.isClosed() || resolved) {
+		if (typeList.isClosed() || resolved) {
 			if (0 < typeList.getVariableIndirectCount())
 				return VARIABLE_INDIRECT;
 			else if (0 < typeList.getSizeIndirect())

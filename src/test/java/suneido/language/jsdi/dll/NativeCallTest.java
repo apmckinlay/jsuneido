@@ -48,7 +48,7 @@ public class NativeCallTest {
 					.getReturnTypeGroup()) {
 				vi_retvi.add(nativecall);
 			} else {
-				if (nativecall.isDirectOrFast()) {
+				if (CallGroup.DIRECT == nativecall.getCallGroup()) {
 					dof_noret_vi_or_float.add(nativecall);
 				} else if (CallGroup.INDIRECT == nativecall.getCallGroup()) {
 					ind_noret_vi_or_float.add(nativecall);
@@ -90,65 +90,6 @@ public class NativeCallTest {
 				}
 			}
 		}
-	}
-
-	@Test
-	public void testDirect_AllZeroes_FastCalling() {
-		for (TestCall testcall : TestCall.values()) {
-			if (Mask.DOUBLE == testcall.returnValueMask) continue;
-			long result = 0xbe5077eddeadbea7L;
-			switch (PrimitiveSize.minWholeWords(testcall.plan.getSizeDirect())) {
-			case 0:
-				result = NativeCall.callReturnInt64(testcall.ptr);
-				break;
-			case 1:
-				result = NativeCall.callLReturnInt64(testcall.ptr, 0);
-				break;
-			case 2:
-				result = NativeCall.callLLReturnInt64(testcall.ptr, 0, 0);
-				break;
-			case 3:
-				result = NativeCall.callLLLReturnInt64(testcall.ptr, 0, 0, 0);
-				break;
-			default:
-				continue;
-			}
-			assertEquals(0L, result & testcall.returnValueMask.value);
-		}
-	}
-
-	@Test
-	public void testDirect_32bit_FastCalling() {
-		// little-endian
-		assertEquals(27L, NativeCall.callLReturnInt64(TestCall.INT8.ptr, 27)
-				& TestCall.INT8.returnValueMask.value);
-		assertEquals(0x2728L,
-				NativeCall.callLReturnInt64(TestCall.INT16.ptr, 0x2728)
-						& TestCall.INT16.returnValueMask.value);
-		assertEquals(0x18120207,
-				NativeCall.callLReturnInt64(TestCall.INT32.ptr, 0x18120207)
-						& TestCall.INT32.returnValueMask.value);
-		// little-endian, and pushed on the stack in reverse order
-		assertEquals(0xdeadbeef19820207L, NativeCall.callLLReturnInt64(
-				TestCall.INT64.ptr, 0x19820207, 0xdeadbeef));
-		// sum functions
-		assertEquals(3L,
-				NativeCall.callLLReturnInt64(TestCall.SUM_TWO_INT32.ptr, 1, 2)
-						& TestCall.SUM_TWO_INT32.returnValueMask.value);
-		assertEquals(
-				-1,
-				(int)(NativeCall.callLLReturnInt64(TestCall.SUM_TWO_INT32.ptr,
-						Integer.MAX_VALUE, Integer.MIN_VALUE)
-						& TestCall.SUM_TWO_INT32.returnValueMask.value));
-		assertEquals(
-				6L,
-				NativeCall.callLLLReturnInt64(TestCall.SUM_THREE_INT32.ptr, 3,
-						2, 1) & TestCall.SUM_THREE_INT32.returnValueMask.value);
-		assertEquals(
-				0L,
-				NativeCall.callLLLReturnInt64(TestCall.SUM_THREE_INT32.ptr, 1,
-						Integer.MIN_VALUE, Integer.MAX_VALUE)
-						& TestCall.SUM_THREE_INT32.returnValueMask.value);
 	}
 
 	@Test

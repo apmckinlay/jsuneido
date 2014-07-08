@@ -66,7 +66,6 @@ public final class Structure extends ComplexType {
 		Marshaller m = getMarshallPlan().makeMarshaller();
 		putMarshallOutInstruction(m);
 		switch (callGroup) {
-		case FAST:
 		case DIRECT: // intentional fall through
 			copyOutDirect(structAddr, m.getData(), marshallPlan.getSizeDirect());
 			break;

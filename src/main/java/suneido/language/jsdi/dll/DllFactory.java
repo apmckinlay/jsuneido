@@ -138,7 +138,7 @@ public final class DllFactory {
 			CallGroup cg = CallGroup.fromTypeList(params);
 			NativeCall nc = null;
 			if (null != cg) {
-				nc = NativeCall.get(cg, rtg, params.size());
+				nc = NativeCall.get(cg, rtg);
 			}
 			//
 			// Build the Dll object to return
