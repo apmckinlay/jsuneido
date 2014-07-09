@@ -41,83 +41,86 @@ public class DllTest {
 
 	private static ContextLayered CONTEXT;
 	private static final String[] NAMED_TYPES = {
-		"Packed_CharCharShortLong", "struct { char a; char b; short c; long d; }",
-		"Recursive_CharCharShortLong2",
-			"struct { Packed_CharCharShortLong x; Recursive_CharCharShortLong1 * inner; }",
-		"Recursive_CharCharShortLong1",
-			"struct { Packed_CharCharShortLong x; Recursive_CharCharShortLong0 * inner; }",
-		"Recursive_CharCharShortLong0",
-			"struct { Packed_CharCharShortLong x; long inner; }",
+		"Packed_Int8Int8Int16Int32", "struct { int8 a; int8 b; int16 c; int32 d; }",
+		"Recursive_Int8Int8Int16Int32_2",
+			"struct { Packed_Int8Int8Int16Int32 x; Recursive_Int8Int8Int16Int32_1 * inner; }",
+		"Recursive_Int8Int8Int16Int32_1",
+			"struct { Packed_Int8Int8Int16Int32 x; Recursive_Int8Int8Int16Int32_0 * inner; }",
+		"Recursive_Int8Int8Int16Int32_0",
+			"struct { Packed_Int8Int8Int16Int32 x; pointer inner; }",
 		"Recursive_StringSum2",
 			"struct\n" +
 			"\t{\n" +
-			"\tPacked_CharCharShortLong[2] x\n" +
+			"\tPacked_Int8Int8Int16Int32[2] x\n" +
 			"\tstring str\n" +
 			"\tbuffer buffer_\n" +
-			"\tlong len\n" +
+			"\tint32 len\n" +
 			"\tRecursive_StringSum1 * inner\n" +
 			"\t}",
 		"Recursive_StringSum1",
 			"struct\n" +
 			"\t{\n" +
-			"\tPacked_CharCharShortLong[2] x\n" +
+			"\tPacked_Int8Int8Int16Int32[2] x\n" +
 			"\tstring str\n" +
 			"\tbuffer buffer_\n" +
-			"\tlong len\n" +
+			"\tint32 len\n" +
 			"\tRecursive_StringSum0 * inner\n" +
 			"\t}",
 		"Recursive_StringSum0",
 			"struct\n" +
 			"\t{\n" +
-			"\tPacked_CharCharShortLong[2] x\n" +
+			"\tPacked_Int8Int8Int16Int32[2] x\n" +
 			"\tstring str\n" +
 			"\tbuffer buffer_\n" +
-			"\tlong len\n" +
-			"\tlong inner\n" +
+			"\tint32 len\n" +
+			"\tpointer inner\n" +
 			"\t}",
-		"Swap_StringLongLong",
-			"struct { string str; long a; long b; }",
+		"Swap_StringInt32Int32",
+			"struct { string str; int32 a; int32 b; }",
+		"Int32Wrapper", "struct { int32 x }",
 		"StringWrapper", "struct { string x }",
 		"DoubleWrapper", "struct { double x }",
 		"ResourceWrapper", "struct { resource x }",
 		"PtrDouble", "struct { DoubleWrapper * x }",
 		"PtrPtrDouble", "struct { PtrDouble * x }",
 		"TestVoid", "dll void jsdi:_TestVoid@0()",
-		"TestChar", "dll char jsdi:_TestChar@4(char a)",
-		"TestShort", "dll short jsdi:_TestShort@4(short a)",
-		"TestLong", "dll long jsdi:_TestLong@4(long a)",
+		"TestInt8", "dll int8 jsdi:_TestInt8@4(int8 a)",
+		"TestInt16", "dll int16 jsdi:_TestInt16@4(int16 a)",
+		"TestInt32", "dll int32 jsdi:_TestInt32@4(int32 a)",
 		"TestInt64", "dll int64 jsdi:_TestInt64@8(int64 a)",
 		"TestReturn1_0Float", "dll float jsdi:_TestReturn1_0Float@0()",
 		"TestReturn1_0Double", "dll double jsdi:_TestReturn1_0Double@0()",
 		"TestFloat", "dll float jsdi:_TestFloat@4(float a)",
 		"TestDouble", "dll double jsdi:_TestDouble@8(double a)",
-		"TestSumTwoChars", "dll char jsdi:_TestSumTwoChars@8(char a, char b)",
-		"TestSumTwoShorts", "dll short jsdi:_TestSumTwoShorts@8(short a, short b)",
-		"TestSumTwoLongs", "dll long jsdi:_TestSumTwoLongs@8(long a, long b)",
+		"TestCopyInt32Value", "dll void jsdi:_TestCopyInt32Value@8(Int32Wrapper * src, Int32Wrapper * dst)",
+		"TestSumTwoInt8s", "dll char jsdi:_TestSumTwoInt8s@8(int8 a, int8 b)",
+		"TestSumTwoInt16s", "dll short jsdi:_TestSumTwoInt16s@8(int16 a, int16 b)",
+		"TestSumTwoInt32s", "dll int32 jsdi:_TestSumTwoInt32s@8(int32 a, int32 b)",
 		"TestSumTwoFloats", "dll float jsdi:_TestSumTwoFloats@8(float a, float b)",
 		"TestSumTwoDoubles", "dll double jsdi:_TestSumTwoDoubles@16(double a, double b)",
-		"TestSumThreeLongs", "dll long jsdi:_TestSumThreeLongs@12(long a, long b, long c)",
-		"TestSumFourLongs", "dll long jsdi:_TestSumFourLongs@16(long a, long b, long c, long d)",
-		"TestSumCharPlusInt64", "dll int64 jsdi:_TestSumCharPlusInt64@12(char a, int64 b)",
-		"TestSumPackedCharCharShortLong", "dll long jsdi:_TestSumPackedCharCharShortLong@8(Packed_CharCharShortLong x)",
-		"TestStrLen", "dll long jsdi:_TestStrLen@4([in] string str)",
+		"TestSumThreeInt32s", "dll int32 jsdi:_TestSumThreeInt32s@12(int32 a, int32 b, int32 c)",
+		"TestSumFourInt32s", "dll int32 jsdi:_TestSumFourInt32s@16(int32 a, int32 b, int32 c, int32 d)",
+		"TestSumFiveInt32s", "dll int32 jsdi:_TestSumFiveInt32s@20(int32 a, int32 b, int32 c, int32 d, int32 e)",
+		"TestSumInt8PlusInt64", "dll int64 jsdi:_TestSumInt8PlusInt64@12(char a, int64 b)",
+		"TestSumPackedInt8Int8Int16Int32", "dll int32 jsdi:_TestSumPackedInt8Int8Int16Int32@8(Packed_Int8Int8Int16Int32 x)",
+		"TestStrLen", "dll int32 jsdi:_TestStrLen@4([in] string str)",
 		"TestHelloWorldReturn", "dll string jsdi:_TestHelloWorldReturn@4(bool flag)",
 		"TestHelloWorldOutParam", "dll void jsdi:_TestHelloWorldOutParam@4(StringWrapper * ptr)",
-		"TestHelloWorldOutBuffer", "dll void jsdi:_TestHelloWorldOutBuffer@8(buffer buffer_, long size)",
-		"TestHelloWorldOutBufferAsStr", "dll void jsdi:_TestHelloWorldOutBuffer@8(string buffer_, long size)",
+		"TestHelloWorldOutBuffer", "dll void jsdi:_TestHelloWorldOutBuffer@8(buffer buffer_, int32 size)",
+		"TestHelloWorldOutBufferAsStr", "dll void jsdi:_TestHelloWorldOutBuffer@8(string buffer_, int32 size)",
 		"TestReturnPtrPtrPtrDoubleAsUInt64", "dll int64 jsdi:_TestReturnPtrPtrPtrDoubleAsUInt64@4(PtrPtrDouble * ptr)",
-		"TestSumString", "dll long jsdi:_TestSumString@4(Recursive_StringSum1 * rss)",
-		"TestSumResource", "dll long jsdi:_TestSumResource@8(resource res, ResourceWrapper * pres)",
-		"TestSwap", "dll long jsdi:_TestSwap@4(Swap_StringLongLong * ptr)",
+		"TestSumString", "dll int32 jsdi:_TestSumString@4(Recursive_StringSum1 * rss)",
+		"TestSumResource", "dll int32 jsdi:_TestSumResource@8(resource res, ResourceWrapper * pres)",
+		"TestSwap", "dll int32 jsdi:_TestSwap@4(Swap_StringInt32Int32 * ptr)",
 		"TestReturnString", "dll string jsdi:_TestReturnString@4([in] string str)",
 		"TestReturnPtrString", "dll string jsdi:_TestReturnPtrString@4(StringWrapper * ptr)",
-		"TestReturnStringOutBuffer", "dll string jsdi:_TestReturnStringOutBuffer@12(string str, buffer buffer_, long size)",
-		"TestReturnStatic_Packed_CharCharShortLong",
-			"dll long jsdi:_TestReturnStatic_Packed_CharCharShortLong@4(Packed_CharCharShortLong * ptr)",
-		"TestReturnStatic_Recursive_CharCharShortLong",
-			"dll long jsdi:_TestReturnStatic_Recursive_CharCharShortLong@4(Recursive_CharCharShortLong2 * ptr)",
+		"TestReturnStringOutBuffer", "dll string jsdi:_TestReturnStringOutBuffer@12(string str, buffer buffer_, int32 size)",
+		"TestReturnStatic_Packed_Int8Int8Int16Int32",
+			"dll int32 jsdi:_TestReturnStatic_Packed_Int8Int8Int16Int32@4(Packed_Int8Int8Int16Int32 * ptr)",
+		"TestReturnStatic_Recursive_Int8Int8Int16Int32",
+			"dll int32 jsdi:_TestReturnStatic_Recursive_Int8Int8Int16Int32@4(Recursive_Int8Int8Int16Int32_2 * ptr)",
 		"TestReturnStatic_Recursive_StringSum",
-			"dll long jsdi:_TestReturnStatic_Recursive_StringSum@4(Recursive_StringSum2 * ptr)",
+			"dll int32 jsdi:_TestReturnStatic_Recursive_StringSum@4(Recursive_StringSum2 * ptr)",
 	};
 
 	private static Object eval(String src) {
@@ -153,18 +156,18 @@ public class DllTest {
 	}
 
 	@Test
-	public void testChar() {
-		assertEquals((int)'$', eval("TestChar('$'.Asc())"));
+	public void testInt8() {
+		assertEquals((int)'$', eval("TestInt8('$'.Asc())"));
 	}
 
 	@Test
-	public void testShort() {
-		assertEquals(0xfff, eval("TestShort(0xfff)"));
+	public void testInt16() {
+		assertEquals(0xfff, eval("TestInt16(0xfff)"));
 	}
 
 	@Test
-	public void testLong() {
-		assertEquals(0xcafebabe, eval("TestLong(0xcafebabe)"));
+	public void testInt32() {
+		assertEquals(0xcafebabe, eval("TestInt32(0xcafebabe)"));
 	}
 
 	@Test
@@ -193,18 +196,23 @@ public class DllTest {
 	}
 
 	@Test
-	public void testSumTwoChars() {
-		assertEquals(3, eval("TestSumTwoChars(1, 2)"));
+	public void testCopyInt32Value() {
+		assertEquals(17, eval("TestCopyInt32Value(Object(x: 17), y = Object()); y.x"));
 	}
 
 	@Test
-	public void testSumTwoShorts() {
-		assertEquals(0x7feb, eval("TestSumTwoShorts(0x7f00, 0xeb)"));
+	public void testSumTwoInt8s() {
+		assertEquals(3, eval("TestSumTwoInt8s(1, 2)"));
 	}
 
 	@Test
-	public void testSumTwoLongs() {
-		assertEquals(0x7feb1982, eval("TestSumTwoLongs(0x70e01080, 0x0f0b0902)"));
+	public void testSumTwoInt16s() {
+		assertEquals(0x7feb, eval("TestSumTwoInt16s(0x7f00, 0xeb)"));
+	}
+
+	@Test
+	public void testSumTwoInt32s() {
+		assertEquals(0x7feb1982, eval("TestSumTwoInt32s(0x70e01080, 0x0f0b0902)"));
 	}
 
 	@Test
@@ -218,35 +226,40 @@ public class DllTest {
 	}
 
 	@Test
-	public void testSumThreeLongs() {
-		assertEquals(0x1812feb7, eval("TestSumThreeLongs(0x18000007, 0x00120000, 0x0000feb0)"));
+	public void testSumThreeInt32s() {
+		assertEquals(0x1812feb7, eval("TestSumThreeInt32s(0x18000007, 0x00120000, 0x0000feb0)"));
 	}
 
 	@Test
-	public void testSumFourLongs() {
-		assertEquals(-10, eval("TestSumFourLongs(-1, -2, -3, -4)"));
+	public void testSumFourInt32s() {
+		assertEquals(-10, eval("TestSumFourInt32s(-1, -2, -3, -4)"));
 	}
 
 	@Test
-	public void testSumCharPlusInt64() {
-		assertEquals(0x00000000ffffffffL, eval("TestSumCharPlusInt64(-1, 4 * (1 << 30))"));
+	public void testSumFiveInt32s() {
+		assertEquals(1, eval("TestSumFiveInt32s(-2, 3, -3, 1, 2)"));
 	}
 
 	@Test
-	public void testSumPackedCharCharShortLong() {
-		assertEquals(0, eval("TestSumPackedCharCharShortLong(Object())"));
+	public void testSumInt8PlusInt64() {
+		assertEquals(0x00000000ffffffffL, eval("TestSumInt8PlusInt64(-1, 4 * (1 << 30))"));
+	}
+
+	@Test
+	public void testSumPackedInt8Int8Int16Int32() {
+		assertEquals(0, eval("TestSumPackedInt8Int8Int16Int32(Object())"));
 		assertEquals(
 				100,
-				eval("TestSumPackedCharCharShortLong(Object(b: 50, c: 1000, d: -950))"));
-		assertNeedObject("TestSumPackedCharCharShortLong(%s)",
+				eval("TestSumPackedInt8Int8Int16Int32(Object(b: 50, c: 1000, d: -950))"));
+		assertNeedObject("TestSumPackedInt8Int8Int16Int32(%s)",
 				JSDIException.class, "can't convert .* to object");
 		// In CSuneido, you can get away with passing read-only objects to the
 		// dll marshaller, which happily modifies them. However, it seems like
 		// more consistent behaviour is to throw. Why should the marshaller be
 		// exempt from the read-only object rule?
-		assertThrew(() -> { eval("TestSumPackedCharCharShortLong(#())"); },
+		assertThrew(() -> { eval("TestSumPackedInt8Int8Int16Int32(#())"); },
 				SuException.class, "readonly");
-		assertThrew(() -> { eval("TestSumPackedCharCharShortLong(#(b: 25, c: 1050, d: -875))"); },
+		assertThrew(() -> { eval("TestSumPackedInt8Int8Int16Int32(#(b: 25, c: 1050, d: -875))"); },
 				SuException.class, "readonly");
 	}
 
@@ -437,9 +450,9 @@ public class DllTest {
 
 	@Test
 	public void testStructureCopyOutNull() {
-		for (String structName : new String[] { "Packed_CharCharShortLong",
-				"Recursive_CharCharShortLong2", "Recursive_CharCharShortLong1",
-				"Recursive_CharCharShortLong0", "Recursive_StringSum2",
+		for (String structName : new String[] { "Packed_Int8Int8Int16Int32",
+				"Recursive_Int8Int8Int16Int32_2", "Recursive_Int8Int8Int16Int32_1",
+				"Recursive_Int8Int8Int16Int32_0", "Recursive_StringSum2",
 				"Recursive_StringSum1", "Recursive_StringSum0" }) {
 			for (String nullValue : new String[] { "false", "0" }) {
 				assertEquals(Boolean.FALSE,
@@ -450,31 +463,31 @@ public class DllTest {
 
 	@Test
 	public void testStructureCopyOutDirect() {
-		Object addr = eval("TestReturnStatic_Packed_CharCharShortLong(false)");
+		Object addr = eval("TestReturnStatic_Packed_Int8Int8Int16Int32(false)");
 		assertFalse(Numbers.isZero(addr));
-		assertEquals(addr, eval("TestReturnStatic_Packed_CharCharShortLong(Object(a: 5, d: -1))"));
-		String code = String.format("Packed_CharCharShortLong(%d)", addr);
+		assertEquals(addr, eval("TestReturnStatic_Packed_Int8Int8Int16Int32(Object(a: 5, d: -1))"));
+		String code = String.format("Packed_Int8Int8Int16Int32(%d)", addr);
 		assertEquals(eval("#(a: 5, b: 0, c: 0, d: -1)"), eval(code));
-		assertEquals(addr, eval("TestReturnStatic_Packed_CharCharShortLong(Object(a: 0, b: 5, c: -1))"));
+		assertEquals(addr, eval("TestReturnStatic_Packed_Int8Int8Int16Int32(Object(a: 0, b: 5, c: -1))"));
 		assertEquals(
 				eval("#(a: 0, b: 5, c: -1, d: 0)"),
-				struct("Packed_CharCharShortLong").call1(addr));
+				struct("Packed_Int8Int8Int16Int32").call1(addr));
 	}
 
 	@Test
 	public void testStructureCopyOutIndirect() {
-		Object addr = eval("TestReturnStatic_Recursive_CharCharShortLong(false)");
+		Object addr = eval("TestReturnStatic_Recursive_Int8Int8Int16Int32(false)");
 		assertFalse(Numbers.isZero(addr));
-		assertEquals(addr, eval("TestReturnStatic_Recursive_CharCharShortLong(Object(x: Object(a: 5, d: -1)))"));
-		final String code0 = String.format("Recursive_CharCharShortLong0(%d)", addr); // doesn't engage indirect copy out
+		assertEquals(addr, eval("TestReturnStatic_Recursive_Int8Int8Int16Int32(Object(x: Object(a: 5, d: -1)))"));
+		final String code0 = String.format("Recursive_Int8Int8Int16Int32_0(%d)", addr); // doesn't engage indirect copy out
 		assertEquals(eval("#(x: #(a: 5, b: 0, c: 0, d: -1), inner: 0)"), eval(code0));
-		final String code1 = String.format("Recursive_CharCharShortLong1(%d)", addr); // indirect copy out
+		final String code1 = String.format("Recursive_Int8Int8Int16Int32_1(%d)", addr); // indirect copy out
 		assertEquals(eval("#(x: #(a: 5, b: 0, c: 0, d: -1), inner: false)"), eval(code1));
-		final String code2 = String.format("Recursive_CharCharShortLong2(%d)", addr); // indirect copy out
+		final String code2 = String.format("Recursive_Int8Int8Int16Int32_2(%d)", addr); // indirect copy out
 		assertEquals(eval("#(x: #(a: 5, b: 0, c: 0, d: -1), inner: false)"), eval(code2));
 		assertEquals(
 				addr,
-				eval("TestReturnStatic_Recursive_CharCharShortLong(" +
+				eval("TestReturnStatic_Recursive_Int8Int8Int16Int32(" +
 						"Object(inner: Object(inner: Object(x: Object(c: 5555)))))"
 		));
 		assertEquals(
@@ -529,7 +542,7 @@ public class DllTest {
 	@Test
 	public void testDllAsClassMember() {
 		assertEquals(12,
-			eval("class { CallClass(@x) { .mydll(@x) } mydll: dll long jsdi:_TestStrLen@4([in] string str) }('hello, world')")
+			eval("class { CallClass(@x) { .mydll(@x) } mydll: dll int32 jsdi:_TestStrLen@4([in] string str) }('hello, world')")
 		);
 	}
 
