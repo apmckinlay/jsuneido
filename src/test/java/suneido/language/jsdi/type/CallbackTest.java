@@ -38,63 +38,63 @@ public class CallbackTest {
 
 	private static ContextLayered CONTEXT;
 	private static final String[] NAMED_TYPES = {
-		"TestCallback_Long1", "callback(long a)",
-		"TestCallback_Long2", "callback(long a, long b)",
-		"TestCallback_Packed_CharCharShortLong", "callback(Packed_CharCharShortLong a)",
+		"TestCallback_Int32_1", "callback(int32 a)",
+		"TestCallback_Int32_2", "callback(int32 a, int32 b)",
+		"TestCallback_Packed_Int8Int8Int16Int32", "callback(Packed_Int8Int8Int16Int32 a)",
 		"TestCallback_Recursive_StringSum", "callback(Recursive_StringSum1_Callback * ptr)",
 		"TestCallback_Recursive_StringSum_Bad", "callback(Recursive_StringSum1_Dll * ptr)",
-		"Packed_CharCharShortLong", "struct { char a; char b; short c; long d; }",
+		"Packed_Int8Int8Int16Int32", "struct { int8 a; int8 b; int16 c; int32 d; }",
 		"Recursive_StringSum1_Dll",
 			"struct\n" +
 			"\t{\n" +
-			"\tPacked_CharCharShortLong[2] x\n" +
+			"\tPacked_Int8Int8Int16Int32[2] x\n" +
 			"\tstring str\n" +
 			"\tbuffer buffer_\n" +
-			"\tlong len\n" +
+			"\tint32 len\n" +
 			"\tRecursive_StringSum0_Dll * inner\n" +
 			"\t}",
 		"Recursive_StringSum0_Dll",
 			"struct\n" +
 			"\t{\n" +
-			"\tPacked_CharCharShortLong[2] x\n" +
+			"\tPacked_Int8Int8Int16Int32[2] x\n" +
 			"\tstring str\n" +
 			"\tbuffer buffer_\n" +
-			"\tlong len\n" +
-			"\tlong inner\n" +
+			"\tint32 len\n" +
+			"\tpointer inner\n" +
 			"\t}",
 		"Recursive_StringSum1_Callback",
 			"struct\n" +
 			"\t{\n" +
-			"\tPacked_CharCharShortLong[2] x\n" +
+			"\tPacked_Int8Int8Int16Int32[2] x\n" +
 			"\tstring str\n" +
 			"\tstring buffer_\n" +
-			"\tlong len\n" +
+			"\tint32 len\n" +
 			"\tRecursive_StringSum0_Callback * inner\n" +
 			"\t}",
 		"Recursive_StringSum0_Callback",
 			"struct\n" +
 			"\t{\n" +
-			"\tPacked_CharCharShortLong[2] x\n" +
+			"\tPacked_Int8Int8Int16Int32[2] x\n" +
 			"\tstring str\n" +
 			"\tstring buffer_\n" +
-			"\tlong len\n" +
-			"\tlong inner\n" +
+			"\tint32 len\n" +
+			"\tpointer inner\n" +
 			"\t}",
-		"TestInvokeCallback_Long1",
-			"dll long jsdi:_TestInvokeCallback_Long1@8(TestCallback_Long1 f, long a)",
-		"TestInvokeCallback_Long1_2",
-			"dll long jsdi:_TestInvokeCallback_Long1_2@16(" +
-					"TestCallback_Long1 f, long a, TestCallback_Long1 g, long b)",
-		"TestInvokeCallback_Long2",
-			"dll long jsdi:_TestInvokeCallback_Long2@12(TestCallback_Long2 f, long a, long b)",
-		"TestInvokeCallback_Packed_CharCharShortLong",
-			"dll long jsdi:_TestInvokeCallback_Packed_CharCharShortLong@12(" +
-				"TestCallback_Packed_CharCharShortLong f, Packed_CharCharShortLong a)",
+		"TestInvokeCallback_Int32_1",
+			"dll int32 jsdi:_TestInvokeCallback_Int32_1@8(TestCallback_Int32_1 f, int32 a)",
+		"TestInvokeCallback_Int32_1_2",
+			"dll int32 jsdi:_TestInvokeCallback_Int32_1_2@16(" +
+					"TestCallback_Int32_1 f, int32 a, TestCallback_Int32_1 g, int32 b)",
+		"TestInvokeCallback_Int32_2",
+			"dll int32 jsdi:_TestInvokeCallback_Int32_2@12(TestCallback_Int32_2 f, int32 a, int32 b)",
+		"TestInvokeCallback_Packed_Int8Int8Int16Int32",
+			"dll int32 jsdi:_TestInvokeCallback_Packed_Int8Int8Int16Int32@12(" +
+				"TestCallback_Packed_Int8Int8Int16Int32 f, Packed_Int8Int8Int16Int32 a)",
 		"TestInvokeCallback_Recursive_StringSum",
-			"dll long jsdi:_TestInvokeCallback_Recursive_StringSum@8(" +
+			"dll int32 jsdi:_TestInvokeCallback_Recursive_StringSum@8(" +
 				"TestCallback_Recursive_StringSum f, Recursive_StringSum1_Dll * ptr)",
 		"TestInvokeCallback_Recursive_StringSum_Bad",
-			"dll long jsdi:_TestInvokeCallback_Recursive_StringSum@8(" +
+			"dll int32 jsdi:_TestInvokeCallback_Recursive_StringSum@8(" +
 				"TestCallback_Recursive_StringSum_Bad f, Recursive_StringSum1_Dll * ptr)",
 		"PCCSL", "function(a = 0, b = 0, c = 0, d = 0) { return Object(a: a, b: b, c: c, d: d) }",
 		"RSS",
@@ -146,7 +146,7 @@ public class CallbackTest {
 	public void testBasicValue1Function() {
 		assertEquals(
 			eval("#(11, true)"),
-			eval("Object(TestInvokeCallback_Long1( f = function(a) { return a }, 11), ClearCallback(f))")
+			eval("Object(TestInvokeCallback_Int32_1( f = function(a) { return a }, 11), ClearCallback(f))")
 		);
 		assertEquals(new SuContainer(), eval("Callbacks()"));
 	}
@@ -157,7 +157,7 @@ public class CallbackTest {
 			eval("#(21, true)"),
 			eval(
 				"x = class { New(.value) { } Method(a, b = -1) { return .value + a - b } };" +
-				"Object(TestInvokeCallback_Long1((y = new x(30)).Method, -10), ClearCallback(y.Method))"
+				"Object(TestInvokeCallback_Int32_1((y = new x(30)).Method, -10), ClearCallback(y.Method))"
 			)
 		);
 		assertEquals(new SuContainer(), eval("Callbacks()"));
@@ -169,7 +169,7 @@ public class CallbackTest {
 			eval("Object(0x1 << 18, true)"),
 			eval(
 				"x = class { Call(y) { return y * y } } ; " +
-				"Object(TestInvokeCallback_Long1(z = x(), 0x1 << 9), ClearCallback(z))"
+				"Object(TestInvokeCallback_Int32_1(z = x(), 0x1 << 9), ClearCallback(z))"
 			)
 		);
 		assertEquals(new SuContainer(), eval("Callbacks()"));
@@ -181,7 +181,7 @@ public class CallbackTest {
 			eval("Object(0x1 << 16, true, false)"),
 			eval(
 				"x = class { CallClass(y) { return y / 2 } } ; " +
-				"Object(TestInvokeCallback_Long1(x, 0x1 << 17), ClearCallback(x), ClearCallback(x))"
+				"Object(TestInvokeCallback_Int32_1(x, 0x1 << 17), ClearCallback(x), ClearCallback(x))"
 			)
 		);
 		assertEquals(new SuContainer(), eval("Callbacks()"));
@@ -191,7 +191,7 @@ public class CallbackTest {
 	public void testBasicValue1Block() {
 		assertEquals(
 			eval("#(31, true)"),
-			eval("Object(TestInvokeCallback_Long1(x = { |a| a }, 31), ClearCallback(x))")
+			eval("Object(TestInvokeCallback_Int32_1(x = { |a| a }, 31), ClearCallback(x))")
 		);
 		assertEquals(new SuContainer(), eval("Callbacks()"));
 	}
@@ -202,7 +202,7 @@ public class CallbackTest {
 			eval("#(601, true)"),
 			eval(
 				"a = Object(f: function() { return 300 })\n" +
-				"Object(TestInvokeCallback_Long1(x = { |b| (a.f)() + b }, 301), ClearCallback(x))"
+				"Object(TestInvokeCallback_Int32_1(x = { |b| (a.f)() + b }, 301), ClearCallback(x))"
 			)
 		);
 		assertEquals(new SuContainer(), eval("Callbacks()"));
@@ -210,7 +210,7 @@ public class CallbackTest {
 
 	@Test
 	public void testBasicValue2Function() {
-		assertEquals(-1, eval("TestInvokeCallback_Long2( function(a, b) { return a + b }, 1000, -1001)"));
+		assertEquals(-1, eval("TestInvokeCallback_Int32_2( function(a, b) { return a + b }, 1000, -1001)"));
 		assertFalse(new Integer(0).equals(eval("Callbacks().Size()")));
 	}
 
@@ -220,7 +220,7 @@ public class CallbackTest {
 			12,
 			eval(
 				"x = class { Method(a = 1, b = 2) { return a * b } } \n" +
-				"TestInvokeCallback_Long2(x().Method, -3, -4)"
+				"TestInvokeCallback_Int32_2(x().Method, -3, -4)"
 			)
 		);
 		assertFalse(new Integer(0).equals(eval("Callbacks().Size()")));
@@ -232,7 +232,7 @@ public class CallbackTest {
 			312,
 			eval(
 				"x = class { Call(a, b = 1, c = 2) { return a * b * c } } ; " +
-				"TestInvokeCallback_Long2(x(), 12, 13)"
+				"TestInvokeCallback_Int32_2(x(), 12, 13)"
 			)
 		);
 		assertFalse(new Integer(0).equals(eval("Callbacks().Size()")));
@@ -244,7 +244,7 @@ public class CallbackTest {
 			999,
 			eval(
 				"x = class { CallClass(@aa) { sum = 0; for (a in aa) { sum += a }; return sum } } ; " +
-				"TestInvokeCallback_Long2(x, -1, 1000)"
+				"TestInvokeCallback_Int32_2(x, -1, 1000)"
 			)
 		);
 		assertFalse(new Integer(0).equals(eval("Callbacks().Size()")));
@@ -254,7 +254,7 @@ public class CallbackTest {
 	public void testBasicValue2Block() {
 		assertEquals(
 			0x19820207,
-			eval("TestInvokeCallback_Long2( { |a,b| a | b }, 0x19820000, 0x207)")
+			eval("TestInvokeCallback_Int32_2( { |a,b| a | b }, 0x19820000, 0x207)")
 		);
 		assertFalse(new Integer(0).equals(eval("Callbacks().Size()")));
 	}
@@ -267,7 +267,7 @@ public class CallbackTest {
 				"x = Object(f: function(a) { return a * a * a * a })\n" +
 				"y = { |a,b| (x.f)(a) + b }\n" +
 				"x.f = function(a) { return a * a * a }\n" +
-				"TestInvokeCallback_Long2(y, 2, 3)"
+				"TestInvokeCallback_Int32_2(y, 2, 3)"
 			)
 		);
 		assertFalse(new Integer(0).equals(eval("Callbacks().Size()")));
@@ -278,7 +278,7 @@ public class CallbackTest {
 		assertEquals(
 			-10,
 			eval(
-				"TestInvokeCallback_Packed_CharCharShortLong(" +
+				"TestInvokeCallback_Packed_Int8Int8Int16Int32(" +
 					"function(x) { return x.a + x.b + x.c + x.d }," +
 					"PCCSL(-1, -2, -3, -4)" +
 				")"
@@ -292,7 +292,7 @@ public class CallbackTest {
 			Integer.MIN_VALUE + 7,
 			eval(
 				"c = class { DoStuff(a) { return a.a - a.b - a.c - a.d } }\n" +
-				"TestInvokeCallback_Packed_CharCharShortLong(" +
+				"TestInvokeCallback_Packed_Int8Int8Int16Int32(" +
 					"(new c).DoStuff," +
 					"PCCSL(1, -2, -3, " + -(Integer.MIN_VALUE + 1) + ")" +
 				")"
@@ -347,7 +347,7 @@ public class CallbackTest {
 	public void testAtParam() {
 		assertEquals(
 			3,
-			eval("TestInvokeCallback_Long2(function(@a) { s = 0; for (b in a) s += b; return s; }, 1, 2)")
+			eval("TestInvokeCallback_Int32_2(function(@a) { s = 0; for (b in a) s += b; return s; }, 1, 2)")
 		);
 	}
 
@@ -375,7 +375,7 @@ public class CallbackTest {
 	@Test
 	public void testExceptionParamMismatch() {
 		assertThrew(() -> {
-			eval("TestInvokeCallback_Long1(function(x) { x.Add('y') }, 2)");
+			eval("TestInvokeCallback_Int32_1(function(x) { x.Add('y') }, 2)");
 			}, SuException.class, "method not found:.*Add");
 	}
 
@@ -385,7 +385,7 @@ public class CallbackTest {
 
 	@Test
 	public void testExceptionReturnValueNone_Basic() {
-		assertEquals(0, eval("TestInvokeCallback_Long1(function(@x) { }, 1)"));
+		assertEquals(0, eval("TestInvokeCallback_Int32_1(function(@x) { }, 1)"));
 	}
 
 	@Test
@@ -396,7 +396,7 @@ public class CallbackTest {
 	@Test
 	public void testExceptionReturnValueNotConvertible() {
 		assertThrew(() -> {
-			eval("TestInvokeCallback_Long1(function(a) { return 'Michalek/Spezza/Ryan' }, 2)");
+			eval("TestInvokeCallback_Int32_1(function(a) { return 'Michalek/Spezza/Ryan' }, 2)");
 			}, SuException.class, "can't convert");
 	}
 
@@ -408,7 +408,7 @@ public class CallbackTest {
 	public void testExceptionThrowBasic() {
 		// Straightforward test -- make sure it works as a one-off
 		assertThrew(() -> {
-			eval("TestInvokeCallback_Long1(function(a) { throw a }, 444)");
+			eval("TestInvokeCallback_Int32_1(function(a) { throw a }, 444)");
 			}, SuException.class, "444");
 		// In case exception throwing causes subtle problems which might be
 		// detected later, run a stress test...
@@ -417,7 +417,7 @@ public class CallbackTest {
 			int y = k + 1;
 			String expected = String.format("#\\(%d, %d\\)", x, y); // escape parentheses for regex
 			final String code = String
-					.format("TestInvokeCallback_Long2(function(@a) { throw Display(a) }, %d, %d)",
+					.format("TestInvokeCallback_Int32_2(function(@a) { throw Display(a) }, %d, %d)",
 							x, y);
 			assertThrew(() -> {
 				eval(code);
@@ -444,7 +444,7 @@ public class CallbackTest {
 			"\tif 0 < n\n" +
 			"\t\t{\n" +
 			"\t\ttry\n" +
-			"\t\t\tTestInvokeCallback_Long1(this, n - 1)\n" +
+			"\t\t\tTestInvokeCallback_Int32_1(this, n - 1)\n" +
 			"\t\tcatch (x)\n" +
 			"\t\t\tthrow x + 1\n" +
 			"\t\t}\n" +
@@ -466,10 +466,10 @@ public class CallbackTest {
 		//             to call a second callback, y(), before F() returns back
 		//             to Suneido.
 		assertThrew(() -> {
-			eval("TestInvokeCallback_Long1_2({ throw 'a' }, 1, {  }, 2)");
+			eval("TestInvokeCallback_Int32_1_2({ throw 'a' }, 1, {  }, 2)");
 			}, SuException.class, "a");
 		assertThrew(() -> {
-			eval("TestInvokeCallback_Long1_2({ throw 'a' }, 1, { throw 'b' }, 2)");
+			eval("TestInvokeCallback_Int32_1_2({ throw 'a' }, 1, { throw 'b' }, 2)");
 			}, SuException.class, "a");
 	}
 
@@ -502,7 +502,7 @@ public class CallbackTest {
 		// ensure that this aspect of the program behaves as expected.
 		final String code =
 			"f = function(n) " +
-			"{ return 0 < n ? TestInvokeCallback_Long1(this, n - 1) + 1: n }\n" +
+			"{ return 0 < n ? TestInvokeCallback_Int32_1(this, n - 1) + 1: n }\n" +
 			"f(10)";
 		assertEquals(10, eval(code));
 	}
@@ -519,7 +519,7 @@ public class CallbackTest {
 		final String code =
 			"f = function(n) " +
 			"{ ClearCallback(this); return 2 * n; }\n" +
-			"TestInvokeCallback_Long1(f, 3)";
+			"TestInvokeCallback_Int32_1(f, 3)";
 		assertEquals(6, eval(code));
 		assertEquals(eval("#()"), eval("Callbacks()"));
 	}
