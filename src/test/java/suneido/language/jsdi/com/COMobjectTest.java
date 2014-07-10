@@ -37,7 +37,7 @@ public class COMobjectTest {
 
 	private static ContextLayered CONTEXT;
 	private static final String[] NAMED_TYPES = {
-		"TestCreateComObject", "dll long jsdi:_TestCreateComObject@0()",
+		"TestCreateComObject", "dll long jsdi:TestCreateComObject()",
 		"MakeTestObject", "function() { COMobject(TestCreateComObject()) }"
 	};
 

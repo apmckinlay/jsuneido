@@ -81,20 +81,20 @@ public class CallbackTest {
 			"\tpointer inner\n" +
 			"\t}",
 		"TestInvokeCallback_Int32_1",
-			"dll int32 jsdi:_TestInvokeCallback_Int32_1@8(TestCallback_Int32_1 f, int32 a)",
+			"dll int32 jsdi:TestInvokeCallback_Int32_1(TestCallback_Int32_1 f, int32 a)",
 		"TestInvokeCallback_Int32_1_2",
-			"dll int32 jsdi:_TestInvokeCallback_Int32_1_2@16(" +
+			"dll int32 jsdi:TestInvokeCallback_Int32_1_2(" +
 					"TestCallback_Int32_1 f, int32 a, TestCallback_Int32_1 g, int32 b)",
 		"TestInvokeCallback_Int32_2",
-			"dll int32 jsdi:_TestInvokeCallback_Int32_2@12(TestCallback_Int32_2 f, int32 a, int32 b)",
+			"dll int32 jsdi:TestInvokeCallback_Int32_2(TestCallback_Int32_2 f, int32 a, int32 b)",
 		"TestInvokeCallback_Packed_Int8Int8Int16Int32",
-			"dll int32 jsdi:_TestInvokeCallback_Packed_Int8Int8Int16Int32@12(" +
+			"dll int32 jsdi:TestInvokeCallback_Packed_Int8Int8Int16Int32(" +
 				"TestCallback_Packed_Int8Int8Int16Int32 f, Packed_Int8Int8Int16Int32 a)",
 		"TestInvokeCallback_Recursive_StringSum",
-			"dll int32 jsdi:_TestInvokeCallback_Recursive_StringSum@8(" +
+			"dll int32 jsdi:TestInvokeCallback_Recursive_StringSum(" +
 				"TestCallback_Recursive_StringSum f, Recursive_StringSum1_Dll * ptr)",
 		"TestInvokeCallback_Recursive_StringSum_Bad",
-			"dll int32 jsdi:_TestInvokeCallback_Recursive_StringSum@8(" +
+			"dll int32 jsdi:TestInvokeCallback_Recursive_StringSum(" +
 				"TestCallback_Recursive_StringSum_Bad f, Recursive_StringSum1_Dll * ptr)",
 		"PCCSL", "function(a = 0, b = 0, c = 0, d = 0) { return Object(a: a, b: b, c: c, d: d) }",
 		"RSS",

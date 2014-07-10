@@ -55,7 +55,7 @@ public enum TestCall {
 			Mask.INT32, makePackedCharCharShortLongPlan()),
 	STRLEN("TestStrLen", Mask.INT32, makeInStringPlan()),
 	HELLO_WORLD_RETURN("TestHelloWorldReturn", Mask.INT32,
-			makeHelloWorldReturnPlan(), PrimitiveSize.BOOL),
+			makeHelloWorldReturnPlan()),
 	HELLO_WORLD_OUT_PARAM("TestHelloWorldOutParam", Mask.VOID,
 			pointerPlan(PrimitiveSize.WORD)),
 	HELLO_WORLD_OUT_BUFFER("TestHelloWorldOutBuffer", Mask.VOID,
@@ -67,14 +67,10 @@ public enum TestCall {
 	SUM_STRING("TestSumString", Mask.INT32, makeSumStringPlan_TwoTier()),
 	SUM_RESOURCE("TestSumResource", Mask.INT32, makeSumResourcePlan()),
 	SWAP("TestSwap", Mask.INT32, makeSwapPlan()),
-	RETURN_STRING("TestReturnString", Mask.VOID, makeReturnStringPlan(),
-			PrimitiveSize.POINTER),
-	RETURN_PTR_STRING("TestReturnPtrString", Mask.VOID,
-			makeReturnPtrStringPlan(), PrimitiveSize.POINTER),
-	RETURN_STRING_OUT_BUFFER(
-			"TestReturnStringOutBuffer", Mask.VOID,
-			makeReturnStringOutBufferPlan(), 2 * PrimitiveSize.POINTER
-					+ PrimitiveSize.INT32);
+	RETURN_STRING("TestReturnString", Mask.VOID, makeReturnStringPlan()),
+	RETURN_PTR_STRING("TestReturnPtrString", Mask.VOID, makeReturnPtrStringPlan()),
+	RETURN_STRING_OUT_BUFFER("TestReturnStringOutBuffer", Mask.VOID,
+			makeReturnStringOutBufferPlan());
 
 	private final QuickDll qp;
 	public final long ptr;
@@ -87,14 +83,7 @@ public enum TestCall {
 
 	private TestCall(String funcName, Mask returnValueMask,
 			MarshallPlan marshallPlan) {
-		this(funcName, returnValueMask, marshallPlan, marshallPlan
-				.getSizeDirect());
-	}
-
-	private TestCall(String funcName, Mask returnValueMask,
-			MarshallPlan marshallPlan, int paramSize) {
-		qp = new QuickDll("jsdi", '_' + funcName + "@"
-				+ PrimitiveSize.sizeWholeWords(paramSize));
+		qp = new QuickDll("jsdi", funcName);
 		ptr = qp.ptr;
 		this.returnValueMask = returnValueMask;
 		this.plan = marshallPlan;

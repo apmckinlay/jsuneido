@@ -23,8 +23,8 @@ import suneido.language.jsdi.type.PrimitiveSize;
 import suneido.util.testing.Assumption;
 
 /**
- * Test for the native calling mechanism using the <code>_Test*@#</code>
- * functions exported from the JSDI DLL.
+ * Test for the native calling mechanism using the <code>Test*</code> functions
+ * exported from the JSDI DLL.
  *
  * @author Victor Schappert
  * @since 20130723
