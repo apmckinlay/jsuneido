@@ -29,7 +29,7 @@ import suneido.util.testing.Assumption;
 public class ParseAndCompileDllTest {
 
 	public final String EVERYTHING =
-			"dll        void jsdi:_TestVoid@0\n" +
+			"dll        void jsdi:TestVoid\n" +
 				"\t(\n" +
 				"\tbool a,\n" +
 				"\tbool * pa,\n" +
@@ -236,7 +236,7 @@ public class ParseAndCompileDllTest {
 
 	@Test(expected=SuException.class)
 	public void compileDuplicateParameterName() {
-		compile("dll long jsdi:_TestVoid@0(bool a, long a)");
+		compile("dll long jsdi:TestVoid(bool a, long a)");
 	}
 
 	@Test
@@ -245,7 +245,7 @@ public class ParseAndCompileDllTest {
 		for (String returnType : VALID_RETURN_TYPES) {
 			sb.delete(4, sb.length());
 			sb.append(returnType);
-			sb.append(" jsdi:_TestVoid@0()");
+			sb.append(" jsdi:TestVoid()");
 			compile(sb.toString());
 		}
 	}
@@ -257,7 +257,7 @@ public class ParseAndCompileDllTest {
 		for (String returnType : INVALID_RETURN_TYPES) {
 			sb.delete(4, sb.length());
 			sb.append(returnType);
-			sb.append(" jsdi:_TestVoid@0()");
+			sb.append(" jsdi:TestVoid()");
 			assertThrew(() -> { compile(sb.toString()); },
 				SuException.class, "invalid dll return type");
 		}
@@ -270,7 +270,7 @@ public class ParseAndCompileDllTest {
 		for (String returnType : INVALID_RETURN_TYPES_SYNTAX) {
 			sb.delete(4, sb.length());
 			sb.append(returnType);
-			sb.append(" jsdi:_TestVoid@0()");
+			sb.append(" jsdi:TestVoid()");
 			assertThrew(() -> { compile(sb.toString()); },
 				SuException.class, "syntax error");
 		}
@@ -288,7 +288,7 @@ public class ParseAndCompileDllTest {
 
 	@Test
 	public void compileInStringParam() {
-		compile("dll void jsdi:_TestVoid@0([in] string a)");
+		compile("dll void jsdi:TestVoid([in] string a)");
 	}
 
 	@Test
@@ -310,7 +310,7 @@ public class ParseAndCompileDllTest {
 		int N = 0;
 		for (String typeName : typeNames) {
 			try {
-				final String code = "dll void jsdi:_TestVoid@0([in] " + typeName
+				final String code = "dll void jsdi:TestVoid([in] " + typeName
 						+ " x)";
 				compile(code);
 			} catch (SuException e) {
@@ -328,15 +328,15 @@ public class ParseAndCompileDllTest {
 	@Test
 	public void compileErrors() {
 		String bad[] = {
-			"dll NotARealType jsdi:_TestVoid@0()",
-			"dll long[4] jsdi:_TestVoid@0()",
-			"dll char * jsdi:_TestVoid@0()",
-			"dll buffer jsdi:_TestVoid@0()",
-			"dll [in] string jsdi:_TestVoid@0()",
-			"dll void jsdi:_TestVoid@0(string * ps)",
-			"dll void jsdi:_TestVoid@0(buffer * pb)",
-			"dll void jsdi:_TestVoid@0(resource * pr)",
-			"dll void jsdi:_TestVoid@0(resource[2] ar)"
+			"dll NotARealType jsdi:TestVoid()",
+			"dll long[4] jsdi:TestVoid()",
+			"dll char * jsdi:TestVoid()",
+			"dll buffer jsdi:TestVoid()",
+			"dll [in] string jsdi:TestVoid()",
+			"dll void jsdi:TestVoid(string * ps)",
+			"dll void jsdi:TestVoid(buffer * pb)",
+			"dll void jsdi:TestVoid(resource * pr)",
+			"dll void jsdi:TestVoid(resource[2] ar)"
 		};
 		for (final String s : bad)
 			assertThrew(() -> { compile(s); });

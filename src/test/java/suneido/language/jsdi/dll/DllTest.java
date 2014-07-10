@@ -83,44 +83,44 @@ public class DllTest {
 		"ResourceWrapper", "struct { resource x }",
 		"PtrDouble", "struct { DoubleWrapper * x }",
 		"PtrPtrDouble", "struct { PtrDouble * x }",
-		"TestVoid", "dll void jsdi:_TestVoid@0()",
-		"TestInt8", "dll int8 jsdi:_TestInt8@4(int8 a)",
-		"TestInt16", "dll int16 jsdi:_TestInt16@4(int16 a)",
-		"TestInt32", "dll int32 jsdi:_TestInt32@4(int32 a)",
-		"TestInt64", "dll int64 jsdi:_TestInt64@8(int64 a)",
-		"TestReturn1_0Float", "dll float jsdi:_TestReturn1_0Float@0()",
-		"TestReturn1_0Double", "dll double jsdi:_TestReturn1_0Double@0()",
-		"TestFloat", "dll float jsdi:_TestFloat@4(float a)",
-		"TestDouble", "dll double jsdi:_TestDouble@8(double a)",
-		"TestCopyInt32Value", "dll void jsdi:_TestCopyInt32Value@8(Int32Wrapper * src, Int32Wrapper * dst)",
-		"TestSumTwoInt8s", "dll char jsdi:_TestSumTwoInt8s@8(int8 a, int8 b)",
-		"TestSumTwoInt16s", "dll short jsdi:_TestSumTwoInt16s@8(int16 a, int16 b)",
-		"TestSumTwoInt32s", "dll int32 jsdi:_TestSumTwoInt32s@8(int32 a, int32 b)",
-		"TestSumTwoFloats", "dll float jsdi:_TestSumTwoFloats@8(float a, float b)",
-		"TestSumTwoDoubles", "dll double jsdi:_TestSumTwoDoubles@16(double a, double b)",
-		"TestSumThreeInt32s", "dll int32 jsdi:_TestSumThreeInt32s@12(int32 a, int32 b, int32 c)",
-		"TestSumFourInt32s", "dll int32 jsdi:_TestSumFourInt32s@16(int32 a, int32 b, int32 c, int32 d)",
-		"TestSumFiveInt32s", "dll int32 jsdi:_TestSumFiveInt32s@20(int32 a, int32 b, int32 c, int32 d, int32 e)",
-		"TestSumInt8PlusInt64", "dll int64 jsdi:_TestSumInt8PlusInt64@12(char a, int64 b)",
-		"TestSumPackedInt8Int8Int16Int32", "dll int32 jsdi:_TestSumPackedInt8Int8Int16Int32@8(Packed_Int8Int8Int16Int32 x)",
-		"TestStrLen", "dll int32 jsdi:_TestStrLen@4([in] string str)",
-		"TestHelloWorldReturn", "dll string jsdi:_TestHelloWorldReturn@4(bool flag)",
-		"TestHelloWorldOutParam", "dll void jsdi:_TestHelloWorldOutParam@4(StringWrapper * ptr)",
-		"TestHelloWorldOutBuffer", "dll void jsdi:_TestHelloWorldOutBuffer@8(buffer buffer_, int32 size)",
-		"TestHelloWorldOutBufferAsStr", "dll void jsdi:_TestHelloWorldOutBuffer@8(string buffer_, int32 size)",
-		"TestReturnPtrPtrPtrDoubleAsUInt64", "dll int64 jsdi:_TestReturnPtrPtrPtrDoubleAsUInt64@4(PtrPtrDouble * ptr)",
-		"TestSumString", "dll int32 jsdi:_TestSumString@4(Recursive_StringSum1 * rss)",
-		"TestSumResource", "dll int32 jsdi:_TestSumResource@8(resource res, ResourceWrapper * pres)",
-		"TestSwap", "dll int32 jsdi:_TestSwap@4(Swap_StringInt32Int32 * ptr)",
-		"TestReturnString", "dll string jsdi:_TestReturnString@4([in] string str)",
-		"TestReturnPtrString", "dll string jsdi:_TestReturnPtrString@4(StringWrapper * ptr)",
-		"TestReturnStringOutBuffer", "dll string jsdi:_TestReturnStringOutBuffer@12(string str, buffer buffer_, int32 size)",
+		"TestVoid", "dll void jsdi:TestVoid()",
+		"TestInt8", "dll int8 jsdi:TestInt8(int8 a)",
+		"TestInt16", "dll int16 jsdi:TestInt16(int16 a)",
+		"TestInt32", "dll int32 jsdi:TestInt32(int32 a)",
+		"TestInt64", "dll int64 jsdi:TestInt64(int64 a)",
+		"TestReturn1_0Float", "dll float jsdi:TestReturn1_0Float()",
+		"TestReturn1_0Double", "dll double jsdi:TestReturn1_0Double()",
+		"TestFloat", "dll float jsdi:TestFloat(float a)",
+		"TestDouble", "dll double jsdi:TestDouble(double a)",
+		"TestCopyInt32Value", "dll void jsdi:TestCopyInt32Value(Int32Wrapper * src, Int32Wrapper * dst)",
+		"TestSumTwoInt8s", "dll char jsdi:TestSumTwoInt8s(int8 a, int8 b)",
+		"TestSumTwoInt16s", "dll short jsdi:TestSumTwoInt16s(int16 a, int16 b)",
+		"TestSumTwoInt32s", "dll int32 jsdi:TestSumTwoInt32s(int32 a, int32 b)",
+		"TestSumTwoFloats", "dll float jsdi:TestSumTwoFloats(float a, float b)",
+		"TestSumTwoDoubles", "dll double jsdi:TestSumTwoDoubles(double a, double b)",
+		"TestSumThreeInt32s", "dll int32 jsdi:TestSumThreeInt32s(int32 a, int32 b, int32 c)",
+		"TestSumFourInt32s", "dll int32 jsdi:TestSumFourInt32s(int32 a, int32 b, int32 c, int32 d)",
+		"TestSumFiveInt32s", "dll int32 jsdi:TestSumFiveInt32s(int32 a, int32 b, int32 c, int32 d, int32 e)",
+		"TestSumInt8PlusInt64", "dll int64 jsdi:TestSumInt8PlusInt64(char a, int64 b)",
+		"TestSumPackedInt8Int8Int16Int32", "dll int32 jsdi:TestSumPackedInt8Int8Int16Int32(Packed_Int8Int8Int16Int32 x)",
+		"TestStrLen", "dll int32 jsdi:TestStrLen([in] string str)",
+		"TestHelloWorldReturn", "dll string jsdi:TestHelloWorldReturn(bool flag)",
+		"TestHelloWorldOutParam", "dll void jsdi:TestHelloWorldOutParam(StringWrapper * ptr)",
+		"TestHelloWorldOutBuffer", "dll void jsdi:TestHelloWorldOutBuffer(buffer buffer_, int32 size)",
+		"TestHelloWorldOutBufferAsStr", "dll void jsdi:TestHelloWorldOutBuffer(string buffer_, int32 size)",
+		"TestReturnPtrPtrPtrDoubleAsUInt64", "dll int64 jsdi:TestReturnPtrPtrPtrDoubleAsUInt64(PtrPtrDouble * ptr)",
+		"TestSumString", "dll int32 jsdi:TestSumString(Recursive_StringSum1 * rss)",
+		"TestSumResource", "dll int32 jsdi:TestSumResource(resource res, ResourceWrapper * pres)",
+		"TestSwap", "dll int32 jsdi:TestSwap(Swap_StringInt32Int32 * ptr)",
+		"TestReturnString", "dll string jsdi:TestReturnString([in] string str)",
+		"TestReturnPtrString", "dll string jsdi:TestReturnPtrString(StringWrapper * ptr)",
+		"TestReturnStringOutBuffer", "dll string jsdi:TestReturnStringOutBuffer(string str, buffer buffer_, int32 size)",
 		"TestReturnStatic_Packed_Int8Int8Int16Int32",
-			"dll int32 jsdi:_TestReturnStatic_Packed_Int8Int8Int16Int32@4(Packed_Int8Int8Int16Int32 * ptr)",
+			"dll int32 jsdi:TestReturnStatic_Packed_Int8Int8Int16Int32(Packed_Int8Int8Int16Int32 * ptr)",
 		"TestReturnStatic_Recursive_Int8Int8Int16Int32",
-			"dll int32 jsdi:_TestReturnStatic_Recursive_Int8Int8Int16Int32@4(Recursive_Int8Int8Int16Int32_2 * ptr)",
+			"dll int32 jsdi:TestReturnStatic_Recursive_Int8Int8Int16Int32(Recursive_Int8Int8Int16Int32_2 * ptr)",
 		"TestReturnStatic_Recursive_StringSum",
-			"dll int32 jsdi:_TestReturnStatic_Recursive_StringSum@4(Recursive_StringSum2 * ptr)",
+			"dll int32 jsdi:TestReturnStatic_Recursive_StringSum(Recursive_StringSum2 * ptr)",
 	};
 
 	private static Object eval(String src) {
@@ -542,7 +542,7 @@ public class DllTest {
 	@Test
 	public void testDllAsClassMember() {
 		assertEquals(12,
-			eval("class { CallClass(@x) { .mydll(@x) } mydll: dll int32 jsdi:_TestStrLen@4([in] string str) }('hello, world')")
+			eval("class { CallClass(@x) { .mydll(@x) } mydll: dll int32 jsdi:TestStrLen([in] string str) }('hello, world')")
 		);
 	}
 
@@ -550,7 +550,7 @@ public class DllTest {
 	public void testDllAsInstanceMember() {
 		assertEquals(
 			-19800725L,
-			eval("class { Call(@x) { .mydll(@x) } mydll: dll int64 jsdi:_TestInt64@8(int64 a) }()(-19800725)")
+			eval("class { Call(@x) { .mydll(@x) } mydll: dll int64 jsdi:TestInt64(int64 a) }()(-19800725)")
 		);
 	}
 }
