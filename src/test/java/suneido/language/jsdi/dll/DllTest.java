@@ -42,6 +42,7 @@ public class DllTest {
 	private static ContextLayered CONTEXT;
 	private static final String[] NAMED_TYPES = {
 		"Packed_Int8Int8Int16Int32", "struct { int8 a; int8 b; int16 c; int32 d; }",
+		"Packed_Int8x3", "struct { int8 a; int8 b; int8 c; }",
 		"Recursive_Int8Int8Int16Int32_2",
 			"struct { Packed_Int8Int8Int16Int32 x; Recursive_Int8Int8Int16Int32_1 * inner; }",
 		"Recursive_Int8Int8Int16Int32_1",
@@ -101,8 +102,14 @@ public class DllTest {
 		"TestSumThreeInt32s", "dll int32 jsdi:TestSumThreeInt32s(int32 a, int32 b, int32 c)",
 		"TestSumFourInt32s", "dll int32 jsdi:TestSumFourInt32s(int32 a, int32 b, int32 c, int32 d)",
 		"TestSumFiveInt32s", "dll int32 jsdi:TestSumFiveInt32s(int32 a, int32 b, int32 c, int32 d, int32 e)",
+		"TestSumSixInt32s", "dll int32 jsdi:TestSumSixInt32s(int32 a, int32 b, int32 c, int32 d, int32 e, int32 f)",
+		"TestSumSevenInt32s", "dll int32 jsdi:TestSumSevenInt32s(int32 a, int32 b, int32 c, int32 d, int32 e, int32 f, int32 g)",
+		"TestSumEightInt32s", "dll int32 jsdi:TestSumEightInt32s(int32 a, int32 b, int32 c, int32 d, int32 e, int32 f, int32 g, int32 h)",
+		"TestSumNineInt32s", "dll int32 jsdi:TestSumNineInt32s(int32 a, int32 b, int32 c, int32 d, int32 e, int32 f, int32 g, int32 h, int32 i)",
 		"TestSumInt8PlusInt64", "dll int64 jsdi:TestSumInt8PlusInt64(char a, int64 b)",
 		"TestSumPackedInt8Int8Int16Int32", "dll int32 jsdi:TestSumPackedInt8Int8Int16Int32(Packed_Int8Int8Int16Int32 x)",
+		"TestSumPackedInt8x3", "dll int32 jsdi:TestSumPackedInt8x3(Packed_Int8x3 x)",
+		"TestSumManyInts", "dll int64 jsdi:TestSumManyInts(int8 a, int16 b, int32 c, Swap_StringInt32Int32 d, int64 e, Packed_Int8Int8Int16Int32 f, Packed_Int8x3 g, Recursive_StringSum1 h, Recursive_StringSum0 * i)",
 		"TestStrLen", "dll int32 jsdi:TestStrLen([in] string str)",
 		"TestHelloWorldReturn", "dll string jsdi:TestHelloWorldReturn(bool flag)",
 		"TestHelloWorldOutParam", "dll void jsdi:TestHelloWorldOutParam(StringWrapper * ptr)",
@@ -241,6 +248,26 @@ public class DllTest {
 	}
 
 	@Test
+	public void testSumSixInt32s() {
+		assertEquals(2, eval("TestSumSixInt32s(-2, 3, -3, 1, 2, 1)"));
+	}
+
+	@Test
+	public void testSumSevenInt32s() {
+		assertEquals(12, eval("TestSumSevenInt32s(-2, 3, -3, 1, 2, 1, 10)"));
+	}
+
+	@Test
+	public void testSumEightInt32s() {
+		assertEquals(100, eval("TestSumEightInt32s(-2, 3, -3, 1, 2, 1, 10, 88)"));
+	}
+
+	@Test
+	public void testSumNineInt32s() {
+		assertEquals(-250, eval("TestSumNineInt32s(-2, 3, -3, 1, 2, 1, 10, 88, -350)"));
+	}
+
+	@Test
 	public void testSumInt8PlusInt64() {
 		assertEquals(0x00000000ffffffffL, eval("TestSumInt8PlusInt64(-1, 4 * (1 << 30))"));
 	}
@@ -253,7 +280,7 @@ public class DllTest {
 				eval("TestSumPackedInt8Int8Int16Int32(Object(b: 50, c: 1000, d: -950))"));
 		assertNeedObject("TestSumPackedInt8Int8Int16Int32(%s)",
 				JSDIException.class, "can't convert .* to object");
-		// In CSuneido, you can get away with passing read-only objects to the
+		// In cSuneido, you can get away with passing read-only objects to the
 		// dll marshaller, which happily modifies them. However, it seems like
 		// more consistent behaviour is to throw. Why should the marshaller be
 		// exempt from the read-only object rule?
@@ -262,6 +289,26 @@ public class DllTest {
 		assertThrew(() -> { eval("TestSumPackedInt8Int8Int16Int32(#(b: 25, c: 1050, d: -875))"); },
 				SuException.class, "readonly");
 	}
+
+	@Test
+	public void testSumPackedInt8x3() {
+		assertEquals(0, eval("TestSumPackedInt8x3(Object())"));
+		assertEquals(-120, eval("TestSumPackedInt8x3(Object(a: -20, c: -100))"));
+	}
+
+    @Test
+    public void testSumManyInts() {
+        assertEquals(
+            (int)(long)eval("TestSumManyInts(-2, 1, -2, " +
+                 "Object() /* note this contributes 1 via TestSwap() because a == b */, " +
+                 "-2," +
+                 "Object(a: -2, b: -2, c: -3, d: 8) /* contributes 1 */," +
+                 "Object(a: 1, b: -2, c: -1) /* contributes -2 */," +
+                 "Object(x: Object(1: Object(a: -2, b: 1, c: 1, d: -2)), inner: Object(x: Object(a: -5, b: 5, c: -3, d: 5))) /* contributes 1 */," +
+                 "Object(str: '1') /* contributes 1 */)"
+            ), -2 + 1 - 2 + 1 - 2 + 1 - 2 + 1 - 2
+        );
+    }
 
 	@Test
 	public void testStrLen() {

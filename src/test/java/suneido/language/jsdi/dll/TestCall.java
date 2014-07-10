@@ -49,10 +49,26 @@ public enum TestCall {
 	SUM_FIVE_INT32("TestSumFiveInt32s", Mask.INT32,
 			PrimitiveSize.INT32, PrimitiveSize.INT32, PrimitiveSize.INT32,
 			PrimitiveSize.INT32, PrimitiveSize.INT32),
+	SUM_SIX_INT32("TestSumSixInt32s", Mask.INT32,
+			PrimitiveSize.INT32, PrimitiveSize.INT32, PrimitiveSize.INT32,
+			PrimitiveSize.INT32, PrimitiveSize.INT32, PrimitiveSize.INT32),
+	SUM_SEVEN_INT32("TestSumSevenInt32s", Mask.INT32,
+			PrimitiveSize.INT32, PrimitiveSize.INT32, PrimitiveSize.INT32,
+			PrimitiveSize.INT32, PrimitiveSize.INT32, PrimitiveSize.INT32,
+			PrimitiveSize.INT32),
+	SUM_EIGHT_INT32("TestSumEightInt32s", Mask.INT32,
+			PrimitiveSize.INT32, PrimitiveSize.INT32, PrimitiveSize.INT32,
+			PrimitiveSize.INT32, PrimitiveSize.INT32, PrimitiveSize.INT32,
+			PrimitiveSize.INT32, PrimitiveSize.INT32),
+	SUM_NINE_INT32("TestSumNineInt32s", Mask.INT32,
+			PrimitiveSize.INT32, PrimitiveSize.INT32, PrimitiveSize.INT32,
+			PrimitiveSize.INT32, PrimitiveSize.INT32, PrimitiveSize.INT32,
+			PrimitiveSize.INT32, PrimitiveSize.INT32, PrimitiveSize.INT32),
 	SUM_INT8_PLUS_INT64("TestSumInt8PlusInt64", Mask.INT64,
 			PrimitiveSize.INT8, PrimitiveSize.INT64),
 	SUM_PACKED_INT8_INT8_INT16_INT32("TestSumPackedInt8Int8Int16Int32",
 			Mask.INT32, makePackedCharCharShortLongPlan()),
+	SUM_PACKED_INT8x3("TestSumPackedInt8x3", Mask.INT32, makePackedInt8x3Plan()),
 	STRLEN("TestStrLen", Mask.INT32, makeInStringPlan()),
 	HELLO_WORLD_RETURN("TestHelloWorldReturn", Mask.INT32,
 			makeHelloWorldReturnPlan()),
@@ -99,6 +115,18 @@ public enum TestCall {
 		builder.pos(PrimitiveSize.INT8);
 		builder.pos(PrimitiveSize.INT16);
 		builder.pos(PrimitiveSize.INT32);
+		builder.containerEnd();
+		return builder.makeMarshallPlan();
+	}
+
+	private static MarshallPlan makePackedInt8x3Plan() {
+		MarshallPlanBuilder builder = new MarshallPlanBuilder(
+				PrimitiveSize.sizeWholeWords(PrimitiveSize.INT8 * 3), 0, 0,
+				true);
+		builder.containerBegin();
+		builder.pos(PrimitiveSize.INT8);
+		builder.pos(PrimitiveSize.INT8);
+		builder.pos(PrimitiveSize.INT8);
 		builder.containerEnd();
 		return builder.makeMarshallPlan();
 	}
