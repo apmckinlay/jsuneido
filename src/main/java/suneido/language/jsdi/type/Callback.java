@@ -91,6 +91,9 @@ public final class Callback extends ComplexType {
 		Marshaller marshaller = marshallPlan.makeUnMarshaller(argsIn);
 		Object[] argsOut = typeList.marshallOutParams(marshaller);
 		Object result = boundValue.call(argsOut);
+		// FIXME: Return value will have to be 64-bit on x64 so it probably
+		//        makes most sense just to return 64-bit on all platforms for
+		//        simplicity...
 		return toInt(result);
 	}
 
@@ -117,6 +120,9 @@ public final class Callback extends ComplexType {
 				viInstArray);
 		Object[] argsOut = typeList.marshallOutParams(marshaller);
 		Object result = boundValue.call(argsOut);
+		// FIXME: Return value will have to be 64-bit on x64 so it probably
+		//        makes most sense just to return 64-bit on all platforms for
+		//        simplicity...
 		return toInt(result);
 	}
 
