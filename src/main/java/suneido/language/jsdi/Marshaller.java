@@ -243,8 +243,8 @@ public final class Marshaller {
 	}
 
 	/**
-	 * Puts a JSDI {@code char} value at the next position in the marshaller.
-	 * @param value Single-byte character value
+	 * Puts a JSDI {@code int8} value at the next position in the marshaller.
+	 * @param value Single-byte integer value
 	 * @see #getChar()
 	 */
 	public void putInt8(byte value) {
@@ -252,8 +252,8 @@ public final class Marshaller {
 	}
 
 	/**
-	 * Puts a JSDI {@code short} value at the next position in the marshaller.
-	 * @param value 16-bit JSDI {@code short} value
+	 * Puts a JSDI {@code int16} value at the next position in the marshaller.
+	 * @param value 16-bit JSDI {@code int16} value
 	 * @see #getShort()
 	 * @see #putIntResource(short)
 	 */
@@ -264,8 +264,8 @@ public final class Marshaller {
 	}
 
 	/**
-	 * Puts a JSDI {@code long} value at the next position in the marshaller.
-	 * @param value 32-bit JSDI {@code long} value
+	 * Puts a JSDI {@code int32} value at the next position in the marshaller.
+	 * @param value 32-bit JSDI {@code int32} value
 	 * @see #getLong()
 	 */
 	public void putInt32(int value) {
