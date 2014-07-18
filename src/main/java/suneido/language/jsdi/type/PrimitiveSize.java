@@ -40,15 +40,15 @@ public final class PrimitiveSize {
 	 */
 	public static final int BOOL = 4;
 	/**
-	 * Size of a native {@code char} in bytes.
+	 * Size of a native {@code int8} in bytes.
 	 */
 	public static final int INT8 = 1;
 	/**
-	 * Size of a native {@code short} in bytes.
+	 * Size of a native {@code int16} in bytes.
 	 */
 	public static final int INT16 = 2;
 	/**
-	 * Size of a native {@code long} in bytes.
+	 * Size of a native {@code int32} in bytes.
 	 */
 	public static final int INT32 = 4;
 	/**
