@@ -59,3 +59,28 @@ EXCEPT THE ABOVE IS A BAD EXAMPLE IN ONE SENSE: honestly there's nothing ABI-
 specific about marshalling a structure once you have the marshaller and the
 plan. So Structure.marshallIn(...) need not be abstract. But the Marshaller,
 which is "loaded" with a plan, is ABI-specific.
+
+================================================================================
+                                REFACTOR PLANS
+================================================================================
+
+PrimitiveSize [from:type package] -> [to:parent package]
+
+    Do abstract initialization on the final member values via abstraction in
+    the ABI packages.
+
+    Use this as a method to design the abstraction.
+
+    NOTE: The only thing that changes is the pointer type sizes!
+
+Marshaller:
+MarshallPlan:
+
+    PHASE 1) Abstract and document. This phase is complete when you can run all
+             x86 tests and jSuneido GUI with the refactored marshallers.
+
+    PHASE 2) Move to int[] instead of byte[]. This is both a proof of concept
+             for the x64 marshaller and a refactor.
+             
+          2a) Equivalent changes in C++. This phase is complete when you can
+              run all x86 tests and jSuneido GUI using the int[] marshaller.
