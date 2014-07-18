@@ -113,9 +113,9 @@ public final class BasicValue extends Type {
 		case BOOL:
 			return marshaller.getBool();
 		case INT8:
-			return marshaller.getChar();
+			return marshaller.getInt8();
 		case INT16:
-			return marshaller.getShort();
+			return marshaller.getInt16();
 		case GDIOBJ:
 			// intentional fall-through
 		case HANDLE:
@@ -123,7 +123,7 @@ public final class BasicValue extends Type {
 		case OPAQUE_POINTER:
 			// intentional fall-through
 		case INT32:
-			return marshaller.getLong();
+			return marshaller.getInt32();
 		case INT64:
 			return marshaller.getInt64();
 		case FLOAT:

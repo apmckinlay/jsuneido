@@ -150,10 +150,10 @@ public final class BasicArray extends Type {
 				c.insert(k, marshaller.getBool());
 				break;
 			case INT8:
-				c.insert(k, (int)marshaller.getChar());
+				c.insert(k, (int)marshaller.getInt8());
 				break;
 			case INT16:
-				c.insert(k, (int)marshaller.getShort());
+				c.insert(k, (int)marshaller.getInt16());
 				break;
 			case GDIOBJ:
 				// intentional fall-through
@@ -162,7 +162,7 @@ public final class BasicArray extends Type {
 			case OPAQUE_POINTER:
 				// intentional fall-through
 			case INT32:
-				c.insert(k, marshaller.getLong());
+				c.insert(k, marshaller.getInt32());
 				break;
 			case INT64:
 				c.insert(k, marshaller.getInt64());
