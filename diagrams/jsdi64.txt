@@ -81,4 +81,6 @@ NOTE: That MarshallPlan is basically platform-agnostic. It's just a set of
       <x, y> where x is the word position and y is the byte position within the
       word... HOWEVER however, this info is available by doing power-of-two
       divisions on the byte positions ANYWAY! So maybe not.
+
+      The ABSTRACT part of MarshallPlan is its makeMarshaller()!
       
