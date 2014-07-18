@@ -245,7 +245,7 @@ public final class Marshaller {
 	/**
 	 * Puts a JSDI {@code int8} value at the next position in the marshaller.
 	 * @param value Single-byte integer value
-	 * @see #getChar()
+	 * @see #getInt8()
 	 */
 	public void putInt8(byte value) {
 		data[nextData()] = (byte)value;
@@ -254,7 +254,7 @@ public final class Marshaller {
 	/**
 	 * Puts a JSDI {@code int16} value at the next position in the marshaller.
 	 * @param value 16-bit JSDI {@code int16} value
-	 * @see #getShort()
+	 * @see #getInt16()
 	 * @see #putIntResource(short)
 	 */
 	public void putInt16(short value) {
@@ -266,7 +266,7 @@ public final class Marshaller {
 	/**
 	 * Puts a JSDI {@code int32} value at the next position in the marshaller.
 	 * @param value 32-bit JSDI {@code int32} value
-	 * @see #getLong()
+	 * @see #getInt32()
 	 */
 	public void putInt32(int value) {
 		int dataIndex = nextData();
@@ -529,14 +529,14 @@ public final class Marshaller {
 	}
 
 	public boolean getBool() {
-		return getLong() != 0;
+		return getInt32() != 0;
 	}
 
-	public int getChar() {
+	public int getInt8() {
 		return data[nextData()];
 	}
 
-	public int getShort() {
+	public int getInt16() {
 		final int dataIndex = nextData();
 		// Note: the bitwise AND with 0xff is to avoid EVIL Java sign extension
 		//       (because Java promotes bitwise operands to int and then sign-
@@ -545,7 +545,7 @@ public final class Marshaller {
 				data[dataIndex + 1] << 010;
 	}
 
-	public int getLong() {
+	public int getInt32() {
 		final int dataIndex = nextData();
 		return
 			(data[dataIndex + 0] & 0xff) << 000 |
@@ -568,7 +568,7 @@ public final class Marshaller {
 	}
 
 	public float getFloat() {
-		return Float.intBitsToFloat(getLong());
+		return Float.intBitsToFloat(getInt32());
 	}
 
 	public double getDouble() {
@@ -577,7 +577,7 @@ public final class Marshaller {
 
 	// TODO: docs since 20130717 ... return true iff a null pointer
 	public boolean isPtrNull() {
-		return 0 == getLong();
+		return 0 == getInt32();
 	}
 
 	// TODO: note in dics that like get...Maybe it is only used by InOutString

@@ -76,7 +76,7 @@ public class MarshallerTest {
 		mr.putInt8((byte)0x21);
 		assertArrayEquals(ba("21"), mr.getData());
 		mr.rewind();
-		assertEquals((byte)0x21, mr.getChar());
+		assertEquals((byte)0x21, mr.getInt8());
 	}
 
 	@Test
@@ -86,7 +86,7 @@ public class MarshallerTest {
 		mr.putInt16((short)0x1982);
 		assertArrayEquals(ba("8219"), mr.getData()); // little-endian
 		mr.rewind();
-		assertEquals((short)0x1982, mr.getShort());
+		assertEquals((short)0x1982, mr.getInt16());
 	}
 
 	@Test
@@ -96,7 +96,7 @@ public class MarshallerTest {
 		mr.putInt32(0x19820207);
 		assertArrayEquals(ba("07028219"), mr.getData()); // little-endian
 		mr.rewind();
-		assertEquals(0x19820207, mr.getLong());
+		assertEquals(0x19820207, mr.getInt32());
 	}
 
 	@Test
@@ -148,7 +148,7 @@ public class MarshallerTest {
 		mr.putInt8((byte)1);
 		mr.rewind();
 		assertFalse(mr.isPtrNull());
-		assertEquals((byte)0xff, mr.getChar());
+		assertEquals((byte)0xff, mr.getInt8());
 	}
 
 	@Test

@@ -267,7 +267,7 @@ public class NativeCallTest {
 				m.rewind();
 				assertFalse(m.isPtrNull());
 				// The function called should have returned a non-zero value.
-				assertFalse(0 == m.getLong());
+				assertFalse(0 == m.getInt32());
 			}
 		}
 		{
@@ -280,7 +280,7 @@ public class NativeCallTest {
 				m.rewind();
 				assertFalse(m.isPtrNull());
 				// The function called should have returned a non-zero value.
-				assertEquals(0, m.getLong());
+				assertEquals(0, m.getInt32());
 			}
 		}
 	}
@@ -600,8 +600,8 @@ public class NativeCallTest {
 			m.rewind();
 			assertFalse(m.isPtrNull());
 			assertEquals("!=", m.getStringPtr());
-			assertEquals(2, m.getLong());
-			assertEquals(1, m.getLong());
+			assertEquals(2, m.getInt32());
+			assertEquals(1, m.getInt32());
 		}
 	}
 
