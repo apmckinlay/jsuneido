@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import suneido.language.jsdi.DllInterface;
-import suneido.language.jsdi._64BitIssue;
+import suneido.language.jsdi.PrimitiveSize;
 
 /**
  * Enumerates the available 'basic' (<em>ie</em> non-structure, non-callback)
@@ -64,11 +64,7 @@ public enum BasicType {
 	 * 32 bits wide while in an x64 application, the number would be 64 bits
 	 * wide.
 	 */
-	@_64BitIssue
-	OPAQUE_POINTER("pointer", PrimitiveSize.INT32 /*
-												 * change to 64 bits to port to
-												 * x64
-												 */),
+	OPAQUE_POINTER("pointer", PrimitiveSize.POINTER),
 	/**
 	 * Enumerator for a 32-bit floating-point number (<em>ie</em> a single-
 	 * precision IEEE floating-point number, known as <code>float</code> in

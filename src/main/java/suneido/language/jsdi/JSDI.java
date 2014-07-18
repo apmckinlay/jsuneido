@@ -42,15 +42,10 @@ public final class JSDI {
 	private static native void init();
 	static
 	{
-		// NOTE: JVM seems to only be capable of loading DLLs with the same
-		//       "bittyness" as it: x64 JVM only loads x64 DLLs, x86 JVM only
-		//       loads x86 DLLs. Since my version of MinGW only builds for x86,
-		//       I found it easiest just to install a separate x86 JRE for
-		//       testing.
 		File path = new File("lib\\jsdi.dll");
 		System.load(path.getAbsolutePath());
-		// TODO: Set this to the proper path, and possibly call loadLibrary
-		//       instead of load.
+		// TODO: Figure out how JNA picks the correct DLL right out of the JAR
+		//       and do that.
 		init();
 		instance = new JSDI();
 	}
@@ -76,8 +71,6 @@ public final class JSDI {
 	// ACCESSORS
 	//
 
-	public native boolean isTraceEnabled();
-
 	public TypeFactory getTypeFactory() {
 		return typeFactory;
 	}
@@ -89,10 +82,4 @@ public final class JSDI {
 	public ThunkManager getThunkManager() {
 		return thunkManager;
 	}
-
-	//
-	// MUTATORS
-	//
-
-	public native void setTraceEnabled(boolean isEnabled);
 }

@@ -22,6 +22,7 @@ import suneido.language.jsdi.MarshallPlanBuilder;
 import suneido.language.jsdi.Marshaller;
 import suneido.language.jsdi.NumberConversions;
 import suneido.language.jsdi.ObjectConversions;
+import suneido.language.jsdi.PrimitiveSize;
 import suneido.language.jsdi.dll.CallGroup;
 
 /**

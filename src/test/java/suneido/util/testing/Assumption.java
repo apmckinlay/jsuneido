@@ -6,6 +6,8 @@ package suneido.util.testing;
 
 import org.junit.Assume;
 
+import suneido.language.jsdi.Platform;
+
 /**
  * <p>
  * Contains methods which can be used to conditionally prevent JUnit tests from
@@ -38,9 +40,6 @@ public final class Assumption {
 	 * @since 20130711
 	 */
 	public static void jvmIs32BitOnWindows() {
-		Assume.assumeTrue(
-			"32".equals(System.getProperty("sun.arch.data.model")) &&
-			-1 < System.getProperty("os.name").indexOf("Windows")
-		);
+		Assume.assumeTrue(Platform.WIN32_X86 == Platform.getPlatform());
 	}
 }
