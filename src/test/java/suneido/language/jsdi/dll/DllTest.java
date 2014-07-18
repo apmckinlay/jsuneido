@@ -103,6 +103,7 @@ public class DllTest {
 		"TestSumFourInt32s", "dll int32 jsdi:TestSumFourInt32s(int32 a, int32 b, int32 c, int32 d)",
 		"TestSumFiveInt32s", "dll int32 jsdi:TestSumFiveInt32s(int32 a, int32 b, int32 c, int32 d, int32 e)",
 		"TestSumSixInt32s", "dll int32 jsdi:TestSumSixInt32s(int32 a, int32 b, int32 c, int32 d, int32 e, int32 f)",
+		"TestSumSixMixed", "dll int32 jsdi:TestSumSixMixed(double a, int8 b, float c, int16 d, float e, int64 f)",
 		"TestSumSevenInt32s", "dll int32 jsdi:TestSumSevenInt32s(int32 a, int32 b, int32 c, int32 d, int32 e, int32 f, int32 g)",
 		"TestSumEightInt32s", "dll int32 jsdi:TestSumEightInt32s(int32 a, int32 b, int32 c, int32 d, int32 e, int32 f, int32 g, int32 h)",
 		"TestSumNineInt32s", "dll int32 jsdi:TestSumNineInt32s(int32 a, int32 b, int32 c, int32 d, int32 e, int32 f, int32 g, int32 h, int32 i)",
@@ -250,6 +251,11 @@ public class DllTest {
 	@Test
 	public void testSumSixInt32s() {
 		assertEquals(2, eval("TestSumSixInt32s(-2, 3, -3, 1, 2, 1)"));
+	}
+
+	@Test
+	public void testSumSixMixed() {
+		assertEquals(-37, eval("TestSumSixMixed(-97, -2, 60, 9, -10, 3)"));
 	}
 
 	@Test

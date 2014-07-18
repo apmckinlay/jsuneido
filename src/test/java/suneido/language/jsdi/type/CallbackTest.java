@@ -40,6 +40,7 @@ public class CallbackTest {
 	private static final String[] NAMED_TYPES = {
 		"TestCallback_Int32_1", "callback(int32 a)",
 		"TestCallback_Int32_2", "callback(int32 a, int32 b)",
+		"TestCallback_Mixed_6", "callback(double a, int8 b, float c, int16 d, float e, int64 f)",
 		"TestCallback_Packed_Int8Int8Int16Int32", "callback(Packed_Int8Int8Int16Int32 a)",
 		"TestCallback_Recursive_StringSum", "callback(Recursive_StringSum1_Callback * ptr)",
 		"TestCallback_Recursive_StringSum_Bad", "callback(Recursive_StringSum1_Dll * ptr)",
@@ -87,6 +88,8 @@ public class CallbackTest {
 					"TestCallback_Int32_1 f, int32 a, TestCallback_Int32_1 g, int32 b)",
 		"TestInvokeCallback_Int32_2",
 			"dll int32 jsdi:TestInvokeCallback_Int32_2(TestCallback_Int32_2 f, int32 a, int32 b)",
+		"TestInvokeCallback_Mixed_6",
+			"dll int32 jsdi:TestInvokeCallback_Mixed_6(TestCallback_Mixed_6 g, double a, int8 b, float c, int16 d, float e, int64 f)",
 		"TestInvokeCallback_Packed_Int8Int8Int16Int32",
 			"dll int32 jsdi:TestInvokeCallback_Packed_Int8Int8Int16Int32(" +
 				"TestCallback_Packed_Int8Int8Int16Int32 f, Packed_Int8Int8Int16Int32 a)",
@@ -271,6 +274,18 @@ public class CallbackTest {
 			)
 		);
 		assertFalse(new Integer(0).equals(eval("Callbacks().Size()")));
+	}
+
+	@Test
+	public void testBasicValue6Function() {
+		assertEquals(
+			38,
+			eval(
+				"TestInvokeCallback_Mixed_6(" +
+						"function(a, b, c, d, e, f) { return a + b + c + d + e + f + 1 }," +
+						"97, 2, -60, -9, 10, -3)"
+			)
+		);
 	}
 
 	@Test
