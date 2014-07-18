@@ -166,17 +166,6 @@ public abstract class Type extends JSDIValue {
 				+ " cannot be marshalled out of a return value");
 	}
 
-	// TODO: docs since 20130717
-	public boolean isMarshallableToJSDILong() {
-		return false;
-	}
-
-	// TODO: docs since 20130717
-	public void marshallInToJSDILong(int[] target, int pos, Object value) {
-		throw new InternalError(getDisplayName()
-				+ " cannot be marshalled into a long");
-	}
-
 	/**
 	 * Return a human-readable name for the type. This is the value which will
 	 * be printed for a user of the built-in Suneido function {@code Display()}.
