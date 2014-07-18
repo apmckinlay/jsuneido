@@ -75,3 +75,10 @@ MarshallPlan:
              
           2a) Equivalent changes in C++. This phase is complete when you can
               run all x86 tests and jSuneido GUI using the int[] marshaller.
+
+NOTE: That MarshallPlan is basically platform-agnostic. It's just a set of
+      directions! However, we may want to separate the posArray up into tuples
+      <x, y> where x is the word position and y is the byte position within the
+      word... HOWEVER however, this info is available by doing power-of-two
+      divisions on the byte positions ANYWAY! So maybe not.
+      
