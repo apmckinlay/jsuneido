@@ -83,12 +83,6 @@ public final class BasicValue extends Type {
 			case INT16:
 				marshaller.putInt16((short)Ops.toInt(value));
 				break;
-			case GDIOBJ:
-				// intentional fall-through
-			case HANDLE:
-				// intentional fall-through
-			case OPAQUE_POINTER:
-				// intentional fall-through
 			case INT32:
 				marshaller.putInt32(Ops.toInt(value));
 				break;
@@ -100,6 +94,13 @@ public final class BasicValue extends Type {
 				break;
 			case DOUBLE:
 				marshaller.putDouble(NumberConversions.toDouble(value));
+				break;
+			case GDIOBJ:
+				// intentional fall-through
+			case HANDLE:
+				// intentional fall-through
+			case OPAQUE_POINTER:
+				marshaller.putPointerSizedInt(NumberConversions.toLong(value));
 				break;
 			default:
 				throw unhandledEnum(BasicType.class);
@@ -116,12 +117,6 @@ public final class BasicValue extends Type {
 			return marshaller.getInt8();
 		case INT16:
 			return marshaller.getInt16();
-		case GDIOBJ:
-			// intentional fall-through
-		case HANDLE:
-			// intentional fall-through
-		case OPAQUE_POINTER:
-			// intentional fall-through
 		case INT32:
 			return marshaller.getInt32();
 		case INT64:
@@ -130,6 +125,12 @@ public final class BasicValue extends Type {
 			return Numbers.toBigDecimal(marshaller.getFloat());
 		case DOUBLE:
 			return Numbers.toBigDecimal(marshaller.getDouble());
+		case GDIOBJ:
+			// intentional fall-through
+		case HANDLE:
+			// intentional fall-through
+		case OPAQUE_POINTER:
+			return marshaller.getPointerSizedInt();
 		default:
 			throw unhandledEnum(BasicType.class);
 		}
@@ -169,37 +170,6 @@ public final class BasicValue extends Type {
 			return Numbers.toBigDecimal(Double.longBitsToDouble(returnValue));
 		default:
 			throw unhandledEnum(BasicType.class);
-		}
-	}
-
-	@Override
-	public boolean isMarshallableToJSDILong() {
-		return PrimitiveSize.INT32 == basicType.getSizeWholeWords();
-	}
-
-	@Override
-	public void marshallInToJSDILong(int[] target, int pos, Object value) {
-		if (null != value) {
-			switch (basicType) {
-			case BOOL:
-				target[pos] = Ops.toIntBool(value);
-				break;
-			case GDIOBJ:
-				// intentional fall-through
-			case HANDLE:
-				// intentional fall-through
-			case OPAQUE_POINTER:
-				// intentional fall-through
-			case INT32:
-				target[pos] = Ops.toInt(value);
-				break;
-			case FLOAT:
-				target[pos] = Float.floatToRawIntBits(NumberConversions.toFloat(value));
-				break;
-			default:
-				assert !isMarshallableToJSDILong();
-				super.marshallInToJSDILong(target, pos, value);
-			}
 		}
 	}
 }

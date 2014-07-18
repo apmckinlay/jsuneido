@@ -294,6 +294,16 @@ public final class Marshaller {
 	}
 
 	/**
+	 * Puts an integer having the same size as a pointer at the next position
+	 * in the marshaller.
+	 * @param value Integer value
+	 * @see #getPointerSizedInt()
+	 */
+	public void putPointerSizedInt(long value) {
+		putInt32((int)value);
+	}
+
+	/**
 	 * Puts a JSDI {@code float} value at the next position in the marshaller.
 	 * @param value 32-bit JSDI {@code float} value
 	 * @see #getFloat()
@@ -565,6 +575,10 @@ public final class Marshaller {
 				| (data[dataIndex + 5] & 0xffL) << 050
 				| (data[dataIndex + 6] & 0xffL) << 060
 				| (long) data[dataIndex + 7] << 070;
+	}
+
+	public long getPointerSizedInt() {
+		return (long)getInt32();
 	}
 
 	public float getFloat() {
