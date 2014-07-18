@@ -6,8 +6,6 @@ package suneido.language.jsdi;
 
 import java.util.ArrayList;
 
-import suneido.language.jsdi.type.PrimitiveSize;
-
 import com.google.common.primitives.Ints;
 
 /**

@@ -19,7 +19,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import suneido.language.jsdi.*;
-import suneido.language.jsdi.type.PrimitiveSize;
 import suneido.util.testing.Assumption;
 
 /**

@@ -4,7 +4,7 @@
 
 package suneido.language.jsdi.dll;
 
-import suneido.language.jsdi.type.PrimitiveSize;
+import suneido.language.jsdi.PrimitiveSize;
 
 /**
  * Simple type for masking native call return values in tests.

@@ -8,6 +8,7 @@ import static suneido.InternalError.unhandledEnum;
 import suneido.language.jsdi.DllInterface;
 import suneido.language.jsdi.MarshallPlanBuilder;
 import suneido.language.jsdi.Marshaller;
+import suneido.language.jsdi.PrimitiveSize;
 import suneido.language.jsdi.StorageType;
 
 @Deprecated // pointers to basic value types are ... pointless (wrap in a struct if you desperately need one)

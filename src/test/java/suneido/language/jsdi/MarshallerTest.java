@@ -17,8 +17,6 @@ import javax.xml.bind.DatatypeConverter;
 
 import org.junit.Test;
 
-import suneido.language.jsdi.type.PrimitiveSize;
-
 /**
  * Test for {@link Marshaller}.
  *

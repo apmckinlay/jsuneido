@@ -64,15 +64,6 @@ which is "loaded" with a plan, is ABI-specific.
                                 REFACTOR PLANS
 ================================================================================
 
-PrimitiveSize [from:type package] -> [to:parent package]
-
-    Do abstract initialization on the final member values via abstraction in
-    the ABI packages.
-
-    Use this as a method to design the abstraction.
-
-    NOTE: The only thing that changes is the pointer type sizes!
-
 Marshaller:
 MarshallPlan:
 

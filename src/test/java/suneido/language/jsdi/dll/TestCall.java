@@ -7,7 +7,6 @@ package suneido.language.jsdi.dll;
 import static suneido.language.jsdi.MarshallTestUtil.pointerPlan;
 import static suneido.language.jsdi.VariableIndirectInstruction.NO_ACTION;
 import suneido.language.jsdi.*;
-import suneido.language.jsdi.type.PrimitiveSize;
 
 /**
  * Should be kept in sync with {@code test_exports.h/cpp}.

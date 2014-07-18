@@ -2,10 +2,9 @@
  * Licensed under GPLv2.
  */
 
-package suneido.language.jsdi.type;
+package suneido.language.jsdi;
 
-import suneido.language.jsdi.DllInterface;
-import suneido.language.jsdi._64BitIssue;
+import suneido.language.jsdi.type.BasicType;
 
 /**
  * Contains the "direct" size of various native types supported by JSDI. The
@@ -16,17 +15,15 @@ import suneido.language.jsdi._64BitIssue;
 @DllInterface
 public final class PrimitiveSize {
 	/**
-	 * Size of the native word size, in bytes.
-	 */
-	@_64BitIssue
-	public static final int WORD = 4;
-	/**
 	 * Size of a native pointer type, in bytes. This should give the same
 	 * result as the value reported by a C compiler for {@code sizeof(void *)}
 	 * on the native platform. 
 	 */
-	@_64BitIssue
-	public static final int POINTER = WORD;
+	public static final int POINTER = Platform.getPlatform().getPointerSize();
+	/**
+	 * Size of the native word size, in bytes.
+	 */
+	public static final int WORD = POINTER;
 	/**
 	 * <p>
 	 * Size of a native integer type, in bytes. This should give the same
@@ -73,13 +70,13 @@ public final class PrimitiveSize {
 	 * @see #GDIOBJ
 	 * @see BasicType#HANDLE
 	 */
-	public static final int HANDLE = 4;
+	public static final int HANDLE = POINTER;
 	/**
 	 * Size of a handle to a Windows GDI object in bytes.
 	 * @see #HANDLE
 	 * @see BasicType#GDIOBJ
 	 */
-	public static final int GDIOBJ = 4;
+	public static final int GDIOBJ = POINTER;
 
 	/**
 	 * Returns the minimum number of whole words that completely contains the

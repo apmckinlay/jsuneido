@@ -4,7 +4,6 @@
 
 package suneido.language.jsdi;
 
-import suneido.language.jsdi.type.PrimitiveSize;
 
 /**
  * Helper functions for making {@link Marshaller}'s and {@link MarshallPlan}'s.
