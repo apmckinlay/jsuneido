@@ -300,7 +300,11 @@ public final class Marshaller {
 	 * @see #getPointerSizedInt()
 	 */
 	public void putPointerSizedInt(long value) {
-		putInt32((int)value);
+		if (!((long) Integer.MIN_VALUE <= value && value <= (long) Integer.MAX_VALUE))
+			throw new JSDIException(
+					"Can't marshall 32-bit pointer because more than 32 bits used: "
+							+ value);
+		putInt32((int) value);
 	}
 
 	/**
