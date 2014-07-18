@@ -83,4 +83,60 @@ NOTE: That MarshallPlan is basically platform-agnostic. It's just a set of
       divisions on the byte positions ANYWAY! So maybe not.
 
       The ABSTRACT part of MarshallPlan is its makeMarshaller()!
-      
+
+================================================================================
+                                  NEXT STEPS
+================================================================================
+
+Users of Marshaller.getData():
+
+    Structure.copyOut()      - passed to Structure's native funcs
+             .toBuffer()     - passed to Buffer constructor
+
+    NativeCall.invoke()      - passed to NativeCall's native funcs
+
+Users of MarshallPlan.makeMarshaller()
+
+    Dll.call()               - passed to NativeCall
+
+    Structure.copyOut()      - passed to Structure's native funcs
+
+Users of MarshalPlan.makeUnmarshaller()
+
+    Callback.invoke()        - to unmarshall the input arguments
+            .invokeVariableIndirect()
+
+    Structure.fromBuffer()   - to unmarshall the buffer contents
+
+--------------------------------------------------------------------------------
+
+So:
+
+    NativeCall => x86 package, take a MarshallerX86
+    Dll        => Abstractify
+                      DllX86 => make a MarshallerX86
+    Structure  => Abstractify
+                      StructureX86 => implement abstract copyOut(), fromBuffer(), toBuffer()
+    Callback   => Abstractify
+                      CallbackX86
+                      NOTE1: The cleanest approach is probably to have the
+                             abstract invoke() method take an "Object" reference
+                             for the data and have the concretes cast to byte[],
+                             int[], long[] as appropriate.
+                      NOTE2: Make sure native side is doing callVirtual now.
+
+--------------------------------------------------------------------------------
+
+Users of MarshallPlanBuilder:
+
+    <the whole type tree>
+
+--------------------------------------------------------------------------------
+
+OK, ultimate solution:
+
+    new Factory class : abstract but mainly implemented in jsdi
+                      : consolidate TypeFactory, DllFactory
+                      : also makes MarshallPlanBuilders
+
+    JSDI              : creates Factory based on Platform using Class.forName(...).newInstance()
