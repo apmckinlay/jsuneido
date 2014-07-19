@@ -140,3 +140,36 @@ OK, ultimate solution:
                       : also makes MarshallPlanBuilders
 
     JSDI              : creates Factory based on Platform using Class.forName(...).newInstance()
+
+--------------------------------------------------------------------------------
+
+NEXT STEPS (Saturday):
+
+    1) It isn't clear why Dll.getMarshallPlan() is public.
+    2) Anyways, it should be taken off the DLL and put in subclasses only.
+
+           ... AMD64 "fast" dlls may not need it anyways ...
+
+    3) So DllX86 should have a "private" marshallPlan getter and Dll should not
+       have a MarshallPlan marshallPlan member at all.
+       
+           ... and DllX86's marshallPlan getter should be typed as
+           MarshallPlanX86.
+
+    4) INTERLUDE: Need to abstract away marshall plan building.
+
+    5) Note Callback also has a PUBLIC getMarshallPlan() but it is only called
+       by ThunkManager, which also needs to be abstracted.
+
+           ... Callback should not have a getMarshallPlan
+           ... CallbackX86 should have one returning MarshallPlanX86
+
+    6) Note Structure also has getMarshallPlan() but it is private, as DllX86's
+       should be, and is only used by private binary-interface-type methods.
+       So it, too, should be abstracted and pushed down to StructureX86.
+
+    7) TypeList.makeMembersMarshallPlan() and TypeList.makeParamsMarshallPlan()
+       are only referred to where you would expect: Dll, Callback, Structure,
+       and test. So they can be pushed down to TypeListX86.
+
+           ... This will require Factory.makeTypeList(TypeList.Args).
