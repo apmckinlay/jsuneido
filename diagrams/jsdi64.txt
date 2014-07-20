@@ -145,11 +145,6 @@ OK, ultimate solution:
 
 NEXT STEPS (Saturday):
 
-    1) It isn't clear why Dll.getMarshallPlan() is public.
-    2) Anyways, it should be taken off the DLL and put in subclasses only.
-
-           ... AMD64 "fast" dlls may not need it anyways ...
-
     3) So DllX86 should have a "private" marshallPlan getter and Dll should not
        have a MarshallPlan marshallPlan member at all.
        
