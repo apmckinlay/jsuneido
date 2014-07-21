@@ -101,4 +101,49 @@ NOTE: That MarshallPlan is basically platform-agnostic. It's just a set of
 
 PHASE 2!!
 
+Here are the classes that need to be touched:
 
+                      Java                |                C++
+         ---------------------------------+----------------------------------
+                   Marshaller             |             marshalling
+                  MarshallPlan            |
+               MarshallPlanBuilder        |
+         ---------------------------------+----------------------------------
+                   Callback  ??           |             callback  ??
+         ---------------------------------+----------------------------------
+                  CallbackX86             |           jsdi_callback
+                                          |      [rename => jsdi_callback_x86]
+         ---------------------------------+----------------------------------
+                 NativeCallX86            |         _jni_interface_x86
+                                          |           stdcall_invoke
+                                          |           stdcall_thunk  ??
+         ---------------------------------+----------------------------------
+
+The general idea is the following:
+
+    MarshallPlanBuilder :
+        [ ] add Suneido value name knowledge
+        [ ] add alignment checking
+        [ ] track pointer positions in terms of indices, not bytes
+
+    MarshallPlan :
+        [ ] docs ??
+
+    MarshallPlanX86 :
+        [ ] makeUnmarshaller() etc. needs to take int[] data
+
+    MarshallerX86 :
+        [ ] data is now int[]
+        [ ] shift/and data positions to get int indices and offsets
+        [ ] string operations...
+        [ ] Buffer conversions...
+
+    Callback :
+        [ ] args parameter needs to be Object now
+
+    CallbackX86 :
+        [ ] args parameter needs to be Object now
+        [ ] cast to int[] and send to marshall plan
+
+    NativeCallX86 :
+        [ ] take int[] arguments
