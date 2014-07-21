@@ -4,7 +4,8 @@
 
 package suneido.language.jsdi.type;
 
-import static suneido.InternalError.unhandledEnum;
+import static suneido.SuInternalError.unhandledEnum;
+import suneido.SuInternalError;
 import suneido.language.jsdi.DllInterface;
 import suneido.language.jsdi.MarshallPlanBuilder;
 import suneido.language.jsdi.Marshaller;
@@ -112,6 +113,6 @@ public final class BasicPointer extends Type {
 
 	@Override
 	public Object marshallOut(Marshaller marshaller, Object oldValue) {
-		throw new InternalError("BasicPointer is deprecated");
+		throw new SuInternalError("BasicPointer is deprecated");
 	}
 }

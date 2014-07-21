@@ -2,13 +2,24 @@
  * Licensed under GPLv2.
  */
 
-package suneido.language.jsdi;
+package suneido.language.jsdi.abi.x86;
 
-import static org.junit.Assert.*;
-import static suneido.language.jsdi.MarshallTestUtil.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 import static suneido.language.jsdi.VariableIndirectInstruction.NO_ACTION;
 import static suneido.language.jsdi.VariableIndirectInstruction.RETURN_JAVA_STRING;
 import static suneido.language.jsdi.VariableIndirectInstruction.RETURN_RESOURCE;
+import static suneido.language.jsdi.abi.x86.MarshallTestUtilX86.arrayPlan;
+import static suneido.language.jsdi.abi.x86.MarshallTestUtilX86.compoundPlan;
+import static suneido.language.jsdi.abi.x86.MarshallTestUtilX86.directPlan;
+import static suneido.language.jsdi.abi.x86.MarshallTestUtilX86.nullPlan;
+import static suneido.language.jsdi.abi.x86.MarshallTestUtilX86.pointerPlan;
+import static suneido.language.jsdi.abi.x86.MarshallTestUtilX86.variableIndirectPlan;
+import static suneido.language.jsdi.abi.x86.MarshallTestUtilX86.variableIndirectPlan2;
 import static suneido.util.testing.Throwing.assertThrew;
 
 import java.util.Arrays;
@@ -17,14 +28,22 @@ import javax.xml.bind.DatatypeConverter;
 
 import org.junit.Test;
 
+import suneido.SuInternalError;
+import suneido.language.jsdi.Buffer;
+import suneido.language.jsdi.DllInterface;
+import suneido.language.jsdi.ElementSkipper;
+import suneido.language.jsdi.JSDIException;
+import suneido.language.jsdi.PrimitiveSize;
+import suneido.language.jsdi.VariableIndirectInstruction;
+
 /**
- * Test for {@link Marshaller}.
+ * Test for {@link MarshallerX86}.
  *
  * @author Victor Schappert
  * @since 20130717
  */
 @DllInterface
-public class MarshallerTest {
+public class MarshallerTestX86 {
 
 	private static byte[] ba(String input) {
 		return DatatypeConverter.parseHexBinary(input);
@@ -40,27 +59,27 @@ public class MarshallerTest {
 	}
 
 	private static void simulateNativeSidePutStringInViArray(
-			Marshaller marshaller, String string) {
+			MarshallerX86 marshaller, String string) {
 		marshaller.getViArray()[0] = string;
 	}
 
 	@Test
 	public void testNullMarshaller() {
-		MarshallPlan NULL_PLAN = nullPlan();
-		final Marshaller NULL_MARSHALLER = NULL_PLAN.makeMarshaller();
+		MarshallPlanX86 NULL_PLAN = nullPlan();
+		final MarshallerX86 NULL_MARSHALLER = NULL_PLAN.makeMarshallerX86();
 		assertThrew(() -> { NULL_MARSHALLER.putInt8((byte)'X'); },
 				ArrayIndexOutOfBoundsException.class);
 	}
 
 	@Test
 	public void testMarshallBool() {
-		MarshallPlan mp = directPlan(PrimitiveSize.BOOL);
-		Marshaller mr = mp.makeMarshaller();
+		MarshallPlanX86 mp = directPlan(PrimitiveSize.BOOL);
+		MarshallerX86 mr = mp.makeMarshallerX86();
 		mr.putBool(true);
 		assertArrayEquals(ba("01000000"), mr.getData()); // little-endian
 		mr.rewind();
 		assertTrue(mr.getBool());
-		mr = mp.makeMarshaller();
+		mr = mp.makeMarshallerX86();
 		mr.putBool(false);
 		assertArrayEquals(ba("00000000"), mr.getData());
 		mr.rewind();
@@ -69,8 +88,8 @@ public class MarshallerTest {
 
 	@Test
 	public void testMarshallChar() {
-		MarshallPlan mp = directPlan(PrimitiveSize.INT8);
-		Marshaller mr = mp.makeMarshaller();
+		MarshallPlanX86 mp = directPlan(PrimitiveSize.INT8);
+		MarshallerX86 mr = mp.makeMarshallerX86();
 		mr.putInt8((byte)0x21);
 		assertArrayEquals(ba("21"), mr.getData());
 		mr.rewind();
@@ -79,8 +98,8 @@ public class MarshallerTest {
 
 	@Test
 	public void testMarshallShort() {
-		MarshallPlan mp = directPlan(PrimitiveSize.INT16);
-		Marshaller mr = mp.makeMarshaller();
+		MarshallPlanX86 mp = directPlan(PrimitiveSize.INT16);
+		MarshallerX86 mr = mp.makeMarshallerX86();
 		mr.putInt16((short)0x1982);
 		assertArrayEquals(ba("8219"), mr.getData()); // little-endian
 		mr.rewind();
@@ -89,8 +108,8 @@ public class MarshallerTest {
 
 	@Test
 	public void testMarshallLong() {
-		MarshallPlan mp = directPlan(PrimitiveSize.INT32);
-		Marshaller mr = mp.makeMarshaller();
+		MarshallPlanX86 mp = directPlan(PrimitiveSize.INT32);
+		MarshallerX86 mr = mp.makeMarshallerX86();
 		mr.putInt32(0x19820207);
 		assertArrayEquals(ba("07028219"), mr.getData()); // little-endian
 		mr.rewind();
@@ -99,8 +118,8 @@ public class MarshallerTest {
 
 	@Test
 	public void testMarshallInt64() {
-		MarshallPlan mp = directPlan(PrimitiveSize.INT64);
-		Marshaller mr = mp.makeMarshaller();
+		MarshallPlanX86 mp = directPlan(PrimitiveSize.INT64);
+		MarshallerX86 mr = mp.makeMarshallerX86();
 		mr.putInt64(0x0123456789abcdefL);
 		assertArrayEquals(ba("efcdab8967452301"), mr.getData()); // little-endian
 		mr.rewind();
@@ -109,8 +128,8 @@ public class MarshallerTest {
 
 	@Test
 	public void testMarshallFloat() {
-		MarshallPlan mp = directPlan(PrimitiveSize.FLOAT);
-		Marshaller mr = mp.makeMarshaller();
+		MarshallPlanX86 mp = directPlan(PrimitiveSize.FLOAT);
+		MarshallerX86 mr = mp.makeMarshallerX86();
 		mr.putFloat(1.0f); // IEEE 32-bit float binary rep => 0x3f800000
 		assertArrayEquals(ba("0000803f"), mr.getData()); // little-endian
 		mr.rewind();
@@ -119,8 +138,8 @@ public class MarshallerTest {
 
 	@Test
 	public void testMarshallDouble() {
-		MarshallPlan mp = directPlan(PrimitiveSize.DOUBLE);
-		Marshaller mr = mp.makeMarshaller();
+		MarshallPlanX86 mp = directPlan(PrimitiveSize.DOUBLE);
+		MarshallerX86 mr = mp.makeMarshallerX86();
 		mr.putDouble(19820207.0); // IEEE 64-bit double binary rep => 0x4172e6eaf0000000
 		assertArrayEquals(ba("000000f0eae67241"), mr.getData()); // little-endian
 		mr.rewind();
@@ -130,8 +149,8 @@ public class MarshallerTest {
 	@Test
 	public void testMarshallPtrNotNull() {
 		// Plan for a "C" char *
-		MarshallPlan mp = pointerPlan(PrimitiveSize.INT8);
-		Marshaller mr = mp.makeMarshaller();
+		MarshallPlanX86 mp = pointerPlan(PrimitiveSize.INT8);
+		MarshallerX86 mr = mp.makeMarshallerX86();
 		mr.putPtr();
 		mr.putInt8((byte)0xff);
 		assertArrayEquals(ba("00000000ff"), mr.getData());
@@ -151,8 +170,8 @@ public class MarshallerTest {
 
 	@Test
 	public void testMarshallPtrNull() {
-		MarshallPlan mp = pointerPlan(PrimitiveSize.INT64);
-		Marshaller mr = mp.makeMarshaller();
+		MarshallPlanX86 mp = pointerPlan(PrimitiveSize.INT64);
+		MarshallerX86 mr = mp.makeMarshallerX86();
 		mr.putNullPtr();
 		mr.putInt64(0x1982020719900606L);
 		assertArrayEquals(ba("000000000606901907028219"), mr.getData());
@@ -164,9 +183,9 @@ public class MarshallerTest {
 
 	@Test
 	public void testMarshallPtr_CopyPtrArray() {
-		MarshallPlan mp = pointerPlan(PrimitiveSize.INT8, PrimitiveSize.INT16,
+		MarshallPlanX86 mp = pointerPlan(PrimitiveSize.INT8, PrimitiveSize.INT16,
 				PrimitiveSize.INT32, PrimitiveSize.INT64);
-		Marshaller mr = mp.makeMarshaller();
+		MarshallerX86 mr = mp.makeMarshallerX86();
 		int[] ptrArray = mr.getPtrArray();
 		int[] ptrArrayCopy = Arrays.copyOf(ptrArray, ptrArray.length);
 		mr.putPtr();
@@ -187,8 +206,8 @@ public class MarshallerTest {
 
 	@Test(expected=ArrayIndexOutOfBoundsException.class)
 	public void testMarshallStringDirectZeroTerminated_OverflowString() {
-		MarshallPlan mp = directPlan(PrimitiveSize.INT8);
-		Marshaller mr = mp.makeMarshaller();
+		MarshallPlanX86 mp = directPlan(PrimitiveSize.INT8);
+		MarshallerX86 mr = mp.makeMarshallerX86();
 		// The reason the character count has to be 3 is that the marshaller
 		// copies the character count - 1, assuming that the character at count
 		// is already 0. So a count of 2 doesn't overflow because only one
@@ -199,8 +218,8 @@ public class MarshallerTest {
 
 	@Test(expected=ArrayIndexOutOfBoundsException.class)
 	public void testMarshallStringDirectZeroTerminated_OverflowBuffer() {
-		MarshallPlan mp = directPlan(PrimitiveSize.INT8);
-		Marshaller mr = mp.makeMarshaller();
+		MarshallPlanX86 mp = directPlan(PrimitiveSize.INT8);
+		MarshallerX86 mr = mp.makeMarshallerX86();
 		Buffer b = new Buffer(2, "ab");
 		mr.putZeroTerminatedStringDirect(b , 3);
 	}
@@ -211,30 +230,30 @@ public class MarshallerTest {
 		//
 		// With String
 		//
-		MarshallPlan mp = directPlan(LEN * PrimitiveSize.INT8);
+		MarshallPlanX86 mp = directPlan(LEN * PrimitiveSize.INT8);
 		{
-			Marshaller mr = mp.makeMarshaller();
+			MarshallerX86 mr = mp.makeMarshallerX86();
 			mr.putZeroTerminatedStringDirect("", LEN);
 			assertArrayEquals(ba("000000"), mr.getData());
 			mr.rewind();
 			assertEquals("", mr.getZeroTerminatedStringDirect(LEN));
 		}
 		{
-			Marshaller mr = mp.makeMarshaller();
+			MarshallerX86 mr = mp.makeMarshallerX86();
 			mr.putZeroTerminatedStringDirect("a", LEN);
 			assertArrayEquals(ba("610000"), mr.getData());
 			mr.rewind();
 			assertEquals("a", mr.getZeroTerminatedStringDirect(LEN));
 		}
 		{
-			Marshaller mr = mp.makeMarshaller();
+			MarshallerX86 mr = mp.makeMarshallerX86();
 			mr.putZeroTerminatedStringDirect("01", LEN);
 			assertArrayEquals(ba("303100"), mr.getData());
 			mr.rewind();
 			assertEquals("01", mr.getZeroTerminatedStringDirect(LEN));
 		}
 		{
-			Marshaller mr = mp.makeMarshaller();
+			MarshallerX86 mr = mp.makeMarshallerX86();
 			mr.putZeroTerminatedStringDirect("ABC", LEN);
 			assertArrayEquals(ba("414200"), mr.getData());
 			mr.rewind();
@@ -243,7 +262,7 @@ public class MarshallerTest {
 		{
 			// This is just to test the top-level branch in the method when
 			// numChars is 0
-			final Marshaller mr = mp.makeMarshaller();
+			final MarshallerX86 mr = mp.makeMarshallerX86();
 			mr.putZeroTerminatedStringDirect("@@@", LEN);
 			assertArrayEquals(ba("404000"), mr.getData());
 			mr.rewind();
@@ -254,28 +273,28 @@ public class MarshallerTest {
 		// With Buffer
 		//
 		{
-			Marshaller mr = mp.makeMarshaller();
+			MarshallerX86 mr = mp.makeMarshallerX86();
 			mr.putZeroTerminatedStringDirect(new Buffer(1, ""), LEN);
 			assertArrayEquals(ba("000000"), mr.getData());
 			mr.rewind();
 			assertEquals("", mr.getZeroTerminatedStringDirect(LEN));
 		}
 		{
-			Marshaller mr = mp.makeMarshaller();
+			MarshallerX86 mr = mp.makeMarshallerX86();
 			mr.putZeroTerminatedStringDirect(new Buffer(1, "a"), LEN);
 			assertArrayEquals(ba("610000"), mr.getData());
 			mr.rewind();
 			assertEquals("a", mr.getZeroTerminatedStringDirect(LEN));
 		}
 		{
-			Marshaller mr = mp.makeMarshaller();
+			MarshallerX86 mr = mp.makeMarshallerX86();
 			mr.putZeroTerminatedStringDirect(new Buffer(2, "01"), LEN);
 			assertArrayEquals(ba("303100"), mr.getData());
 			mr.rewind();
 			assertEquals("01", mr.getZeroTerminatedStringDirect(LEN));
 		}
 		{
-			Marshaller mr = mp.makeMarshaller();
+			MarshallerX86 mr = mp.makeMarshallerX86();
 			mr.putZeroTerminatedStringDirect(new Buffer(3, "ABC"), LEN);
 			assertArrayEquals(ba("414200"), mr.getData());
 			mr.rewind();
@@ -286,8 +305,8 @@ public class MarshallerTest {
 	@Test
 	public void testMarshallStringDirectZeroTerminated_NoZero() {
 		final int LEN = 3;
-		MarshallPlan mp = directPlan(LEN);
-		final Marshaller mr = mp.makeMarshaller();
+		MarshallPlanX86 mp = directPlan(LEN);
+		final MarshallerX86 mr = mp.makeMarshallerX86();
 		mr.putNonZeroTerminatedStringDirect("abc", 3);
 		mr.rewind();
 		assertThrew(() -> { mr.getZeroTerminatedStringDirect(LEN); },
@@ -296,15 +315,15 @@ public class MarshallerTest {
 
 	@Test(expected=ArrayIndexOutOfBoundsException.class)
 	public void testMarshallStringDirectNonZeroTerminated_OverflowString() {
-		MarshallPlan mp = directPlan(PrimitiveSize.INT8);
-		Marshaller mr = mp.makeMarshaller();
+		MarshallPlanX86 mp = directPlan(PrimitiveSize.INT8);
+		MarshallerX86 mr = mp.makeMarshallerX86();
 		mr.putNonZeroTerminatedStringDirect("ab", 2);
 	}
 
 	@Test(expected=ArrayIndexOutOfBoundsException.class)
 	public void testMarshallStringDirectNonZeroTerminated_OverflowBuffer() {
-		MarshallPlan mp = directPlan(PrimitiveSize.INT8);
-		Marshaller mr = mp.makeMarshaller();
+		MarshallPlanX86 mp = directPlan(PrimitiveSize.INT8);
+		MarshallerX86 mr = mp.makeMarshallerX86();
 		Buffer b = new Buffer(2, "ab");
 		mr.putNonZeroTerminatedStringDirect(b, 2);
 	}
@@ -315,9 +334,9 @@ public class MarshallerTest {
 		//
 		// With String Input
 		//
-		MarshallPlan mp = directPlan(LEN * PrimitiveSize.INT8);
+		MarshallPlanX86 mp = directPlan(LEN * PrimitiveSize.INT8);
 		{
-			Marshaller mr = mp.makeMarshaller();
+			MarshallerX86 mr = mp.makeMarshallerX86();
 			mr.putNonZeroTerminatedStringDirect("", LEN);
 			assertArrayEquals(ba("0000"), mr.getData());
 			mr.rewind();
@@ -339,21 +358,21 @@ public class MarshallerTest {
 			assertEquals(b1, b5);
 		}
 		{
-			Marshaller mr = mp.makeMarshaller();
+			MarshallerX86 mr = mp.makeMarshallerX86();
 			mr.putNonZeroTerminatedStringDirect("a", LEN);
 			assertArrayEquals(ba("6100"), mr.getData());
 			mr.rewind();
 			assertEquals(mr.getNonZeroTerminatedStringDirect(LEN, null), "a\u0000");
 		}
 		{
-			Marshaller mr = mp.makeMarshaller();
+			MarshallerX86 mr = mp.makeMarshallerX86();
 			mr.putNonZeroTerminatedStringDirect("01", LEN);
 			assertArrayEquals(ba("3031"), mr.getData());
 			mr.rewind();
 			assertEquals(mr.getNonZeroTerminatedStringDirect(LEN, null), "01");
 		}
 		{
-			Marshaller mr = mp.makeMarshaller();
+			MarshallerX86 mr = mp.makeMarshallerX86();
 			mr.putNonZeroTerminatedStringDirect("ABC", LEN);
 			assertArrayEquals(ba("4142"), mr.getData());
 			mr.rewind();
@@ -363,28 +382,28 @@ public class MarshallerTest {
 		// With Buffer Input
 		//
 		{
-			Marshaller mr = mp.makeMarshaller();
+			MarshallerX86 mr = mp.makeMarshallerX86();
 			mr.putNonZeroTerminatedStringDirect(new Buffer(1, ""), LEN);
 			assertArrayEquals(ba("0000"), mr.getData());
 			mr.rewind();
 			assertEquals(mr.getNonZeroTerminatedStringDirect(LEN, null), "\u0000\u0000");
 		}
 		{
-			Marshaller mr = mp.makeMarshaller();
+			MarshallerX86 mr = mp.makeMarshallerX86();
 			mr.putNonZeroTerminatedStringDirect(new Buffer(1, "a"), LEN);
 			assertArrayEquals(ba("6100"), mr.getData());
 			mr.rewind();
 			assertEquals(mr.getNonZeroTerminatedStringDirect(LEN, null), "a\u0000");
 		}
 		{
-			Marshaller mr = mp.makeMarshaller();
+			MarshallerX86 mr = mp.makeMarshallerX86();
 			mr.putNonZeroTerminatedStringDirect(new Buffer(2, "01"), LEN);
 			assertArrayEquals(ba("3031"), mr.getData());
 			mr.rewind();
 			assertEquals(mr.getNonZeroTerminatedStringDirect(LEN, null), "01");
 		}
 		{
-			Marshaller mr = mp.makeMarshaller();
+			MarshallerX86 mr = mp.makeMarshallerX86();
 			mr.putNonZeroTerminatedStringDirect(new Buffer(3, "ABC"), LEN);
 			assertArrayEquals(ba("4142"), mr.getData());
 			mr.rewind();
@@ -394,8 +413,8 @@ public class MarshallerTest {
 
 	@Test
 	public void testMarshallStringIndirectPtrNull_ExpectString() {
-		MarshallPlan mp = variableIndirectPlan();
-		Marshaller mr = mp.makeMarshaller();
+		MarshallPlanX86 mp = variableIndirectPlan();
+		MarshallerX86 mr = mp.makeMarshallerX86();
 		mr.putNullStringPtr(RETURN_JAVA_STRING);
 		assertArrayEquals(
 				new int[] { RETURN_JAVA_STRING.ordinal() },
@@ -409,8 +428,8 @@ public class MarshallerTest {
 
 	@Test
 	public void testMarshallStringIndirectPtrNull_ExpectByteArray() {
-		MarshallPlan mp = variableIndirectPlan();
-		Marshaller mr = mp.makeMarshaller();
+		MarshallPlanX86 mp = variableIndirectPlan();
+		MarshallerX86 mr = mp.makeMarshallerX86();
 		mr.putNullStringPtr(NO_ACTION);
 		assertArrayEquals(
 				new int[] { NO_ACTION.ordinal() },
@@ -427,8 +446,8 @@ public class MarshallerTest {
 	public void testMarshallStringIndirectStringBackToString() {
 		final String IN = "Quis custodiet ipsos custodes?";
 		final String OUT = "Cauta est et ab illis incipit uxor.";
-		MarshallPlan mp = variableIndirectPlan();
-		Marshaller mr = mp.makeMarshaller();
+		MarshallPlanX86 mp = variableIndirectPlan();
+		MarshallerX86 mr = mp.makeMarshallerX86();
 		mr.putStringPtr(IN, RETURN_JAVA_STRING);
 		mr.rewind();
 		simulateNativeSidePutStringInViArray(mr, OUT);
@@ -443,9 +462,9 @@ public class MarshallerTest {
 	public void testMarshallStringIndirectPtrNull_PosAdvance() {
 		// Test of bug found 20130730 in which inserting a null variable
 		// indirect pointer into the marshaller wasn't advancing the position.
-		MarshallPlan mp = variableIndirectPlan();
+		MarshallPlanX86 mp = variableIndirectPlan();
 		for (VariableIndirectInstruction i : VariableIndirectInstruction.values()) {
-			final Marshaller mr = mp.makeMarshaller();
+			final MarshallerX86 mr = mp.makeMarshallerX86();
 			mr.putNullStringPtr(i);
 			assertThrew(() -> { mr.putInt8((byte)0); },
 				ArrayIndexOutOfBoundsException.class);
@@ -458,9 +477,9 @@ public class MarshallerTest {
 		final String OUT = "of each purple curtainXXXXXXXXXXXXXXX".replace('X', '\u0000');
 		final Buffer IN_ = new Buffer(IN.length(), IN);
 		final Buffer EXPECT = new Buffer(IN.length(), OUT);
-		MarshallPlan mp = variableIndirectPlan();
+		MarshallPlanX86 mp = variableIndirectPlan();
 		Buffer OUT_;
-		Marshaller mr = mp.makeMarshaller();
+		MarshallerX86 mr = mp.makeMarshallerX86();
 		mr.putStringPtr(IN_, NO_ACTION);
 		// Simulate native side changing the contents of the byte buffer without
 		// changing the size.
@@ -502,8 +521,8 @@ public class MarshallerTest {
 
 	@Test
 	public void testMarshallIntResourceToIntResource() {
-		MarshallPlan mp = variableIndirectPlan();
-		Marshaller mr = mp.makeMarshaller();
+		MarshallPlanX86 mp = variableIndirectPlan();
+		MarshallerX86 mr = mp.makeMarshallerX86();
 		mr.putINTRESOURCE((short) 17);
 		mr.rewind();
 		// Simulate native side inserting the integer equivalent of the
@@ -514,8 +533,8 @@ public class MarshallerTest {
 
 	@Test
 	public void testMarshallIntResourceToString() {
-		MarshallPlan mp = variableIndirectPlan();
-		Marshaller mr = mp.makeMarshaller();
+		MarshallPlanX86 mp = variableIndirectPlan();
+		MarshallerX86 mr = mp.makeMarshallerX86();
 		mr.putINTRESOURCE((short) 0xffff);
 		mr.rewind();
 		final String str = "simulation of native side replacing INTRESOURCE with String";
@@ -525,8 +544,8 @@ public class MarshallerTest {
 
 	@Test
 	public void testMarshallStringResourceToIntResource() {
-		MarshallPlan mp = variableIndirectPlan();
-		Marshaller mr = mp.makeMarshaller();
+		MarshallPlanX86 mp = variableIndirectPlan();
+		MarshallerX86 mr = mp.makeMarshallerX86();
 		mr.putStringPtr("string resource", RETURN_RESOURCE);
 		mr.rewind();
 		// Simulate native side inserting an INTRESOURCE into the variable
@@ -537,14 +556,14 @@ public class MarshallerTest {
 
 	@Test
 	public void testMarshallStringResourceToStringResource() {
-		MarshallPlan mp = variableIndirectPlan();
-		final Marshaller mr = mp.makeMarshaller();
+		MarshallPlanX86 mp = variableIndirectPlan();
+		final MarshallerX86 mr = mp.makeMarshallerX86();
 		mr.putStringPtr("res", RETURN_RESOURCE);
 		mr.rewind();
 		// This should throw, because outgoing variable indirect array was a
 		// byte[]. The native side is supposed to replace it with a String, but
 		// since we haven't invoked the native side, that didn't happen.
-		assertThrew(mr::getResource, InternalError.class);
+		assertThrew(mr::getResource, SuInternalError.class);
 		// Simulate native side re-converting to String
 		mr.getViArray()[0] = "res";
 		mr.rewind();
@@ -553,19 +572,19 @@ public class MarshallerTest {
 
 	@Test
 	public void testMarshallResourceNullOutputException() {
-		MarshallPlan mp = variableIndirectPlan();
-		final Marshaller mr = mp.makeMarshaller();
+		MarshallPlanX86 mp = variableIndirectPlan();
+		final MarshallerX86 mr = mp.makeMarshallerX86();
 		mr.putStringPtr("anything", RETURN_RESOURCE);
 		mr.rewind();
 		// Simulate a NULL somehow getting into the variable indirect array.
 		mr.getViArray()[0] = null;
-		assertThrew(mr::getResource, InternalError.class);
+		assertThrew(mr::getResource, SuInternalError.class);
 	}
 
 	@Test
 	public void testSkipBasicArrayElements_Single() {
-		MarshallPlan mp = directPlan(PrimitiveSize.INT8);
-		final Marshaller mr = mp.makeMarshaller();
+		MarshallPlanX86 mp = directPlan(PrimitiveSize.INT8);
+		final MarshallerX86 mr = mp.makeMarshallerX86();
 		mr.skipBasicArrayElements(1);
 		assertThrew(() -> { mr.putInt8((byte) 'a'); },
 				ArrayIndexOutOfBoundsException.class);
@@ -574,8 +593,8 @@ public class MarshallerTest {
 	@Test
 	public void testSkipBasicArrayElements_Multiple() {
 		final int NUM_ELEMS = 3;
-		MarshallPlan mp = arrayPlan(PrimitiveSize.INT32, NUM_ELEMS);
-		final Marshaller mr = mp.makeMarshaller();
+		MarshallPlanX86 mp = arrayPlan(PrimitiveSize.INT32, NUM_ELEMS);
+		final MarshallerX86 mr = mp.makeMarshallerX86();
 		for (int k = 0; k < NUM_ELEMS; ++k) {
 			mr.skipBasicArrayElements(1);
 		}
@@ -595,9 +614,9 @@ public class MarshallerTest {
 
 	@Test
 	public void testSkipComplexArrayElements_Single() {
-		MarshallPlan cp = compoundPlan(1, PrimitiveSize.FLOAT, PrimitiveSize.BOOL);
+		MarshallPlanX86 cp = compoundPlan(1, PrimitiveSize.FLOAT, PrimitiveSize.BOOL);
 		ElementSkipper skipper = new ElementSkipper(2, 0);
-		final Marshaller mr = cp.makeMarshaller();
+		final MarshallerX86 mr = cp.makeMarshallerX86();
 		mr.skipComplexElement(skipper);
 		assertThrew(() -> { mr.putInt8((byte) 'a'); },
 				ArrayIndexOutOfBoundsException.class);
@@ -606,9 +625,9 @@ public class MarshallerTest {
 	@Test
 	public void testSkipComplexArrayElements_Multiple() {
 		final int NUM_ELEMS = 3;
-		MarshallPlan cp = compoundPlan(3, PrimitiveSize.FLOAT,
+		MarshallPlanX86 cp = compoundPlan(3, PrimitiveSize.FLOAT,
 				PrimitiveSize.BOOL);
-		final Marshaller mr = cp.makeMarshaller();
+		final MarshallerX86 mr = cp.makeMarshallerX86();
 		ElementSkipper skipper_1 = new ElementSkipper(2, 0);
 		ElementSkipper skipper_3 = new ElementSkipper(6, 0);
 		for (int k = 0; k < NUM_ELEMS; ++k) {
@@ -632,8 +651,8 @@ public class MarshallerTest {
 
 	@Test
 	public void testSkipStringPtr_Single() {
-		MarshallPlan mp = variableIndirectPlan();
-		final Marshaller mr = mp.makeMarshaller();
+		MarshallPlanX86 mp = variableIndirectPlan();
+		final MarshallerX86 mr = mp.makeMarshallerX86();
 		mr.skipStringPtr();
 		assertThrew(() -> { mr.putInt8((byte) 'a'); },
 				ArrayIndexOutOfBoundsException.class);
@@ -641,8 +660,8 @@ public class MarshallerTest {
 
 	@Test
 	public void testSkipStringPtr_Multiple() {
-		MarshallPlan mp = variableIndirectPlan2();
-		final Marshaller mr = mp.makeMarshaller();
+		MarshallPlanX86 mp = variableIndirectPlan2();
+		final MarshallerX86 mr = mp.makeMarshallerX86();
 		mr.skipStringPtr();
 		mr.putStringPtr("x", RETURN_JAVA_STRING);
 		assertArrayEquals(new Object[] { null, new byte[] { (byte) 'x', 0 } },
@@ -658,8 +677,8 @@ public class MarshallerTest {
 		// This is a regression test for a bug found 20130809: when you
 		// putBool(false), it wasn't advancing the posIndex.
 		for (boolean b : new boolean[] { false, true }) {
-			MarshallPlan mp = directPlan(PrimitiveSize.BOOL);
-			final Marshaller mr = mp.makeMarshaller();
+			MarshallPlanX86 mp = directPlan(PrimitiveSize.BOOL);
+			final MarshallerX86 mr = mp.makeMarshallerX86();
 			mr.putBool(b);
 			assertThrew(mr::getBool,
 				ArrayIndexOutOfBoundsException.class);

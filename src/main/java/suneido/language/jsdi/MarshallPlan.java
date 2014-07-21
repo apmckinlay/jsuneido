@@ -5,32 +5,62 @@
 package suneido.language.jsdi;
 
 /**
- * TODO: docs
- * FIXME: Need to insert padding 0-7 padding bytes btwn sizeDirect and
- *        sizeIndirect ... (first check w Java abt array alignment). We might
- *        be screwed if Java doesn't 8-byte-align byte array beginnings i.e.
- *        might need to use a long array
+ * <p>
+ * Encapsulates a template for creating a marshaller.
+ * </p>
+ * <p>
+ * The division of marshalling labour is as follows:
+ * <ul>
+ * <li>
+ * A marshall plan describes <strong>how to create</strong> a
+ * {@link Marshaller}. A plan is in principle stable and permanent: it needs to
+ * be recomputed if, and only if, a type hierarchy changes <em>ie</em> if the
+ * concrete type referred to by a proxied type changes. A marshall plan is
+ * analogous to a Java class.
+ * </li>
+ * <li>
+ * A {@link Marshaller} gets and/or puts data for one particular {@code dll}
+ * call, {@code callback} invocation, or {@code struct} copy out. It is not
+ * reusable. Once used it must be discarded and a new marshaller created from
+ * the relevant plan for each subsequent marshalling problem. A
+ * {@link Marshaller} is analogous to a Java class instance.
+ * </ul>
+ * </p>
+ * <p>
+ * The reason for the division of responsibility between the plan and the actual
+ * marshaller is that a considerable portion of the marshalling problem is
+ * susceptible of being pre-computed (the "plan"). This means that each
+ * individual marshalling sequence can be driven by pre-calculated tables and
+ * constant values, considerably speeding up the process of converting Suneido
+ * language values to native values.
+ * </p>
+ *
  * @author Victor Schappert
  * @since 20130702
  */
 @DllInterface
-public final class MarshallPlan {
+public abstract class MarshallPlan {
+	
+//	 * FIXME: Need to insert padding 0-7 padding bytes btwn sizeDirect and
+//	 *        sizeIndirect ... (first check w Java abt array alignment). We might
+//	 *        be screwed if Java doesn't 8-byte-align byte array beginnings i.e.
+//	 *        might need to use a long array
 
 	//
 	// DATA
 	//
 
-	private final int   sizeDirect;
-	private final int   sizeIndirect;
-	private final int   variableIndirectCount;
-	private final int[] ptrArray;
-	private final int[] posArray;
+	protected final int   sizeDirect;
+	protected final int   sizeIndirect;
+	protected final int   variableIndirectCount;
+	protected final int[] ptrArray; // TODO: This should go to word indices
+	protected final int[] posArray; // TODO: This can stay byte indices
 
 	//
 	// CONSTRUCTORS
 	//
 
-	MarshallPlan(int sizeDirect, int sizeIndirect, int[] ptrArray,
+	protected MarshallPlan(int sizeDirect, int sizeIndirect, int[] ptrArray,
 			int[] posArray, int variableIndirectCount) {
 		this.sizeDirect            = sizeDirect;
 		this.sizeIndirect          = sizeIndirect;
@@ -53,7 +83,7 @@ public final class MarshallPlan {
 	 * @see #getSizeIndirect()
 	 * @see #getVariableIndirectCount()
 	 */
-	public boolean isDirectOnly() {
+	public final boolean isDirectOnly() {
 		return 0 == sizeIndirect && 0 == variableIndirectCount;
 	}
 
@@ -66,6 +96,8 @@ public final class MarshallPlan {
 	 * This function does not presently deal with alignment issues, so if the
 	 * Suneido programmer wants to align particular data members, he must do so
 	 * by inserting suitable padding members if necessary.
+	 *
+	 * TODO: Is this paragraph still accurate after jsdi64?
 	 * </p>
 	 *
 	 * @return Amount of direct storage required to marshall the data
@@ -74,7 +106,7 @@ public final class MarshallPlan {
 	 * @see #getPtrArray()
 	 * @see #getVariableIndirectCount()
 	 */
-	public int getSizeDirect() {
+	public final int getSizeDirect() {
 		return sizeDirect;
 	}
 
@@ -90,7 +122,7 @@ public final class MarshallPlan {
 	 * @see #getVariableIndirectCount()
 	 * @since 20130806
 	 */
-	public int getSizeIndirect() {
+	public final int getSizeIndirect() {
 		return sizeIndirect;
 	}
 
@@ -111,9 +143,9 @@ public final class MarshallPlan {
 	 * @see #getVariableIndirectCount()
 	 * @since 20130806
 	 */
-	public int[] getPtrArray() {
+	public final int[] getPtrArray() {
 		return ptrArray;
-	}
+	} // TODO: Does this need to be public? Who uses this?
 
 	/**
 	 * <p>
@@ -125,63 +157,24 @@ public final class MarshallPlan {
 	 * @see #getSizeDirect()
 	 * @see #getSizeIndirect()i
 	 */
-	public int getVariableIndirectCount() {
+	public final int getVariableIndirectCount() {
 		return variableIndirectCount;
 	}
 
 	/**
-	 * Creates a marshaller instance for marshalling all data described by this
-	 * plan, both direct and indirect.
+	 * This method is purely for testing purposes.
 	 *
-	 * @return Marshaller based on this plan
+	 * @return Marshaller on this plan
+	 * @since 20140719
 	 */
-	public Marshaller makeMarshaller() {
-		return new Marshaller(sizeDirect, sizeIndirect, variableIndirectCount,
-				ptrArray, posArray);
-	}
-
-	/**
-	 * Creates a marshaller instance which is only valid for <em>get</em>
-	 * operations out of existing data.
-	 * 
-	 * @param data An existing data array of the correct length
-	 * @return Get-only marshaller based on this plan
-	 * @since 20130806
-	 * @see #makeMarshaller()
-	 * @see #makeUnMarshaller(byte[], Object[], int[])
-	 */
-	public Marshaller makeUnMarshaller(byte[] data) {
-		assert 0 == variableIndirectCount;
-		assert data.length == sizeDirect + sizeIndirect;
-		return new Marshaller(data, ptrArray, posArray);
-	}
-
-	/**
-	 * Creates a marshaller instance which is only valid for <em>get</em>
-	 * operations out of existing data.
-	 *
-	 * @param data An existing data array of the correct length
-	 * @param viArray An existing, valid, variable indirect output array
-	 * @param viInstArray An existing, valid, variable indirect instruction
-	 * array
-	 * @return Get-only marshaller based on this plan
-	 * @since 20130806
-	 * @see #makeMarshaller()
-	 * @see #makeUnMarshaller(byte[])
-	 */
-	public Marshaller makeUnMarshaller(byte[] data, Object[] viArray,
-			int[] viInstArray) {
-		assert viArray.length == variableIndirectCount &&
-			viInstArray.length == variableIndirectCount;
-		return new Marshaller(data, ptrArray, posArray, viArray, viInstArray);
-	}
+	public abstract Marshaller makeMarshaller();
 
 	//
 	// ANCESTOR CLASS: Object
 	//
 
 	@Override
-	public String toString() {
+	public final String toString() {
 		StringBuilder result = new StringBuilder(128);
 		result.append("MarshallPlan[ ").append(sizeDirect).append(", ")
 				.append(sizeIndirect).append(", {");

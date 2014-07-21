@@ -9,7 +9,10 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import suneido.SuContainer;
+import suneido.SuInternalError;
 import suneido.SuValue;
 import suneido.language.Params;
 import suneido.language.jsdi.type.Callback;
@@ -23,7 +26,8 @@ import suneido.language.jsdi.type.Callback;
  */
 @DllInterface
 @Allocates
-public final class ThunkManager {
+@ThreadSafe
+public abstract class ThunkManager {
 
 	//
 	// STATIC MEMBERS
@@ -47,11 +51,11 @@ public final class ThunkManager {
 				long thunkFuncAddr, long thunkObjectAddr) {
 			assert null != boundValue && null != callback;
 			if (0 == thunkFuncAddr) {
-				throw new IllegalArgumentException(
+				throw new SuInternalError(
 						"native address of thunk function cannot be 0");
 			}
 			if (0 == thunkObjectAddr) {
-				throw new IllegalArgumentException(
+				throw new SuInternalError(
 						"native address of thunk object cannot be 0");
 			}
 			this.boundValue = boundValue;
@@ -87,6 +91,7 @@ public final class ThunkManager {
 	// DATA
 	//
 
+	@SuppressWarnings("unused")
 	private final JSDI jsdi;
 	private final HashMap<SuValue, BoundThunk> boundValueMap;
 
@@ -94,11 +99,7 @@ public final class ThunkManager {
 	// CONSTRUCTORS
 	//
 
-	/**
-	 * Deliberately package-internal. Please use {@link JSDI#getThunkManager()}.
-	 * @param jsdi JSDI instance which owns this thunk manager
-	 */
-	ThunkManager(JSDI jsdi) {
+	protected ThunkManager(JSDI jsdi) {
 		this.jsdi = jsdi;
 		this.boundValueMap = new HashMap<>();
 	}
@@ -126,27 +127,12 @@ public final class ThunkManager {
 	)
 	{
 		if (null == boundValue) {
-			throw new IllegalArgumentException("boundValue cannot be null");
+			throw new SuInternalError("boundValue cannot be null");
 		}
 		if (null == callback) {
-			throw new IllegalArgumentException("callback cannot be null");
+			throw new SuInternalError("callback cannot be null");
 		}
-		BoundThunk boundThunk = null;
-		MarshallPlan plan = callback.getMarshallPlan();
-		synchronized (this) {
-			boundThunk = boundValueMap.get(boundValue);
-			if (null == boundThunk)
-			{
-				long[] addrs = new long[2];
-				newThunk(callback, boundValue, plan.getSizeDirect(),
-						plan.getSizeIndirect(), plan.getPtrArray(),
-						plan.getVariableIndirectCount(), addrs);
-				boundThunk = new BoundThunk(boundValue, callback,
-						addrs[THUNK_FUNC_ADDR_INDEX],
-						addrs[THUNK_OBJECT_ADDR_INDEX]);
-				boundValueMap.put(boundValue, boundThunk);
-			}
-		}
+		final BoundThunk boundThunk = lookupOrCreateInternal(boundValue, callback);
 		if (boundThunk.callback != callback) {
 			// Don't permit the same SuValue instance to be bound to multiple
 			// different instances of Callback (or indeed multiple different
@@ -196,15 +182,25 @@ public final class ThunkManager {
 		}
 	}
 
-	//
-	// NATIVE CALLS
-	//
+	private synchronized BoundThunk lookupOrCreateInternal(SuValue boundValue, Callback callback) {
+		BoundThunk boundThunk = boundValueMap.get(boundValue);
+		if (null == boundThunk)
+		{
+			long[] addrs = new long[2];
+			newThunk(boundValue, callback, addrs);
+			boundThunk = new BoundThunk(boundValue, callback,
+					addrs[THUNK_FUNC_ADDR_INDEX],
+					addrs[THUNK_OBJECT_ADDR_INDEX]);
 
-	private static native void newThunk(Callback callback, SuValue boundValue,
-			int sizeDirect, int sizeIndirect, int[] ptrArray,
-			int variableIndirectCount, long[] outThunkAddrs);
+			boundValueMap.put(boundValue, boundThunk);
+		}
+		return boundThunk;
+	}
 
-	private static native void deleteThunk(long thunkObjectAddr);
+	protected abstract void newThunk(SuValue boundValue, Callback callback,
+			long[] addrs);
+
+	protected abstract void deleteThunk(long thunkObjectAddr);
 
 	//
 	// BUILT-IN FUNCTIONS
@@ -213,6 +209,7 @@ public final class ThunkManager {
 	/**
 	 * Class which {@link suneido.language.BuiltinMethods} can translate into
 	 * the Suneido built-in function {@code Callbacks()}.
+	 * 
 	 * @see ClearCallback
 	 * @see suneido.language.Builtins
 	 */
@@ -225,6 +222,7 @@ public final class ThunkManager {
 	/**
 	 * Class which {@link suneido.language.BuiltinMethods} can translate into
 	 * the Suneido built-in function {@code ClearCallback()}.
+	 * 
 	 * @see Callbacks
 	 * @see suneido.language.Builtins
 	 */

@@ -40,7 +40,7 @@ public final class StringDirect extends StringType {
 	// CONSTRUCTORS
 	//
 
-	StringDirect(int numChars, boolean isZeroTerminated) {
+	public StringDirect(int numChars, boolean isZeroTerminated) {
 		super(TypeId.STRING_DIRECT, StorageType.ARRAY);
 		// NOTE: If we ever introduce wide-character strings and buffers, this
 		//       class can probably handle it just by parameterizing the basic

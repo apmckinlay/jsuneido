@@ -5,8 +5,8 @@
 package suneido.language.builtin;
 
 import suneido.language.Params;
+import suneido.language.jsdi.Dll;
 import suneido.language.jsdi.DllInterface;
-import suneido.language.jsdi.dll.Dll;
 
 /**
  * Built-in function {@code Dll?(value)}. Returns {@code true} if-and-only-if

@@ -662,7 +662,7 @@ public class SuContainer extends SuValue
 			case ASSOC:
 				return SuContainer.of(key, value);
 			default:
-				throw InternalError.unreachable();
+				throw SuInternalError.unreachable();
 			}
 		}
 		@Override

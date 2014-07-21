@@ -28,6 +28,17 @@ PARAMETER PASSING:
                sizeof(STRUCT) <= 8 bytes
 
 ================================================================================
+                           SIDE GOALS/NICE-TO-HAVEs
+================================================================================
+
+[ ] Proper SEH support
+[ ] Remove BasicPointer
+[ ] Clean up all warnings: jSuneido
+[ ] Clean up all cleanable warnings: jsdi
+[ ] Move suneido.language.jsdi -> suneido.jsdi
+[ ] DOCS!
+
+================================================================================
                                 PLAN OF ATTACK
 ================================================================================
 

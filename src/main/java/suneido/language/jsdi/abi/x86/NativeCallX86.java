@@ -2,25 +2,26 @@
  * Licensed under GPLv2.
  */
 
-package suneido.language.jsdi.dll;
+package suneido.language.jsdi.abi.x86;
 
-import static suneido.InternalError.unhandledEnum;
-import static suneido.language.jsdi.dll.CallGroup.DIRECT;
-import static suneido.language.jsdi.dll.CallGroup.INDIRECT;
-import static suneido.language.jsdi.dll.CallGroup.VARIABLE_INDIRECT;
-import static suneido.language.jsdi.dll.ReturnTypeGroup.DOUBLE;
-import static suneido.language.jsdi.dll.ReturnTypeGroup.INTEGER;
+import static suneido.SuInternalError.unhandledEnum;
+import static suneido.language.jsdi.CallGroup.DIRECT;
+import static suneido.language.jsdi.CallGroup.INDIRECT;
+import static suneido.language.jsdi.CallGroup.VARIABLE_INDIRECT;
+import static suneido.language.jsdi.ReturnTypeGroup.DOUBLE;
+import static suneido.language.jsdi.ReturnTypeGroup.INTEGER;
+import suneido.language.jsdi.CallGroup;
 import suneido.language.jsdi.DllInterface;
-import suneido.language.jsdi.Marshaller;
+import suneido.language.jsdi.ReturnTypeGroup;
 
 /**
- * TODO: docs
+ * Contains logic for describing and making {@code dll} calls on x86.
+ *
  * @author Victor Schappert
  * @since 20130717
- *
  */
 @DllInterface
-enum NativeCall {
+enum NativeCallX86 {
 
 	//
 	// ENUMERATORS
@@ -50,7 +51,7 @@ enum NativeCall {
 	// CONSTRUCTORS
 	//
 
-	private NativeCall(CallGroup callGroup, ReturnTypeGroup returnTypeGroup) {
+	private NativeCallX86(CallGroup callGroup, ReturnTypeGroup returnTypeGroup) {
 		this.callGroup = callGroup;
 		this.returnTypeGroup = returnTypeGroup;
 	}
@@ -72,7 +73,7 @@ enum NativeCall {
 		return returnTypeGroup;
 	}
 
-	public long invoke(long funcPtr, int sizeDirect, Marshaller marshaller) {
+	public long invoke(long funcPtr, int sizeDirect, MarshallerX86 marshaller) {
 		switch (this) {
 		case DIRECT_RETURN_INT64:
 			return callDirectReturnInt64(funcPtr, sizeDirect, marshaller.getData());
@@ -101,7 +102,7 @@ enum NativeCall {
 					marshaller.getViArray(), marshaller.getViInstArray());
 			return 0L;
 		default:
-			throw unhandledEnum(NativeCall.class);
+			throw unhandledEnum(NativeCallX86.class);
 		}
 	}
 
@@ -110,18 +111,18 @@ enum NativeCall {
 	//
 
 	// map[CallGroup][ReturnTypeGroup]
-	private static final NativeCall[][] map;
+	private static final NativeCallX86[][] map;
 	static {
 		final CallGroup[] cg = CallGroup.values();
 		final ReturnTypeGroup[] rt = ReturnTypeGroup.values();
-		final NativeCall[] nc = NativeCall.values();
+		final NativeCallX86[] nc = NativeCallX86.values();
 		final int N_cg = cg.length;
 		final int N_rt = rt.length;
-		map = new NativeCall[N_cg][];
+		map = new NativeCallX86[N_cg][];
 		for (int i = 0; i < N_cg; ++i) {
-			map[i] = new NativeCall[N_rt];
+			map[i] = new NativeCallX86[N_rt];
 			for (int j = 0; j < N_rt; ++j) {
-				inner: for (NativeCall n : nc) {
+				inner: for (NativeCallX86 n : nc) {
 					if (cg[i] == n.callGroup && rt[j] == n.returnTypeGroup) {
 						map[i][j] = n;
 						break inner;
@@ -131,7 +132,7 @@ enum NativeCall {
 		}
 	}
 
-	public static NativeCall get(CallGroup callGroup,
+	public static NativeCallX86 get(CallGroup callGroup,
 			ReturnTypeGroup returnTypeGroup) {
 		return map[callGroup.ordinal()][returnTypeGroup.ordinal()];
 	}

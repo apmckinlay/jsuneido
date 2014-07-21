@@ -4,7 +4,7 @@
 
 package suneido.database.query.expr;
 
-import static suneido.InternalError.unreachable;
+import static suneido.SuInternalError.unreachable;
 import static suneido.language.Ops.add;
 import static suneido.language.Ops.bitand;
 import static suneido.language.Ops.bitor;

@@ -16,6 +16,7 @@ import suneido.Suneido;
 import suneido.language.Except;
 import suneido.language.Ops;
 import suneido.language.jsdi.Buffer;
+import suneido.language.jsdi.DllInterface;
 
 /**
  * <p>
@@ -60,6 +61,7 @@ import suneido.language.jsdi.Buffer;
  * @author Victor Schappert
  * @since 20140210
  */
+@DllInterface
 public final class InternetProtocol {
 
 	/** Name of the callable object that #start(String) should invoke. */

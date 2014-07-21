@@ -4,47 +4,53 @@
 
 package suneido.language.jsdi.type;
 
-import java.util.Arrays;
-
 import suneido.SuException;
+import suneido.SuInternalError;
 import suneido.SuValue;
 import suneido.language.Ops;
-import suneido.language.jsdi.*;
+import suneido.language.jsdi.DllInterface;
+import suneido.language.jsdi.JSDIException;
+import suneido.language.jsdi.Marshaller;
+import suneido.language.jsdi.NumberConversions;
+import suneido.language.jsdi.PrimitiveSize;
+import suneido.language.jsdi.ThunkManager;
+import suneido.language.jsdi._64BitIssue;
 
 /**
- * TODO: docs
+ * Implements the JSDI {@code callback} type.
  * 
  * @author Victor Schappert
  * @since 20130625
  */
 @DllInterface
-public final class Callback extends ComplexType {
+public abstract class Callback extends ComplexType {
 
 	//
 	// DATA
 	//
 
 	private final ThunkManager thunkManager;
-	private MarshallPlan marshallPlan;
 
 	//
 	// CONSTRUCTORS
 	//
 
-	Callback(String valueName, TypeList parameters, ThunkManager thunkManager) {
+	protected Callback(String valueName, TypeList parameters,
+			ThunkManager thunkManager) {
 		super(TypeId.CALLBACK, valueName, parameters);
 		if (null == thunkManager) {
-			throw new IllegalArgumentException("thunkManager cannot be null");
+			throw new SuInternalError("thunkManager cannot be null");
 		}
 		this.thunkManager = thunkManager;
-		this.marshallPlan = null;
 	}
 
 	//
 	// INTERNALS
 	//
 
-	private static int toInt(Object result) {
+	@_64BitIssue
+	// see FIXME note below
+	protected static int toInt(Object result) {
 		if (null == result) {
 			// For consistency with CSuneido, a 'null' return value (failure to
 			// return any value, as in 'function() { }' or
@@ -58,23 +64,6 @@ public final class Callback extends ComplexType {
 	// ACCESSORS
 	//
 
-	// TODO: docs since 20130806
-	public MarshallPlan getMarshallPlan() {
-		// TODO: resolve thread safety and update issues --
-		//       this will cause problems if marshall plan on an already bound
-		//       thunk can change
-		try {
-			if (typeList.resolve(0) || null == marshallPlan) {
-				marshallPlan = typeList.makeParamsMarshallPlan(true, false);
-			}
-		} catch (ProxyResolveException e) {
-			e.setMemberType("parameter");
-			e.setParentName(valueName());
-			throw new JSDIException(e);
-		}
-		return marshallPlan;
-	}
-
 	/**
 	 * Invoked from native side.
 	 * 
@@ -82,20 +71,22 @@ public final class Callback extends ComplexType {
 	 *            Bound value to invoke
 	 * @param argsIn
 	 *            Argument array to unmarshall
-	 * @return The return value of {@code callable}, which must be coerceable
-	 *         to an {@code int}
+	 * @return The return value of {@code callable}, which must be coerceable to
+	 *         an {@code int}
 	 * @since 20130806
 	 * @see #invokeVariableIndirect(SuValue, byte[], Object[])
 	 */
-	public int invoke(SuValue boundValue, byte[] argsIn) {
-		Marshaller marshaller = marshallPlan.makeUnMarshaller(argsIn);
-		Object[] argsOut = typeList.marshallOutParams(marshaller);
-		Object result = boundValue.call(argsOut);
-		// FIXME: Return value will have to be 64-bit on x64 so it probably
-		//        makes most sense just to return 64-bit on all platforms for
-		//        simplicity...
-		return toInt(result);
-	}
+	@_64BitIssue
+	// see FIXME below
+	public abstract int invoke(SuValue boundValue, byte[] argsIn);
+
+	// TODO: This will change to Object argsIn to be compatible with AMD64
+	// TODO: Add invoke0(SuValue) ... invoke4(SuValue, long a, ..., long d) for
+	// faster performance -- won't implement on X86, so should throw
+	// InternalError instead of being abstract.
+	// FIXME: Return value will have to be 64-bit on x64 so it probably
+	// makes most sense just to return 64-bit on all platforms for
+	// simplicity...
 
 	/**
 	 * Invoked from native side.
@@ -106,64 +97,54 @@ public final class Callback extends ComplexType {
 	 *            Argument array to unmarshall
 	 * @param viArray
 	 *            Variable indirect component of arguments
-	 * @return The return value of {@code callable}, which must be coerceable
-	 *         to an {@code int}
+	 * @return The return value of {@code callable}, which must be coerceable to
+	 *         an {@code int}
 	 * @since 20130806
 	 * @see #invoke(SuValue, byte[])
 	 */
-	public int invokeVariableIndirect(SuValue boundValue, byte[] argsIn,
-			Object[] viArray) {
-		int[] viInstArray = new int[viArray.length];
-		Arrays.fill(viInstArray,
-				VariableIndirectInstruction.RETURN_JAVA_STRING.ordinal());
-		Marshaller marshaller = marshallPlan.makeUnMarshaller(argsIn, viArray,
-				viInstArray);
-		Object[] argsOut = typeList.marshallOutParams(marshaller);
-		Object result = boundValue.call(argsOut);
-		// FIXME: Return value will have to be 64-bit on x64 so it probably
-		//        makes most sense just to return 64-bit on all platforms for
-		//        simplicity...
-		return toInt(result);
-	}
+	public abstract int invokeVariableIndirect(SuValue boundValue,
+			byte[] argsIn, Object[] viArray);
 
 	//
 	// ANCESTOR CLASS: Type
 	//
 
 	@Override
-	public String getDisplayName() {
+	public final String getDisplayName() {
 		return "callback" + typeList.toParamsTypeString();
 	}
 
 	@Override
-	public int getSizeDirectIntrinsic() {
+	public final int getSizeDirectIntrinsic() {
 		return PrimitiveSize.POINTER;
 	}
 
 	@Override
-	public int getSizeDirectWholeWords() {
+	public final int getSizeDirectWholeWords() {
 		return PrimitiveSize.pointerWholeWordBytes();
 	}
 
 	@Override
-	@_64BitIssue
-	public void marshallIn(Marshaller marshaller, Object value) {
+	public final void marshallIn(Marshaller marshaller, Object value) {
 		if (null == value) {
-			marshaller.putInt32(0);
+			marshaller.putPointerSizedInt(0L);
 		} else if (value instanceof SuValue) {
 			long thunkFuncAddr = thunkManager.lookupOrCreateBoundThunk(
 					(SuValue) value, this);
-			marshaller.putInt32(NumberConversions.toPointer32(thunkFuncAddr));
-		} else try {
-			marshaller.putInt32(NumberConversions.toPointer32(value));
-		} catch (SuException e) {
-			throw new JSDIException("can't marshall " + value + " into "
-					+ toString());
-		}
+			marshaller.putPointerSizedInt(NumberConversions
+					.toPointer64(thunkFuncAddr));
+		} else
+			try {
+				marshaller.putPointerSizedInt(NumberConversions
+						.toPointer64(value));
+			} catch (SuException e) {
+				throw new JSDIException("can't marshall " + value + " into "
+						+ toString());
+			}
 	}
 
 	@Override
-	public Object marshallOut(Marshaller marshaller, Object oldValue) {
+	public final Object marshallOut(Marshaller marshaller, Object oldValue) {
 		return oldValue; // Nothing to be done here
 	}
 
@@ -172,7 +153,7 @@ public final class Callback extends ComplexType {
 	//
 
 	@Override
-	public String toString() {
+	public final String toString() {
 		return getDisplayName(); // Can be result of Suneido 'Display' built-in.
 	}
 }

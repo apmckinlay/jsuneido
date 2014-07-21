@@ -16,6 +16,16 @@
     public *;
 }
 
+# Keep JSDI platform-specific factory classes
+# If you want to make a JAR without platform-specific code, it should be done
+# by excluding the relevant abi.XXX package at the compile/raw JAR stage, before
+# ProGuard runs.
+-keep class suneido.language.jsdi.DllFactory { protected <init>(suneido.language.jsdi.JSDI); }
+-keep class suneido.language.jsdi.Factory { protected <init>(suneido.language.jsdi.JSDI); }
+-keep class suneido.language.jsdi.abi.x86.DllFactoryX86 { <init>(suneido.language.jsdi.JSDI); }
+-keep class suneido.language.jsdi.abi.x86.FactoryX86 { <init>(suneido.language.jsdi.JSDI); }
+-keep class suneido.language.jsdi.abi.x86.ThunkManagerX86 { <init>(suneido.language.jsdi.JSDI); }
+
 -keep class suneido.immudb.BtreeKey
 -keep class suneido.language.ParseFunction$Context
 

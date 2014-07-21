@@ -17,6 +17,7 @@ import suneido.SuContainer;
 import suneido.language.ContextLayered;
 import suneido.language.Numbers;
 import suneido.language.jsdi.Buffer;
+import suneido.language.jsdi.JSDI;
 import suneido.language.jsdi.Marshaller;
 import suneido.language.jsdi.SimpleContext;
 import suneido.language.jsdi.StorageType;
@@ -51,7 +52,7 @@ public class TypeListTest {
 		while (k < N) {
 			args.add((String)tuples[k++], (Type)tuples[k++]);
 		}
-		return new TypeList(args);
+		return JSDI.getInstance().getFactory().makeTypeList(args);
 	}
 
 	private static Type bv(BasicType basicType) {
@@ -158,11 +159,9 @@ public class TypeListTest {
 			m.rewind();
 			tl.marshallOutParams(m, args2);
 			// Unlike with basic types, with structures that are passed by
-			// value,
-			// they *might* contain a pointer which has to be marshalled out, so
-			// we do marshall out structures even though the native side
-			// couldn't
-			// have changed anything that was copied on the stack.
+			// value, they *might* contain a pointer which has to be marshalled
+			// out, so we do marshall out structures even though the native side
+			// couldn't have changed anything that was copied on the stack.
 			assertArrayEquals(new Object[] { CIRCLE(0.0, 0.0, 0.0) }, args2);
 		}
 	}

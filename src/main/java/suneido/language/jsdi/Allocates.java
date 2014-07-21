@@ -12,6 +12,7 @@ package suneido.language.jsdi;
  * @author Victor Schappert
  * @since 20130621
  */
+@DllInterface
 public @interface Allocates {
 
 }

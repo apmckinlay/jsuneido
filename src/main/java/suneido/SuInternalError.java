@@ -23,7 +23,7 @@ package suneido;
  * @author Victor Schappert
  * @since 20140622
  */
-public final class InternalError extends Error {
+public final class SuInternalError extends Error {
 
 	/**
 	 * Automatically-generated serialization version number.
@@ -46,7 +46,7 @@ public final class InternalError extends Error {
 	 * 
 	 * @param message Error message string
 	 */
-	public InternalError(String message) {
+	public SuInternalError(String message) {
 		super(message);
 	}
 
@@ -66,8 +66,8 @@ public final class InternalError extends Error {
 	 * @return Unreachable error to throw
 	 * @see #unhandledEnum(Class)
 	 */
-	public static final InternalError unreachable() {
-		return new InternalError("should not reach here");
+	public static final SuInternalError unreachable() {
+		return new SuInternalError("should not reach here");
 	}
 
 	/**
@@ -78,7 +78,7 @@ public final class InternalError extends Error {
 	 * @return Unhandled enumerator error to throw
 	 * @see #unreachable()
 	 */
-	public static final <E extends Enum<E>> InternalError unhandledEnum(Class<E> e) {
-		return new InternalError("unhandled " + e.getSimpleName() + " enumerator in switch");
+	public static final <E extends Enum<E>> SuInternalError unhandledEnum(Class<E> e) {
+		return new SuInternalError("unhandled " + e.getSimpleName() + " enumerator in switch");
 	}
 }

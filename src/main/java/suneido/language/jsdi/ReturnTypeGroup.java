@@ -2,21 +2,20 @@
  * Licensed under GPLv2.
  */
 
-package suneido.language.jsdi.dll;
+package suneido.language.jsdi;
 
-import suneido.language.jsdi.DllInterface;
-import suneido.language.jsdi.JSDIException;
 import suneido.language.jsdi.type.BasicValue;
 import suneido.language.jsdi.type.InOutString;
 import suneido.language.jsdi.type.Type;
 
 /**
- * TODO: docs
+ * Enumerates high-level categories of function return types.
+ *
  * @author Victor Schappert
  * @since 20130717
  */
 @DllInterface
-enum ReturnTypeGroup {
+public enum ReturnTypeGroup {
 
 	/**
 	 * Indicates that the return value of the function is an integer value

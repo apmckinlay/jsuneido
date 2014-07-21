@@ -6,8 +6,6 @@ package suneido.language.jsdi;
 
 import java.util.ArrayList;
 
-import com.google.common.primitives.Ints;
-
 /**
  * Class for constructing a {@link MarshallPlan} by traversing a type tree. 
  *
@@ -15,30 +13,30 @@ import com.google.common.primitives.Ints;
  * @since 20130724
  */
 @DllInterface
-public final class MarshallPlanBuilder {
+public abstract class MarshallPlanBuilder {
 
 	//
 	// DATA
 	//
 
-	private final int                       sizeDirect;
-	private final int                       sizeIndirect;
-	private final int                       variableIndirectCount;
-	private final ArrayList<Integer>        posList;
-	private final ArrayList<Integer>        ptrList;
-	private final ArrayList<Integer>        nextPosStack; // indirection
-	private final ArrayList<ElementSkipper> skipperStack; // containers
-	private final boolean                   alignToWordBoundary;
-	private       ElementSkipper            skipper;
-	private       int                       nextPos;
-	private       int                       endPos;
-	private       int                       variableIndirectPos;
+	protected final int                       sizeDirect;
+	protected final int                       sizeIndirect;
+	protected final int                       variableIndirectCount;
+	protected final ArrayList<Integer>        posList;
+	protected final ArrayList<Integer>        ptrList;
+	private   final ArrayList<Integer>        nextPosStack; // indirection
+	private   final ArrayList<ElementSkipper> skipperStack; // containers
+	private   final boolean                   alignToWordBoundary;
+	private         ElementSkipper            skipper;
+	private         int                       nextPos;
+	private         int                       endPos;
+	private         int                       variableIndirectPos;
 
 	//
 	// CONSTRUCTORS
 	//
 
-	public MarshallPlanBuilder(int sizeDirect, int sizeIndirect,
+	protected MarshallPlanBuilder(int sizeDirect, int sizeIndirect,
 			int variableIndirectCount, boolean alignToWordBoundary) {
 		this.sizeDirect = sizeDirect;
 		this.sizeIndirect = sizeIndirect;
@@ -59,7 +57,7 @@ public final class MarshallPlanBuilder {
 	// MUTATORS
 	//
 
-	public int pos(int bytes) {
+	public final int pos(int bytes) {
 		final int pos = nextPos;
 		assert 0 <= pos && pos < endPos && endPos <= sizeDirect + sizeIndirect;
 		posList.add(pos);
@@ -75,7 +73,7 @@ public final class MarshallPlanBuilder {
 		return pos;
 	}
 
-	public void ptrBegin(int pointedToSizeBytes) {
+	public final void ptrBegin(int pointedToSizeBytes) {
 		int ptrPos = pos(PrimitiveSize.POINTER);
 		int pointedToPos = endPos;
 		endPos += pointedToSizeBytes;
@@ -87,12 +85,12 @@ public final class MarshallPlanBuilder {
 		skipper.nPtr += 2;
 	}
 
-	public void ptrEnd() {
+	public final void ptrEnd() {
 		int N = nextPosStack.size();
 		nextPos = nextPosStack.remove(N - 1).intValue();
 	}
 
-	public void ptrBasic(int pointedToSizeBytes) {
+	public final void ptrBasic(int pointedToSizeBytes) {
 		int ptrPos = pos(PrimitiveSize.POINTER);
 		int pointedToPos = endPos;
 		endPos += pointedToSizeBytes;
@@ -104,7 +102,7 @@ public final class MarshallPlanBuilder {
 		skipper.nPtr += 2;
 	}
 
-	public void variableIndirectPtr() {
+	public final void variableIndirectPtr() {
 		int ptrPos = pos(PrimitiveSize.POINTER);
 		int pointedToPos = sizeDirect + sizeIndirect + variableIndirectPos++;
 		assert sizeDirect + sizeIndirect <= pointedToPos
@@ -115,7 +113,7 @@ public final class MarshallPlanBuilder {
 		skipper.nPtr += 2;
 	}
 
-	public void variableIndirectPseudoArg() {
+	public final void variableIndirectPseudoArg() {
 		assert nextPosStack.isEmpty() && skipperStack.isEmpty();
 		assert sizeDirect == nextPos;
 		assert sizeDirect + sizeIndirect - PrimitiveSize.POINTER == endPos;
@@ -125,14 +123,14 @@ public final class MarshallPlanBuilder {
 		nextPos = sizeDirect; // keep assertions happy
 	}
 
-	public void containerBegin() {
+	public final void containerBegin() {
 		skipperStack.add(skipper);
 		skipper = new ElementSkipper(0, 0);
 	}
 
 	// TODO: Note that this returned value is valid for any marshall plan
 	//       that includes the container, not just the one under construction
-	public ElementSkipper containerEnd() {
+	public final ElementSkipper containerEnd() {
 		final ElementSkipper result = skipper;
 		int N = skipperStack.size();
 		skipper = skipperStack.remove(N - 1);
@@ -152,27 +150,27 @@ public final class MarshallPlanBuilder {
 		return result;
 	}
 
-	public void arrayBegin() {
+	public final void arrayBegin() {
 		containerBegin();
 	}
 
-	public ElementSkipper arrayEnd() {
+	public final ElementSkipper arrayEnd() {
 		return containerEnd();
 	}
 
-	public MarshallPlan makeMarshallPlan() {
+	public final MarshallPlan makeMarshallPlan() {
 		assert nextPosStack.isEmpty();
 		assert sizeDirect == nextPos;
 		assert sizeDirect + sizeIndirect == endPos;
 		assert skipperStack.isEmpty();
 		assert posList.size() == skipper.nPos;
 		assert ptrList.size() == skipper.nPtr;
-		return new MarshallPlan(
-			sizeDirect,
-			sizeIndirect,
-			Ints.toArray(ptrList),
-			Ints.toArray(posList),
-			variableIndirectCount
-		);
+		return makeMarshallPlanInternal();
 	}
+
+	//
+	// INTERNALS
+	//
+
+	protected abstract MarshallPlan makeMarshallPlanInternal();
 }

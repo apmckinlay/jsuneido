@@ -5,7 +5,7 @@
 package suneido.database.query;
 
 import static java.util.Arrays.asList;
-import static suneido.InternalError.unreachable;
+import static suneido.SuInternalError.unreachable;
 import static suneido.Suneido.dbpkg;
 import static suneido.util.Util.addUnique;
 import static suneido.util.Util.concat;

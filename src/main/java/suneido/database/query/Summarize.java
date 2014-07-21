@@ -21,7 +21,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import suneido.InternalError;
+import suneido.SuInternalError;
 import suneido.SuContainer;
 import suneido.SuException;
 import suneido.intfc.database.Record;
@@ -80,7 +80,7 @@ public class Summarize extends Query1 {
 		case COPY: sb.append("-COPY"); break;
 		case SEQUENTIAL: sb.append("-SEQ"); break;
 		case MAP: sb.append("-MAP"); break;
-		default: throw InternalError.unreachable();
+		default: throw SuInternalError.unreachable();
 		}
 		sb.append(" ");
 		if (!nil(via))
@@ -266,7 +266,7 @@ public class Summarize extends Query1 {
 				return new Min();
 			if ("list".equals(summary))
 				return new ListSum();
-			throw InternalError.unreachable();
+			throw SuInternalError.unreachable();
 		}
 	}
 	private static class Count extends Summary {

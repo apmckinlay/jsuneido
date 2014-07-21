@@ -4,7 +4,7 @@
 
 package suneido.language;
 
-import static suneido.InternalError.unreachable;
+import static suneido.SuInternalError.unreachable;
 import static suneido.language.Token.ARRAYTYPE;
 import static suneido.language.Token.CALLBACK;
 import static suneido.language.Token.COMMA;

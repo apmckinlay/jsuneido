@@ -17,12 +17,22 @@ import suneido.SuContainer;
 import suneido.SuDate;
 import suneido.SuException;
 import suneido.SuRecord;
+import suneido.language.jsdi.Dll;
 import suneido.language.jsdi.DllInterface;
+import suneido.language.jsdi.Factory;
 import suneido.language.jsdi.JSDI;
 import suneido.language.jsdi.StorageType;
-import suneido.language.jsdi.dll.Dll;
-import suneido.language.jsdi.dll.DllFactory;
-import suneido.language.jsdi.type.*;
+import suneido.language.jsdi.type.BasicType;
+import suneido.language.jsdi.type.Callback;
+import suneido.language.jsdi.type.InOutString;
+import suneido.language.jsdi.type.InString;
+import suneido.language.jsdi.type.Proxy;
+import suneido.language.jsdi.type.ResourceType;
+import suneido.language.jsdi.type.StringType;
+import suneido.language.jsdi.type.Structure;
+import suneido.language.jsdi.type.Type;
+import suneido.language.jsdi.type.TypeList;
+import suneido.language.jsdi.type.VoidType;
 
 public class AstCompile {
 	private final PrintWriter pw;
@@ -266,12 +276,12 @@ public class AstCompile {
 			BasicType basicType = BasicType.fromIdentifier(typeName);
 			Type type = null;
 			if (null != basicType) {
-				type = JSDI.getInstance().getTypeFactory()
+				type = JSDI.getInstance().getFactory()
 						.makeBasicType(basicType, storageType, numElems);
 			} else if (StringType.IDENTIFIER_STRING.equals(typeName)) {
 				type = JSDI
 						.getInstance()
-						.getTypeFactory()
+						.getFactory()
 						.makeStringType(storageType, numElems, true, inModifier);
 			} else if (StringType.IDENTIFIER_BUFFER.equals(typeName)) {
 				if (Token.CALLBACK == listType && StorageType.VALUE == storageType) {
@@ -279,7 +289,7 @@ public class AstCompile {
 				}
 				type = JSDI
 						.getInstance()
-						.getTypeFactory()
+						.getFactory()
 						.makeStringType(storageType, numElems, false,
 								inModifier);
 			} else if (ResourceType.IDENTIFIER.equals(typeName)) {
@@ -288,7 +298,7 @@ public class AstCompile {
 				}
 				type = JSDI
 						.getInstance()
-						.getTypeFactory()
+						.getFactory()
 						.makeResourceType(storageType, numElems, false,
 								inModifier);
 			} else // otherwise it's a name which may be undefined, so add a
@@ -302,14 +312,14 @@ public class AstCompile {
 			}
 			args.add(memberName, type);
 		}
-		return new TypeList(args);
+		return JSDI.getInstance().getFactory().makeTypeList(args);
 	}
 
 	@DllInterface
 	private Object foldStruct(String name, AstNode ast) {
 		nameBegin(name, "$s");
 		TypeList members = typeList(Token.STRUCT, ast.first().children);
-		Structure struct = JSDI.getInstance().getTypeFactory()
+		Structure struct = JSDI.getInstance().getFactory()
 				.makeStruct(curName, members);
 		nameEnd();
 		return struct;
@@ -323,7 +333,7 @@ public class AstCompile {
 		String returnTypeName = ast.third().value;
 		BasicType bt = BasicType.fromIdentifier(returnTypeName);
 		if (null != bt) {
-			returnType = JSDI.getInstance().getTypeFactory()
+			returnType = JSDI.getInstance().getFactory()
 					.makeBasicType(bt, StorageType.VALUE, 1);
 		} else if (VoidType.IDENTIFIER.equals(returnTypeName)) {
 			returnType = VoidType.INSTANCE;
@@ -332,7 +342,7 @@ public class AstCompile {
 		} else {
 			throw new SuException("invalid dll return type: " + returnTypeName);
 		}
-		DllFactory factory = JSDI.getInstance().getDllFactory();
+		Factory factory = JSDI.getInstance().getFactory();
 		Dll dll = factory.makeDll(curName, ast.first().value,
 				ast.second().value, params, returnType);
 		nameEnd();
@@ -343,7 +353,7 @@ public class AstCompile {
 	private Object foldCallback(String name, AstNode ast) {
 		nameBegin(name, "$C");
 		TypeList params = typeList(Token.CALLBACK, ast.first().children);
-		Callback callback = JSDI.getInstance().getTypeFactory()
+		Callback callback = JSDI.getInstance().getFactory()
 				.makeCallback(curName, params);
 		return callback;
 	}

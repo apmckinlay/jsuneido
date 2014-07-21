@@ -113,23 +113,23 @@ abstract class LineEditor {
 	}
 
 	/**
-	 * Generate a Doxygen {@code <dfn> ... </dfn>} tag wrapping the given
+	 * Generate a Doxygen {@code <code> ... </code>} tag wrapping the given
 	 * string.
 	 * @param str String to wrap
-	 * @return {@code <dfn>[str]</dfn>}
+	 * @return {@code <code>[str]</code>}
 	 */
-	public static StringBuilder doxygenDfn(CharSequence str) {
-		StringBuilder result = new StringBuilder(str.length() + 11);
-		return result.append("<dfn>").append(str).append("</dfn>");
+	public static StringBuilder doxygenCode(CharSequence str) {
+		StringBuilder result = new StringBuilder(str.length() + 13);
+		return result.append("<code>").append(str).append("</code>");
 	}
 
 	/**
-	 * Generate a Doxygen {@code <dfn> ... </dfn>} tag wrapping the name of the
+	 * Generate a Doxygen {@code <code> ... </code>} tag wrapping the name of the
 	 * given class string.
 	 * @param clazz Class to wrap
-	 * @return {@code <dfn>[clazz.getName()]</dfn>}
+	 * @return {@code <code>[clazz.getName()]</code>}
 	 */
-	public static <T> StringBuilder doxygenDfn(Class<T> clazz) {
-		return doxygenDfn(clazz.getName());
+	public static <T> StringBuilder doxygenCode(Class<T> clazz) {
+		return doxygenCode(clazz.getName());
 	}
 }
