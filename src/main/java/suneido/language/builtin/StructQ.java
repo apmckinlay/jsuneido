@@ -4,9 +4,9 @@
 
 package suneido.language.builtin;
 
+import suneido.jsdi.DllInterface;
+import suneido.jsdi.type.Structure;
 import suneido.language.Params;
-import suneido.language.jsdi.DllInterface;
-import suneido.language.jsdi.type.Structure;
 
 /**
  * Built-in function {@code Struct?(value)}. Returns {@code true} if-and-only-if

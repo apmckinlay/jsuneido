@@ -1,6 +1,6 @@
 suneido.intfc.database.DbRebuildTest
 suneido.intfc.database.DumpLoadTest
 suneido.immudb.MmapFileTest
-suneido.language.jsdi.type.StructureTest
+suneido.jsdi.type.StructureTest
 suneido.language.ParseAndCompileDllTest
 suneido.language.ParseAndCompileStructTest

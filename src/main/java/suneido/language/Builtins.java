@@ -8,12 +8,12 @@ import java.util.Map;
 
 import suneido.SuContainer;
 import suneido.Suneido;
+import suneido.jsdi.Buffer;
+import suneido.jsdi.ThunkManager;
+import suneido.jsdi.com.COMobject;
 import suneido.language.builtin.*;
 import suneido.language.builtin.AssertionError;
 import suneido.language.builtin.NullPointerException;
-import suneido.language.jsdi.Buffer;
-import suneido.language.jsdi.ThunkManager;
-import suneido.language.jsdi.com.COMobject;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;

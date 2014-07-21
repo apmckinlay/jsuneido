@@ -7,8 +7,8 @@
 	</condition>
         <property name="jsdi-vs-path" value="${jsdi-path}/vs/vs12_nov2013_ctp"/>
         <property name="jsdi-vs-sln" value="vs12_nov2013_ctp.sln"/>
-	<property name="jsdi-package" value="suneido.language.jsdi"/>
-	<property name="jsdi-tools-package" value="suneido.language.jsdi.tools"/>
+	<property name="jsdi-package" value="suneido.jsdi"/>
+	<property name="jsdi-tools-package" value="suneido.jsdi.tools"/>
 	<property name="jsdi-make-config" value="Release-dll"/>
 	<property name="java-lib-dir" value="lib"/>
 	<property name="java-target-dir" value="target/classes"/>

@@ -12,16 +12,16 @@ import static suneido.util.testing.Throwing.assertThrew;
 import org.junit.Test;
 
 import suneido.SuException;
-import suneido.language.jsdi.DllInterface;
-import suneido.language.jsdi.JSDIException;
-import suneido.language.jsdi.PrimitiveSize;
+import suneido.jsdi.DllInterface;
+import suneido.jsdi.JSDIException;
+import suneido.jsdi.PrimitiveSize;
 import suneido.util.testing.Assumption;
 
 /**
  * Tests parsing and compiling of Suneido language {@code struct} elements.
  * @author Victor Schappert
  * @since 20130621
- * @see suneido.language.jsdi.type.StructureTest
+ * @see suneido.jsdi.type.StructureTest
  * @see ParseAndCompileDllTest
  * @see ParseAndCompileCallbackTest
  */

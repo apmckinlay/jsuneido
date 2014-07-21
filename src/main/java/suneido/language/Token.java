@@ -15,7 +15,7 @@ import java.util.Map;
 
 import javax.annotation.concurrent.Immutable;
 
-import suneido.language.jsdi.DllInterface;
+import suneido.jsdi.DllInterface;
 
 @Immutable
 public enum Token {

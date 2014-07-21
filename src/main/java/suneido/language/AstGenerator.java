@@ -6,7 +6,7 @@ package suneido.language;
 
 import java.util.ArrayList;
 
-import suneido.language.jsdi.DllInterface;
+import suneido.jsdi.DllInterface;
 
 public class AstGenerator extends Generator<AstNode> {
 	private static final AstNode NIL_STATEMENT = new AstNode(Token.NIL);

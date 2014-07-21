@@ -13,9 +13,9 @@ import java.util.ArrayList;
 import org.junit.Test;
 
 import suneido.SuException;
-import suneido.language.jsdi.DllInterface;
-import suneido.language.jsdi.type.BasicType;
-import suneido.language.jsdi.type.StringType;
+import suneido.jsdi.DllInterface;
+import suneido.jsdi.type.BasicType;
+import suneido.jsdi.type.StringType;
 import suneido.util.testing.Assumption;
 
 /**

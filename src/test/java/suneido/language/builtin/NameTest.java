@@ -12,7 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import suneido.Suneido;
-import suneido.language.jsdi.DllInterface;
+import suneido.jsdi.DllInterface;
 import suneido.util.testing.Assumption;
 
 /**

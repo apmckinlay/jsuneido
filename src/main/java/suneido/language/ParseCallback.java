@@ -7,7 +7,7 @@ package suneido.language;
 import static suneido.language.Token.CALLBACK;
 import static suneido.language.Token.EOF;
 import static suneido.language.Token.L_PAREN;
-import suneido.language.jsdi.DllInterface;
+import suneido.jsdi.DllInterface;
 
 /**
  * Parser for Suneido <code>callback</code> type (part of the DLL interface).

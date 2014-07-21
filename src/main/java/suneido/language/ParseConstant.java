@@ -5,8 +5,8 @@
 package suneido.language;
 
 import static suneido.language.Token.*;
+import suneido.jsdi.DllInterface;
 import suneido.language.Generator.MType;
-import suneido.language.jsdi.DllInterface;
 
 public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 

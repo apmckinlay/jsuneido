@@ -5,7 +5,7 @@
 package suneido.language;
 
 import static suneido.language.Token.*;
-import suneido.language.jsdi.DllInterface;
+import suneido.jsdi.DllInterface;
 
 /**
  * Parser for Suneido <code>dll</code> entity (part of the DLL interface).
