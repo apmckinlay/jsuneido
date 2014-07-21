@@ -116,22 +116,23 @@ public final class JSDI {
 		return makeSubclass(ThunkManager.class, className, "thunk manager");
 	}
 
-	private static JSDIException cantInstantiate(String infoName,
+	private static Error cantInstantiate(String infoName,
 			Exception cause) {
 		final String errMsg = "can't instantiate " + infoName + " class";
 		Suneido.errlog(errMsg, cause);
-		return new JSDIException(errMsg, cause);
+		return new SuInternalError(errMsg, cause);
 	}
 
 	private <T> T makeSubclass(Class<T> superclass, String className,
 			String infoName) {
+System.err.println("makeSubclass( className => '" + className + "' ) ; PACKAGE_X86 => '" + PACKAGE_X86 + "'");// TODO: deleteme
 		Class<? extends T> clazz = null;
 		try {
 			clazz = Class.forName(className).asSubclass(superclass);
 		} catch (ClassNotFoundException x) {
 			final String errMsg = "can't find " + infoName + " class";
 			Suneido.errlog(errMsg, x);
-			throw new JSDIException(errMsg, x);
+			throw new SuInternalError(errMsg, x);
 		}
 		Constructor<? extends T> ctor = null;
 		try {
@@ -139,7 +140,7 @@ public final class JSDI {
 		} catch (NoSuchMethodException x) {
 			final String errMsg = "can't find " + infoName + " constructor";
 			Suneido.errlog(errMsg, x);
-			throw new JSDIException(errMsg, x);
+			throw new SuInternalError(errMsg, x);
 		}
 		ctor.setAccessible(true);
 		try {

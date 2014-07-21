@@ -50,6 +50,18 @@ public final class SuInternalError extends Error {
 		super(message);
 	}
 
+	/**
+	 * <p>
+	 * Constructs an internal error whose cause is another throwable event.
+	 * </p>
+	 *
+	 * @param message Error message string
+	 * @param cause Cause of the internal error
+	 */
+	public SuInternalError(String message, Throwable cause) {
+		super(message, cause);
+	}
+
 	//
 	// STATICS
 	//
