@@ -125,7 +125,6 @@ public final class JSDI {
 
 	private <T> T makeSubclass(Class<T> superclass, String className,
 			String infoName) {
-System.err.println("makeSubclass( className => '" + className + "' ) ; PACKAGE_X86 => '" + PACKAGE_X86 + "'");// TODO: deleteme
 		Class<? extends T> clazz = null;
 		try {
 			clazz = Class.forName(className).asSubclass(superclass);
