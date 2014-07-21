@@ -2,7 +2,7 @@
  * Licensed under GPLv2.
  */
 
-package suneido.language.jsdi.dll;
+package suneido.language.jsdi.abi.x86;
 
 import suneido.language.jsdi.PrimitiveSize;
 

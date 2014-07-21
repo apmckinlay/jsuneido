@@ -157,7 +157,7 @@ public class Suneido {
 			printHelp();
 			break;
 		default:
-			throw InternalError.unreachable();
+			throw SuInternalError.unreachable();
 		}
 	}
 

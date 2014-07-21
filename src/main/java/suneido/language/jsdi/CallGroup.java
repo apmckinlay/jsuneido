@@ -2,9 +2,8 @@
  * Licensed under GPLv2.
  */
 
-package suneido.language.jsdi.dll;
+package suneido.language.jsdi;
 
-import suneido.language.jsdi.DllInterface;
 import suneido.language.jsdi.type.TypeList;
 
 /**

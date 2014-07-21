@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
 
-import suneido.InternalError;
+import suneido.SuInternalError;
 import suneido.SuException;
 import suneido.language.builtin.NumberMethods;
 
@@ -81,7 +81,7 @@ public class Numbers {
 			return new BigDecimal(((Number) n).doubleValue(), MC);
 		if (n instanceof BigInteger)
 			return new BigDecimal((BigInteger) n, MC);
-		throw InternalError.unreachable();
+		throw SuInternalError.unreachable();
 	}
 
 	/** @return true if ((Number) n).longValue() is safe (returns exact value) */

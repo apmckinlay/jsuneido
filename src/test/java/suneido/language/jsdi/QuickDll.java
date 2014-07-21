@@ -2,7 +2,9 @@
  * Licensed under GPLv2.
  */
 
-package suneido.language.jsdi.dll;
+package suneido.language.jsdi;
+
+import suneido.language.jsdi.DllFactory;
 
 /**
  * Quick-and-dirty pointer to a <code>stdcall</code> function in a DLL, for

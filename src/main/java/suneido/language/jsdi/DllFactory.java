@@ -2,16 +2,12 @@
  * Licensed under GPLv2.
  */
 
-package suneido.language.jsdi.dll;
+package suneido.language.jsdi;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import suneido.language.FunctionSpec;
-import suneido.language.jsdi.DllInterface;
-import suneido.language.jsdi.JSDI;
-import suneido.language.jsdi.JSDIException;
+import suneido.SuInternalError;
 import suneido.language.jsdi.type.Type;
 import suneido.language.jsdi.type.TypeList;
 import suneido.language.jsdi.type.VoidType;
@@ -22,7 +18,7 @@ import suneido.language.jsdi.type.VoidType;
  * @since 20130708
  */
 @DllInterface
-public final class DllFactory {
+public abstract class DllFactory {
 
 	//
 	// TYPES
@@ -38,21 +34,6 @@ public final class DllFactory {
 		}
 	}
 
-	/**
-	 * Observer which is notified whenever a new {@link Dll} is compiled. This
-	 * is for the purpose of plugging in diagnostics.
-	 * @author Victor Schappert
-	 * @since 20130709
-	 * @see DllFactory#addObserver(DllMakeObserver)
-	 */
-	public static interface DllMakeObserver {
-		/**
-		 * Fired when a new {@link Dll} is compiled. 
-		 * @param dll Newly-created {@code dll}.
-		 */
-		public void madeDll(Dll dll);
-	}
-
 	//
 	// DATA
 	//
@@ -61,21 +42,18 @@ public final class DllFactory {
 	private final Object lock = new Object();
 	private final Map<String, LoadedLibrary> libraries =
 		new HashMap<>();
-	private final ArrayList<DllMakeObserver> observers =
-		new ArrayList<>();
 
 	//
 	// CONSTRUCTORS
 	//
 
 	/**
-	 * Constructs the factory. Clients do not need to use this constructor
-	 * directly and should use {@link JSDI#getDllFactory()}.
+	 * Constructs the factory.
 	 * @param jsdi JSDI instance
 	 */
-	public DllFactory(JSDI jsdi) {
+	protected DllFactory(JSDI jsdi) {
 		if (null == jsdi) {
-			throw new IllegalArgumentException("jsdi cannot be null");
+			throw new SuInternalError("jsdi cannot be null");
 		}
 		this.jsdi = jsdi;
 	}
@@ -101,65 +79,11 @@ public final class DllFactory {
 	 * {@code userFuncName} (or {@code userFuncName + 'A'}) can't be located
 	 * with the API call {@code GetProcAddress}; or if some other error occurs.
 	 */
-	public Dll makeDll(String suTypeName, String libraryName,
+	public final Dll makeDll(String suTypeName, String libraryName,
 			String userFuncName, TypeList params, Type returnType) {
-		final ReturnTypeGroup rtg = ReturnTypeGroup.fromType(returnType);
-		final FunctionSpec funcSpec = makeFunctionSpec(params);
-		//
-		// Check for void DLL
-		//
-		if (VoidType.IDENTIFIER.equals(libraryName)) {
-			return new VoidDll(params, returnType, rtg, suTypeName, this,
-					userFuncName, funcSpec);
-		}
-		//
-		// Load the library (or fetch the already-loaded library).
-		//
-		final long hModule = getLibraryHandle(libraryName);
-		boolean success = false;
-		try {
-			//
-			// Get the function address
-			//
-			String funcName = userFuncName;
-			long funcPtr = getProcAddress(hModule, funcName);
-			if (0 == funcPtr) {
-				funcName += 'A';
-				funcPtr = getProcAddress(hModule, funcName);
-				if (0 == funcPtr) {
-					throw new JSDIException("can't get address of "
-							+ libraryName + ":" + userFuncName + " or "
-							+ libraryName + ":" + funcName);
-				}
-			}
-			//
-			// Determine the native call characteristics.
-			//
-			CallGroup cg = CallGroup.fromTypeList(params);
-			NativeCall nc = null;
-			if (null != cg) {
-				nc = NativeCall.get(cg, rtg);
-			}
-			//
-			// Build the Dll object to return
-			//
-			final Dll result = new Dll(funcPtr, params, returnType, rtg, nc,
-					suTypeName, this, libraryName, userFuncName, funcName,
-					funcSpec);
-			success = true;
-			for (DllMakeObserver observer : observers) {
-				observer.madeDll(result);
-			}
-			return result;
-		} finally {
-			//
-			// If an exception was thrown before we were able to instantiate the
-			// object, reduce the reference count on the loaded library module.
-			//
-			if (! success) {
-				releaseLibraryHandle(libraryName);
-			}
-		}
+		return VoidType.IDENTIFIER.equals(libraryName) ? new VoidDll(params,
+				returnType, suTypeName, this, userFuncName) : makeRealDll(
+				suTypeName, libraryName, userFuncName, params, returnType);
 	}
 
 	/**
@@ -178,28 +102,37 @@ public final class DllFactory {
 	 * </p>
 	 * @param dll Dll to free
 	 */
-	void freeDll(Dll dll) {
+	final void freeDll(Dll dll) {
 		releaseLibraryHandle(dll.libraryName);
-	}
-
-	/**
-	 * Adds to the list of observers to be notified when a new {@code dll} is
-	 * compiled. 
-	 * @param observer Observer to add to list
-	 */
-	public void addObserver(DllMakeObserver observer) {
-		if (null == observer) {
-			throw new IllegalArgumentException("observer cannot be null");
-		}
-		observers.add(observer);
 	}
 
 	//
 	// INTERNALS
 	//
 
-	private static FunctionSpec makeFunctionSpec(TypeList params) {
-		return new FunctionSpec(params.getEntryNames());
+	protected abstract Dll makeRealDll(String suTypeName, String libraryName,
+			String userFuncName, TypeList params, Type returnType);
+
+	protected long getFuncPtr(String libraryName, String userFuncName) {
+		final long hModule = getLibraryHandle(libraryName);
+		boolean success = false;
+		try {
+			String funcName = userFuncName;
+			long funcPtr = getProcAddress(hModule, funcName);
+			if (0 == funcPtr) {
+				funcName += 'A';
+				funcPtr = getProcAddress(hModule, funcName);
+				if (0 == funcPtr) {
+					throw new JSDIException("can't get address of "
+							+ libraryName + ":" + userFuncName + " or "
+							+ libraryName + ":" + funcName);
+				}
+			}
+			success = true;
+			return funcPtr;
+		} finally {
+			if (!success) releaseLibraryHandle(libraryName);
+		}
 	}
 
 	private static String normalizedLibraryName(String libraryName) {

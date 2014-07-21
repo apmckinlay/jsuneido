@@ -12,6 +12,7 @@ package suneido.language.jsdi;
  * @author Victor Schappert
  * @since 20140520
  */
+@DllInterface
 public @interface _64BitIssue {
 
 }

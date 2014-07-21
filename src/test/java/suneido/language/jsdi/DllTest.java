@@ -2,7 +2,7 @@
  * Licensed under GPLv2.
  */
 
-package suneido.language.jsdi.dll;
+package suneido.language.jsdi;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -19,8 +19,8 @@ import suneido.language.Compiler;
 import suneido.language.ContextLayered;
 import suneido.language.Numbers;
 import suneido.language.jsdi.Buffer;
+import suneido.language.jsdi.Dll;
 import suneido.language.jsdi.JSDIException;
-import suneido.language.jsdi.SimpleContext;
 import suneido.language.jsdi.type.Structure;
 import suneido.util.testing.Assumption;
 

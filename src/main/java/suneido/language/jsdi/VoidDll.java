@@ -2,11 +2,9 @@
  * Licensed under GPLv2.
  */
 
-package suneido.language.jsdi.dll;
+package suneido.language.jsdi;
 
 import suneido.language.Args;
-import suneido.language.FunctionSpec;
-import suneido.language.jsdi.DllInterface;
 import suneido.language.jsdi.type.Type;
 import suneido.language.jsdi.type.TypeList;
 import suneido.language.jsdi.type.VoidType;
@@ -36,13 +34,13 @@ public final class VoidDll extends Dll {
 	// CONSTRUCTORS
 	//
 
-	VoidDll(TypeList params, Type returnType,
-			ReturnTypeGroup returnTypeGroup, String valueName,
-			DllFactory dllFactory, String userFuncName,
-			FunctionSpec functionSpec) {
-		super(0, params, returnType, returnTypeGroup, null, valueName,
-				dllFactory, VoidType.IDENTIFIER, userFuncName, userFuncName,
-				functionSpec);
+	/**
+	 * Constructs a new "void" {@code dll}.
+	 */
+	public VoidDll(TypeList params, Type returnType, String valueName,
+			DllFactory dllFactory, String userFuncName) {
+		super(0, params, returnType, valueName, dllFactory,
+				VoidType.IDENTIFIER, userFuncName);
 	}
 
 	//

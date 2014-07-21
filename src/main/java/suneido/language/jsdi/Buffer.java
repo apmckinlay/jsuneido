@@ -12,7 +12,15 @@ import java.util.Arrays;
 import java.util.Map;
 
 import suneido.SuValue;
-import suneido.language.*;
+import suneido.language.Args;
+import suneido.language.BuiltinClass;
+import suneido.language.BuiltinMethods;
+import suneido.language.Concats;
+import suneido.language.FunctionSpec;
+import suneido.language.Ops;
+import suneido.language.Pack;
+import suneido.language.Range;
+import suneido.language.SuCallable;
 import suneido.language.builtin.StringMethods;
 
 /**
@@ -141,7 +149,10 @@ public final class Buffer extends JSDIValue implements CharSequence {
 		return data;
 	}
 
-	void copyInternalData(byte[] dest, int start, int maxChars) {
+	// TODO: docs
+	// FIXME: This really needs to be removed as of jsdi64, since MarshallerX86
+	//        MarshallerX64 will ultimately not use byte arrays internally.
+	public void copyInternalData(byte[] dest, int start, int maxChars) {
 		maxChars = Math.min(size, maxChars);
 		System.arraycopy(data, 0, dest, start, maxChars);
 	}
@@ -178,7 +189,12 @@ public final class Buffer extends JSDIValue implements CharSequence {
 	// MUTATORS
 	//
 
-	void setAndSetSize(byte[] src, int start, int end) {
+	// TODO: docs
+	// FIXME: Delete this because it will be obsolete after jsdi64: because
+	//        concrete marshallers will no longer use byte[] internally to store
+	//        their data, there's no need for a method of copying a byte[] from
+	//        a Marshaller into a Buffer.
+	public void setAndSetSize(byte[] src, int start, int end) {
 		assert end - start <= data.length;
 		setAndSetSizeInternal(src, start, end);
 		if (size < data.length) data[size] = 0; 
@@ -218,7 +234,8 @@ public final class Buffer extends JSDIValue implements CharSequence {
 	// STATICS
 	//
 
-	static int copyStr(String in, byte[] out, int start, int length) {
+	// TODO: Document this
+	public static int copyStr(String in, byte[] out, int start, int length) {
 		int j = start;
 		for (int i = 0; i < length; ++i) {
 			char ch = in.charAt(i);

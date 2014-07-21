@@ -10,28 +10,53 @@ import static suneido.language.jsdi.VariableIndirectInstruction.RETURN_RESOURCE;
 
 import java.util.Arrays;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
+import suneido.SuInternalError;
+
 /**
- * TODO: docs
- * TODO: note in strong strong text that Marshaller can't be reused because
- *       it assumes zeroed-out data array
- * TODO: per discussion w APM note reason why Marshaller can't be cached and
- *       reused even if you re-zero it: because of possible contention btwn
- *       threads calling same DLL
- * NOTE: another reason: sometimes Marshaller uses plan's ptrArray, other times
- *       it copies it...
+ * <p>
+ * A container that can marshall Suneido values represented as Java objects into
+ * a binary representation suitable to pass to the native side.
+ * </p>
+ * <p>
+ * This class is deliberately "dumb" in the sense that it does not know about,
+ * or care about, the vast majority of memory-layout issues: for the most part,
+ * it simply follows the "script" given to it by the {@link MarshallPlan} that
+ * created it. For example, if some code calls {@link #putInt16(int)}, the
+ * marshaller will simply copy the given 16-bit integer at the next position
+ * dictated by the marshall plan. This class is therefore generally reusable
+ * across operating systems and CPU architectures since it simply "does what
+ * it is told" by the marshall plan. 
+ * </p>
+ * <p>
+ * This class <strong>must not be cached or reused</strong> (<em>ie</em> a new
+ * instance should be requested for each marshalling roundtrip) for the
+ * following reasons:
+ * <ul>
+ * <li>
+ * it makes certain assumptions, such as that its internal data arrays are
+ * zeroed-out (which only occurs on construction); and
+ * </li>
+ * <li>
+ * it is not thread-safe, so contention between several threads calling the
+ * same {@code dll} could cause serious problems.
+ * </li>
+ * </ul>
+ * </p>
  *
  * @author Victor Schappert
  * @since 20130710
  * @see MarshallPlan
  */
 @DllInterface
-public final class Marshaller {
+@NotThreadSafe
+public abstract class Marshaller {
 
 	//
 	// DATA
 	//
 
-	private final byte[] data;
 	private int[] ptrArray; // either ref to MarshallPlan's or copy
 	private final int[] posArray; // reference to MarshallPlan's array
 	private int ptrIndex; // index into ptrArray
@@ -61,13 +86,8 @@ public final class Marshaller {
 	// CONSTRUCTORS
 	//
 
-	/**
-	 * Deliberately package-internal. Instances should only be constructed by
-	 * calling {@link MarshallPlan#makeMarshaller()}.
-	 */
-	Marshaller(int sizeDirect, int sizeIndirect, int variableIndirectCount,
-			int[] ptrArray, int[] posArray) {
-		this.data = new byte[sizeDirect + sizeIndirect];
+	protected Marshaller(int variableIndirectCount, int[] ptrArray,
+			int[] posArray) {
 		this.ptrArray = ptrArray;
 		this.posArray = posArray;
 		if (0 < variableIndirectCount) {
@@ -81,14 +101,7 @@ public final class Marshaller {
 		rewind();
 	}
 
-	/**
-	 * Deliberately package-internal. Instances should only be constructed by
-	 * calling {@link MarshallPlan#makeUnMarshaller(byte[])}.
-	 *
-	 * @since 20130806
-	 */
-	Marshaller(byte[] data, int[] ptrArray, int[] posArray) {
-		this.data = data;
+	protected Marshaller(int[] ptrArray, int[] posArray) {
 		this.ptrArray = ptrArray;
 		this.posArray = posArray;
 		this.viArray = null;
@@ -97,15 +110,8 @@ public final class Marshaller {
 		rewind();
 	}
 
-	/**
-	 * Deliberately package-internal. Instances should only be constructed by
-	 * calling {@link MarshallPlan#makeUnMarshaller(byte[], Object[], int[])}.
-	 *
-	 * @since 20130806
-	 */
-	Marshaller(byte[] data, int[] ptrArray, int[] posArray, Object[] viArray,
+	protected Marshaller(int[] ptrArray, int[] posArray, Object[] viArray,
 			int[] viInstArray) {
-		this.data = data;
 		this.ptrArray = ptrArray;
 		this.posArray = posArray;
 		this.viArray = viArray;
@@ -117,26 +123,6 @@ public final class Marshaller {
 	//
 	// ACCESSORS
 	//
-
-	/**
-	 * <p>
-	 * Returns the marshaller's internal <em>data</em> array for the purposes of
-	 * passing it to {@code native} function calls.
-	 * </p>
-	 * <p>
-	 * While the contents of this array may be modified by {@code native} calls
-	 * which respect the JSDI marshalling framework, it should be treated as
-	 * opaque by other Java code and not modified by Java calls under any
-	 * circumstances!
-	 * </p>
-	 * @return Data array
-	 * @see #getPtrArray()
-	 * @see #getViArray()
-	 * @see #getViInstArray()
-	 */
-	public byte[] getData() {
-		return data;
-	}
 
 	/**
 	 * <p>
@@ -155,7 +141,7 @@ public final class Marshaller {
 	 * @see #getViArray()
 	 * @see #getViInstArray()
 	 */
-	public int[] getPtrArray() {
+	public final int[] getPtrArray() {
 		return ptrArray;
 	}
 
@@ -179,7 +165,7 @@ public final class Marshaller {
 	 * @see #getData()
 	 * @see #getPtrArray()
 	 */
-	public Object[] getViArray() {
+	public final Object[] getViArray() {
 		return viArray;
 	}
 
@@ -202,7 +188,7 @@ public final class Marshaller {
 	 * @see #getData()
 	 * @see #getPtrArray()
 	 */
-	public int[] getViInstArray() {
+	public final int[] getViInstArray() {
 		return viInstArray;
 	}
 
@@ -223,7 +209,7 @@ public final class Marshaller {
 	 * </p>
 	 * @since 20130718
 	 */
-	public void rewind() {
+	public final void rewind() {
 		this.posIndex = 0;
 		this.ptrIndex = 1;
 		this.viIndex  = 0;
@@ -234,22 +220,14 @@ public final class Marshaller {
 	 * @param value Boolean value
 	 * @see #getBool()
 	 */
-	public void putBool(boolean value) {
-		int dataIndex = nextData();
-		if (value) {
-			// 3 higher-order bytes can remain zero
-			data[dataIndex] = (byte) 1;
-		}
-	}
+	public abstract void putBool(boolean value);
 
 	/**
 	 * Puts a JSDI {@code int8} value at the next position in the marshaller.
 	 * @param value Single-byte integer value
 	 * @see #getInt8()
 	 */
-	public void putInt8(byte value) {
-		data[nextData()] = (byte)value;
-	}
+	public abstract void putInt8(byte value);
 
 	/**
 	 * Puts a JSDI {@code int16} value at the next position in the marshaller.
@@ -257,62 +235,36 @@ public final class Marshaller {
 	 * @see #getInt16()
 	 * @see #putIntResource(short)
 	 */
-	public void putInt16(short value) {
-		int dataIndex = nextData();
-		data[dataIndex + 0] = (byte) (value >>> 000);
-		data[dataIndex + 1] = (byte) (value >>> 010);
-	}
+	public abstract void putInt16(short value);
 
 	/**
 	 * Puts a JSDI {@code int32} value at the next position in the marshaller.
 	 * @param value 32-bit JSDI {@code int32} value
 	 * @see #getInt32()
 	 */
-	public void putInt32(int value) {
-		int dataIndex = nextData();
-		data[dataIndex + 0] = (byte) (value >>> 000);
-		data[dataIndex + 1] = (byte) (value >>> 010);
-		data[dataIndex + 2] = (byte) (value >>> 020);
-		data[dataIndex + 3] = (byte) (value >>> 030);
-	}
+	public abstract void putInt32(int value);
 
 	/**
 	 * Puts a JSDI {@code int64} value at the next position in the marshaller.
 	 * @param value 64-bit JSDI {@code int64} value
 	 * @see #getInt64()
 	 */
-	public void putInt64(long value) {
-		int dataIndex = nextData();
-		data[dataIndex + 0] = (byte) (value >>> 000);
-		data[dataIndex + 1] = (byte) (value >>> 010);
-		data[dataIndex + 2] = (byte) (value >>> 020);
-		data[dataIndex + 3] = (byte) (value >>> 030);
-		data[dataIndex + 4] = (byte) (value >>> 040);
-		data[dataIndex + 5] = (byte) (value >>> 050);
-		data[dataIndex + 6] = (byte) (value >>> 060);
-		data[dataIndex + 7] = (byte) (value >>> 070);
-	}
-
+	public abstract void putInt64(long value);
 	/**
 	 * Puts an integer having the same size as a pointer at the next position
 	 * in the marshaller.
 	 * @param value Integer value
+	 * @since 20140717
 	 * @see #getPointerSizedInt()
 	 */
-	public void putPointerSizedInt(long value) {
-		if (!((long) Integer.MIN_VALUE <= value && value <= (long) Integer.MAX_VALUE))
-			throw new JSDIException(
-					"Can't marshall 32-bit pointer because more than 32 bits used: "
-							+ value);
-		putInt32((int) value);
-	}
+	public abstract void putPointerSizedInt(long value);
 
 	/**
 	 * Puts a JSDI {@code float} value at the next position in the marshaller.
 	 * @param value 32-bit JSDI {@code float} value
 	 * @see #getFloat()
 	 */
-	public void putFloat(float value) {
+	public final void putFloat(float value) {
 		putInt32(Float.floatToRawIntBits(value));
 	}
 
@@ -321,7 +273,7 @@ public final class Marshaller {
 	 * @param value 64-bit JSDI {@code double} value
 	 * @see #getDouble()
 	 */
-	public void putDouble(double value) {
+	public final void putDouble(double value) {
 		putInt64(Double.doubleToRawLongBits(value));
 	}
 
@@ -332,7 +284,7 @@ public final class Marshaller {
 	 * @see #putStringPtr(String, VariableIndirectInstruction)
 	 * @see #putStringPtr(Buffer, VariableIndirectInstruction)
 	 */
-	public void putPtr() {
+	public final void putPtr() {
 		skipPtr();
 	}
 
@@ -342,7 +294,7 @@ public final class Marshaller {
 	 * @see #isPtrNull()
 	 * @see #putNullStringPtr(VariableIndirectInstruction)
 	 */
-	public void putNullPtr() {
+	public final void putNullPtr() {
 		++posIndex;
 		int ptrIndex = nextPtrIndexAndCopy();
 		// Indicate to the native side that this pointer doesn't point anywhere
@@ -365,7 +317,7 @@ public final class Marshaller {
 	 * @param numElems Number of positions to skip
 	 * @see #skipComplexElement(ElementSkipper)
 	 */
-	public void skipBasicArrayElements(int numElems) {
+	public final void skipBasicArrayElements(int numElems) {
 		posIndex += numElems;
 	}
 
@@ -377,7 +329,7 @@ public final class Marshaller {
 	 * @param skipper Object indicating how many positions to skip over
 	 * @see #skipBasicArrayElements(int)
 	 */
-	public void skipComplexElement(ElementSkipper skipper) {
+	public final void skipComplexElement(ElementSkipper skipper) {
 		posIndex += skipper.nPos;
 		ptrIndex += skipper.nPtr;
 	}
@@ -394,7 +346,7 @@ public final class Marshaller {
 	 * @see #putStringPtr(String, VariableIndirectInstruction)
 	 * @see #putStringPtr(Buffer, VariableIndirectInstruction)
 	 */
-	public void skipStringPtr() {
+	public final void skipStringPtr() {
 		skipPtr();
 		nextVi();
 	}
@@ -414,7 +366,7 @@ public final class Marshaller {
 	 * @see #getStringPtrMaybeByteArray(Buffer)
 	 * @see #putPtr()
 	 */
-	public void putStringPtr(String value, VariableIndirectInstruction inst) {
+	public final void putStringPtr(String value, VariableIndirectInstruction inst) {
 		assert value != null;
 		skipPtr();
 		int viIndex = nextVi();
@@ -436,7 +388,7 @@ public final class Marshaller {
 	 * @see #getStringPtrMaybeByteArray(Buffer)
 	 * @see #putPtr()
 	 */
-	public void putStringPtr(Buffer value, VariableIndirectInstruction inst) {
+	public final void putStringPtr(Buffer value, VariableIndirectInstruction inst) {
 		assert value != null;
 		skipPtr();
 		int viIndex = nextVi();
@@ -456,7 +408,7 @@ public final class Marshaller {
 	 * @see #getStringPtrMaybeByteArray(Buffer)
 	 * @see #putNullPtr()
 	 */
-	public void putNullStringPtr(VariableIndirectInstruction inst) {
+	public final void putNullStringPtr(VariableIndirectInstruction inst) {
 		skipPtr();
 		int viIndex = nextVi();
 		viInstArray[viIndex] = inst.ordinal();
@@ -481,7 +433,7 @@ public final class Marshaller {
 	 * is the bitwise equivalent of the desired unsigned {@code INTRESOURCE}
 	 * value.
 	 * </p>
-	 * @param value The 16-bit {@code INTRESOURCE} value as a signed 16-bit\
+	 * @param value The 16-bit {@code INTRESOURCE} value as a signed 16-bit
 	 * {@code short}
 	 * @since 20130801
 	 * @see #getResource()
@@ -490,7 +442,7 @@ public final class Marshaller {
 	 * @see #putNullStringPtr(VariableIndirectInstruction)
 	 * @see #putInt16(short)
 	 */
-	public void putINTRESOURCE(short value) {
+	public final void putINTRESOURCE(short value) {
 		putInt16(value);
 		ptrIndex += 2;
 		int viIndex = nextVi();
@@ -516,90 +468,221 @@ public final class Marshaller {
 	 * @see #putStringPtr(String, VariableIndirectInstruction)
 	 * @see #putINTRESOURCE(short)
 	 */
-	public void putViInstructionOnly(VariableIndirectInstruction inst) {
+	public final void putViInstructionOnly(VariableIndirectInstruction inst) {
 		// TODO: test for this
 		viInstArray[nextVi()] = inst.ordinal();
 	}
 
-	public void putZeroTerminatedStringDirect(String value, int maxChars) {
-		int dataIndex = nextData();
-		Buffer.copyStr(value, data, dataIndex, Math.min(maxChars - 1, value.length()));
-	}
+	/**
+	 * <p>
+	 * Puts a Java {@link String} into the next position in the marshaller,
+	 * converting it to a zero-terminated string of 8-bit characters.
+	 * </p>
+	 * <p>
+	 * At most <code>maxChars - 1</code> characters from <code>value</code> are
+	 * marshalled because a zero-terminator must be appended to the end of the
+	 * string. If <code>value</code> is shorter than <code>maxChars - 1</code>,
+	 * the unfilled positions are filled with zeroes.
+	 * </p>
+	 * @param value Non-NULL string to put
+	 * @param maxChars Maximum number of characters to put <em>including the
+	 * zero-terminator</em>
+	 * @see #putZeroTerminatedStringDirect(Buffer, int)
+	 * @see #putNonZeroTerminatedStringDirect(String, int)
+	 * @see #getZeroTerminatedStringDirect(int)
+	 */
+	public abstract void putZeroTerminatedStringDirect(String value, int maxChars);
 
-	// TODO: in docs note that maxchars includes the zero terminator
-	public void putZeroTerminatedStringDirect(Buffer value, int maxChars) {
-		int dataIndex = nextData();
-		value.copyInternalData(data, dataIndex, maxChars - 1);
-	}
+	/**
+	 * <p>
+	 * Puts a {@link Buffer} into the next position in the marshaller as a
+	 * zero-terminated string of 8-bit characters.
+	 * </p>
+	 * <p>
+	 * At most <code>maxChars - 1</code> characters from <code>value</code> are
+	 * marshalled because a zero-terminator must be appended to the end of the
+	 * string. If <code>value</code> is shorter than <code>maxChars - 1</code>,
+	 * the unfilled positions are filled with zeroes.
+	 * </p>
+	 * @param value Non-NULL {@link Buffer} to put
+	 * @param maxChars Maximum number of characters to put <em>including the
+	 * zero-terminator</em>
+	 * @see #putZeroTerminatedStringDirect(String, int)
+	 * @see #putNonZeroTerminatedStringDirect(Buffer, int)
+	 * @see #getZeroTerminatedStringDirect(int)
+	 */
+	public abstract void putZeroTerminatedStringDirect(Buffer value, int maxChars);
 
-	public void putNonZeroTerminatedStringDirect(String value, int maxChars) {
-		int dataIndex = nextData();
-		Buffer.copyStr(value, data, dataIndex, Math.min(maxChars, value.length()));
-	}
+	/**
+	 * <p>
+	 * Puts a Java {@link String} into the next position in the marshaller,
+	 * converting it to a string of 8-bit characters.
+	 * </p>
+	 * <p>
+	 * At most <code>maxChars</code> characters from <code>value</code> are
+	 * marshalled. If <code>value</code> is shorter than <code>maxChars</code>,
+	 * the unfilled positions are filled with zeroes.
+	 * </p>
+	 * @param value Non-NULL string to put
+	 * @param maxChars Maximum number of characters to put
+	 * @see #putNonZeroTerminatedStringDirect(Buffer, int)
+	 * @see #putZeroTerminatedStringDirect(String, int)
+	 * @see #getNonZeroTerminatedStringDirect(int, Buffer)
+	 */
+	public abstract void putNonZeroTerminatedStringDirect(String value, int maxChars);
 
-	public void putNonZeroTerminatedStringDirect(Buffer value, int maxChars) {
-		int dataIndex = nextData();
-		value.copyInternalData(data, dataIndex, maxChars);
-	}
+	/**
+	 * <p>
+	 * Puts a {@link Buffer} into the next position in the marshaller as a
+	 * string of 8-bit characters.
+	 * </p>
+	 * <p>
+	 * At most <code>maxChars</code> characters from <code>value</code> are
+	 * marshalled. If <code>value</code> is shorter than <code>maxChars</code>,
+	 * the unfilled positions are filled with zeroes.
+	 * </p>
+	 * @param value Non-NULL {@link Buffer} to put
+	 * @param maxChars Maximum number of characters to put
+	 * @see #putNonZeroTerminatedStringDirect(String, int)
+	 * @see #putZeroTerminatedStringDirect(Buffer, int)
+	 * @see #getNonZeroTerminatedStringDirect(int, Buffer)
+	 */
+	public abstract void putNonZeroTerminatedStringDirect(Buffer value,
+			int maxChars);
 
-	public boolean getBool() {
+	/**
+	 * Extracts a JSDI {@code bool} value from the next position in the
+	 * marshaller.
+	 * @return Boolean value
+	 * @see #putBool(boolean)
+	 */
+	public final boolean getBool() {
 		return getInt32() != 0;
 	}
 
-	public int getInt8() {
-		return data[nextData()];
-	}
+	/**
+	 * Extracts a JSDI {@code int8} value from the next position in the
+	 * marshaller.
+	 * @return Single-byte integer value
+	 * @see #putInt8(byte)
+	 */
+	public abstract int getInt8();
 
-	public int getInt16() {
-		final int dataIndex = nextData();
-		// Note: the bitwise AND with 0xff is to avoid EVIL Java sign extension
-		//       (because Java promotes bitwise operands to int and then sign-
-		//       extends the 0xff byte).
-		return (data[dataIndex + 0] & 0xff) << 000 |
-				data[dataIndex + 1] << 010;
-	}
+	/**
+	 * Extracts a JSDI {@code int16} value from the next position in the
+	 * marshaller.
+	 * @return 16-bit JSDI {@code int16} value
+	 * @see #putInt16(short)
+	 */
+	public abstract int getInt16();
 
-	public int getInt32() {
-		final int dataIndex = nextData();
-		return
-			(data[dataIndex + 0] & 0xff) << 000 |
-			(data[dataIndex + 1] & 0xff) << 010 |
-			(data[dataIndex + 2] & 0xff) << 020 |
-			data[dataIndex + 3] << 030;
-	}
+	/**
+	 * Extracts a JSDI {@code int32} value from the next position in the
+	 * marshaller.
+	 * @return 32-bit JSDI {@code int32} value
+	 * @see #putInt32(int)
+	 */
+	public abstract int getInt32();
 
-	public long getInt64() {
-		final int dataIndex = nextData();
-		return
-				  (data[dataIndex + 0] & 0xffL) << 000
-				| (data[dataIndex + 1] & 0xffL) << 010
-				| (data[dataIndex + 2] & 0xffL) << 020
-				| (data[dataIndex + 3] & 0xffL) << 030
-				| (data[dataIndex + 4] & 0xffL) << 040
-				| (data[dataIndex + 5] & 0xffL) << 050
-				| (data[dataIndex + 6] & 0xffL) << 060
-				| (long) data[dataIndex + 7] << 070;
-	}
+	/**
+	 * Extracts a JSDI {@code int64} value from the next position in the
+	 * marshaller.
+	 * @return 64-bit JSDI {@code int64} value
+	 * @see #putInt64(long)
+	 */
+	public abstract long getInt64();
 
-	public long getPointerSizedInt() {
-		return (long)getInt32();
-	}
+	/**
+	 * <p>
+	 * Extracts an integer value that has the same size as the platform's
+	 * native pointer size.
+	 * </p>
+	 * <p>
+	 * Even though the number of bytes read out of the marshaller might not be
+	 * {@code sizeof(Java long)}, the return value of this method is a signed
+	 * Java {@code long} value that is equivalent to a <em>signed</em> integer
+	 * whose width in bytes is {@link PrimitiveSize#POINTER}. For example, if
+	 * the platform native pointer size is 4, the returned value will be in the
+	 * domain of a signed 32-bit integer; if 8, it will be in the domain of a
+	 * signed 64-bit integer.
+	 * </p>
+	 * <p>
+	 * Note that because the result is a signed integer, a 32-bit pointer whose
+	 * high-order bit is 1 will span the entire 64-bit Java {@code long}.
+	 * (<em>eg</em> {@code 0xffffffff => 0xffffffffffffffffL}).
+	 * </p>
+	 * @return Signed integer
+	 * @see #putPointerSizedInt(long)
+	 */
+	public abstract long getPointerSizedInt();
 
-	public float getFloat() {
+	/**
+	 * Extracts a JSDI {@code float} value from the next position in the
+	 * marshaller.
+	 * @return 32-bit JSDI {@code float} value
+	 * @see #putFloat(float)
+	 */
+	public final float getFloat() {
 		return Float.intBitsToFloat(getInt32());
 	}
 
-	public double getDouble() {
+	/**
+	 * Extracts a JSDI {@code double} value from the next position in the
+	 * marshaller.
+	 * @return 64-bit JSDI {@code double} value
+	 * @see #putDouble(double)
+	 */
+	public final double getDouble() {
 		return Double.longBitsToDouble(getInt64());
 	}
 
-	// TODO: docs since 20130717 ... return true iff a null pointer
-	public boolean isPtrNull() {
-		return 0 == getInt32();
-	}
+	/**
+	 * <p>
+	 * Extracts a pointer-sized value from the next position in the marshaller
+	 * and returns {@code true} iff the value represents a NULL pointer.
+	 * </p>
+	 * <p>
+	 * Like all the {@code get*()} methods, this method advances the marshaller
+	 * position.
+	 * </p>
+	 * @return Whether the pointer is NULL
+	 * @since 20130717
+	 * @see #putPtr()
+	 * @see #putNullPtr()
+	 */
+	public abstract boolean isPtrNull();
 
-	// TODO: note in dics that like get...Maybe it is only used by InOutString
-	public Object getStringPtr() {
+	/**
+	 * <p>
+	 * Extracts a JSDI {@code string} value from the next position in the
+	 * marshaller.
+	 * </p>
+	 * <p>
+	 * Depending on how the {@code string} was marshalled <em>in</em>, the
+	 * actual type of the return value may be one of:
+	 * <ul>
+	 * <li>
+	 * {@link Boolean}, <em>but only the value {@link Boolean#FALSE}</em>:
+	 * indicates a NULL string pointer;
+	 * </li>
+	 * <li>
+	 * {@link String}, if the pointer is valid and the variable indirect
+	 * instruction is {@link VariableIndirectInstruction#RETURN_JAVA_STRING}; 
+	 * </li>
+	 * <li>
+	 * {@link Buffer}, if the pointer is valid and the variable indirect
+	 * instruction is {@link VariableIndirectInstruction#NO_ACTION}. 
+	 * </li>
+	 * </ul>
+	 * </p>
+	 * @return Unmarshalled {@code string} value
+	 * @see #putStringPtr(String, VariableIndirectInstruction)
+	 * @see #putStringPtr(Buffer, VariableIndirectInstruction)
+	 * @see #getStringPtrAlwaysByteArray(Buffer)
+	 */
+	public final Object getStringPtr() {
+		// NOTE: As of 20140718, this method is used only for marshalling
+		//       InOutString.
 		skipPtr();
 		int viIndex = nextVi();
 		Object value = viArray[viIndex];
@@ -613,15 +696,56 @@ public final class Marshaller {
 		}
 	}
 
-	public Object getStringPtrAlwaysByteArray(Buffer oldValue) {
-		skipPtr();
-		int viIndex = nextVi();
-		assert NO_ACTION.ordinal() == viInstArray[viIndex];
-		return getStringPtrAlwaysByteArrayNoAdvance(oldValue, viArray[viIndex], false);
-	}
-
-	// TODO: note in docs this is only used by InOutString
-	public Object getStringPtrMaybeByteArray(Buffer oldValue) {
+	/**
+	 * <p>
+	 * Extracts a JSDI {@code string} value from the next position in the
+	 * marshaller where the type of the actual value marshalled <em>in</em> was
+	 * a {@link Buffer}.
+	 * </p>
+	 * <p>
+	 * Depending on how the {@code string} was marshalled <em>in</em>, the
+	 * actual type of the return value may be one of:
+	 * <ul>
+	 * <li>
+	 * {@link Boolean}, <em>but only the value {@link Boolean#FALSE}</em>:
+	 * indicates a NULL string pointer;
+	 * </li>
+	 * <li>
+	 * {@link Buffer}, if the pointer is valid and the variable indirect
+	 * instruction is {@link VariableIndirectInstruction#NO_ACTION}. 
+	 * </li>
+	 * <li>
+	 * {@link String}, if the pointer is valid and the variable indirect
+	 * instruction is {@link VariableIndirectInstruction#RETURN_JAVA_STRING}; 
+	 * </li>
+	 * </ul>
+	 * </p>
+	 * @param oldValue The buffer that was passed to
+	 *        {@link #putStringPtr(Buffer, VariableIndirectInstruction)}&mdash;
+	 *        if non-NULL it will receive the marshalled out value
+	 * @return Unmarshalled {@code string} value&mdash;will be {@code oldValue},
+	 *         modified to contain the marshalled out value if {@code oldValue}
+	 *         is non-NULL, or a new instance of {@link Buffer} otherwise
+	 * @see #putStringPtr(String, VariableIndirectInstruction)
+	 * @see #putStringPtr(Buffer, VariableIndirectInstruction)
+	 * @see #getStringPtr()
+	 * @see #getStringPtrAlwaysByteArray(Buffer)
+	 */
+	public final Object getStringPtrMaybeByteArray(Buffer oldValue) {
+		// NOTE: As of 20140718, this method is used only for marshalling
+		//       InOutString.
+		// NOTE: The reason the variable indirect value "may be" a byte array
+		//       (rather than definitely is) is subtly concurrency-related. The
+		//       InOutString is calling this method based on the fact that the
+		//       "oldValue" passed to the InOutString is a Buffer. However, if
+		//       the InOutString is directly or indirectly a member of a
+		//       Structure, then some part of the SuContainer that was
+		//       marshalled *im* may have been modified. Suppose the container
+		//       contained a String value during marshall in, but another thread
+		//       modified it to be a Buffer on marshall out. So we *expect* a
+		//       byte array with almost 100% likelihood, but nevertheless in
+		//       strange cases the variable indirect array *might not contain*
+		//       one.
 		skipPtr();
 		int viIndex = nextVi();
 		Object value = viArray[viIndex];
@@ -634,24 +758,60 @@ public final class Marshaller {
 			return value;
 		}
 	}
+	
+	/**
+	 * <p>
+	 * Extracts a JSDI {@code buffer} value from the next position in the
+	 * marshaller.
+	 * </p>
+	 * <p>
+	 * The actual type of the return value may be one of:
+	 * <ul>
+	 * <li>
+	 * {@link Boolean}, <em>but only the value {@link Boolean#FALSE}</em>:
+	 * indicates a NULL string pointer;
+	 * </li>
+	 * <li>
+	 * {@link Buffer}, if the pointer is valid. 
+	 * </li>
+	 * </ul>
+	 * </p>
+	 * @param oldValue The buffer that was passed to
+	 *        {@link #putStringPtr(Buffer, VariableIndirectInstruction)}&mdash;
+	 *        if non-NULL it will receive the marshalled out value
+	 * @return Unmarshalled {@code string} value&mdash;will be {@code oldValue},
+	 *         modified to contain the marshalled out value if {@code oldValue}
+	 *         is non-NULL, or a new instance of {@link Buffer} otherwise
+	 * @see #putStringPtr(Buffer, VariableIndirectInstruction)
+	 * @see #getStringPtr()
+	 * @see #getStringPtrMaybeByteArray(Buffer)
+	 */
+	public final Object getStringPtrAlwaysByteArray(Buffer oldValue) {
+		// NOTE: As of 20140718, this method is used only for marshalling
+		//       BufferType.
+		skipPtr();
+		int viIndex = nextVi();
+		assert NO_ACTION.ordinal() == viInstArray[viIndex];
+		return getStringPtrAlwaysByteArrayNoAdvance(oldValue, viArray[viIndex], false);
+	}
 
 	/**
 	 * Extracts the Win32 resource value at the next position in the marshaller.
 	 * @return A non-{@code null} Integer or String reference representing,
-	 * respectively, an INTRESOURCE value or a string {@code resource}
+	 * respectively, an {@code INTRESOURCE} value or a string {@code resource}
 	 * @since 20130801
 	 * @see #putINTRESOURCE(short)
 	 * @see #getStringPtr()
 	 * @see #getStringPtrAlwaysByteArray(Buffer)
 	 * @see #getStringPtrMaybeByteArray(Buffer)
 	 */
-	public Object getResource() {
+	public final Object getResource() {
 		skipPtr();
 		int viIndex = nextVi();
 		assert RETURN_RESOURCE.ordinal() == viInstArray[viIndex];
 		Object value = viArray[viIndex];
 		if (! (value instanceof Integer || value instanceof String)) {
-			throw new InternalError(
+			throw new SuInternalError(
 				"getResource() expects a non-null Integer or String in the " +
 				"variable indirect storage, but got a " +
 				(null == value ? "null" : value.getClass().getCanonicalName())
@@ -660,7 +820,7 @@ public final class Marshaller {
 		return value;
 	}
 
-	public String getZeroTerminatedStringDirect(int numChars) {
+	public final String getZeroTerminatedStringDirect(int numChars) {
 		if (numChars < 1)
 		{
 			throw new JSDIException(
@@ -668,35 +828,18 @@ public final class Marshaller {
 		}
 		else
 		{
-			int dataIndex = nextData();
-			byte b = data[dataIndex];
-			if (0 == b) return "";
-			StringBuilder sb = new StringBuilder(numChars);
-			sb.append((char)b);
-			for (int k = 1; k < numChars; ++k) {
-				b = data[++dataIndex];
-				if (0 == b) return sb.toString();
-				sb.append((char)b);
-			}
-			throw new JSDIException("missing zero terminator");
+			return getZeroTerminatedStringDirectSafe(numChars);
 		}
 	}
 
-	public Buffer getNonZeroTerminatedStringDirect(int numChars, Buffer oldValue) {
-		int dataIndex = nextData();
-		if (oldValue != null && numChars <= oldValue.capacity()) {
-			oldValue.setAndSetSize(data, dataIndex, dataIndex + numChars);
-			return oldValue;
-		} else {
-			return new Buffer(data, dataIndex, dataIndex + numChars);
-		}
-	}
+	public abstract Buffer getNonZeroTerminatedStringDirect(int numChars,
+			Buffer oldValue);
 
 	//
 	// INTERNALS
 	//
 
-	private int nextData() {
+	protected int nextData() {
 		return posArray[posIndex++];
 	}
 
@@ -735,7 +878,7 @@ public final class Marshaller {
 			return new Buffer(b, 0, b.length);
 		} else {
 			// The truncation code is necessary to mimic the behaviour of
-			// CSuneido when it marshalls out a 'string' dll type into an
+			// cSuneido when it marshalls out a 'string' dll type into an
 			// instance of Buffer: the output is truncated as if it were a
 			// zero-terminated string.
 			if (truncate) {
@@ -751,4 +894,6 @@ public final class Marshaller {
 			return oldValue;
 		}
 	}
+
+	protected abstract String getZeroTerminatedStringDirectSafe(int numChars);
 }

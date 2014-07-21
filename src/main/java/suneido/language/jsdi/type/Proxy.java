@@ -4,10 +4,11 @@
 
 package suneido.language.jsdi.type;
 
-import static suneido.InternalError.unhandledEnum;
+import static suneido.SuInternalError.unhandledEnum;
 import suneido.SuContainer;
 import suneido.language.Context;
 import suneido.language.Ops;
+import suneido.language.jsdi.DllInterface;
 import suneido.language.jsdi.ElementSkipper;
 import suneido.language.jsdi.MarshallPlanBuilder;
 import suneido.language.jsdi.Marshaller;
@@ -20,6 +21,7 @@ import suneido.language.jsdi.StorageType;
  * @author Victor Schappert
  * @since 20130625
  */
+@DllInterface
 public final class Proxy extends Type {
 
 	//

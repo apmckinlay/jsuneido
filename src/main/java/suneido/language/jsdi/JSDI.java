@@ -4,10 +4,14 @@
 
 package suneido.language.jsdi;
 
-import java.io.File;
+import static suneido.SuInternalError.unreachable;
 
-import suneido.language.jsdi.dll.DllFactory;
-import suneido.language.jsdi.type.TypeFactory;
+import java.io.File;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+
+import suneido.SuInternalError;
+import suneido.Suneido;
 
 /**
  * <p>
@@ -15,23 +19,31 @@ import suneido.language.jsdi.type.TypeFactory;
  * outside of the package.
  * </p>
  * <p>
- * This class fulfills three functions. First, it constructs JSDI objects.
- * Second, it ensures that the JSDI DLL is loaded. Third, it ensures that the
- * JSDI DLL is correctly initialized.
- * </p> 
+ * This class fulfills three functions. First, it ensures that the JSDI DLL is
+ * loaded. Second, it ensures that the JSDI DLL is correctly initialized. Third,
+ * it provides access to factory and manager objects needed to construct JSDI
+ * types.
+ * </p>
+ * 
  * @author Victor Schappert
- * @since 20130624 
+ * @since 20130624
  */
 @DllInterface
 public final class JSDI {
+
+	//
+	// CONSTANTS
+	//
+
+	private static final String PACKAGE_X86 = "suneido.language.jsdi.abi.x86";
 
 	//
 	// SINGLETON
 	//
 
 	private static final JSDI instance;
-	public static JSDI getInstance()
-	{
+
+	public static JSDI getInstance() {
 		return instance;
 	}
 
@@ -40,12 +52,12 @@ public final class JSDI {
 	//
 
 	private static native void init();
-	static
-	{
+
+	static {
 		File path = new File("lib\\jsdi.dll");
 		System.load(path.getAbsolutePath());
 		// TODO: Figure out how JNA picks the correct DLL right out of the JAR
-		//       and do that.
+		// and do that.
 		init();
 		instance = new JSDI();
 	}
@@ -54,31 +66,114 @@ public final class JSDI {
 	// DATA and CONSTRUCTORS
 	//
 
-	private final String       whenBuilt;   // when the native DLL was built
-	private final TypeFactory  typeFactory; // todo: delete??
-	private final DllFactory   dllFactory;
+	private final Platform platform;
+	private final String whenBuilt; // when the native DLL was built
+	private final Factory factory;
 	private final ThunkManager thunkManager;
+
 	private static native String when();
-	private JSDI()
-	{
+
+	private JSDI() {
+		platform = Platform.getPlatform();
 		whenBuilt = when();
-		typeFactory = new TypeFactory(this);
-		dllFactory = new DllFactory(this);
-		thunkManager = new ThunkManager(this);
+		factory = makeFactory();
+		thunkManager = makeThunkManager();
+	}
+
+	//
+	// INTERNALS
+	//
+
+	private Factory makeFactory() {
+		String className = null;
+		switch (platform) {
+		case WIN32_X86:
+			className = PACKAGE_X86 + ".FactoryX86";
+			break;
+		case WIN32_AMD64:
+			throw new SuInternalError("not implemented yet");
+		case UNSUPPORTED_PLATFORM:
+			throw new JSDIException("JSDI not supported on this platform");
+		default:
+			throw unreachable();
+		}
+		return makeSubclass(Factory.class, className, "factory");
+	}
+
+	private ThunkManager makeThunkManager() {
+		String className = null;
+		switch (platform) {
+		case WIN32_X86:
+			className = PACKAGE_X86 + ".ThunkManagerX86";
+			break;
+		case WIN32_AMD64:
+			throw new SuInternalError("not implemented yet");
+		case UNSUPPORTED_PLATFORM:
+			throw new JSDIException("JSDI not supported on this platform");
+		default:
+			throw unreachable();
+		}
+		return makeSubclass(ThunkManager.class, className, "thunk manager");
+	}
+
+	private static JSDIException cantInstantiate(String infoName,
+			Exception cause) {
+		final String errMsg = "can't instantiate " + infoName + " class";
+		Suneido.errlog(errMsg, cause);
+		return new JSDIException(errMsg, cause);
+	}
+
+	private <T> T makeSubclass(Class<T> superclass, String className,
+			String infoName) {
+		Class<? extends T> clazz = null;
+		try {
+			clazz = Class.forName(className).asSubclass(superclass);
+		} catch (ClassNotFoundException x) {
+			final String errMsg = "can't find " + infoName + " class";
+			Suneido.errlog(errMsg, x);
+			throw new JSDIException(errMsg, x);
+		}
+		Constructor<? extends T> ctor = null;
+		try {
+			ctor = clazz.getDeclaredConstructor(JSDI.class);
+		} catch (NoSuchMethodException x) {
+			final String errMsg = "can't find " + infoName + " constructor";
+			Suneido.errlog(errMsg, x);
+			throw new JSDIException(errMsg, x);
+		}
+		ctor.setAccessible(true);
+		try {
+			return ctor.newInstance(this);
+		} catch (InvocationTargetException x) {
+			throw cantInstantiate(infoName, x);
+		} catch (IllegalAccessException x) {
+			throw cantInstantiate(infoName, x);
+		} catch (InstantiationException x) {
+			throw cantInstantiate(infoName, x);
+		}
 	}
 
 	//
 	// ACCESSORS
 	//
 
-	public TypeFactory getTypeFactory() {
-		return typeFactory;
+	/**
+	 * Returns the factory required to instantiate JSDI types in an
+	 * implementation-neutral fashion.
+	 * 
+	 * @return Factory
+	 * @since 20140718
+	 */
+	public Factory getFactory() {
+		return factory;
 	}
 
-	public DllFactory getDllFactory() {
-		return dllFactory;
-	}
-
+	/**
+	 * Returns the thunk manager used to map between bound Suneido values and
+	 * callbacks.
+	 * 
+	 * @return Thunk manager
+	 */
 	public ThunkManager getThunkManager() {
 		return thunkManager;
 	}

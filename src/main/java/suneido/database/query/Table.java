@@ -5,7 +5,7 @@
 package suneido.database.query;
 
 import static java.util.Arrays.asList;
-import static suneido.InternalError.unreachable;
+import static suneido.SuInternalError.unreachable;
 import static suneido.Trace.trace;
 import static suneido.Trace.tracing;
 import static suneido.Trace.Type.TABLE;

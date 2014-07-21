@@ -5,41 +5,43 @@
 package suneido.language.jsdi.type;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static suneido.language.jsdi.type.BasicType.*;
-
-import java.util.EnumSet;
+import static suneido.language.jsdi.type.BasicType.BOOL;
+import static suneido.language.jsdi.type.BasicType.DOUBLE;
+import static suneido.language.jsdi.type.BasicType.FLOAT;
+import static suneido.language.jsdi.type.BasicType.GDIOBJ;
+import static suneido.language.jsdi.type.BasicType.HANDLE;
+import static suneido.language.jsdi.type.BasicType.INT16;
+import static suneido.language.jsdi.type.BasicType.INT32;
+import static suneido.language.jsdi.type.BasicType.INT64;
+import static suneido.language.jsdi.type.BasicType.INT8;
+import static suneido.language.jsdi.type.BasicType.OPAQUE_POINTER;
 
 import org.junit.Test;
 
 import suneido.language.Numbers;
-import suneido.language.jsdi.MarshallPlan;
-import suneido.language.jsdi.MarshallPlanBuilder;
-import suneido.language.jsdi.Marshaller;
 
 /**
  * Test for {@link BasicValue}.
  *
  * @author Victor Schappert
  * @since 20130718
+ * @see suneido.language.jsdi.abi.abix86.BasicValueTestX86
  */
 public class BasicValueTest {
 
-	static BasicValue bv(BasicType basicType) {
+	public static BasicValue bv(BasicType basicType) {
 		return new BasicValue(basicType);
 	}
-
-	//
-	// TESTS for Marshalling basic values IN/OUT of native arguments
-	//
 
 	private static final Object bd(float f) {
 		return Numbers.toBigDecimal(f);
 	}
+
 	private static final Object bd(double d) {
 		return Numbers.toBigDecimal(d);
 	}
-	private static final class BasicTypeSet {
+
+	public static final class BasicTypeSet {
 		public final BasicType type;
 		public final Object[] values;
 		public BasicTypeSet(BasicType type, Object... values) {
@@ -47,7 +49,8 @@ public class BasicValueTest {
 			this.values = values;
 		}
 	}
-	private static final BasicTypeSet[] SETS = new BasicTypeSet[] {
+
+	public static final BasicTypeSet[] SETS = new BasicTypeSet[] {
 		new BasicTypeSet(BOOL, Boolean.TRUE, Boolean.FALSE),
 		new BasicTypeSet(INT8, (int)Byte.MIN_VALUE, -1, 0, 1, (int)Byte.MAX_VALUE),
 		new BasicTypeSet(INT16, (int)Short.MIN_VALUE, -1, 0, 1, 0x01ff, (int)Short.MAX_VALUE),
@@ -66,29 +69,6 @@ public class BasicValueTest {
 		new BasicTypeSet(HANDLE, (long)Integer.MIN_VALUE, (long)-1, (long)0, (long)1, (long)Integer.MAX_VALUE),
 		new BasicTypeSet(GDIOBJ, (long)Integer.MIN_VALUE, (long)-1, (long)0, (long)1, (long)Integer.MAX_VALUE)
 	};
-
-	@Test
-	public void testMarshallInOutAll() {
-		EnumSet<BasicType> typesSeen = EnumSet.noneOf(BasicType.class);
-		for (BasicTypeSet bts : SETS) {
-			assertFalse(typesSeen.contains(bts.type));
-			BasicValue type = bv(bts.type);
-			MarshallPlanBuilder builder = new MarshallPlanBuilder(
-					type.getSizeDirectWholeWords(), 0, 0, true);
-			type.addToPlan(builder, false);
-			MarshallPlan mp = builder.makeMarshallPlan();
-			for (Object value : bts.values) {
-				Marshaller m = mp.makeMarshaller();
-				type.marshallIn(m, value);
-				m.rewind();
-				assertEquals(value, type.marshallOut(m, null));
-				m.rewind();
-				assertEquals(value, type.marshallOut(m, value));
-			}
-			typesSeen.add(bts.type);
-		}
-		assertEquals(BasicType.values().length, typesSeen.size());
-	}
 
 	//
 	// TESTS for Marshalling basic values OUT from native return values

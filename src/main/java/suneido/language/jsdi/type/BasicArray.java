@@ -9,7 +9,7 @@ import javax.annotation.concurrent.Immutable;
 import suneido.SuContainer;
 import suneido.language.Ops;
 import suneido.language.jsdi.*;
-import static suneido.InternalError.unhandledEnum;
+import static suneido.SuInternalError.unhandledEnum;
 
 /**
  * TODO: docs
@@ -31,7 +31,7 @@ public final class BasicArray extends Type {
 	// CONSTRUCTORS
 	//
 
-	BasicArray(BasicValue underlying, int numElems) {
+	public BasicArray(BasicValue underlying, int numElems) {
 		super(TypeId.BASIC, StorageType.ARRAY);
 		this.underlying = underlying;
 		this.numElems = numElems;

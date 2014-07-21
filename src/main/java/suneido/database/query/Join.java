@@ -5,7 +5,7 @@
 package suneido.database.query;
 
 import static java.util.Collections.disjoint;
-import static suneido.InternalError.unreachable;
+import static suneido.SuInternalError.unreachable;
 import static suneido.util.Util.addUnique;
 import static suneido.util.Util.intersect;
 import static suneido.util.Util.listToParens;

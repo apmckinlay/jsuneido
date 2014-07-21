@@ -4,7 +4,7 @@
 
 package suneido.language.jsdi.type;
 
-import static suneido.InternalError.unhandledEnum;
+import static suneido.SuInternalError.unhandledEnum;
 
 import javax.annotation.concurrent.Immutable;
 
@@ -31,7 +31,7 @@ public final class BasicValue extends Type {
 	// CONSTRUCTORS
 	//
 
-	BasicValue(BasicType basicType) {
+	public BasicValue(BasicType basicType) {
 		super(TypeId.BASIC, StorageType.VALUE);
 		this.basicType = basicType;
 		this.pointerType = new BasicPointer(this);
