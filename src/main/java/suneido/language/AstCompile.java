@@ -17,22 +17,22 @@ import suneido.SuContainer;
 import suneido.SuDate;
 import suneido.SuException;
 import suneido.SuRecord;
-import suneido.language.jsdi.Dll;
-import suneido.language.jsdi.DllInterface;
-import suneido.language.jsdi.Factory;
-import suneido.language.jsdi.JSDI;
-import suneido.language.jsdi.StorageType;
-import suneido.language.jsdi.type.BasicType;
-import suneido.language.jsdi.type.Callback;
-import suneido.language.jsdi.type.InOutString;
-import suneido.language.jsdi.type.InString;
-import suneido.language.jsdi.type.Proxy;
-import suneido.language.jsdi.type.ResourceType;
-import suneido.language.jsdi.type.StringType;
-import suneido.language.jsdi.type.Structure;
-import suneido.language.jsdi.type.Type;
-import suneido.language.jsdi.type.TypeList;
-import suneido.language.jsdi.type.VoidType;
+import suneido.jsdi.Dll;
+import suneido.jsdi.DllInterface;
+import suneido.jsdi.Factory;
+import suneido.jsdi.JSDI;
+import suneido.jsdi.StorageType;
+import suneido.jsdi.type.BasicType;
+import suneido.jsdi.type.Callback;
+import suneido.jsdi.type.InOutString;
+import suneido.jsdi.type.InString;
+import suneido.jsdi.type.Proxy;
+import suneido.jsdi.type.ResourceType;
+import suneido.jsdi.type.StringType;
+import suneido.jsdi.type.Structure;
+import suneido.jsdi.type.Type;
+import suneido.jsdi.type.TypeList;
+import suneido.jsdi.type.VoidType;
 
 public class AstCompile {
 	private final PrintWriter pw;
@@ -242,7 +242,7 @@ public class AstCompile {
 	}
 
 	/**
-	 * @see suneido.language.jsdi.type.Type#throwNotValidForCallback()
+	 * @see suneido.jsdi.type.Type#throwNotValidForCallback()
 	 */
 	@DllInterface
 	private static void throwNotValidForCallback(String typeName)

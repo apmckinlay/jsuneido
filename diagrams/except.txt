@@ -82,7 +82,7 @@ TENTATIVE DESIGN
           object name, and method name (if any).
       (b) If from suneido.compiled.anon.XYZ, need a way to look up what XYZ
           really is.
-      (c) If from suneido.language.jsdi.dll.*, route it to the JSDI package to
+      (c) If from suneido.jsdi.*, route it to the JSDI package to
           get the true lowdown.
              [ ] How to get argument values? One way is to have the various
                  "call" functions on DLLs wrapped in a try/catch block and have

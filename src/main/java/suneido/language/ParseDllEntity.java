@@ -22,7 +22,7 @@ import static suneido.language.Token.SEMICOLON;
 import static suneido.language.Token.STRUCT;
 import static suneido.language.Token.VALUETYPE;
 import suneido.SuException;
-import suneido.language.jsdi.DllInterface;
+import suneido.jsdi.DllInterface;
 
 /**
  * Shared members and functionality for matching entities that form part of the

@@ -7,7 +7,7 @@ package suneido.language;
 import static suneido.language.Token.EOF;
 import static suneido.language.Token.L_CURLY;
 import static suneido.language.Token.STRUCT;
-import suneido.language.jsdi.DllInterface;
+import suneido.jsdi.DllInterface;
 
 /**
  * Parser for Suneido <code>struct</code> type (part of the DLL interface).

@@ -16,10 +16,9 @@ import java.util.*;
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.*;
-import suneido.SuInternalError;
+import suneido.jsdi.Buffer;
 import suneido.language.builtin.NumberMethods;
 import suneido.language.builtin.StringMethods;
-import suneido.language.jsdi.Buffer;
 import suneido.util.RegexCache;
 import suneido.util.StringIterator;
 

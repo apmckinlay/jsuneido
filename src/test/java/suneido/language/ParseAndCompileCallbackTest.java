@@ -10,7 +10,7 @@ import static org.junit.Assert.assertFalse;
 import org.junit.Test;
 
 import suneido.SuException;
-import suneido.language.jsdi.DllInterface;
+import suneido.jsdi.DllInterface;
 import suneido.util.testing.Assumption;
 
 /**

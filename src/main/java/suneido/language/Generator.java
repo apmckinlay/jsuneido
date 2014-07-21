@@ -4,7 +4,7 @@
 
 package suneido.language;
 
-import suneido.language.jsdi.DllInterface;
+import suneido.jsdi.DllInterface;
 
 public abstract class Generator<T> {
 

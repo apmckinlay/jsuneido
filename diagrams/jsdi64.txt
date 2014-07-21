@@ -35,7 +35,7 @@ PARAMETER PASSING:
 [ ] Remove BasicPointer
 [ ] Clean up all warnings: jSuneido
 [ ] Clean up all cleanable warnings: jsdi
-[ ] Move suneido.language.jsdi -> suneido.jsdi
+[X] Move suneido.language.jsdi -> suneido.jsdi
 [ ] DOCS!
 
 ================================================================================
