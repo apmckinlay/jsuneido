@@ -11,12 +11,14 @@ import static suneido.language.jsdi.type.BasicValueTest.bv;
 
 import java.util.EnumSet;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import suneido.language.jsdi.MarshallPlanBuilder;
 import suneido.language.jsdi.type.BasicType;
 import suneido.language.jsdi.type.BasicValue;
 import suneido.language.jsdi.type.BasicValueTest.BasicTypeSet;
+import suneido.util.testing.Assumption;
 
 /**
  * x86-specific tests for {@link BasicValue}.
@@ -26,6 +28,11 @@ import suneido.language.jsdi.type.BasicValueTest.BasicTypeSet;
  * @see suneido.language.jsdi.type.BasicValueTest
  */
 public class BasicValueTestX86 {
+
+	@BeforeClass
+	public static void setUpBeforeClass() throws Exception {
+		Assumption.jvmIs32BitOnWindows();
+	}
 
 	//
 	// TESTS for Marshalling basic values IN/OUT of native arguments

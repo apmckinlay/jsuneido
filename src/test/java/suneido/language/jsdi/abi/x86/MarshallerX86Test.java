@@ -26,6 +26,7 @@ import java.util.Arrays;
 
 import javax.xml.bind.DatatypeConverter;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import suneido.SuInternalError;
@@ -35,6 +36,7 @@ import suneido.language.jsdi.ElementSkipper;
 import suneido.language.jsdi.JSDIException;
 import suneido.language.jsdi.PrimitiveSize;
 import suneido.language.jsdi.VariableIndirectInstruction;
+import suneido.util.testing.Assumption;
 
 /**
  * Test for {@link MarshallerX86}.
@@ -43,7 +45,12 @@ import suneido.language.jsdi.VariableIndirectInstruction;
  * @since 20130717
  */
 @DllInterface
-public class MarshallerTestX86 {
+public class MarshallerX86Test {
+
+	@BeforeClass
+	public static void setUpBeforeClass() throws Exception {
+		Assumption.jvmIs32BitOnWindows();
+	}
 
 	private static byte[] ba(String input) {
 		return DatatypeConverter.parseHexBinary(input);
