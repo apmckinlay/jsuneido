@@ -24,6 +24,11 @@ import suneido.util.testing.Assumption;
  */
 public class StructureX86Test {
 
+	@BeforeClass
+	public static void setUpBeforeClass() throws Exception {
+		Assumption.jvmIs32BitOnWindows();
+	}
+
 	// THIS IS WHAT ThreeTierStruct's MARSHALLED REPRESENTATION LOOKS LIKE on
 	// x86:
 	//
@@ -55,11 +60,6 @@ public class StructureX86Test {
 	//      I     404     16    *tts3[1].prcOptional
 	//      I     420      4    *tts3[1].pLong
 	//
-
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-		Assumption.jvmIs32BitOnWindows();
-	}
 
 	private static MarshallPlanX86 getMarshallPlan(String name) {
 		Structure struct = StructureTest.getAndResolve(name);

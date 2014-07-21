@@ -6,7 +6,7 @@ package suneido.language.jsdi.abi.x86;
 
 import suneido.language.jsdi.MarshallPlan;
 import suneido.language.jsdi.MarshallPlanBuilder;
-import suneido.language.jsdi.MarshallTestUtilXXX;
+import suneido.language.jsdi.MarshallTestUtil;
 import suneido.language.jsdi.PrimitiveSize;
 
 /**
@@ -16,7 +16,7 @@ import suneido.language.jsdi.PrimitiveSize;
  * @author Victor Schappert
  * @since 20130725
  */
-public final class MarshallTestUtilX86 extends MarshallTestUtilXXX {
+public final class MarshallTestUtilX86 extends MarshallTestUtil {
 
 	public static MarshallPlanX86 nullPlan() {
 		return new MarshallPlanX86(0, 0, new int[0], new int[0], 0);

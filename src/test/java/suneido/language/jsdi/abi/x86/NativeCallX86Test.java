@@ -21,7 +21,7 @@ import org.junit.Test;
 import suneido.language.jsdi.Buffer;
 import suneido.language.jsdi.CallGroup;
 import suneido.language.jsdi.JSDI;
-import suneido.language.jsdi.MarshallTestUtilXXX;
+import suneido.language.jsdi.MarshallTestUtil;
 import suneido.language.jsdi.PrimitiveSize;
 import suneido.language.jsdi.ReturnTypeGroup;
 import suneido.language.jsdi.TestCall;
@@ -36,7 +36,7 @@ import suneido.util.testing.Assumption;
  * @since 20130723
  * @see NativeCallX86
  */
-public class NativeCallTest {
+public class NativeCallX86Test {
 
 	private static final NativeCallX86[] DOF_NORET_VI_OR_FLOAT;
 	private static final NativeCallX86[] IND_NORET_VI_OR_FLOAT;
@@ -432,7 +432,7 @@ public class NativeCallTest {
 		//
 		{
 			final MarshallerX86 m = (MarshallerX86)TestCall.marshall(
-					new MarshallTestUtilXXX.Recursive_StringSum("12345678", null), null);
+					new MarshallTestUtil.Recursive_StringSum("12345678", null), null);
 			assertThrew(() -> { m.putInt8((byte) 0); },
 					ArrayIndexOutOfBoundsException.class);
 			assertEquals(12345678L,
@@ -445,7 +445,7 @@ public class NativeCallTest {
 			for (int k = 0; k <= 10; ++k) {
 				Buffer buffer = new Buffer(new byte[k], 0, k);
 				final MarshallerX86 m = (MarshallerX86)TestCall.marshall(
-						new MarshallTestUtilXXX.Recursive_StringSum("987654321", buffer),
+						new MarshallTestUtil.Recursive_StringSum("987654321", buffer),
 						null);
 				assertThrew(() -> { m.putInt8((byte) 0); },
 						ArrayIndexOutOfBoundsException.class);
@@ -462,9 +462,9 @@ public class NativeCallTest {
 		//
 		{
 			final MarshallerX86 m = (MarshallerX86)TestCall.marshall(
-					new MarshallTestUtilXXX.Recursive_StringSum("404", null, -2, 1, -4, 3,
+					new MarshallTestUtil.Recursive_StringSum("404", null, -2, 1, -4, 3,
 							-6, 5, -8, 7),
-					new MarshallTestUtilXXX.Recursive_StringSum("-200", null, -100, -75,
+					new MarshallTestUtil.Recursive_StringSum("-200", null, -100, -75,
 							-50, -25, 50, -25, 50, -25));
 			assertThrew(() -> { m.putInt8((byte) 0); },
 					ArrayIndexOutOfBoundsException.class);
@@ -480,9 +480,9 @@ public class NativeCallTest {
 					Buffer outerBuffer = new Buffer(new byte[outer], 0, outer);
 					Buffer innerBuffer = new Buffer(new byte[inner], 0, inner);
 					final MarshallerX86 m = (MarshallerX86)TestCall.marshall(
-							new MarshallTestUtilXXX.Recursive_StringSum("404",
+							new MarshallTestUtil.Recursive_StringSum("404",
 									outerBuffer, -2, 1, -4, 3, -6, 5, -8, 7),
-							new MarshallTestUtilXXX.Recursive_StringSum("-200",
+							new MarshallTestUtil.Recursive_StringSum("-200",
 									innerBuffer, -100, -75, -50, -25, 50, -25,
 									50, -25));
 					assertThrew(() -> { m.putInt8((byte) 0); },
@@ -520,9 +520,9 @@ public class NativeCallTest {
 			final Buffer buffer = new Buffer(new byte[] { '1', '2' }, 0, 2);
 			for (int k = 0; k < NREPS; ++k) {
 				final MarshallerX86 m = (MarshallerX86)TestCall.marshall(
-						new MarshallTestUtilXXX.Recursive_StringSum(Integer.toString(k),
+						new MarshallTestUtil.Recursive_StringSum(Integer.toString(k),
 								buffer, k, k, k, k, k, k, k, k),
-						new MarshallTestUtilXXX.Recursive_StringSum(Integer.toString(-k),
+						new MarshallTestUtil.Recursive_StringSum(Integer.toString(-k),
 								buffer, -k, -k, -k, -k, -k, -k, -k, -k));
 				assertEquals(0L, nativecall.invoke(testcall.ptr, sizeDirect, m)
 						& mask);

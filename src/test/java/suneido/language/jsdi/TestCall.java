@@ -122,14 +122,14 @@ public enum TestCall {
 	private static MarshallPlan makeNamedPlan(String planName, int... params) {
 		final Platform platform  = Platform.getPlatform();
 		if (WIN32_X86 == platform) {
-			return MarshallTestUtilXXX.makeNamedPlan(MarshallTestUtilX86.class, planName, params);
+			return MarshallTestUtil.makeNamedPlan(MarshallTestUtilX86.class, planName, params);
 		} else {
 			throw new RuntimeException("can't handle " + platform);
 		}
 	}
 
-	public static Marshaller marshall(MarshallTestUtilXXX.Recursive_StringSum rssOuter,
-			MarshallTestUtilXXX.Recursive_StringSum rssInner) {
+	public static Marshaller marshall(MarshallTestUtil.Recursive_StringSum rssOuter,
+			MarshallTestUtil.Recursive_StringSum rssInner) {
 		Marshaller m = TestCall.SUM_STRING.plan.makeMarshaller();
 		m.putPtr();
 		m.putInt8(rssOuter.a1);

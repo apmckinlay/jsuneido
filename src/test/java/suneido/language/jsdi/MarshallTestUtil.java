@@ -10,9 +10,7 @@ import java.util.Arrays;
  * @author Victor Schappert
  * @since 20140719
  */
-public class MarshallTestUtilXXX { // TODO: Rename to MarshallTestUtil --- has
-									// this name only due to Eclipse/Mercurial
-									// fail
+public class MarshallTestUtil {
 
 	public static class Recursive_StringSum {
 		public byte a1;
@@ -53,7 +51,7 @@ public class MarshallTestUtilXXX { // TODO: Rename to MarshallTestUtil --- has
 	}
 
 	public static MarshallPlan makeNamedPlan(
-			Class<? extends MarshallTestUtilXXX> clazz, String planName,
+			Class<? extends MarshallTestUtil> clazz, String planName,
 			int... params) {
 		final Method method = findMethod(clazz, planName);
 		try {
@@ -84,7 +82,7 @@ public class MarshallTestUtilXXX { // TODO: Rename to MarshallTestUtil --- has
 	}
 
 	private static Method findMethod(
-			Class<? extends MarshallTestUtilXXX> clazz, String methodName) {
+			Class<? extends MarshallTestUtil> clazz, String methodName) {
 		Method method = find1Method(clazz, methodName);
 		if (null != method)
 			return method;
@@ -102,7 +100,7 @@ public class MarshallTestUtilXXX { // TODO: Rename to MarshallTestUtil --- has
 	}
 
 	private static Method find1Method(
-			Class<? extends MarshallTestUtilXXX> clazz, String methodName,
+			Class<? extends MarshallTestUtil> clazz, String methodName,
 			Class<?>... parameterTypes) {
 		try {
 			return clazz.getMethod(methodName, parameterTypes);
