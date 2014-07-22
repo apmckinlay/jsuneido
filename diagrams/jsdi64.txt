@@ -37,6 +37,7 @@ PARAMETER PASSING:
 [ ] Clean up all cleanable warnings: jsdi
 [X] Move suneido.language.jsdi -> suneido.jsdi
 [ ] DOCS!
+[ ] Normalize JSDIException messages
 
 ================================================================================
                                 PLAN OF ATTACK
