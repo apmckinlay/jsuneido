@@ -121,6 +121,11 @@ Here are the classes that need to be touched:
 
 The general idea is the following:
 
+    Type :
+        [ ] no implementation for addToPlan, should be abstract
+        [ ] delete getSizeDirectIntrinsic() and getSizeDirectWholeWords ...
+            just need getSizeDirect()
+
     MarshallPlanBuilder :
         [ ] add Suneido value name knowledge
         [ ] add alignment checking
