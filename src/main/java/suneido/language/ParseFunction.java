@@ -44,9 +44,11 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 				if (dot)
 					name = "." + name;
 				match(IDENTIFIER);
-				if (matchIf(EQ))
+				if (matchIf(EQ)) {
+					if (idString())
+						syntaxError("parameter defaults must be constants");
 					defaultValue = constant();
-				else if (defaultValue != null)
+				} else if (defaultValue != null)
 					syntaxError("default parameters must come last");
 				params = generator.parameters(params, name, defaultValue);
 				matchIf(COMMA);
@@ -54,6 +56,23 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		}
 		matchSkipNewlines(R_PAREN);
 		return params;
+	}
+
+	private boolean idString() {
+		if (token != IDENTIFIER)
+			return false;
+		switch (lexer.getKeyword()) {
+		case FUNCTION:
+		case CLASS:
+		case STRUCT:
+		case DLL:
+		case CALLBACK:
+		case TRUE:
+		case FALSE:
+			return false;
+		default:
+			return lookAhead() != L_CURLY;
+		}
 	}
 
 	public T compound(Context context) {
