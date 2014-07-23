@@ -1,0 +1,81 @@
+syntax: glob
+**.class
+**.launch
+jsuneido.jar
+WhenBuilt.jar
+.DS_Store
+
+install.bat
+clindex_**
+test.go
+*.bak
+iminstall.bat
+*.go
+*.exe
+*.outd
+*.outi
+*.tmpd
+*.tmpi
+dropsrc.bat
+.settings/org.eclipse.jdt.ui.prefs
+lucene*.jar
+zlibwapi.dll
+syntax: regexp
+^\.externalToolBuilders$
+syntax: regexp
+\.out$
+syntax: regexp
+^repl\.txt$
+syntax: regexp
+^suneido\.db$
+syntax: regexp
+^jsuneido-dist\.jar$
+syntax: regexp
+^etaserver\.go$
+glob:database.su
+glob:*.log
+glob:suneido.db.bak
+glob:suneido/WhenBuilt.java
+
+syntax: regexp
+^suneido/WhenBuilt\.java$
+syntax: regexp
+^doc$
+syntax: regexp
+^eta\.go$
+
+syntax: regexp
+\.su$
+syntax: regexp
+\.db$
+
+syntax: regexp
+^cstest$
+syntax: regexp
+^tests\.go$
+syntax: regexp
+^jsuneido\.ws$
+syntax: regexp
+\.tmp$
+syntax: regexp
+^immudb-dist\.jar$
+syntax: regexp
+^immudb\.jar$
+syntax: regexp
+\.dbd$
+syntax: regexp
+\.dbd$
+syntax: regexp
+\.dbi$
+syntax: regexp
+\.zip$
+
+syntax: regexp
+^axis\.go$
+syntax: regexp
+^jsuneido-raw\.jar$
+
+syntax: regexp
+^dump-data\.txt$
+syntax: regexp
+^dump-index\.txt$
