@@ -38,6 +38,8 @@ PARAMETER PASSING:
 [X] Move suneido.language.jsdi -> suneido.jsdi
 [ ] DOCS!
 [ ] Normalize JSDIException messages
+[ ] Remove java_enum.h/cpp and just generate the appropriate headers using
+    javah.
 
 ================================================================================
                                 PLAN OF ATTACK
