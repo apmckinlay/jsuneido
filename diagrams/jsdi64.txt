@@ -155,3 +155,22 @@ The general idea is the following:
 
     NativeCallX86 :
         [ ] take int[] arguments
+
+================================================================================
+                       PHASE 3: Java Changes for AMD64
+================================================================================
+
+[ ] Proxy -> LateBind
+[ ] TypeId.PROXY -> TypeId.LATE_BIND
+[ ] + New jsdi.Type.Proxy, acting as actual Proxy
+[ ] TypeList: Push question of whether params or not down into the typelist
+    itself.
+        ( ) private final boolean isParamsList
+        ( ) Remove makeParamsMarshallPlan()
+        ( ) Remove makeXXXMarshallPlan()
+        ( ) Have one single makeMarshallPlan( )
+[ ] + New jsdi.abi_amd64.LateBindValueShim
+        ( ) Only wrap around <parameter> typelist LateBinds that return
+            StorageType.VALUE
+        ( ) Marshalling behaviour etc. is: if resolve() => STRUCT, then pass
+            by value or reference; if resolve() => ELSE, use underyling.
