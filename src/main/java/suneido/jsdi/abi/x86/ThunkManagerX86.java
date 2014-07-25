@@ -35,7 +35,7 @@ final class ThunkManagerX86 extends ThunkManager {
 	protected void newThunk(SuValue boundValue, Callback callback, long[] addrs) {
 		MarshallPlanX86 plan = ((CallbackX86)callback).getMarshallPlan();
 		newThunkX86(callback, boundValue, plan.getSizeDirect(),
-				plan.getSizeIndirect(), plan.getPtrArray(),
+				plan.getSizeTotal(), plan.getPtrArray(),
 				plan.getVariableIndirectCount(), addrs);
 	}
 

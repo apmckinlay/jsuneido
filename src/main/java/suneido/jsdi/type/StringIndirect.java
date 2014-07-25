@@ -54,13 +54,8 @@ public abstract class StringIndirect extends StringType {
 	//
 
 	@Override
-	public int getSizeDirectIntrinsic() {
+	public int getSizeDirect() {
 		return PrimitiveSize.POINTER;
-	}
-
-	@Override
-	public int getSizeDirectWholeWords() {
-		return PrimitiveSize.pointerWholeWordBytes();
 	}
 
 	@Override
@@ -70,7 +65,7 @@ public abstract class StringIndirect extends StringType {
 
 	@Override
 	public void addToPlan(MarshallPlanBuilder builder, boolean isCallbackPlan) {
-		builder.variableIndirectPtr();
+		builder.ptrVariableIndirect();
 	}
 
 	@Override

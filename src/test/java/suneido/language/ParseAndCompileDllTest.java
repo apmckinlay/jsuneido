@@ -295,9 +295,9 @@ public class ParseAndCompileDllTest {
 	public void compileInStringInvalidUses() {
 		final ArrayList<String> typeNames = new ArrayList<>();
 		for (BasicType basicType : BasicType.values()) {
-			typeNames.add(basicType.toIdentifier());
-			typeNames.add(basicType.toIdentifier() + "*");
-			typeNames.add(basicType.toIdentifier() + "[207]");
+			typeNames.add(basicType.getName());
+			typeNames.add(basicType.getName() + "*");
+			typeNames.add(basicType.getName() + "[207]");
 		}
 		typeNames.add(StringType.IDENTIFIER_BUFFER);
 		typeNames.add(StringType.IDENTIFIER_BUFFER + "*");

@@ -55,17 +55,12 @@ public final class BasicValue extends Type {
 
 	@Override
 	public String getDisplayName() {
-		return basicType.toIdentifier();
+		return basicType.getName();
 	}
 
 	@Override
-	public int getSizeDirectIntrinsic() {
-		return basicType.getSizeIntrinsic();
-	}
-
-	@Override
-	public int getSizeDirectWholeWords() {
-		return basicType.getSizeWholeWords();
+	public int getSizeDirect() {
+		return basicType.getSize();
 	}
 
 	@Override

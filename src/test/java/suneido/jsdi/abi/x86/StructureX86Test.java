@@ -67,11 +67,7 @@ public class StructureX86Test {
 	private static MarshallPlanX86 getMarshallPlan(String name) {
 		Structure struct = StructureTest.getAndResolve(name);
 		MarshallPlanBuilderX86 builder = new MarshallPlanBuilderX86(
-			struct.getSizeDirectWholeWords(),
-			struct.getSizeIndirect(),
-			struct.getVariableIndirectCount(),
-			false
-		);
+				struct.getVariableIndirectCount(), false);
 		struct.addToPlan(builder, false);
 		return (MarshallPlanX86)builder.makeMarshallPlan();
 	}
@@ -123,19 +119,19 @@ public class StructureX86Test {
 	@Test
 	@_64BitIssue // TODO: Make AMD64 test for this
 	public void testMarshallPlan() {
-		assertEquals("MarshallPlan[ 16, 0, { }, { 0, 4, 8, 12 }, #vi:0 ]",
+		assertEquals("MarshallPlan[ 16, 16, { }, { 0, 4, 8, 12 }, #vi:0 ]",
 				getMarshallPlan("RECT").toString());
-		assertEquals("MarshallPlan[ 8, 0, { }, { 0, 4 }, #vi:0 ]",
+		assertEquals("MarshallPlan[ 8, 8, { }, { 0, 4 }, #vi:0 ]",
 				getMarshallPlan("POINT").toString());
 		assertEquals(
-				"MarshallPlan[ 64, 20, { 16:64, 60:80 }, " +
+				"MarshallPlan[ 64, 84, { 4:64, 15:80 }, " +
 					"{ 0, 4, 8, 12, 16, 64, 68, 72, 76, 20, 24, 28, 32, 36, " +
 					"40, 44, 48, 52, 56, 60, 80 }, #vi:0 ]",
 				getMarshallPlan("TwoTierStruct").toString());
 		assertEquals(
-				"MarshallPlan[ 260, 164, " +
-					"{ 16:260, 60:276, 64:280, 296:344, 340:360, 84:364, 128:380, 148:384, " +
-					"192:400, 212:404, 256:420 }, " +
+				"MarshallPlan[ 260, 424, " +
+					"{ 4:260, 15:276, 16:280, 74:344, 85:360, 21:364, 32:380, 37:384, " +
+					"48:400, 53:404, 64:420 }, " +
 						// tts1
 					"{ 0, 4, 8, 12, 16, 260, 264, 268, 272, 20, 24, 28, 32, 36, " +
 						"40, 44, 48, 52, 56, 60, 276, " +
@@ -153,22 +149,22 @@ public class StructureX86Test {
 						"228, 232, 236, 240, 244, 248, 252, 256, 420 " +
 					"}, #vi:0 ]",
 				getMarshallPlan("ThreeTierStruct").toString());
-		assertEquals("MarshallPlan[ 12, 0, { 4:12 }, { 0, 2, 4, 8 }, #vi:1 ]",
+		assertEquals("MarshallPlan[ 12, 12, { 1:12 }, { 0, 2, 4, 8 }, #vi:1 ]",
 				getMarshallPlan("StringStruct1").toString());
 		assertEquals(
-				"MarshallPlan[ 36, 0, { 4:36, 16:37, 32:38 }, " +
+				"MarshallPlan[ 36, 36, { 1:36, 4:37, 8:38 }, " +
 				"{ 0, 2, 4, 8, 12, 14, 16, 20, 24, 32 }, #vi:3 ]",
 				getMarshallPlan("StringStruct2").toString());
 		assertEquals(
-				"MarshallPlan[ 44, 36, { 8:80, 20:81, 36:82, 40:44, 48:83, 60:84, 76:85 }, " +
+				"MarshallPlan[ 44, 80, { 2:80, 5:81, 9:82, 10:44, 12:83, 15:84, 19:85 }, " +
 					"{ 0, 4, 6, 8, 12, 16, 18, 20, 24, 28, 36, 40, " +
 					"44, 46, 48, 52, 56, 58, 60, 64, 68, 76 }, #vi:6 ]",
 				getMarshallPlan("StringStruct3").toString());
 		assertEquals(
-				"MarshallPlan[ 8, 0, { }, { 0, 1, 2, 4 }, #vi:0 ]",
+				"MarshallPlan[ 8, 8, { }, { 0, 1, 2, 4 }, #vi:0 ]",
 				getMarshallPlan("Packed_CharCharShortLong").toString());
 		assertEquals(
-				"MarshallPlan[ 32, 32, { 16:64, 20:65, 28:32, 48:66, 52:67 }, " +
+				"MarshallPlan[ 32, 64, { 4:64, 5:65, 7:32, 12:66, 13:67 }, " +
 					"{ 0, 1, 2, 4, 8, 9, 10, 12, 16, 20, 24, 28, " +
 						"32, 33, 34, 36, 40, 41, 42, 44, 48, 52, 56, 60 }, #vi:4 ]",
 				getMarshallPlan("Recursive_StringSum1").toString());

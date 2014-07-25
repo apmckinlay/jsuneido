@@ -4,11 +4,11 @@
 
 package suneido.jsdi.abi.x86;
 
-import suneido.jsdi.CallGroup;
 import suneido.jsdi.Dll;
 import suneido.jsdi.DllFactory;
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.JSDI;
+import suneido.jsdi.MarshallPlan.StorageCategory;
 import suneido.jsdi.ReturnTypeGroup;
 import suneido.jsdi.type.Type;
 import suneido.jsdi.type.TypeList;
@@ -39,13 +39,16 @@ final class DllFactoryX86 extends DllFactory {
 			String userFuncName, TypeList params, Type returnType) {
 		final ReturnTypeGroup rtg = ReturnTypeGroup.fromType(returnType);
 		long funcPtr = getFuncPtr(libraryName, userFuncName);
-		CallGroup cg = CallGroup.fromTypeList(params);
+		MarshallPlanX86 paramsPlan = null;
 		NativeCallX86 nc = null;
-		if (null != cg) {
-			nc = NativeCallX86.get(cg, rtg);
+		if (params.isClosed()) {
+			paramsPlan = (MarshallPlanX86) params.makeParamsMarshallPlan(false,
+					0 < returnType.getVariableIndirectCount());
+			StorageCategory sc = paramsPlan.getStorageCategory();
+			nc = NativeCallX86.get(sc, rtg);
 		}
 		final DllX86 result = new DllX86(funcPtr, params, returnType, rtg, nc,
-				suTypeName, this, libraryName, userFuncName);
+				suTypeName, this, libraryName, userFuncName, paramsPlan);
 		return result;
 	}
 }

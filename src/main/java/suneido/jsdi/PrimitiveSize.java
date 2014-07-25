@@ -81,9 +81,12 @@ public final class PrimitiveSize {
 	/**
 	 * Returns the minimum number of whole words that completely contains the
 	 * given number of bytes.
-	 * @param bytes Number of bytes
+	 * 
+	 * @param bytes
+	 *            Number of bytes
 	 * @return Number of whole words that completely contains {@bytes}
 	 * @see #sizeWholeWords(int)
+	 * @see #numWholeWords(int)
 	 */
 	public static int minWholeWords(int bytes) {
 		return (bytes + WORD - 1) / WORD;
@@ -92,24 +95,31 @@ public final class PrimitiveSize {
 	/**
 	 * Returns the number of bytes taken by the minimum number of whole words
 	 * which contain the given number of bytes.
-	 * @param bytes Number of bytes
+	 * 
+	 * @param bytes
+	 *            Number of bytes
 	 * @return Number of bytes occupied by the minimum number of whole words
-	 * which completely contain {@bytes}
-	 * @see #pointerWholeWordBytes()
+	 *         which completely contain {@bytes}
+	 * @see #minWholeWords(int)
+	 * @see #numWholeWords(int)
 	 */
 	public static int sizeWholeWords(int bytes) {
 		return minWholeWords(bytes) * WORD;
 	}
 
 	/**
-	 * Returns the number of bytes taken by the minimum number of whole words
-	 * which contains a pointer.
-	 * @return Number of bytes taken by minimum whole words that contain a
-	 * pointer
+	 * Returns the number of whole words whose size is exactly equal to the
+	 * given quantity of bytes.
+	 * 
+	 * @param bytes
+	 *            Number of bytes <em>must be a multiple of </em> {@link #WORD}
+	 * @return Number of words whose size is exactly equal to {@code bytes}
+	 * @since 20140724
 	 * @see #sizeWholeWords(int)
 	 */
-	public static int pointerWholeWordBytes() {
-		return ((POINTER + WORD - 1) / WORD) * POINTER;
+	public static int numWholeWords(int bytes) {
+		assert 0 == bytes % WORD : "not a whole word multiple: " + bytes;
+		return bytes / WORD;
 	}
 
 	// Don't instantiate!

@@ -63,13 +63,13 @@ public final class StringDirect extends StringType {
 	}
 
 	@Override
-	public int getSizeDirectIntrinsic() {
+	public int getSizeDirect() {
 		return numChars * PrimitiveSize.INT8;
 	}
 
 	@Override
-	public int getSizeDirectWholeWords() {
-		return PrimitiveSize.sizeWholeWords(getSizeDirectIntrinsic());
+	public int getAlignDirect() {
+		return PrimitiveSize.INT8;
 	}
 
 	@Override

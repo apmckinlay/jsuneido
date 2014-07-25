@@ -25,14 +25,14 @@ public abstract class StringType extends Type {
 	 * String value identifying a string or string[#] object.
 	 * @see #IDENTIFIER_BUFFER
 	 * @see VoidType#IDENTIFIER
-	 * @see BasicType#fromIdentifier(String)
+	 * @see BasicType#fromName(String)
 	 */
 	public static final String IDENTIFIER_STRING = "string";
 	/**
 	 * String value identifying a buffer or buffer[#] object.
 	 * @see #IDENTIFIER_STRING
 	 * @see VoidType#IDENTIFIER
-	 * @see BasicType#fromIdentifier(String)
+	 * @see BasicType#fromName(String)
 	 */
 	public static final String IDENTIFIER_BUFFER = "buffer";
 

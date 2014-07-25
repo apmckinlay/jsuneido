@@ -4,7 +4,6 @@
 
 package suneido.jsdi.abi.x86;
 
-import suneido.jsdi.CallGroup;
 import suneido.jsdi.Dll;
 import suneido.jsdi.DllFactory;
 import suneido.jsdi.DllInterface;
@@ -36,14 +35,15 @@ final class DllX86 extends Dll {
 	//
 
 	protected DllX86(long funcPtr, TypeList params, Type returnType,
-			ReturnTypeGroup returnTypeGroup, NativeCallX86 nc, String valueName,
-			DllFactory dllFactory, String libraryName, String funcName) {
+			ReturnTypeGroup returnTypeGroup, NativeCallX86 nc,
+			String valueName, DllFactory dllFactory, String libraryName,
+			String funcName, MarshallPlanX86 plan) {
 		super(funcPtr, params, returnType, valueName, dllFactory, libraryName,
 				funcName);
 		assert null != returnTypeGroup;
 		this.returnTypeGroup = returnTypeGroup;
 		this.nativeCall = nc;
-		this.marshallPlan = null;
+		this.marshallPlan = plan;
 	}
 
 	//
@@ -75,8 +75,7 @@ final class DllX86 extends Dll {
 		dllParams.marshallInParams(m, args);
 		returnType.marshallInReturnValue(m);
 		NativeCallX86 nc = null == nativeCall ? NativeCallX86.get(
-				CallGroup.fromTypeList(dllParams, true), returnTypeGroup)
-				: nativeCall;
+				plan.getStorageCategory(), returnTypeGroup) : nativeCall;
 		long returnValueRaw = nc.invoke(funcPtr, plan.getSizeDirect(), m);
 		m.rewind();
 		dllParams.marshallOutParams(m, args);

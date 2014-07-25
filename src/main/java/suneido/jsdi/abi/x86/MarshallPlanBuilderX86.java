@@ -4,8 +4,6 @@
 
 package suneido.jsdi.abi.x86;
 
-import com.google.common.primitives.Ints;
-
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.MarshallPlan;
 import suneido.jsdi.MarshallPlanBuilder;
@@ -23,9 +21,9 @@ final class MarshallPlanBuilderX86 extends MarshallPlanBuilder {
 	// CONSTRUCTORS
 	//
 
-	MarshallPlanBuilderX86(int sizeDirect, int sizeIndirect,
-			int variableIndirectCount, boolean alignToWordBoundary) {
-		super(sizeDirect, sizeIndirect, variableIndirectCount, alignToWordBoundary);
+	MarshallPlanBuilderX86(int variableIndirectCount,
+			boolean alignToWordBoundary) {
+		super(variableIndirectCount, alignToWordBoundary);
 	}
 
 	//
@@ -33,13 +31,10 @@ final class MarshallPlanBuilderX86 extends MarshallPlanBuilder {
 	//
 
 	@Override
-	public MarshallPlan makeMarshallPlanInternal() {
-		return new MarshallPlanX86(
-			sizeDirect,
-			sizeIndirect,
-			Ints.toArray(ptrList),
-			Ints.toArray(posList),
-			variableIndirectCount
-		);
+	protected MarshallPlan makeMarshallPlan(int sizeDirect, int alignDirect,
+			int sizeIndirect, int sizeTotal, int variableIndirectCount,
+			int[] ptrArray, int[] posArray) {
+		return new MarshallPlanX86(sizeDirect, alignDirect, sizeIndirect,
+				sizeTotal, ptrArray, posArray, variableIndirectCount);
 	}
 }
