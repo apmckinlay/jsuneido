@@ -49,7 +49,7 @@ final class ThunkManagerX86 extends ThunkManager {
 	//
 
 	private static native void newThunkX86(Callback callback, SuValue boundValue,
-			int sizeDirect, int sizeIndirect, int[] ptrArray,
+			int sizeDirect, int sizeTotal, int[] ptrArray,
 			int variableIndirectCount, long[] outThunkAddrs);
 
 	private static native void deleteThunkX86(long thunkObjectAddr);
