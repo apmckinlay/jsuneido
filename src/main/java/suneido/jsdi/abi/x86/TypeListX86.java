@@ -6,7 +6,6 @@ package suneido.jsdi.abi.x86;
 
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.MarshallPlan;
-import suneido.jsdi.PrimitiveSize;
 import suneido.jsdi.type.TypeList;
 
 /**
@@ -33,30 +32,30 @@ final class TypeListX86 extends TypeList {
 	@Override
 	public MarshallPlan makeParamsMarshallPlan(boolean isCallbackPlan,
 			boolean hasViReturnValue) {
-		int sizeIndirect = getSizeIndirect();
+// FIXME: Do we have to resolve the type list, or is it already resolved??????
+//        (At least, should it assert it is resolved??)
 		int variableIndirectCount = getVariableIndirectCount();
 		if (hasViReturnValue) {
-			sizeIndirect += PrimitiveSize.POINTER;
 			++variableIndirectCount;
 		}
 		final MarshallPlanBuilderX86 builder = new MarshallPlanBuilderX86(
-			getSizeDirectWholeWords(),
-			sizeIndirect,
 			variableIndirectCount,
 			true
 		);
 		addToPlan(builder, isCallbackPlan);
 		if (hasViReturnValue) {
-			builder.variableIndirectPseudoArg();
+			// Need to add another variable indirect slot for the variable
+			// indirect return value pseudo-parameter.
+			builder.ptrVariableIndirectPseudoParam();
 		}
 		return builder.makeMarshallPlan();
 	}
 
 	@Override
 	public MarshallPlan makeMembersMarshallPlan() {
+// FIXME: Do we have to resolve the type list, or is it already resolved??????
+//      (At least, should it assert it is resolved??)
 		final MarshallPlanBuilderX86 builder = new MarshallPlanBuilderX86(
-			getSizeDirectIntrinsic(),
-			getSizeIndirect(),
 			getVariableIndirectCount(),
 			false
 		);

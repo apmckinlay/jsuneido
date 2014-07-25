@@ -797,8 +797,10 @@ public abstract class Marshaller {
 
 	/**
 	 * Extracts the Win32 resource value at the next position in the marshaller.
+	 * 
 	 * @return A non-{@code null} Integer or String reference representing,
-	 * respectively, an {@code INTRESOURCE} value or a string {@code resource}
+	 *         respectively, an {@code INTRESOURCE} value or a string
+	 *         {@code resource}
 	 * @since 20130801
 	 * @see #putINTRESOURCE(short)
 	 * @see #getStringPtr()
@@ -820,18 +822,45 @@ public abstract class Marshaller {
 		return value;
 	}
 
+	/**
+	 * Extracts a zero-terminated string from the buffer of size
+	 * {@code numChars} that is at the next position in the marshaller.
+	 * 
+	 * @param numChars
+	 *            Positive size, in bytes, of the buffer containing the string
+	 * @return Non-{@code null} string
+	 * @see #putZeroTerminatedStringDirect(String, int)
+	 * @see #getNonZeroTerminatedStringDirect(int, Buffer)
+	 */
 	public final String getZeroTerminatedStringDirect(int numChars) {
-		if (numChars < 1)
-		{
+		if (numChars < 1) {
 			throw new JSDIException(
 					"zero-terminated string must have at least one character");
-		}
-		else
-		{
-			return getZeroTerminatedStringDirectSafe(numChars);
+		} else {
+			final String result = getZeroTerminatedStringDirectChecked(numChars);
+			if (null != result) {
+				return result;
+			}
+			throw new JSDIException("missing zero terminator");
 		}
 	}
 
+	/**
+	 * Extracts a non-zero-terminated string from the buffer of size
+	 * {@code numChars} that is at the next position in the marshaller.
+	 *
+	 * @param numChars
+	 *            Size, in bytes, of the buffer containing the string
+	 * @param oldValue
+	 *            Value that was put at this position during marshall
+	 *            <em>in</em> (will be {@code null} if the value marshalled in
+	 *            was a Java string.
+	 * @return If {@code oldValue} is a non-{@code null} Buffer having length at
+	 *         least {@code numChars}, {@code oldValue}; otherwise, a new Buffer
+	 *         of size {@code numChars}
+	 * @see #putNonZeroTerminatedStringDirect(Buffer, int)
+	 * @see #putNonZeroTerminatedStringDirect(String, int)
+	 */
 	public abstract Buffer getNonZeroTerminatedStringDirect(int numChars,
 			Buffer oldValue);
 
@@ -839,7 +868,8 @@ public abstract class Marshaller {
 	// INTERNALS
 	//
 
-	protected int nextData() {
+	protected final int nextData() {
+		// Note: This returns a byte index no matter what platform we're on.
 		return posArray[posIndex++];
 	}
 
@@ -895,5 +925,5 @@ public abstract class Marshaller {
 		}
 	}
 
-	protected abstract String getZeroTerminatedStringDirectSafe(int numChars);
+	protected abstract String getZeroTerminatedStringDirectChecked(int numChars);
 }

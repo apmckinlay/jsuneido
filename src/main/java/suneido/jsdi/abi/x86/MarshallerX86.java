@@ -4,7 +4,6 @@
 
 package suneido.jsdi.abi.x86;
 
-import suneido.SuInternalError;
 import suneido.jsdi.Buffer;
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.JSDIException;
@@ -32,7 +31,7 @@ final class MarshallerX86 extends Marshaller {
 	MarshallerX86(int sizeTotal, int variableIndirectCount,
 			int[] ptrArray, int[] posArray) {
 		super(variableIndirectCount, ptrArray, posArray);
-		this.data = new int[sizeTotal];
+		this.data = new int[sizeTotal / Integer.BYTES];
 	} // Deliberately package-internal
 
 	MarshallerX86(int[] data, int[] ptrArray, int[] posArray) {
@@ -51,305 +50,13 @@ final class MarshallerX86 extends Marshaller {
 	// INTERNALS
 	//
 
-	private void copyToIntArr01(int wordIndex, byte src) {
-		data[wordIndex] |= src & 0xff;
-	}
-
-	private void copyToIntArr02(int wordIndex, byte[] src, int srcIndex) {
-		data[wordIndex] |=
-				(src[srcIndex+0] & 0xff) << 000 |
-				(src[srcIndex+1] & 0xff) << 010;
-	}
-
-	private void copyToIntArr03(int wordIndex, byte[] src, int srcIndex) {
-		data[wordIndex] |=
-				(src[srcIndex+0] & 0xff) << 000 |
-				(src[srcIndex+1] & 0xff) << 010 |
-				(src[srcIndex+2] & 0xff) << 030;
-	}
-
-	private void copyToIntArr04(int wordIndex, byte[] src, int srcIndex) {
-		data[wordIndex] =
-				(src[srcIndex+0] & 0xff) << 000 |
-				(src[srcIndex+1] & 0xff) << 010 |
-				(src[srcIndex+2] & 0xff) << 020 |
-				(int) src[srcIndex+3]    << 030;
-	}
-
-	private int copyToIntArr11(int wordIndex, byte src) {
-		data[wordIndex] |= (src & 0xff) << 010;
-		return 1;
-	}
-
-	private int copyToIntArr12(int wordIndex, byte[] src, int srcIndex) {
-		data[wordIndex] |=
-				(src[srcIndex+0] & 0xff) << 010 |
-				(src[srcIndex+1] & 0xff) << 020;
-		return 2;
-	}
-
-	private int copyToIntArr13(int wordIndex, byte[] src, int srcIndex) {
-		data[wordIndex] |=
-				(src[srcIndex+0] & 0xff) << 010 |
-				(src[srcIndex+1] & 0xff) << 020 |
-				src[srcIndex+3] << 030;
-		return 3;
-	}
-
-	private int copyToIntArr21(int wordIndex, byte src) {
-		data[wordIndex] |= (src & 0xff) << 020;
-		return 1;
-	}
-
-	private int copyToIntArr22(int wordIndex, byte[] src, int srcIndex) {
-		data[wordIndex] |=
-				(src[srcIndex+0] & 0xff) << 020 |
-				(src[srcIndex+1] & 0xff) << 030;
-		return 2;
-	}
-
-	private int copyToIntArr31(int wordIndex, byte src) {
-		data[wordIndex] |= src << 030;
-		return 1;
-	}
-
 	private void copyToIntArr(byte[] src, int length) {
-		assert 0 < length;
-		final int dataIndex = nextData();
-		int wordIndex = dataIndex >> 002;
-		int byteIndex = dataIndex & 003;
-		final int lengthMod4 = length % 4; // 0..3
-		int code = byteIndex << 010 | lengthMod4;
-		int srcIndex = 0;
-		// Handle up to first 3 bytes
-		handle_first_four: while(true) {
-			switch (code) {
-			case 001: // byte 0, length 1
-				copyToIntArr01(wordIndex, src[srcIndex]);
-				return;
-			case 002: // byte 0, length 2
-				copyToIntArr02(wordIndex, src, srcIndex);
-				return;
-			case 003: // byte 0, length 3
-				copyToIntArr03(wordIndex, src, 0);
-				return;
-			case 000: // byte 0, length 4+
-				break handle_first_four;
-	
-			case 011: // byte 1, length 1
-				copyToIntArr11(wordIndex, src[srcIndex]);
-				return;
-			case 012: // byte 1, length 2
-				copyToIntArr12(wordIndex, src, srcIndex);
-				return;
-			case 013: // byte 1, length 3
-				copyToIntArr13(wordIndex, src, srcIndex);
-				return;
-			case 010: // byte 1, length 4+
-				srcIndex += copyToIntArr13(wordIndex, src, srcIndex);
-				break handle_first_four;
-
-			case 021: // byte 2, length 1
-				copyToIntArr21(wordIndex, src[srcIndex]);
-				return;
-			case 022: // byte 2, length 2
-				copyToIntArr22(wordIndex, src, srcIndex);
-				return;
-			case 023: // byte 2, length 3
-				srcIndex += copyToIntArr22(wordIndex, src, srcIndex);
-				code = 001;
-				break;
-			case 020: // distance 2, length 4+
-				srcIndex += copyToIntArr22(wordIndex, src, srcIndex);
-				break handle_first_four;
-	
-			case 031: // byte 3, length 1
-				copyToIntArr31(wordIndex, src[srcIndex]);
-				return;
-			case 032: // byte 3, length 2
-			case 033: // byte 3, length 3
-				srcIndex += copyToIntArr31(wordIndex, src[srcIndex]);
-				code -= 031;
-				break;
-			case 030: // byte 3, length 4+
-				srcIndex += copyToIntArr31(wordIndex, src[srcIndex]);
-				break handle_first_four;
-
-			default:
-				throw SuInternalError.unreachable();
-			} // switch
-		} // handle_first_four
-			// Handle groups of four bytes copied into whole words at a time.
-		for (; srcIndex + 4 < length; srcIndex += 4, wordIndex++) {
-			copyToIntArr04(wordIndex, src, srcIndex);
-		}
-		// Handle trailing 0-3 bytes
-		switch (length - srcIndex) {
-		case 0:
-			break;
-		case 1:
-			copyToIntArr01(wordIndex, src[srcIndex]);
-			break;
-		case 2:
-			copyToIntArr02(wordIndex, src, srcIndex);
-			break;
-		case 3:
-			copyToIntArr03(wordIndex, src, srcIndex);
-			break;
-		default:
-			throw SuInternalError.unreachable();
-		}
-	}
-
-	private void copyFromIntArr01(int wordIndex, byte[] dest, int destIndex) {
-		dest[destIndex] = (byte) (data[wordIndex] & 0xff);
-	}
-
-	private void copyFromIntArr02(int wordIndex, byte[] dest, int destIndex) {
-		final int word = data[wordIndex];
-		dest[destIndex+0] = (byte) (word >>> 000 & 0xff);
-		dest[destIndex+1] = (byte) (word >>> 010 & 0xff);
-	}
-	
-
-	private void copyFromIntArr03(int wordIndex, byte[] dest, int destIndex) {
-		final int word = data[wordIndex];
-		dest[destIndex+0] = (byte) (word >>> 000 & 0xff);
-		dest[destIndex+1] = (byte) (word >>> 010 & 0xff);
-		dest[destIndex+2] = (byte) (word >>> 020 & 0xff);
-	}
-
-	private void copyFromIntArr04(int wordIndex, byte[] dest, int destIndex) {
-		final int word = data[wordIndex];
-		dest[destIndex+0] = (byte) (word >>> 000 & 0xff);
-		dest[destIndex+1] = (byte) (word >>> 010 & 0xff);
-		dest[destIndex+2] = (byte) (word >>> 020 & 0xff);
-		dest[destIndex+3] = (byte) (word >>> 030 & 0xff);
-	}
-
-	private int copyFromIntArr11(int wordIndex, byte[] dest, int destIndex) {
-		dest[destIndex] = (byte) (data[wordIndex] >>> 010 & 0xff);
-		return 1;
-	}
-
-	private int copyFromIntArr12(int wordIndex, byte[] dest, int destIndex) {
-		final int word = data[wordIndex];
-		dest[destIndex+0] = (byte) (word >>> 010 & 0xff);
-		dest[destIndex+1] = (byte) (word >>> 020 & 0xff);
-		return 2;
-	}
-
-	private int copyFromIntArr13(int wordIndex, byte[] dest, int destIndex) {
-		final int word = data[wordIndex];
-		dest[destIndex+0] = (byte) (word >>> 010 & 0xff);
-		dest[destIndex+1] = (byte) (word >>> 020 & 0xff);
-		dest[destIndex+2] = (byte) (word >>> 030 & 0xff);
-		return 3;
-	}
-
-	private int copyFromIntArr21(int wordIndex, byte[] dest, int destIndex) {
-		dest[destIndex] = (byte) (data[wordIndex] >>> 020 & 0xff);
-		return 1;
-	}
-
-	private int copyFromIntArr22(int wordIndex, byte[] dest, int destIndex) {
-		final int word = data[wordIndex];
-		dest[destIndex+0] = (byte) (word >>> 020 & 0xff);
-		dest[destIndex+1] = (byte) (word >>> 030 & 0xff);
-		return 2;
-	}
-
-	private int copyFromIntArr31(int wordIndex, byte[] dest, int destIndex) {
-		dest[destIndex] = (byte) (data[wordIndex] >>> 030 & 0xff);
-		return 1;
+		new ByteCopierX86(data, nextData(), src).copyToIntArr(length);
 	}
 
 	private void copyFromIntArr(byte[] dest, int length) {
-		final int dataIndex = nextData();
-		if (length < 1) return;
-		int wordIndex = dataIndex >> 002;
-		int byteIndex = dataIndex & 003;   // 0..3
-		final int lengthMod4 = length % 4; // 0..3
-		int code = byteIndex << 010 | lengthMod4;
-		int destIndex = 0;
-		// Handle up to first 3 bytes
-		// Handle up to first 3 bytes
-		handle_first_four: while(true) {
-			switch (code) {
-			case 001: // byte 0, length 1
-				copyFromIntArr01(wordIndex, dest, destIndex);
-				return;
-			case 002: // byte 0, length 2
-				copyFromIntArr02(wordIndex, dest, destIndex);
-				return;
-			case 003: // byte 0, length 3
-				copyFromIntArr03(wordIndex, dest, 0);
-				return;
-			case 000: // byte 0, length 4+
-				break handle_first_four;
-	
-			case 011: // byte 1, length 1
-				copyFromIntArr11(wordIndex, dest, destIndex);
-				return;
-			case 012: // byte 1, length 2
-				copyFromIntArr12(wordIndex, dest, destIndex);
-				return;
-			case 013: // byte 1, length 3
-				copyFromIntArr13(wordIndex, dest, destIndex);
-				return;
-			case 010: // byte 1, length 4+
-				destIndex += copyFromIntArr13(wordIndex, dest, destIndex);
-				break handle_first_four;
-
-			case 021: // byte 2, length 1
-				copyFromIntArr21(wordIndex, dest, destIndex);
-				return;
-			case 022: // byte 2, length 2
-				copyFromIntArr22(wordIndex, dest, destIndex);
-				return;
-			case 023: // byte 2, length 3
-				destIndex += copyFromIntArr22(wordIndex, dest, destIndex);
-				code = 001;
-				break;
-			case 020: // distance 2, length 4+
-				destIndex += copyFromIntArr22(wordIndex, dest, destIndex);
-				break handle_first_four;
-	
-			case 031: // byte 3, length 1
-				copyFromIntArr31(wordIndex, dest, destIndex);
-				return;
-			case 032: // byte 3, length 2
-			case 033: // byte 3, length 3
-				destIndex += copyFromIntArr31(wordIndex, dest, destIndex);
-				code -= 031;
-				break;
-			case 030: // byte 3, length 4+
-				destIndex += copyFromIntArr31(wordIndex, dest, destIndex);
-				break handle_first_four;
-
-			default:
-				throw SuInternalError.unreachable();
-			} // switch
-		} // handle_first_four
-			// Handle groups of four bytes copied into whole words at a time.
-		for (; destIndex + 4 < length; destIndex += 4, wordIndex++) {
-			copyFromIntArr04(wordIndex, dest, destIndex);
-		}
-		// Handle trailing 0-3 bytes
-		switch (length - destIndex) {
-		case 0:
-			break;
-		case 1:
-			copyFromIntArr01(wordIndex, dest, destIndex);
-			break;
-		case 2:
-			copyFromIntArr02(wordIndex, dest, destIndex);
-			break;
-		case 3:
-			copyFromIntArr03(wordIndex, dest, destIndex);
-			break;
-		default:
-			throw SuInternalError.unreachable();
+		if (0 < length) {
+			new ByteCopierX86(data, nextData(), dest).copyFromIntArr(length);	
 		}
 	}
 
@@ -475,7 +182,8 @@ final class MarshallerX86 extends Marshaller {
 		final int dataIndex = nextData();
 		final int wordIndex = dataIndex >> 002;
 		final int byteIndex = dataIndex & 003;
-		return (data[wordIndex] >>> 8 * byteIndex) & 0xff;
+		// Cast once to get a byte, twice to sign-extend it to int.
+		return (int)(byte)((data[wordIndex] >> 8 * byteIndex) & 0xff);
 	}
 
 	@Override
@@ -484,7 +192,8 @@ final class MarshallerX86 extends Marshaller {
 		final int wordIndex = dataIndex >> 002;
 		final int byteIndex = dataIndex & 003;
 		assert 0 == byteIndex % 2;
-		return (data[wordIndex] >>> 8 * byteIndex) & 0xffff;
+		// Cast once to get a short, twice to sign-extend it to int.
+		return (int)(short)((data[wordIndex] >>> 8 * byteIndex) & 0xffff);
 	}
 
 	@Override
@@ -526,6 +235,21 @@ final class MarshallerX86 extends Marshaller {
 			final Buffer newValue = new Buffer(numChars);
 			copyFromIntArr(newValue.getInternalData(), numChars);
 			return newValue;
+		}
+	}
+
+	@Override
+	protected String getZeroTerminatedStringDirectChecked(int numChars) {
+		final Buffer buffer = new Buffer(numChars);
+		final int zeroIndex = new ByteCopierX86(data, nextData(),
+				buffer.getInternalData()).copyNonZeroFromIntArr(numChars);
+		if (0 == zeroIndex) {
+			return "";
+		} else if (zeroIndex < numChars) {
+			buffer.setSize(zeroIndex);
+			return buffer.toString();
+		} else {
+			return null; // Caller will throw an exception
 		}
 	}
 }

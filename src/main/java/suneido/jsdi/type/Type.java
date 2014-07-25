@@ -83,7 +83,7 @@ public abstract class Type extends JSDIValue {
 
 	/**
 	 * <p>
-	 * Returns the "instrinsic" size of the type. This is the number of bytes
+	 * Returns the direct size of the type. This is the number of bytes
 	 * required to store the type on the current operating platform, or what
 	 * the C-language {@code sizeof()} operator would return if this type were
 	 * defined in C.
@@ -91,23 +91,22 @@ public abstract class Type extends JSDIValue {
 	 *
 	 * @return Intrinsic size in bytes
 	 * @since 20130724
-	 * @see #getSizeDirectWholeWords()
+	 * @see #getSizeIndirect()
 	 */
-	public abstract int getSizeDirectIntrinsic();
+	public abstract int getSizeDirect();
 
 	/**
 	 * <p>
-	 * Returns the whole-word size of the type. This is the size, in bytes, of
-	 * the minimum number of whole words (having size
-	 * {@link suneido.jsdi.PrimitiveSize#WORD PrimitiveSize.WORD})
-	 * required to contain the "intrinsic size" of the type.
+	 * Returns the required alignment of the type. This is the alignment a
+	 * C compiler would assign this type on the current operating platform.
 	 * </p>
 	 *
-	 * @return Whole-word size in bytes
-	 * @since 20130724
-	 * @see #getSizeDirectIntrinsic()
+	 * @return Required alignment, a positive power of 2: 1, 2, 4, 8...
+	 * @since 20140722
 	 */
-	public abstract int getSizeDirectWholeWords();
+	public int getAlignDirect() {
+		return getSizeDirect();
+	}
 
 	/**
 	 * <p>
@@ -117,7 +116,7 @@ public abstract class Type extends JSDIValue {
 	 * The indirect size is the aggregate of:
 	 * <ul>
 	 * <li>
-	 * The "intrinsic" direct size of anything this type contains a pointer to.
+	 * The direct size of anything this type contains a pointer to.
 	 * </li>
 	 * <li>
 	 * The indirect size of anything this type contains a pointer to.
@@ -126,7 +125,8 @@ public abstract class Type extends JSDIValue {
 	 * </p>
 	 *
 	 * @return Indirect size in bytes
-	 * @see #getSizeDirectIntrinsic()
+	 * @see #getSizeDirect()
+	 * @see #getVariableIndirectCount()
 	 * @since 20130724
 	 */
 	public int getSizeIndirect() {
@@ -163,7 +163,7 @@ public abstract class Type extends JSDIValue {
 	 */
 	public void addToPlan(MarshallPlanBuilder builder, boolean isCallbackPlan) {
 		// RE: isCallbackPlan, see throwNotValidForCallback()
-		builder.pos(getSizeDirectIntrinsic());
+		builder.basic(getSizeDirect(), getAlignDirect());
 	}
 
 	/**

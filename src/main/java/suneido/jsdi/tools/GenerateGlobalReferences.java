@@ -83,9 +83,9 @@ public final class GenerateGlobalReferences {
 						Date.class.getConstructor(Long.TYPE),
 						Date.class.getMethod("getTime")),
 				new Ref(Callback.class, Callback.class.getMethod("invoke",
-						SuValue.class, byte[].class),
+						SuValue.class, Object.class),
 						Callback.class.getMethod("invokeVariableIndirect",
-								SuValue.class, byte[].class, Object[].class)),
+								SuValue.class, Object.class, Object[].class)),
 				new Ref(COMobject.class,
 						COMobject.class.getDeclaredConstructor(
 							String.class, Long.TYPE, Boolean.TYPE),

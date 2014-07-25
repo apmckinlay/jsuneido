@@ -8,9 +8,9 @@ import static suneido.util.Util.array;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.Map;
 
+import suneido.SuInternalError;
 import suneido.SuValue;
 import suneido.language.Args;
 import suneido.language.BuiltinClass;
@@ -31,8 +31,8 @@ import suneido.language.builtin.StringMethods;
  * This class is semi-threadsafe. It is possible for multiple threads to modify
  * the contents of the buffer in such a way that they are incoherent according
  * to the standards of the client Suneido code. However, because the underlying
- * data array never changes and {@link #length()} is always less than or equal to
- * the size of the underlying data array, a buffer is always in a reasonable
+ * data array never changes and {@link #length()} is always less than or equal
+ * to the size of the underlying data array, a buffer is always in a reasonable
  * state from the point of view of the run-time system.
  * </p>
  *
@@ -46,8 +46,8 @@ public final class Buffer extends JSDIValue implements CharSequence {
 	// DATA
 	//
 
-	private final byte[] data;
-	private int          size;
+	protected final byte[] data;
+	protected int          size;
 
 	//
 	// STATICS
@@ -59,48 +59,91 @@ public final class Buffer extends JSDIValue implements CharSequence {
 	// CONSTRUCTORS
 	//
 
-	// TODO: docs
+	/**
+	 * <p>
+	 * Constructs a buffer and initializes it using a string.
+	 * </p>
+	 *
+	 * <p>
+	 * Since Java strings are 16-bit UTF-16 characters and buffers contain
+	 * bytes, the characters from {@code str} used to initialize the buffer must
+	 * be reduced to 8-bit characters. This is done using the same algorithm as
+	 * is used by {@link #copyStr(String, byte[], int, int)}.
+	 * </p>
+	 * 
+	 * @param size
+	 *            Size of the buffer
+	 * @param str
+	 *            Must have {@link String#length() length()} at least
+	 *            {@code size}; used to initialize up to {@link String#length()
+	 *            str.length()} bytes of the buffer
+	 * @see #Buffer(int, Buffer)
+	 * @see #Buffer(byte[], int, int)
+	 * @see #Buffer(int)
+	 */
 	public Buffer(int size, String str) {
-		this.data = new byte[size];
-		this.size = size;
+		this(size);
 		final int N = str.length();
 		sizeCheck(N);
 		copyStr(str, data, 0, N);
 	}
 
-	// TODO: docs
+	/**
+	 * <p>
+	 * Constructs a buffer and initializes it using bytes from another buffer.
+	 * </p>
+	 * 
+	 * @param size
+	 *            Size of the buffer
+	 * @param buf
+	 *            Must have {@link Buffer#length() length()} at least
+	 *            {@code size}; used to initialize up to {@link Buffer#length()
+	 *            buf.length()} bytes of the buffer
+	 * @see #Buffer(int, Buffer)
+	 * @see #Buffer(byte[], int, int)
+	 * @see #Buffer(int)
+	 */
 	public Buffer(int size, Buffer buf) {
-		this.data = new byte[size];
-		this.size = size;
+		this(size);
 		sizeCheck(buf.size);
 		System.arraycopy(buf.data, 0, this.data, 0, buf.size);
 	}
 
-	// TODO: docs
+	/**
+	 * <p>
+	 * Constructs a buffer by copying a range from a byte array.
+	 * </p>
+	 *
+	 * <p>
+	 * The {@link Buffer#length() length()} of the new buffer is
+	 * {@code end - start} and it contains the range {@code data[start..end-1]}.
+	 * </p>
+	 *
+	 * @param src Data array from which to copy initial bytes of new buffer
+	 * @param start Start index of copy operation
+	 * @param end Index one-past-the-end of copy operation
+	 * @see #Buffer(int, String)
+	 * @see #Buffer(int, Buffer)
+	 * @see #Buffer(int)
+	 */
 	public Buffer(byte[] src, int start, int end) {
 		this.data = new byte[end - start];
-		setAndSetSizeInternal(src, start, end);
+		setAndSetSize(src, start, end);
 	}
 
 	/**
-	 * Equivalent to constructing with {@link #Buffer(int, String)} where
-	 * with <code>size</code> parameter set to <code>str.length()</code>.
-	 * @param str String to construct buffer with
-	 * @author Victor Schappert
-	 * @since 20140520
+	 * <p>
+	 * Constructs a buffer full of zeroes.
+	 * </p>
 	 *
-	 * Constructs a buffer whose capacity is equal to the length of the string
-	 * <code>str</code> and which contains the contents of <code>str</code>
-	 * truncated to 8-bit characters.
+	 * @param size Size of the buffer
+	 * @see #Buffer(int, String)
+	 * @see #Buffer(int, Buffer)
+	 * @see #Buffer(byte[], int, int)
 	 */
-	public Buffer(String str) {
-		this(str.length(), str);
-	}
-
-	// TODO -- docs -- since 20130814
-	Buffer(Buffer other) { // Copy constructor for testing purposes
-		this.data = Arrays.copyOf(other.data, other.data.length);
-		this.size = other.size;
+	public Buffer(int size) {
+		this.data = new byte[size];
+		this.size = size;
 	}
 
 	//
@@ -114,28 +157,40 @@ public final class Buffer extends JSDIValue implements CharSequence {
 		}
 	}
 
+	void setAndSetSize(byte[] src, int start, int end) {
+		int k = 0;
+		for (; start < end; ++k, ++start) {
+			data[k] = src[start];
+		}
+		size = k;
+	} // Deliberately package-internal
+
 	//
 	// ACCESSORS
 	//
 
-	// TODO: docs -- and see #length()
+	/**
+	 * <p>
+	 * Returns the actual capacity of the buffer. This may be greater than the
+	 * value returned by {@link #length()} if the buffer has been
+	 * {@link #truncate() truncated}.
+	 * </p>
+	 *
+	 * @return Non-negative number indicating buffer capacity
+	 * @see #getInternalData()
+	 */
 	public int capacity() {
+		// Used by marshallers to determine if they can unmarshall a string of
+		// a given length into a Buffer...
 		return data.length;
-	}
+	} // TODO: Should this be package-internal??
 
-	// TODO: docs -- 20130809 -- added for testing purposes
-	public String toStringNoZeroes() {
-		StringBuilder builder = new StringBuilder(size);
-		for (int k = 0; k < size; ++k) {
-			byte b = data[k];
-			if (0 == b) break;
-			builder.append((char)b);
-		}
-		return builder.toString();
-	}
-
-	// TODO: docs -- since 20130808
-	// TODO: add test
+	/**
+	 * Returns {@code true} iff the buffer contains one or more zero bytes.
+	 *
+	 * @return Whether this buffer contains a zero
+	 * @since 20130808
+	 */
 	public boolean hasZero() {
 		for (byte b : data) {
 			if (0 == b) return true;
@@ -143,20 +198,45 @@ public final class Buffer extends JSDIValue implements CharSequence {
 		return false;
 	}
 
-	// TODO: docs
-	// TODO: make this public to support Structure(Buffer)
+	/**
+	 * <p>
+	 * Returns a reference to the buffer's internal data array. Only the indices
+	 * {@code 0..}{@link #length()} contain valid data.
+	 * </p>
+	 *
+	 * @return Reference to buffer's internal data array
+	 * @see #capacity()
+	 */
 	public byte[] getInternalData() {
 		return data;
 	}
 
-	// TODO: docs
-	// FIXME: This really needs to be removed as of jsdi64, since MarshallerX86
-	//        MarshallerX64 will ultimately not use byte arrays internally.
-	public void copyInternalData(byte[] dest, int start, int maxChars) {
-		maxChars = Math.min(size, maxChars);
-		System.arraycopy(data, 0, dest, start, maxChars);
+	/**
+	 * <p>
+	 * Changes the size of this buffer to a value between 0 and
+	 * {@link #capacity()}.
+	 * </p>
+	 * 
+	 * @param size
+	 *            New buffer size
+	 */
+	public void setSize(int size) {
+		if (size < 0 || capacity() < size) {
+			throw new SuInternalError("invalid buffer size: " + size);
+		}
+		this.size = size;
 	}
 
+	/**
+	 * <p>
+	 * Returns {@code true} iff another buffer is equal to this buffer.
+	 * </p>
+	 *
+	 * @param other Reference to another buffer, may be {@code null}
+	 * @return Whether {@code other} is value-wise equal to {@code this}
+	 * @see #equals(String)
+	 * @see #equals(Object)
+	 */
 	public boolean equals(Buffer other) {
 		return other != null && size == other.size
 				&& arraysEqualN(data, other.data, size);
@@ -167,6 +247,17 @@ public final class Buffer extends JSDIValue implements CharSequence {
 		// existing given Buffer if it can...
 	}
 
+	/**
+	 * <p>
+	 * Returns {@code true} iff the contents of this buffer are equal to a given
+	 * string.
+	 * </p>
+	 *
+	 * @param other Reference to a string, may be {@code null}
+	 * @return Whether {@code other} is value-wise equal to {@code this}
+	 * @see #equals(Buffer)
+	 * @see #equals(String)
+	 */
 	public boolean equals(String other) {
 		if (null == other) {
 			return false;
@@ -189,18 +280,6 @@ public final class Buffer extends JSDIValue implements CharSequence {
 	// MUTATORS
 	//
 
-	// TODO: docs
-	// FIXME: Delete this because it will be obsolete after jsdi64: because
-	//        concrete marshallers will no longer use byte[] internally to store
-	//        their data, there's no need for a method of copying a byte[] from
-	//        a Marshaller into a Buffer.
-	public void setAndSetSize(byte[] src, int start, int end) {
-		assert end - start <= data.length;
-		setAndSetSizeInternal(src, start, end);
-		if (size < data.length) data[size] = 0; 
-	}
-
-	// TODO: docs -- since 20130813 -- truncate size to first 0
 	Buffer truncate() {
 		for (int k = 0; k < size; ++k) {
 			if (0 == data[k]) {
@@ -209,19 +288,11 @@ public final class Buffer extends JSDIValue implements CharSequence {
 			}
 		}
 		return this;
-	}
+	} // Used by marshalling code to emulate cSuneido
 
 	//
 	// INTERNALS
 	//
-
-	private void setAndSetSizeInternal(byte[] src, int start, int end) {
-		int k = 0;
-		for (; start < end; ++k, ++start) {
-			data[k] = src[start];
-		}
-		size = k;
-	}
 
 	private static boolean arraysEqualN(byte[] b1, byte[] b2, int N) {
 		for (int k = 0; k < N; ++k) {
@@ -234,14 +305,37 @@ public final class Buffer extends JSDIValue implements CharSequence {
 	// STATICS
 	//
 
-	// TODO: Document this
-	public static int copyStr(String in, byte[] out, int start, int length) {
+	/**
+	 * <p>
+	 * Copies the first {@code length} characters from a Java string into a
+	 * range of a byte array, converting from 16-bit UTF-16 characters to 8-bit
+	 * characters.
+	 * </p>
+	 * 
+	 * @param in
+	 *            String to copy; must contain at least {@code length}
+	 *            characters
+	 * @param out
+	 *            Array to receive copied string; the range
+	 *            {@code [start..start+length-1]} must be valid in {@code out}
+	 * @param start
+	 *            Non-negative index to first destination position in
+	 *            {@code out}
+	 * @param length
+	 *            Number of characters to copy
+	 * @return Reference to {@code out}
+	 */
+	public static byte[] copyStr(String in, byte[] out, int start, int length) {
+		// This method is the only point in which we convert from String to
+		// byte[], so if we want to introduce a more sophisticated
+		// transformation to fixed-size 8-bit characters than simply truncating
+		// the high-order 8 bits, it can be done here.
 		int j = start;
 		for (int i = 0; i < length; ++i) {
 			char ch = in.charAt(i);
 			out[j++] = (byte) ch;
 		}
-		return j;
+		return out;
 	}
 
 	//

@@ -60,20 +60,19 @@ public final class BasicArray extends Type {
 	@Override
 	public String getDisplayName() {
 		StringBuilder result = new StringBuilder(16);
-		result.append(getBasicType().toIdentifier()).append('[')
+		result.append(getBasicType().getName()).append('[')
 				.append(numElems).append(']');
 		return result.toString();
 	}
 
 	@Override
-	public int getSizeDirectIntrinsic() {
-		return underlying.getBasicType().getSizeIntrinsic() * numElems;
+	public int getSizeDirect() {
+		return underlying.getBasicType().getSize() * numElems;
 	}
 
 	@Override
-	public int getSizeDirectWholeWords() {
-		return PrimitiveSize.WORD
-				* PrimitiveSize.minWholeWords(getSizeDirectIntrinsic());
+	public int getAlignDirect() {
+		return underlying.getSizeDirect();
 	}
 
 	@Override
@@ -92,9 +91,9 @@ public final class BasicArray extends Type {
 			marshaller.skipBasicArrayElements(numElems);
 		} else {
 			final BasicType type = getBasicType();
-			// NOTE: We can get a far more efficient result if we add the
-			//       ability to lock an SuContainer (by locking both the
-			//       vector and the map) and then use vecSize() and vecGet()
+			// NOTE: We can get a more efficient result if we add the ability to
+			//       lock an SuContainer (by locking both the vector and the
+			//       map) and then use vecSize() and vecGet()
 			for (int k = 0; k < numElems; ++k) {
 				Object elem = c.get(k);
 				if (null == elem) {
