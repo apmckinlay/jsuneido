@@ -273,7 +273,7 @@ public class AstCompile {
 			}
 			boolean inModifier = Boolean.parseBoolean(typeInfo.first().second().value);
 			assert Token.DLL == listType || !inModifier : "[in] modifier is only supported for dll string parameters";
-			BasicType basicType = BasicType.fromIdentifier(typeName);
+			BasicType basicType = BasicType.fromName(typeName);
 			Type type = null;
 			if (null != basicType) {
 				type = JSDI.getInstance().getFactory()
@@ -331,7 +331,7 @@ public class AstCompile {
 		TypeList params = typeList(Token.DLL, ast.fourth().children);
 		Type returnType = null;
 		String returnTypeName = ast.third().value;
-		BasicType bt = BasicType.fromIdentifier(returnTypeName);
+		BasicType bt = BasicType.fromName(returnTypeName);
 		if (null != bt) {
 			returnType = JSDI.getInstance().getFactory()
 					.makeBasicType(bt, StorageType.VALUE, 1);

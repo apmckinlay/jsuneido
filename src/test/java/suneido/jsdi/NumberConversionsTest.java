@@ -30,6 +30,10 @@ import suneido.language.Numbers;
  */
 public class NumberConversionsTest {
 
+	private static final Buffer makeBuffer(String value) {
+		return new Buffer(value.length(), value);
+	}
+
 	@Test
 	public void testToLong() {
 		assertEquals(0L, toLong(Boolean.FALSE));
@@ -153,8 +157,8 @@ public class NumberConversionsTest {
 		assertEquals(-1.0, toDouble("-1.000000"), 0.0);
 		assertEquals(Float.MIN_VALUE, toDouble(Double.toString(Float.MIN_VALUE)), 0.0);
 		assertEquals(Float.MAX_VALUE, toDouble(Double.toString(Float.MAX_VALUE)), 0.0);
-		assertEquals(Double.MIN_VALUE, toDouble(new Buffer(Double.toString(Double.MIN_VALUE))), 0.0);
-		assertEquals(Double.MAX_VALUE, toDouble(new Buffer(Double.toString(Double.MAX_VALUE))), 0.0);
+		assertEquals(Double.MIN_VALUE, toDouble(makeBuffer(Double.toString(Double.MIN_VALUE))), 0.0);
+		assertEquals(Double.MAX_VALUE, toDouble(makeBuffer(Double.toString(Double.MAX_VALUE))), 0.0);
 		// Ensure numbers outside range of float truncate appropriately
 		assertEquals(Double.POSITIVE_INFINITY, toDouble(new BigDecimal(
 				Double.MAX_VALUE).multiply(new BigDecimal(2))), 0.0);

@@ -121,29 +121,14 @@ public final class Proxy extends Type {
 	}
 
 	@Override
-	public int getSizeDirectIntrinsic() {
+	public int getSizeDirect() {
 		switch (storageType) {
 		case VALUE:
-			return lastResolvedType.getSizeDirectIntrinsic();
+			return lastResolvedType.getSizeDirect();
 		case ARRAY:
-			return lastResolvedType.getSizeDirectIntrinsic() * numElems;
+			return lastResolvedType.getSizeDirect() * numElems;
 		case POINTER:
 			return PrimitiveSize.POINTER;
-		default:
-			throw unhandledEnum(StorageType.class);
-		}
-	}
-
-	@Override
-	public int getSizeDirectWholeWords() {
-		switch (storageType) {
-		case VALUE:
-			return lastResolvedType.getSizeDirectWholeWords();
-		case ARRAY:
-			return PrimitiveSize.sizeWholeWords(lastResolvedType
-					.getSizeDirectIntrinsic() * numElems);
-		case POINTER:
-			return PrimitiveSize.pointerWholeWordBytes();
 		default:
 			throw unhandledEnum(StorageType.class);
 		}
@@ -157,7 +142,7 @@ public final class Proxy extends Type {
 		case ARRAY:
 			return lastResolvedType.getSizeIndirect() * numElems;
 		case POINTER:
-			return lastResolvedType.getSizeDirectIntrinsic() +
+			return lastResolvedType.getSizeDirect() +
 					lastResolvedType.getSizeIndirect();
 		default:
 			throw unhandledEnum(StorageType.class);
@@ -194,7 +179,8 @@ public final class Proxy extends Type {
 			skipper = builder.arrayEnd();
 			break;
 		case POINTER:
-			builder.ptrBegin(lastResolvedType.getSizeDirectIntrinsic());
+			builder.ptrBegin(lastResolvedType.getSizeDirect(),
+					lastResolvedType.getAlignDirect());
 			lastResolvedType.addToPlan(builder, isCallbackPlan);
 			builder.ptrEnd();
 			skipper = lastResolvedType.skipper;

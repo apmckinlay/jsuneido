@@ -479,4 +479,18 @@ public class Util {
 		}
 	}
 
+	/**
+	 * Returns base 2 logarithm of an <strong><code>int</code></strong> rounded
+	 * down to the nearest integer value.
+	 *
+	 * @param x Integer to calculate base 2 logarithm for
+	 * @return  <code>floor(log<sub>2</sub>(x))</code>
+	 * @author Victor Schappert
+	 * @since 20140722
+	 */
+	public static int log2(final int x) {
+		return 0 == x ? 0 : Integer.BYTES * 8 - 1
+				- Integer.numberOfLeadingZeros(x);
+	}
+
 }

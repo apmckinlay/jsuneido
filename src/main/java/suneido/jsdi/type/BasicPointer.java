@@ -50,27 +50,23 @@ public final class BasicPointer extends Type {
 
 	@Override
 	public String getDisplayName() {
-		return getBasicType().toIdentifier() + '*';
+		return getBasicType().getName() + '*';
 	}
 
 	@Override
-	public int getSizeDirectIntrinsic() {
+	public int getSizeDirect() {
 		return PrimitiveSize.POINTER;
 	}
 
 	@Override
-	public int getSizeDirectWholeWords() {
-		return PrimitiveSize.pointerWholeWordBytes();
-	}
-
-	@Override
 	public int getSizeIndirect() {
-		return underlying.getSizeDirectIntrinsic();
+		return underlying.getSizeDirect();
 	}
 
 	@Override
 	public void addToPlan(MarshallPlanBuilder builder, boolean isCallbackPlan) {
-		builder.ptrBasic(underlying.getSizeDirectIntrinsic());
+		final int size = underlying.getSizeDirect();
+		builder.ptrBasic(size, size);
 	}
 
 	@Override

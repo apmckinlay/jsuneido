@@ -19,7 +19,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import suneido.jsdi.Buffer;
-import suneido.jsdi.CallGroup;
+import static suneido.jsdi.MarshallPlan.StorageCategory;
 import suneido.jsdi.JSDI;
 import suneido.jsdi.MarshallTestUtil;
 import suneido.jsdi.PrimitiveSize;
@@ -41,6 +41,15 @@ import suneido.util.testing.Assumption;
  */
 public class NativeCallX86Test {
 
+	@BeforeClass
+	public static void setUpBeforeClass() throws Exception {
+		Assumption.jvmIs32BitOnWindows();
+		// Trigger load of JSDI DLL. Otherwise, LoadLibrary() might fail if
+		// JSDI DLL isn't in a Windows standard DLL search path, and you'll get
+		// an UnsatisfiedLinkError.
+		JSDI.getInstance();
+	}
+
 	private static final NativeCallX86[] DOF_NORET_VI_OR_FLOAT;
 	private static final NativeCallX86[] IND_NORET_VI_OR_FLOAT;
 	private static final NativeCallX86[] VI_NORET_VI_OR_FLOAT;
@@ -55,14 +64,21 @@ public class NativeCallX86Test {
 				continue;
 			if (ReturnTypeGroup.VARIABLE_INDIRECT == nativecall
 					.getReturnTypeGroup()) {
-				vi_retvi.add(nativecall);
+				if (StorageCategory.VARIABLE_INDIRECT == nativecall
+						.getStorageCategory()) {
+					vi_retvi.add(nativecall);
+				} else {
+					continue;
+				}
 			} else {
-				if (CallGroup.DIRECT == nativecall.getCallGroup()) {
+				if (StorageCategory.DIRECT == nativecall.getStorageCategory()) {
 					dof_noret_vi_or_float.add(nativecall);
-				} else if (CallGroup.INDIRECT == nativecall.getCallGroup()) {
+				} else if (StorageCategory.INDIRECT == nativecall
+						.getStorageCategory()) {
 					ind_noret_vi_or_float.add(nativecall);
 				} else {
-					assert CallGroup.VARIABLE_INDIRECT == nativecall.getCallGroup();
+					assert StorageCategory.VARIABLE_INDIRECT == nativecall
+							.getStorageCategory();
 					vi_noret_vi_or_float.add(nativecall);
 				}
 			}
@@ -73,13 +89,13 @@ public class NativeCallX86Test {
 		VI_RETVI = vi_retvi.toArray(new NativeCallX86[vi_retvi.size()]);
 	}
 
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-		Assumption.jvmIs32BitOnWindows();
-		// Trigger load of JSDI DLL. Otherwise, LoadLibrary() might fail if
-		// JSDI DLL isn't in a Windows standard DLL search path, and you'll get
-		// an UnsatisfiedLinkError.
-		JSDI.getInstance();
+	private static String toStringNoZeroes(Buffer buffer) {
+		final int N = buffer.length();
+		for (int k = 0; k < N; ++k) {
+			if ((byte) 0 == buffer.getInternalData()[k])
+				return new Buffer(buffer.getInternalData(), 0, k).toString();
+		}
+		return buffer.toString();
 	}
 
 	private static MarshallerX86 makeMarshaller(TestCall testcall) {
@@ -736,7 +752,7 @@ public class NativeCallX86Test {
 							value2 = value2.substring(0, Math.max(0, bufferSize - 1));
 						}
 						assertEquals(value2, m.getStringPtr());
-						assertEquals(buffer.toStringNoZeroes(), value2);
+						assertEquals(toStringNoZeroes(buffer), value2);
 					}
 				} // for (nativecall ...)
 			} // for (bufferSize ...)

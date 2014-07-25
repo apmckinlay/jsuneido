@@ -106,52 +106,63 @@ public enum BasicType {
 	// DATA/CONSTRUCTORS
 	//
 
-	private final String       identifierString;
-	private final int          sizeIntrinsic;
-	private final int          sizeWholeWords;
+	private final String       name;
+	private final int          size;
 
 	private BasicType(String identifierString, int sizeIntrinsic) {
-		this.identifierString = identifierString;
-		this.sizeIntrinsic    = sizeIntrinsic;
-		this.sizeWholeWords   = PrimitiveSize.minWholeWords(sizeIntrinsic) *
-								PrimitiveSize.WORD;
+		this.name = identifierString;
+		this.size             = sizeIntrinsic;
 	}
 
 	//
 	// ACCESSORS
 	//
 
-	// TODO: docs since 20130724
-	public int getSizeIntrinsic() {
-		return sizeIntrinsic;
-	}
-
-	// TODO: docs since 20130724
-	public int getSizeWholeWords() {
-		return sizeWholeWords;
+	/**
+	 * Returns the type size.
+	 *
+	 * @return Size, in bytes, of this basic type
+	 * @since 20130724
+	 */
+	public int getSize() {
+		return size;
 	}
 
 	//
 	// STATICS
 	//
 
-	private static final Map<String, BasicType> identifierMap;
+	private static final Map<String, BasicType> map;
 	static {
-		identifierMap = new TreeMap<>();
+		map = new TreeMap<>();
 		for (BasicType type : values()) {
-			identifierMap.put(type.identifierString, type);
+			map.put(type.name, type);
 		}
 		// TEMP - accept old types during transition
-		identifierMap.put("char", INT8);
-		identifierMap.put("short", INT16);
-		identifierMap.put("long", INT32);
+		map.put("char", INT8);
+		map.put("short", INT16);
+		map.put("long", INT32);
 	}
 
-	public static final BasicType fromIdentifier(String identifierString) {
-		return identifierMap.get(identifierString);
+	/**
+	 * Converts a basic type name to a basic type.
+	 *
+	 * @param typeName Basic type name
+	 * @return Basic type corresponding to {@code typeName}, or {@code null}
+	 *         if no such type
+	 * @see #getName()
+	 */
+	public static final BasicType fromName(String typeName) {
+		return map.get(typeName);
 	}
 
-	public final String toIdentifier() {
-		return identifierString;
+	/**
+	 * Returns the name of the type.
+	 *
+	 * @return Type name
+	 * @see #fromName(String)
+	 */
+	public final String getName() {
+		return name;
 	}
 }

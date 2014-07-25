@@ -55,13 +55,8 @@ public final class VoidType extends Type {
 	}
 
 	@Override
-	public int getSizeDirectIntrinsic() {
-		throw new SuInternalError(getDisplayName() + " has no intrinsic size");
-	}
-
-	@Override
-	public int getSizeDirectWholeWords() {
-		throw new SuInternalError(getDisplayName() + " has no whole word size");
+	public int getSizeDirect() {
+		throw new SuInternalError(getDisplayName() + " has no direct size");
 	}
 
 	@Override

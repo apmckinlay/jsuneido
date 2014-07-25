@@ -11,17 +11,12 @@ import static suneido.jsdi.type.BasicValueTest.bv;
 
 import java.util.EnumSet;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import suneido.jsdi.MarshallPlanBuilder;
-import suneido.jsdi.abi.x86.MarshallPlanBuilderX86;
-import suneido.jsdi.abi.x86.MarshallPlanX86;
-import suneido.jsdi.abi.x86.MarshallerX86;
 import suneido.jsdi.type.BasicType;
 import suneido.jsdi.type.BasicValue;
 import suneido.jsdi.type.BasicValueTest.BasicTypeSet;
-import suneido.util.testing.Assumption;
 
 /**
  * x86-specific tests for {@link BasicValue}.
@@ -31,11 +26,6 @@ import suneido.util.testing.Assumption;
  * @see suneido.jsdi.type.BasicValueTest
  */
 public class BasicValueTestX86 {
-
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-		Assumption.jvmIs32BitOnWindows();
-	}
 
 	//
 	// TESTS for Marshalling basic values IN/OUT of native arguments
@@ -47,8 +37,7 @@ public class BasicValueTestX86 {
 		for (BasicTypeSet bts : SETS) {
 			assertFalse(typesSeen.contains(bts.type));
 			BasicValue type = bv(bts.type);
-			MarshallPlanBuilder builder = new MarshallPlanBuilderX86(
-					type.getSizeDirectWholeWords(), 0, 0, true);
+			MarshallPlanBuilder builder = new MarshallPlanBuilderX86(0, true);
 			type.addToPlan(builder, false);
 			MarshallPlanX86 mp = (MarshallPlanX86)builder.makeMarshallPlan();
 			for (Object value : bts.values) {

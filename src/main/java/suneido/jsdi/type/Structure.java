@@ -9,7 +9,6 @@ import java.util.Map;
 import suneido.SuContainer;
 import suneido.SuValue;
 import suneido.jsdi.Buffer;
-import suneido.jsdi.CallGroup;
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.JSDIException;
 import suneido.jsdi.MarshallPlan;
@@ -17,7 +16,6 @@ import suneido.jsdi.MarshallPlanBuilder;
 import suneido.jsdi.Marshaller;
 import suneido.jsdi.NumberConversions;
 import suneido.jsdi.ObjectConversions;
-import suneido.jsdi.PrimitiveSize;
 import suneido.language.BuiltinMethods;
 import suneido.language.Ops;
 import suneido.language.Params;
@@ -42,8 +40,7 @@ public abstract class Structure extends ComplexType {
 	// DATA
 	//
 
-	private MarshallPlan marshallPlan;
-	private CallGroup    callGroup;
+	private MarshallPlan    marshallPlan;
 
 	//
 	// CONSTRUCTORS
@@ -56,7 +53,6 @@ public abstract class Structure extends ComplexType {
 		}
 		if (members.isClosed()) {
 			marshallPlan = members.makeMembersMarshallPlan();
-			callGroup = CallGroup.fromTypeList(members, true);
 		}
 	}
 
@@ -67,14 +63,8 @@ public abstract class Structure extends ComplexType {
 	protected final MarshallPlan getMarshallPlan() {
 		if (resolve(0) || null == marshallPlan) {
 			marshallPlan = typeList.makeMembersMarshallPlan();
-			callGroup = CallGroup.fromTypeList(typeList, true);
 		}
 		return marshallPlan;
-	}
-
-	protected final CallGroup getCallGroup() {
-		// Only valid to be called after getMarshallPlan()
-		return callGroup;
 	}
 
 	protected abstract Object copyOut(long structAddr);
@@ -103,11 +93,11 @@ public abstract class Structure extends ComplexType {
 							"jSuneido does not support %s(Buffer) because structure %1$s contains pointers",
 							valueName()
 					));
-		} else if (data.length() < getSizeDirectIntrinsic()) {
+		} else if (data.length() < getSizeDirect()) {
 			throw new JSDIException(
 					String.format(
 							"Buffer has length %d but size of %s is %d",
-							data.length(), valueName(), getSizeDirectIntrinsic()
+							data.length(), valueName(), getSizeDirect()
 					));
 		} else {
 			return fromBuffer(data, p);
@@ -152,18 +142,18 @@ public abstract class Structure extends ComplexType {
 	}
 
 	@Override
-	public final int getSizeDirectIntrinsic() {
-		return typeList.getSizeDirectIntrinsic();
+	public final int getSizeDirect() {
+		return getMarshallPlan().getSizeDirect();
 	}
 
 	@Override
-	public final int getSizeDirectWholeWords() {
-		return PrimitiveSize.sizeWholeWords(getSizeDirectIntrinsic());
+	public final int getAlignDirect() {
+		return getMarshallPlan().getAlignDirect();
 	}
 
 	@Override
 	public final int getSizeIndirect() {
-		return typeList.getSizeIndirect();
+		return getMarshallPlan().getSizeIndirect();
 	}
 
 	@Override
@@ -259,7 +249,7 @@ public abstract class Structure extends ComplexType {
 	public static Object Size(Object self) {
 		Structure struct = (Structure)self;
 		struct.resolve(0);
-		return struct.getSizeDirectIntrinsic();
+		return struct.getSizeDirect();
 	}
 
 	/**
