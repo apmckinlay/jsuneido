@@ -14,7 +14,10 @@ import suneido.jsdi.Marshaller;
 import suneido.jsdi.VariableIndirectInstruction;
 
 /**
- * TODO: docs
+ * <p>
+ * Implements the JSDI {@code string} type.
+ * </p>
+ *
  * @author Victor Schappert
  * @since 20130718
  */
