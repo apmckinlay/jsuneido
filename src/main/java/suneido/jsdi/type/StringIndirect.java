@@ -8,10 +8,22 @@ import static suneido.jsdi.VariableIndirectInstruction.NO_ACTION;
 import suneido.jsdi.*;
 
 /**
- * TODO: docs
+ * <p>
+ * Ancestor class for the JSDI {@code string} and {@code [in] string} types.
+ * </p>
+ *
+ * <p>
+ * Note this and its ancestors implement types that, in C, are pointers to
+ * zero-terminated strings. This class is not related to the classes that
+ * implement zero- or non-zero-terminated strings in direct storage (<em>ie</em>
+ * the JSDI types {@code string[n]} and {@code buffer[n]}). Those types are
+ * implemented by {@link StringDirect}.
+ * </p>
+ * 
  * @author Victor Schappert
  * @since 20130710
- * @see StringDirect
+ * @see InString
+ * @see InOutString
  */
 @DllInterface
 public abstract class StringIndirect extends StringType {

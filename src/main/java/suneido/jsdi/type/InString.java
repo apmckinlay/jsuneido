@@ -11,9 +11,18 @@ import javax.annotation.concurrent.Immutable;
 import suneido.jsdi.*;
 
 /**
- * TODO: docs
+ * <p>
+ * Implements the JSDI {@code [in] string} type.
+ * </p>
+ *
+ * <p>
+ * This is a stateless singleton class. Only one instance is required, and it
+ * should be accessed through the {@link #INSTANCE} member.
+ * </p>
+ *
  * @author Victor Schappert
  * @since 20130718
+ * @see InOutString
  */
 @DllInterface
 @Immutable
@@ -29,6 +38,9 @@ public final class InString extends StringIndirect {
 	// SINGLETON INSTANCE
 	//
 
+	/**
+	 * Singleton instance.
+	 */
 	public static final InString INSTANCE = new InString();
 
 	
