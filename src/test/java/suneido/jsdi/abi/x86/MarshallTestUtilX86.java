@@ -22,30 +22,27 @@ import suneido.jsdi.abi.x86.MarshallerX86;
 public final class MarshallTestUtilX86 extends MarshallTestUtil {
 
 	public static MarshallPlanX86 nullPlan() {
-		return new MarshallPlanX86(0, 0, new int[0], new int[0], 0);
+		return new MarshallPlanX86(0, 1, 0, 0, new int[0], new int[0], 0);
 	}
 
-	public static MarshallPlanX86 directPlan(int sizeDirect) {
-		return new MarshallPlanX86(sizeDirect, 0, new int[0], new int[] { 0 }, 0);
+	public static MarshallPlanX86 directPlan(int sizeDirect, int alignDirect) {
+		return new MarshallPlanX86(sizeDirect, alignDirect, 0,
+				PrimitiveSize.sizeWholeWords(sizeDirect), new int[0],
+				new int[] { 0 }, 0);
 	}
 
 	public static MarshallPlanX86 pointerPlan(int sizeDirect) {
-		return new MarshallPlanX86(PrimitiveSize.pointerWholeWordBytes(),
-				sizeDirect, new int[] { 0, PrimitiveSize.POINTER }, new int[] {
-						0, PrimitiveSize.POINTER }, 0);
+		return new MarshallPlanX86(PrimitiveSize.POINTER,
+				PrimitiveSize.POINTER, sizeDirect,
+				PrimitiveSize
+						.sizeWholeWords(PrimitiveSize.POINTER + sizeDirect),
+				new int[] { 0, PrimitiveSize.POINTER }, new int[] { 0,
+						PrimitiveSize.POINTER }, 0);
 	}
 
 	public static MarshallPlanX86 pointerPlan(int... sizeDirect) {
-		int sizeDirect_ = 0;
-		int sizeIndirect = 0;
-		for (int size : sizeDirect)
-		{
-			sizeDirect_ += PrimitiveSize.pointerWholeWordBytes();
-			sizeIndirect += size;
-		}
-		MarshallPlanBuilder builder = new MarshallPlanBuilderX86(sizeDirect_,
-				sizeIndirect, 0, true);
-		for (int size : sizeDirect) builder.ptrBasic(size);
+		MarshallPlanBuilder builder = new MarshallPlanBuilderX86(0, true);
+		for (int size : sizeDirect) builder.ptrBasic(size, size);
 		return (MarshallPlanX86)builder.makeMarshallPlan();
 	}
 
@@ -54,34 +51,40 @@ public final class MarshallTestUtilX86 extends MarshallTestUtil {
 		for (int k = 1; k < numElems; ++k) {
 			posArray[k] = sizeDirect * k;
 		}
-		return new MarshallPlanX86(sizeDirect * numElems, 0, new int[0], posArray,
-				0);
+		return new MarshallPlanX86(sizeDirect * numElems, sizeDirect, 0,
+				sizeDirect * numElems, new int[0], posArray, 0);
 	}
 
 	public static MarshallPlanX86 variableIndirectPlan() {
-		return new MarshallPlanX86(PrimitiveSize.pointerWholeWordBytes(), 0,
-				new int[] { 0, PrimitiveSize.POINTER }, new int[] { 0,
+		return new MarshallPlanX86(PrimitiveSize.POINTER,
+				PrimitiveSize.POINTER, 0, PrimitiveSize.POINTER, new int[] { 0,
+						PrimitiveSize.POINTER }, new int[] { 0,
 						PrimitiveSize.POINTER }, 1);
 	}
 
 	public static MarshallPlanX86 variableIndirectPlan2() {
-		MarshallPlanBuilder builder = new MarshallPlanBuilderX86(
-			2 * PrimitiveSize.pointerWholeWordBytes(),
-			0, 2, true);
-		builder.variableIndirectPtr();
-		builder.variableIndirectPtr();
+		MarshallPlanBuilder builder = new MarshallPlanBuilderX86(2, true);
+		builder.ptrVariableIndirect();
+		builder.ptrVariableIndirect();
 		return (MarshallPlanX86)builder.makeMarshallPlan();
 	}
 
 	public static MarshallPlanX86 compoundPlan(int numArrayElems,
 			int... sizeDirect) {
+		// This "compound plan" is equivalent to an array of struct, where the
+		// struct member sizes are given by sizeDirect
 		final int numMembers = sizeDirect.length;
 		int[] posArray = new int[numMembers * numArrayElems];
 		int totalSizeDirect = sizeDirect[0];
+		int alignDirect = totalSizeDirect;
+		// Figure out positions for members of first array element
 		for (int i = 1; i < numMembers; ++i) {
 			posArray[i] = posArray[i - 1] + sizeDirect[i - 1];
+			alignDirect = Math.max(alignDirect, sizeDirect[i]);
 			totalSizeDirect += sizeDirect[i];
 		}
+		// Copy the first array element's positions, mutatis mutandi, through
+		// the rest of the array.
 		totalSizeDirect *= numArrayElems;
 		for (int j = 1; j < numArrayElems; ++j) {
 			posArray[numMembers * j] = posArray[numMembers * j - 1]
@@ -91,7 +94,8 @@ public final class MarshallTestUtilX86 extends MarshallTestUtil {
 						+ sizeDirect[k - 1];
 			}
 		}
-		return new MarshallPlanX86(totalSizeDirect, 0, new int[0], posArray, 0);
+		return new MarshallPlanX86(totalSizeDirect, alignDirect, 0,
+				totalSizeDirect, new int[0], posArray, 0);
 	}
 
 	public static MarshallPlanX86 paramPlan(int... sizeDirect) {
@@ -103,58 +107,46 @@ public final class MarshallTestUtilX86 extends MarshallTestUtil {
 	}
 
 	public static MarshallPlan packedCharCharShortLongPlan() {
-		MarshallPlanBuilder builder = new MarshallPlanBuilderX86(
-				PrimitiveSize.sizeWholeWords(PrimitiveSize.INT8
-						+ PrimitiveSize.INT8 + PrimitiveSize.INT16
-						+ PrimitiveSize.INT32), 0, 0, true);
+		MarshallPlanBuilder builder = new MarshallPlanBuilderX86(0, true);
 		builder.containerBegin();
-		builder.pos(PrimitiveSize.INT8);
-		builder.pos(PrimitiveSize.INT8);
-		builder.pos(PrimitiveSize.INT16);
-		builder.pos(PrimitiveSize.INT32);
+		builder.basic(PrimitiveSize.INT8, PrimitiveSize.INT8);
+		builder.basic(PrimitiveSize.INT8, PrimitiveSize.INT8);
+		builder.basic(PrimitiveSize.INT16, PrimitiveSize.INT16);
+		builder.basic(PrimitiveSize.INT32, PrimitiveSize.INT32);
 		builder.containerEnd();
 		return builder.makeMarshallPlan();
 	}
 
 	public static MarshallPlan packedInt8x3Plan() {
-		MarshallPlanBuilder builder = new MarshallPlanBuilderX86(
-				PrimitiveSize.sizeWholeWords(PrimitiveSize.INT8 * 3), 0, 0,
-				true);
+		MarshallPlanBuilder builder = new MarshallPlanBuilderX86(0, true);
 		builder.containerBegin();
-		builder.pos(PrimitiveSize.INT8);
-		builder.pos(PrimitiveSize.INT8);
-		builder.pos(PrimitiveSize.INT8);
+		builder.basic(PrimitiveSize.INT8, PrimitiveSize.INT8);
+		builder.basic(PrimitiveSize.INT8, PrimitiveSize.INT8);
+		builder.basic(PrimitiveSize.INT8, PrimitiveSize.INT8);
 		builder.containerEnd();
 		return builder.makeMarshallPlan();
 	}
 
 	public static MarshallPlan inStringPlan() {
-		MarshallPlanBuilder builder = new MarshallPlanBuilderX86(
-			PrimitiveSize.pointerWholeWordBytes(),0, 1, true);
-		builder.variableIndirectPtr();
+		MarshallPlanBuilder builder = new MarshallPlanBuilderX86(1, true);
+		builder.ptrVariableIndirect();
 		return builder.makeMarshallPlan();
 	}
 
 	public static MarshallPlan ptrPtrPtrDoublePlan() {
-		MarshallPlanBuilder builder = new MarshallPlanBuilderX86(
-				PrimitiveSize.pointerWholeWordBytes(),
-				2 * PrimitiveSize.POINTER + PrimitiveSize.DOUBLE, 0, true
-		);
-		builder.ptrBegin(PrimitiveSize.POINTER);
-		builder.ptrBegin(PrimitiveSize.POINTER);
-		builder.ptrBasic(PrimitiveSize.DOUBLE);
+		MarshallPlanBuilder builder = new MarshallPlanBuilderX86(0, true);
+		builder.ptrBegin(PrimitiveSize.POINTER, PrimitiveSize.POINTER);
+		builder.ptrBegin(PrimitiveSize.POINTER, PrimitiveSize.POINTER);
+		builder.ptrBasic(PrimitiveSize.DOUBLE, PrimitiveSize.DOUBLE);
 		builder.ptrEnd();
 		builder.ptrEnd();
 		return builder.makeMarshallPlan();
 	}
 
 	public static MarshallPlan helloWorldOutBufferPlan() {
-		MarshallPlanBuilder builder = new MarshallPlanBuilderX86(
-				PrimitiveSize.pointerWholeWordBytes()
-						+ PrimitiveSize.sizeWholeWords(PrimitiveSize.INT32), 0,
-				1, true);
-		builder.variableIndirectPtr();
-		builder.pos(PrimitiveSize.INT32);
+		MarshallPlanBuilder builder = new MarshallPlanBuilderX86(1, true);
+		builder.ptrVariableIndirect();
+		builder.basic(PrimitiveSize.INT32, PrimitiveSize.INT32);
 		return builder.makeMarshallPlan();
 	}
 
@@ -163,49 +155,46 @@ public final class MarshallTestUtilX86 extends MarshallTestUtil {
 				* (PrimitiveSize.INT8 + PrimitiveSize.INT8
 						+ PrimitiveSize.INT16 + PrimitiveSize.INT32) + 3
 				* PrimitiveSize.POINTER + PrimitiveSize.INT32);
-		MarshallPlanBuilder builder = new MarshallPlanBuilderX86(
-				PrimitiveSize.pointerWholeWordBytes(),
-				2 * sizeOf_RecursiveStringSum,
-				2 * (2), true);
-		builder.ptrBegin(sizeOf_RecursiveStringSum);
+		MarshallPlanBuilder builder = new MarshallPlanBuilderX86(2 * 2, true);
+		builder.ptrBegin(sizeOf_RecursiveStringSum, PrimitiveSize.POINTER);
 			builder.containerBegin();              // struct RecursiveStringSum
 				builder.arrayBegin();
 					builder.containerBegin();          // struct Packed_Int8Int8Int16Int32
-					builder.pos(PrimitiveSize.INT8);
-					builder.pos(PrimitiveSize.INT8);
-					builder.pos(PrimitiveSize.INT16);
-					builder.pos(PrimitiveSize.INT32);
+					builder.basic(PrimitiveSize.INT8, PrimitiveSize.INT8);
+					builder.basic(PrimitiveSize.INT8, PrimitiveSize.INT8);
+					builder.basic(PrimitiveSize.INT16, PrimitiveSize.INT16);
+					builder.basic(PrimitiveSize.INT32, PrimitiveSize.INT32);
 					builder.containerEnd();
 					builder.containerBegin();          // struct Packed_Int8Int8Int16Int32
-					builder.pos(PrimitiveSize.INT8);
-					builder.pos(PrimitiveSize.INT8);
-					builder.pos(PrimitiveSize.INT16);
-					builder.pos(PrimitiveSize.INT32);
+					builder.basic(PrimitiveSize.INT8, PrimitiveSize.INT8);
+					builder.basic(PrimitiveSize.INT8, PrimitiveSize.INT8);
+					builder.basic(PrimitiveSize.INT16, PrimitiveSize.INT16);
+					builder.basic(PrimitiveSize.INT32, PrimitiveSize.INT32);
 					builder.containerEnd();
 				builder.arrayEnd();
-				builder.variableIndirectPtr();
-				builder.variableIndirectPtr();
-				builder.pos(PrimitiveSize.INT32);
-				builder.ptrBegin(sizeOf_RecursiveStringSum);
+				builder.ptrVariableIndirect();
+				builder.ptrVariableIndirect();
+				builder.basic(PrimitiveSize.INT32, PrimitiveSize.INT32);
+				builder.ptrBegin(sizeOf_RecursiveStringSum, PrimitiveSize.POINTER);
 					builder.containerBegin();
 						builder.arrayBegin();
 							builder.containerBegin();          // struct Packed_Int8Int8Int16Int32
-							builder.pos(PrimitiveSize.INT8);
-							builder.pos(PrimitiveSize.INT8);
-							builder.pos(PrimitiveSize.INT16);
-							builder.pos(PrimitiveSize.INT32);
+							builder.basic(PrimitiveSize.INT8, PrimitiveSize.INT8);
+							builder.basic(PrimitiveSize.INT8, PrimitiveSize.INT8);
+							builder.basic(PrimitiveSize.INT16, PrimitiveSize.INT16);
+							builder.basic(PrimitiveSize.INT32, PrimitiveSize.INT32);
 							builder.containerEnd();
 							builder.containerBegin();          // struct Packed_Int8Int8Int16Int32
-							builder.pos(PrimitiveSize.INT8);
-							builder.pos(PrimitiveSize.INT8);
-							builder.pos(PrimitiveSize.INT16);
-							builder.pos(PrimitiveSize.INT32);
+							builder.basic(PrimitiveSize.INT8, PrimitiveSize.INT8);
+							builder.basic(PrimitiveSize.INT8, PrimitiveSize.INT8);
+							builder.basic(PrimitiveSize.INT16, PrimitiveSize.INT16);
+							builder.basic(PrimitiveSize.INT32, PrimitiveSize.INT32);
 							builder.containerEnd();
 						builder.arrayEnd();
-						builder.variableIndirectPtr();
-						builder.variableIndirectPtr();
-						builder.pos(PrimitiveSize.INT32);
-						builder.pos(PrimitiveSize.POINTER);
+						builder.ptrVariableIndirect();
+						builder.ptrVariableIndirect();
+						builder.basic(PrimitiveSize.INT32, PrimitiveSize.INT32);
+						builder.basic(PrimitiveSize.POINTER, PrimitiveSize.POINTER);
 					builder.containerEnd();
 				builder.ptrEnd();
 			builder.containerEnd();
@@ -214,71 +203,60 @@ public final class MarshallTestUtilX86 extends MarshallTestUtil {
 	}
 
 	public static MarshallPlan sumResourcePlan() {
-		MarshallPlanBuilder builder = new MarshallPlanBuilderX86(
-				2 * PrimitiveSize.POINTER, PrimitiveSize.POINTER, 2, true);
-		builder.variableIndirectPtr();
-		builder.ptrBegin(PrimitiveSize.POINTER);
-		builder.variableIndirectPtr();
+		MarshallPlanBuilder builder = new MarshallPlanBuilderX86(2, true);
+		builder.ptrVariableIndirect();
+		builder.ptrBegin(PrimitiveSize.POINTER, PrimitiveSize.POINTER);
+		builder.ptrVariableIndirect();
 		builder.ptrEnd();
 		return builder.makeMarshallPlan();
 	}
 
 	public static MarshallPlan swapPlan() {
-		MarshallPlanBuilder builder = new MarshallPlanBuilderX86(
-				PrimitiveSize.POINTER, PrimitiveSize.POINTER + 2
-						* PrimitiveSize.INT32, 1, true);
-		builder.ptrBegin(PrimitiveSize.POINTER + 2 * PrimitiveSize.INT32);
+		MarshallPlanBuilder builder = new MarshallPlanBuilderX86(1, true);
+		builder.ptrBegin(PrimitiveSize.POINTER + 2 * PrimitiveSize.INT32,
+				PrimitiveSize.POINTER);
 		builder.containerBegin();
-		builder.variableIndirectPtr();
-		builder.pos(PrimitiveSize.INT32);
-		builder.pos(PrimitiveSize.INT32);
+		builder.ptrVariableIndirect();
+		builder.basic(PrimitiveSize.INT32, PrimitiveSize.INT32);
+		builder.basic(PrimitiveSize.INT32, PrimitiveSize.INT32);
 		builder.containerEnd();
 		builder.ptrEnd();
 		return builder.makeMarshallPlan();
 	}
 
 	public static MarshallPlan helloWorldReturnPlan() {
-		MarshallPlanBuilder builder = new MarshallPlanBuilderX86(
-				PrimitiveSize.BOOL,
-				PrimitiveSize.POINTER /* for return value */,
-				1 /* for return value */, true);
-		builder.pos(PrimitiveSize.BOOL);
-		builder.variableIndirectPseudoArg();
+		MarshallPlanBuilder builder = new MarshallPlanBuilderX86(1 /*
+																	 * for
+																	 * return
+																	 * value
+																	 */, true);
+		builder.basic(PrimitiveSize.BOOL, PrimitiveSize.BOOL);
+		builder.ptrVariableIndirectPseudoParam();
 		return builder.makeMarshallPlan();
 	}
 
 	public static MarshallPlan returnStringPlan() {
-		MarshallPlanBuilder builder = new MarshallPlanBuilderX86(
-				PrimitiveSize.POINTER,
-				PrimitiveSize.POINTER /* for return value */,
-				2 /* * one is for return value */, true);
-		builder.variableIndirectPtr();
-		builder.variableIndirectPseudoArg();
+		MarshallPlanBuilder builder = new MarshallPlanBuilderX86(2, true);
+		builder.ptrVariableIndirect();
+		builder.ptrVariableIndirectPseudoParam();
 		return builder.makeMarshallPlan();
 	}
 
 	public static MarshallPlan returnPtrStringPlan() {
-		MarshallPlanBuilder builder = new MarshallPlanBuilderX86(
-				PrimitiveSize.POINTER,
-				2 * PrimitiveSize.POINTER  /* one is for return value */,
-				2 /* one is for return value */, true);
-		builder.ptrBegin(PrimitiveSize.POINTER);
-		builder.variableIndirectPtr();
+		MarshallPlanBuilder builder = new MarshallPlanBuilderX86(2, true);
+		builder.ptrBegin(PrimitiveSize.POINTER, PrimitiveSize.POINTER);
+		builder.ptrVariableIndirect();
 		builder.ptrEnd();
-		builder.variableIndirectPseudoArg();
+		builder.ptrVariableIndirectPseudoParam();
 		return builder.makeMarshallPlan();
 	}
 
 	public static MarshallPlan returnStringOutBufferPlan() {
-		MarshallPlanBuilder builder = new MarshallPlanBuilderX86(2
-				* PrimitiveSize.POINTER + PrimitiveSize.INT32,
-				PrimitiveSize.POINTER /* for return value */,
-				3 /* one is for return value */, true
-		);
-		builder.variableIndirectPtr();
-		builder.variableIndirectPtr();
-		builder.pos(PrimitiveSize.INT32);
-		builder.variableIndirectPseudoArg();
+		MarshallPlanBuilder builder = new MarshallPlanBuilderX86(3, true);
+		builder.ptrVariableIndirect();
+		builder.ptrVariableIndirect();
+		builder.basic(PrimitiveSize.INT32, PrimitiveSize.INT32);
+		builder.ptrVariableIndirectPseudoParam();
 		return builder.makeMarshallPlan();
 	}
 }

@@ -291,12 +291,21 @@ public class CallbackTest {
 
 	@Test
 	public void testStructValueFunction() {
+		// The reason I modified this test to compare objects rather than just
+		// the return value of TestInvokeCallback_Packed_Int8Int8Int16Int32(...)
+		// is that there was a long-standing bug in Callback.marshallOut(...)
+		// where it failed to advance the marshaller position so that any
+		// values or parameters subsequently marshalled out would be corrupt.
+		// This test now also regression-tests the fix for that bug, since the
+		// value 'x' marshalled out should equal the value marshalled in.
 		assertEquals(
-			-10,
+			eval("#(-10, #(a: -1, b: -2, c: -3, d: -4))"),
 			eval(
-				"TestInvokeCallback_Packed_Int8Int8Int16Int32(" +
-					"function(x) { return x.a + x.b + x.c + x.d }," +
-					"PCCSL(-1, -2, -3, -4)" +
+				"Object(" +
+					"TestInvokeCallback_Packed_Int8Int8Int16Int32(" +
+						"function(x) { return x.a + x.b + x.c + x.d }," +
+						"x = PCCSL(-1, -2, -3, -4)" +
+					"), x" +
 				")"
 			)
 		);
@@ -413,7 +422,7 @@ public class CallbackTest {
 	public void testExceptionReturnValueNotConvertible() {
 		assertThrew(() -> {
 			eval("TestInvokeCallback_Int32_1(function(a) { return 'Michalek/Spezza/Ryan' }, 2)");
-			}, SuException.class, "can't convert");
+			}, JSDIException.class, "can't convert");
 	}
 
 	//
@@ -443,6 +452,7 @@ public class CallbackTest {
 
 	@Test
 	public void testExceptionThrowVi() {
+		int x = 5;
 		assertThrew(() -> {
 			eval("TestInvokeCallback_Recursive_StringSum(" +
 					"{ |x| throw SuTestSumString(x) }, " +

@@ -13,8 +13,6 @@ import suneido.jsdi.Marshaller;
 import suneido.jsdi.NumberConversions;
 import suneido.jsdi.PrimitiveSize;
 import suneido.jsdi.ThunkManager;
-import suneido.jsdi._64BitIssue;
-import suneido.language.Ops;
 
 /**
  * Implements the JSDI {@code callback} type.
@@ -48,16 +46,14 @@ public abstract class Callback extends ComplexType {
 	// INTERNALS
 	//
 
-	@_64BitIssue
-	// see FIXME note below
-	protected static int toInt(Object result) {
+	protected static long toLong(Object result) {
 		if (null == result) {
 			// For consistency with CSuneido, a 'null' return value (failure to
 			// return any value, as in 'function() { }' or
 			// 'function() { return }') should send back 0 to the invoking DLL.
 			return 0;
 		}
-		return Ops.toInt(result);
+		return NumberConversions.toLong(result);
 	}
 
 	//
@@ -72,21 +68,15 @@ public abstract class Callback extends ComplexType {
 	 * @param argsIn
 	 *            Argument array to unmarshall
 	 * @return The return value of {@code callable}, which must be coerceable to
-	 *         an {@code int}
+	 *         an {@code long}
 	 * @since 20130806
 	 * @see #invokeVariableIndirect(SuValue, byte[], Object[])
 	 */
-	@_64BitIssue
-	// see FIXME below
-	public abstract int invoke(SuValue boundValue, byte[] argsIn);
+	public abstract long invoke(SuValue boundValue, Object argsIn);
 
-	// TODO: This will change to Object argsIn to be compatible with AMD64
 	// TODO: Add invoke0(SuValue) ... invoke4(SuValue, long a, ..., long d) for
 	// faster performance -- won't implement on X86, so should throw
 	// InternalError instead of being abstract.
-	// FIXME: Return value will have to be 64-bit on x64 so it probably
-	// makes most sense just to return 64-bit on all platforms for
-	// simplicity...
 
 	/**
 	 * Invoked from native side.
@@ -102,8 +92,8 @@ public abstract class Callback extends ComplexType {
 	 * @since 20130806
 	 * @see #invoke(SuValue, byte[])
 	 */
-	public abstract int invokeVariableIndirect(SuValue boundValue,
-			byte[] argsIn, Object[] viArray);
+	public abstract long invokeVariableIndirect(SuValue boundValue,
+			Object argsIn, Object[] viArray);
 
 	//
 	// ANCESTOR CLASS: Type
@@ -115,13 +105,8 @@ public abstract class Callback extends ComplexType {
 	}
 
 	@Override
-	public final int getSizeDirectIntrinsic() {
+	public final int getSizeDirect() {
 		return PrimitiveSize.POINTER;
-	}
-
-	@Override
-	public final int getSizeDirectWholeWords() {
-		return PrimitiveSize.pointerWholeWordBytes();
 	}
 
 	@Override
@@ -145,7 +130,8 @@ public abstract class Callback extends ComplexType {
 
 	@Override
 	public final Object marshallOut(Marshaller marshaller, Object oldValue) {
-		return oldValue; // Nothing to be done here
+		marshaller.skipBasicArrayElements(1);  // Nothing to be done here
+		return oldValue;
 	}
 
 	//

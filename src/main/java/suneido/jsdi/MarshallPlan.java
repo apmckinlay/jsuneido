@@ -40,32 +40,65 @@ package suneido.jsdi;
  */
 @DllInterface
 public abstract class MarshallPlan {
-	
-//	 * FIXME: Need to insert padding 0-7 padding bytes btwn sizeDirect and
-//	 *        sizeIndirect ... (first check w Java abt array alignment). We might
-//	 *        be screwed if Java doesn't 8-byte-align byte array beginnings i.e.
-//	 *        might need to use a long array
+
+	//
+	// TYPES
+	//
+
+	/**
+	 * Enumerates categories of marshall plan according to what kind(s) of
+	 * storage they require.
+	 *
+	 * @author Victor Schappert
+	 * @since 20140722
+	 */
+	public static enum StorageCategory {
+
+		/**
+		 * The plan uses only direct storage.
+		 */
+		DIRECT,
+		/**
+		 * The plan uses some indirect storage, but no variable indirect
+		 * storage.
+		 */
+		INDIRECT,
+		/**
+		 * The plan uses variable indirect storage.
+		 */
+		VARIABLE_INDIRECT;
+	}
 
 	//
 	// DATA
 	//
 
 	protected final int   sizeDirect;
+	protected final int   alignDirect;
 	protected final int   sizeIndirect;
+	protected final int   sizeTotal;
 	protected final int   variableIndirectCount;
-	protected final int[] ptrArray; // TODO: This should go to word indices
-	protected final int[] posArray; // TODO: This can stay byte indices
+	protected final int[] ptrArray; // Pairs<x, y> => x: ptr idx, y: byte idx
+	protected final int[] posArray; // Byte indices
 
 	//
 	// CONSTRUCTORS
 	//
 
-	protected MarshallPlan(int sizeDirect, int sizeIndirect, int[] ptrArray,
-			int[] posArray, int variableIndirectCount) {
-		this.sizeDirect            = sizeDirect;
-		this.sizeIndirect          = sizeIndirect;
-		this.ptrArray              = ptrArray;
-		this.posArray              = posArray;
+	protected MarshallPlan(int sizeDirect, int alignDirect, int sizeIndirect,
+			int sizeTotal, int[] ptrArray, int[] posArray,
+			int variableIndirectCount) {
+		assert 0 <= alignDirect && Integer.bitCount(alignDirect) <= 1 : "alignDirect must be a non-negative power of 2";
+		assert 0 <= sizeIndirect;
+		assert sizeDirect + sizeIndirect <= sizeTotal;
+		assert 0 <= variableIndirectCount;
+		assert 0 == ptrArray.length % 2;
+		this.sizeDirect   = sizeDirect;
+		this.alignDirect  = alignDirect;
+		this.sizeIndirect = sizeIndirect;
+		this.sizeTotal    = sizeTotal;
+		this.ptrArray     = ptrArray;
+		this.posArray     = posArray;
 		this.variableIndirectCount = variableIndirectCount;
 	}
 
@@ -80,7 +113,7 @@ public abstract class MarshallPlan {
 	 * @return True if the plan contains no pointers, false otherwise
 	 * @since 20130814
 	 * @see #getSizeDirect()
-	 * @see #getSizeIndirect()
+	 * @see #getSizeTotal()
 	 * @see #getVariableIndirectCount()
 	 */
 	public final boolean isDirectOnly() {
@@ -92,22 +125,35 @@ public abstract class MarshallPlan {
 	 * Get the amount of direct storage, in bytes, required to marshall the
 	 * data.
 	 * </p>
-	 * <p>
-	 * This function does not presently deal with alignment issues, so if the
-	 * Suneido programmer wants to align particular data members, he must do so
-	 * by inserting suitable padding members if necessary.
 	 *
-	 * TODO: Is this paragraph still accurate after jsdi64?
+	 * <p>
+	 * The number returned includes both the intrinsic size of the direct data
+	 * and the size of any padding is inserted at appropriate places in order
+	 * to align the data members as appropriate for the target platform.
 	 * </p>
 	 *
 	 * @return Amount of direct storage required to marshall the data
-	 * @see #isDirectOnly
-	 * @see #getSizeIndirect()
-	 * @see #getPtrArray()
+	 * @see #isDirectOnly()
+	 * @see #getAlignDirect()
+	 * @see #getSizeTotal()
 	 * @see #getVariableIndirectCount()
 	 */
 	public final int getSizeDirect() {
 		return sizeDirect;
+	}
+
+	/**
+	 * <p>
+	 * Get the required alignment, in bytes, of the plan's direct data.
+	 * </p>
+	 *
+	 * @return Positive power of two indicating alignment of direct data: 1, 2,
+	 *         4, 8, ...
+	 * @since 20140722
+	 * @see #getSizeDirect()
+	 */
+	public final int getAlignDirect() {
+		return alignDirect;
 	}
 
 	/**
@@ -117,13 +163,35 @@ public abstract class MarshallPlan {
 	 * </p>
 	 *
 	 * @return Amount of indirect storage required to marshall the data
-	 * @see #getSizeDirect()
-	 * @see #getPtrArray()
-	 * @see #getVariableIndirectCount()
 	 * @since 20130806
+	 * @see #getSizeDirect()
+	 * @see #getSizeTotal()
+	 * @see #getVariableIndirectCount()
 	 */
 	public final int getSizeIndirect() {
 		return sizeIndirect;
+	}
+
+	/**
+	 * <p>
+	 * Get the total amount of storage required to marshall the data. This
+	 * includes the direct size, the indirect size, and any padding inserted
+	 * between the direct and indirect data in order to align the indirect data.
+	 * </p>
+	 *
+	 * <p>
+	 * The number returned cannot in general be expected to equal
+	 * {@link #getSizeDirect()} <code>+</code> {@link #getSizeIndirect()}.
+	 * </p>
+	 *
+	 * @return Amount of indirect storage required to marshall the data
+	 * @see #getSizeDirect()
+	 * @see #getPtrArray()
+	 * @see #getVariableIndirectCount()
+	 * @since 20140721
+	 */
+	public final int getSizeTotal() {
+		return sizeTotal;
 	}
 
 	/**
@@ -139,13 +207,15 @@ public abstract class MarshallPlan {
 	 * @return Pointer array
 	 * @see Marshaller#getPtrArray()
 	 * @see #getSizeDirect()
-	 * @see #getSizeIndirect()
+	 * @see #getSizeTotal()
 	 * @see #getVariableIndirectCount()
 	 * @since 20130806
 	 */
 	public final int[] getPtrArray() {
+		// Public because it is used by ABI-specific thunk managers in other
+		// packages.
 		return ptrArray;
-	} // TODO: Does this need to be public? Who uses this?
+	}
 
 	/**
 	 * <p>
@@ -159,6 +229,23 @@ public abstract class MarshallPlan {
 	 */
 	public final int getVariableIndirectCount() {
 		return variableIndirectCount;
+	}
+
+	/**
+	 * <p>
+	 * Get this plan's storage use category.
+	 * </p>
+	 *
+	 * @return Plan group this plan belongs to
+	 * @since 20140722
+	 */
+	public final StorageCategory getStorageCategory() {
+		if (0 < variableIndirectCount)
+			return StorageCategory.VARIABLE_INDIRECT;
+		else if (0 < sizeIndirect)
+			return StorageCategory.INDIRECT;
+		else
+			return StorageCategory.DIRECT;
 	}
 
 	/**
@@ -177,7 +264,7 @@ public abstract class MarshallPlan {
 	public final String toString() {
 		StringBuilder result = new StringBuilder(128);
 		result.append("MarshallPlan[ ").append(sizeDirect).append(", ")
-				.append(sizeIndirect).append(", {");
+				.append(sizeTotal).append(", {");
 		final int N = ptrArray.length;
 		if (0 < N) {
 			result.append(' ').append(ptrArray[0]).append(':')

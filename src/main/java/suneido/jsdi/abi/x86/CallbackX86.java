@@ -66,26 +66,23 @@ final class CallbackX86 extends Callback {
 	//
 
 	@Override
-	public int invoke(SuValue boundValue, byte[] argsIn) {
-		final MarshallerX86 marshaller = marshallPlan.makeUnMarshaller(argsIn);
+	public long invoke(SuValue boundValue, Object argsIn) {
+		final MarshallerX86 marshaller = marshallPlan.makeUnMarshaller((int[])argsIn);
 		final Object[] argsOut = typeList.marshallOutParams(marshaller);
 		final Object result = boundValue.call(argsOut);
-		return toInt(result);
+		return toLong(result);
 	}
 
 	@Override
-	public int invokeVariableIndirect(SuValue boundValue, byte[] argsIn,
+	public long invokeVariableIndirect(SuValue boundValue, Object argsIn,
 			Object[] viArray) {
 		int[] viInstArray = new int[viArray.length];
 		Arrays.fill(viInstArray,
 				VariableIndirectInstruction.RETURN_JAVA_STRING.ordinal());
-		Marshaller marshaller = marshallPlan.makeUnMarshaller(argsIn, viArray,
-				viInstArray);
+		Marshaller marshaller = marshallPlan.makeUnMarshaller((int[]) argsIn,
+				viArray, viInstArray);
 		Object[] argsOut = typeList.marshallOutParams(marshaller);
 		Object result = boundValue.call(argsOut);
-		// FIXME: Return value will have to be 64-bit on x64 so it probably
-		//        makes most sense just to return 64-bit on all platforms for
-		//        simplicity...
-		return toInt(result);
+		return toLong(result);
 	}
 }

@@ -24,6 +24,10 @@ import suneido.language.Pack;
  */
 public class BufferTest {
 
+	private static final Buffer copyBuffer(Buffer buffer) {
+		return new Buffer(buffer.length(), buffer);
+	}
+
 	private static final Buffer[] SOME_BUFFERS = new Buffer[] {
 			new Buffer(0, ""), new Buffer(1, ""), new Buffer(2, ""),
 			new Buffer(1, "A"), new Buffer(1, "!"), new Buffer(2, "A"),
@@ -116,13 +120,13 @@ public class BufferTest {
 		for (Buffer b1 : SOME_BUFFERS) {
 			for (Buffer b2 : SOME_BUFFERS) {
 				if (b1 == b2) {
-					b2 = new Buffer(b2);
+					b2 = copyBuffer(b2);
 					assertEquals(b1, b2);
 					assertEquals(b2, b1);
 					assertEquals(b1.hashCode(), b2.hashCode());
 				}
-				b1 = new Buffer(b1);
-				b2 = new Buffer(b2);
+				b1 = copyBuffer(b1);
+				b2 = copyBuffer(b2);
 				b1.truncate();
 				b2.truncate();
 				if (b1.equals(b2)) {
@@ -131,24 +135,6 @@ public class BufferTest {
 			}
 		}
 
-	}
-
-	@Test
-	public void testSetAndSetSize() {
-		Buffer buffer = new Buffer(10, "abcdef");
-		byte[] b = new byte[4];
-		buffer.copyInternalData(b, 1, 3);
-		assertArrayEquals(new byte[] { 0, (byte)'a', (byte)'b', (byte)'c' }, b);
-		assertEquals(10, buffer.length());
-		assertEquals(10, buffer.capacity());
-		buffer.setAndSetSize(b, 0, 2);
-		assertEquals(2, buffer.length());
-		assertEquals(10, buffer.capacity());
-		assertEquals("\u0000a", buffer.toString());
-		buffer.setAndSetSize(b, 0, 4);
-		assertEquals(4, buffer.length());
-		assertEquals(10, buffer.capacity());
-		assertEquals("\u0000abc", buffer.toString());
 	}
 
 	@Test
@@ -304,7 +290,7 @@ public class BufferTest {
 			assertEquals(s.length(), b.length());
 			for (int k = 0; k < b.length(); ++k) {
 				assertEquals(s.charAt(k), ((CharSequence)b.get(k)).charAt(0));
-				Buffer bTemp = new Buffer(b).truncate();
+				Buffer bTemp = copyBuffer(b).truncate();
 				String sTemp = bTemp.toString();
 				assertEquals(
 						"" + s.charAt(k) /* convert char -> String */,

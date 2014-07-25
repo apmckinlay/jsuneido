@@ -51,7 +51,9 @@
 						 objects"
 	>
 		<property name="jsdi-global-ref-file-stem" value="global_refs"/>
-		<java classname="${jsdi-tools-package}.GenerateGlobalReferences">
+		<java classname="${jsdi-tools-package}.GenerateGlobalReferences"
+		      failonerror="true"
+		>
 			<classpath>
 				<pathelement path="${java-target-dir}"/>
 				<pathelement location="lib/asm-all-5.0.2.jar"/>
@@ -66,7 +68,9 @@
 			description="Generate C++ enums from Java enums"
 	>
 		<property name="jsdi-enum-file-stem" value="java_enum"/>
-		<java classname="${jsdi-tools-package}.GenerateSharedEnums">
+		<java classname="${jsdi-tools-package}.GenerateSharedEnums"
+		      failonerror="true"
+		>
 			<classpath>
 				<pathelement path="${java-target-dir}"/>
 				<pathelement location="lib/guava-17.0.jar"/>

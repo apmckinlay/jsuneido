@@ -174,9 +174,6 @@ public abstract class TypeList implements Iterable<TypeList.Entry> {
 
 	private final Entry[] entries;
 	private final boolean isClosed;
-	private int           sizeDirectIntrinsic;
-	private int           sizeDirectWholeWords;
-	private int           sizeIndirect;
 	private int           variableIndirectCount;
 
 	//
@@ -201,11 +198,8 @@ public abstract class TypeList implements Iterable<TypeList.Entry> {
 		this.entries = args.entries.toArray(new Entry[args.entries.size()]);
 		this.isClosed = args.isClosed;
 		if (isClosed) {
-			calcSizes();
+			countVariableIndirect();
 		} else {
-			this.sizeDirectIntrinsic = -1;
-			this.sizeDirectWholeWords = -1;
-			this.sizeIndirect = -1;
 			this.variableIndirectCount = -1;
 		}
 	}
@@ -214,31 +208,17 @@ public abstract class TypeList implements Iterable<TypeList.Entry> {
 	// INTERNALS
 	//
 
-	private void calcSizes() {
-		int sizeDirectIntrinsic = 0;
-		int sizeDirectWholeWords = 0;
-		int sizeIndirect = 0;
+	private void countVariableIndirect() {
 		int variableIndirectCount = 0;
 		for (Entry entry : entries) {
-			sizeDirectIntrinsic += entry.type.getSizeDirectIntrinsic();
-			sizeDirectWholeWords += entry.type.getSizeDirectWholeWords();
-			sizeIndirect += entry.type.getSizeIndirect();
 			variableIndirectCount += entry.type.getVariableIndirectCount();
 		}
-		this.sizeDirectIntrinsic = sizeDirectIntrinsic;
-		this.sizeDirectWholeWords = sizeDirectWholeWords;
-		this.sizeIndirect = sizeIndirect;
 		this.variableIndirectCount = variableIndirectCount;
 	}
 
 	//
 	// ACCESSORS
 	//
-
-// TODO: delete me ... I don't see this being used anywhere
-//	public int size() {
-//		return entries.length;
-//	}
 
 	/**
 	 * Indicates whether the type list is empty.
@@ -263,66 +243,8 @@ public abstract class TypeList implements Iterable<TypeList.Entry> {
 	 * @return Whether this type list contains only closed types
 	 * @see Type#isClosed()
 	 */
-	public boolean isClosed() {
+	public final boolean isClosed() {
 		return isClosed;
-	}
-
-	/**
-	 * <p>
-	 * Returns the <em>current</em> total direct "intrinsic" size of the entries
-	 * in this type list.
-	 * </p>
-	 * <p>
-	 * This method will typically be relevant for "member" type lists and not
-	 * for "parameter" type lists. Note that the return value may vary across
-	 * calls to {@link #resolve(int)} if this is not a closed list (<em>ie</em>
-	 * {@link #isClosed()} returns {@code false}).
-	 * </p>
-	 * 
-	 * @return Sum of the direct "intrinsic" sizes of all entries in the list
-	 * @since 20130724
-	 * @see Type#getSizeDirectIntrinsic()
-	 * @see #getSizeDirectWholeWords()
-	 */
-	public final int getSizeDirectIntrinsic() {
-		return sizeDirectIntrinsic;
-	}
-
-	/**
-	 * <p>
-	 * Returns the <em>current</em> total direct whole-word size of the entries
-	 * in this type list.
-	 * </p>
-	 * <p>
-	 * This method will typically be relevant for "parameter" type lists and not
-	 * for "member" type lists. Note that the return value may vary across
-	 * calls to {@link #resolve(int)} if this is not a closed list (<em>ie</em>
-	 * {@link #isClosed()} returns {@code false}).
-	 * </p>
-	 * 
-	 * @return Sum of the direct whole-word sizes of all entries in the list
-	 * @since 20130724
-	 * @see Type#getSizeDirectWholeWords()
-	 * @see #getSizeDirectIntrinsic()
-	 */
-	public final int getSizeDirectWholeWords() {
-		return sizeDirectWholeWords;
-	}
-
-	/**
-	 * <p>
-	 * Returns the <em>current</em> total indirect size of the entries in this
-	 * type list. Note that the return value may vary across calls to
-	 * {@link #resolve(int)} if this is not a closed list. 
-	 * </p>
-	 * 
-	 * @return Sum of the indirect sizes of all entries in the list
-	 * @see Type#getSizeIndirect()
-	 * @see #getSizeDirectIntrinsic()
-	 * @see #getVariableIndirectCount()
-	 */
-	public final int getSizeIndirect() {
-		return sizeIndirect; 
 	}
 
 	/**
@@ -334,7 +256,7 @@ public abstract class TypeList implements Iterable<TypeList.Entry> {
 	 * 
 	 * @return Sum of the variable indirect counts of all entries in the list
 	 * @see Type#getVariableIndirectCount()
-	 * @see #getSizeIndirect()
+	 * @see #isClosed()
 	 */
 	public final int getVariableIndirectCount() {
 		return variableIndirectCount;
@@ -545,7 +467,7 @@ public abstract class TypeList implements Iterable<TypeList.Entry> {
 	 * @see FunctionSpec#params()
 	 * @see #toParamsTypeString()
 	 */
-	public String[] getEntryNames() {
+	public final String[] getEntryNames() {
 		final int N = entries.length;
 		final String[] paramNames = new String[N];
 		for (int k = 0; k < N; ++k) {
@@ -628,7 +550,7 @@ public abstract class TypeList implements Iterable<TypeList.Entry> {
 			if (changed) {
 				// Only need to recompute sizes for a non-closed list of types
 				// where at least one of the members types has changed.
-				calcSizes();
+				countVariableIndirect();
 			}
 		}
 		return changed;
