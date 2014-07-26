@@ -42,119 +42,19 @@ PARAMETER PASSING:
     javah.
 
 ================================================================================
-                                PLAN OF ATTACK
+                           HAND-MEETS-FACE MOMENTS
 ================================================================================
 
-The large majority of the differences can be handled by the marshalling code,
-specifically the code that makes marshall plans and marshallers. This can be
-done in an "objected-oriented" fashion by creating refactoring to abstract
-classes and implementing the small part of the functionality that is ABI-
-specific in concrete subclasses.
+The code would be even simpler (no need to fool around with different
+native calls, no need to have a separate callback_x86, etc.) if we just
+marshalled EVERYTHING to Java long[].
 
-Marshaller and MarshallPlan will have to be abstract classes or interfaces.
+May need to undo some changes.
 
-This is because we want to be able to have abstract methods on all the types
-like:
+    1) marshall_word_t is now always uint64_t ???
+    2) Marshalling pointer positions would have to go back to always byte index
 
-   public class Structure
-   {
-       abstract void marshallIn(Marshaller marshaller, Object value);
-   }
-   
-   public final class x86_Structure
-   {
-       void marshallIn(Marshaller marshaller, Object value);
-       {
-           // Actually do the work.
-       }
-   }
-
-EXCEPT THE ABOVE IS A BAD EXAMPLE IN ONE SENSE: honestly there's nothing ABI-
-specific about marshalling a structure once you have the marshaller and the
-plan. So Structure.marshallIn(...) need not be abstract. But the Marshaller,
-which is "loaded" with a plan, is ABI-specific.
-
-================================================================================
-                                REFACTOR PLANS
-================================================================================
-
-Marshaller:
-MarshallPlan:
-
-    PHASE 1) Abstract and document. This phase is complete when you can run all
-             x86 tests and jSuneido GUI with the refactored marshallers.
-
-    PHASE 2) Move to int[] instead of byte[]. This is both a proof of concept
-             for the x64 marshaller and a refactor.
-             
-          2a) Equivalent changes in C++. This phase is complete when you can
-              run all x86 tests and jSuneido GUI using the int[] marshaller.
-
-NOTE: That MarshallPlan is basically platform-agnostic. It's just a set of
-      directions! However, we may want to separate the posArray up into tuples
-      <x, y> where x is the word position and y is the byte position within the
-      word... HOWEVER however, this info is available by doing power-of-two
-      divisions on the byte positions ANYWAY! So maybe not.
-
-      The ABSTRACT part of MarshallPlan is its makeMarshaller()!
-
-================================================================================
-                                  NEXT STEPS
-================================================================================
-
-PHASE 2!!
-
-Here are the classes that need to be touched:
-
-                      Java                |                C++
-         ---------------------------------+----------------------------------
-                   Marshaller             |             marshalling
-                  MarshallPlan            |
-               MarshallPlanBuilder        |
-         ---------------------------------+----------------------------------
-                   Callback  ??           |             callback  ??
-         ---------------------------------+----------------------------------
-                  CallbackX86             |           jsdi_callback
-                                          |      [rename => jsdi_callback_x86]
-         ---------------------------------+----------------------------------
-                 NativeCallX86            |         _jni_interface_x86
-                                          |           stdcall_invoke
-                                          |           stdcall_thunk  ??
-         ---------------------------------+----------------------------------
-
-The general idea is the following:
-
-    Type :
-        [ ] no implementation for addToPlan, should be abstract
-        [ ] delete getSizeDirectIntrinsic() and getSizeDirectWholeWords ...
-            just need getSizeDirect()
-
-    MarshallPlanBuilder :
-        [ ] add Suneido value name knowledge
-        [ ] add alignment checking
-        [ ] track pointer positions in terms of indices, not bytes
-
-    MarshallPlan :
-        [ ] docs ??
-
-    MarshallPlanX86 :
-        [ ] makeUnmarshaller() etc. needs to take int[] data
-
-    MarshallerX86 :
-        [ ] data is now int[]
-        [ ] shift/and data positions to get int indices and offsets
-        [ ] string operations...
-        [ ] Buffer conversions...
-
-    Callback :
-        [ ] args parameter needs to be Object now
-
-    CallbackX86 :
-        [ ] args parameter needs to be Object now
-        [ ] cast to int[] and send to marshall plan
-
-    NativeCallX86 :
-        [ ] take int[] arguments
+    ...?
 
 ================================================================================
                        PHASE 3: Java Changes for AMD64
