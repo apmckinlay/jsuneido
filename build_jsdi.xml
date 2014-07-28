@@ -5,8 +5,8 @@
 	<condition property="jsdi-path" value="${env.JSDI_PATH}" else="../jsdi">
 		<isset property="env.JSDI_PATH"/>
 	</condition>
-        <property name="jsdi-vs-path" value="${jsdi-path}/vs/vs12_nov2013_ctp"/>
-        <property name="jsdi-vs-sln" value="vs12_nov2013_ctp.sln"/>
+	<property name="jsdi-vs-path" value="${jsdi-path}/vs/vs12_nov2013_ctp"/>
+	<property name="jsdi-vs-sln" value="vs12_nov2013_ctp.sln"/>
 	<property name="jsdi-package" value="suneido.jsdi"/>
 	<property name="jsdi-tools-package" value="suneido.jsdi.tools"/>
 	<property name="jsdi-make-config" value="Release-dll"/>
@@ -41,8 +41,8 @@
 	<target name="clean">
 		<exec executable="msbuild" dir="${jsdi-vs-path}" failonerror="true">
 			<arg value="${jsdi-vs-sln}"/>
-                        <arg value="/t:Clean"/>
-                        <arg value="/p:Configuration=${jsdi-make-config}"/>
+			<arg value="/t:Clean"/>
+			<arg value="/p:Configuration=${jsdi-make-config}"/>
 		</exec>
 	</target>
 
