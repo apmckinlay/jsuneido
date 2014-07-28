@@ -35,6 +35,7 @@ PARAMETER PASSING:
 [ ] Remove BasicPointer
 [ ] Clean up all warnings: jSuneido
 [ ] Clean up all cleanable warnings: jsdi
+[ ] Normalize NDEBUG versus _NDEBUG in C++
 [X] Move suneido.language.jsdi -> suneido.jsdi
 [ ] DOCS!
 [ ] Normalize JSDIException messages
