@@ -452,7 +452,6 @@ public class CallbackTest {
 
 	@Test
 	public void testExceptionThrowVi() {
-		int x = 5;
 		assertThrew(() -> {
 			eval("TestInvokeCallback_Recursive_StringSum(" +
 					"{ |x| throw SuTestSumString(x) }, " +

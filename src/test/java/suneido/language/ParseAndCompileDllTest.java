@@ -14,6 +14,7 @@ import org.junit.Test;
 
 import suneido.SuException;
 import suneido.jsdi.DllInterface;
+import suneido.jsdi.JSDIException;
 import suneido.jsdi.type.BasicType;
 import suneido.jsdi.type.StringType;
 import suneido.util.testing.Assumption;
@@ -32,33 +33,24 @@ public class ParseAndCompileDllTest {
 			"dll        void jsdi:TestVoid\n" +
 				"\t(\n" +
 				"\tbool a,\n" +
-				"\tbool * pa,\n" +
 				"\tbool[2] aa,\n" +
-				"\tchar b,\n" +
-				"\tchar * pb,\n" +
-				"\tchar[2] ab,\n" +
-				"\tshort c,\n" +
-				"\tshort * pc,\n" +
-				"\tshort[2] ac,\n" +
-				"\tlong d     ,\n" +
-				"\tlong * pd,\n" +
-				"\tlong[2] ad,\n" +
+				"\tint8 b,\n" +
+				"\tint8[2] ab,\n" +
+				"\tint16 c,\n" +
+				"\tint16[2] ac,\n" +
+				"\tint32 d,\n" +
+				"\tint32[2] ad,\n" +
 				"\tint64 e,\n" +
-				"\tint64 * pe,\n" +
 				"\tint64[2] ae,\n" +
 				"\tpointer f,\n" +
 				"\tpointer[2] af,\n" +
 				"\tfloat g,\n" +
-				"\tfloat * pg,\n" +
 				"\tfloat[2] ag,\n" +
 				"\tdouble h,\n" +
-				"\tdouble * ph,\n" +
 				"\tdouble [2] ah,\n" +
 				"\thandle i,\n" +
-				"\thandle * pi,\n" +
 				"\thandle [2] ai,\n" +
 				"\tgdiobj j,\n" +
-				"\tgdiobj * pj,\n" +
 				"\tgdiobj [2] aj,\n" +
 				"\tstring k,\n" +
 				"\tstring [2] ak,\n" +
@@ -69,8 +61,8 @@ public class ParseAndCompileDllTest {
 			"\t)";
 			// TODO: add callback
 
-	public final String[] VALID_RETURN_TYPES = { "void", "bool", "char",
-			"short", "long", "int64", "pointer", "float", "double", "handle",
+	public final String[] VALID_RETURN_TYPES = { "void", "bool", "int8",
+			"int16", "int32", "int64", "pointer", "float", "double", "handle",
 			"gdiobj", "string" };
 
 	public final String[] INVALID_RETURN_TYPES = {
@@ -78,7 +70,7 @@ public class ParseAndCompileDllTest {
 	};
 
 	public final String[] INVALID_RETURN_TYPES_SYNTAX = {
-		"void *", "void[10]", "long *", "long[1]",
+		"void *", "void[10]", "int32 *", "int32[1]",
 		"buffer[2]", "buffer *", "FakeTypeABC1[23]", "FakeTypeABC1*"
 	};
 
@@ -340,5 +332,15 @@ public class ParseAndCompileDllTest {
 		};
 		for (final String s : bad)
 			assertThrew(() -> { compile(s); });
+	}
+
+	@Test
+	public void compileInvalidBasicTypePointer() {
+		// Pointers to basic types not allowed
+		for (final BasicType b : BasicType.values()) {
+			assertThrew(() -> {
+				compile("dll x y:z(" + b.getName() + " * badParam)");
+			}, JSDIException.class, "pointer to basic type not allowed");
+		}
 	}
 }
