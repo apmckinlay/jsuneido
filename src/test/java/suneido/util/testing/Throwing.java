@@ -9,6 +9,8 @@ import static org.junit.Assert.assertTrue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.junit.internal.AssumptionViolatedException;
+
 /**
  * Utility methods to make testing for exceptions within JUnit easier in some
  * circumstances.
@@ -135,6 +137,8 @@ public final class Throwing {
 			String pattern) {
 		try {
 			r.run();
+		} catch (AssumptionViolatedException e) {
+			return true;
 		} catch (Exception e) {
 			Matcher matcher = Pattern.compile(pattern).matcher(e.getMessage());
 			if (clazz == e.getClass() && matcher.find()) {
