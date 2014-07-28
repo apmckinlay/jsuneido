@@ -102,7 +102,7 @@ abstract class EnumLineEditor<E extends Enum<E>> extends LineEditor {
 		sig.append(", jobject");
 		if (!header)
 			sig.append(' ').append(ENUM_VAR_NAME);
-		sig.append(") throw(jni_exception)");
+		sig.append(')');
 		if (header)
 			sig.append(';');
 		add(sig);
@@ -115,7 +115,7 @@ abstract class EnumLineEditor<E extends Enum<E>> extends LineEditor {
 		sig.append(' ').append(ORDINAL_TO_CPP_FUNC_NAME).append("(int");
 		if (!header)
 			sig.append(' ').append(ENUM_VAR_NAME);
-		sig.append(") throw(jni_exception)");
+		sig.append(')');
 		if (header)
 			sig.append(';');
 		add(sig);
