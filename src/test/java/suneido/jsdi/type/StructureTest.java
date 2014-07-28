@@ -36,6 +36,7 @@ public class StructureTest {
 	}
 
 	private static final String[] NAMED_TYPES = {
+		"INT32", "struct { int32 value }",
 		"RECT", "struct { int32 left; int32 top; int32 right; int32 bottom; }",
 		"POINT", "struct { int32 x; int32 y; }",
 		"TwoTierStruct",
@@ -44,7 +45,7 @@ public class StructureTest {
 				"\tPOINT[2]  pts ;\n" +
 				"\tRECT *    prcOptional ;\n" +
 				"\tint32[10] extra ;\n" +
-				"\tint32 *   pLong ;\n" +
+				"\tINT32 *   pLong ;\n" +
 				"\t}",
 		"ThreeTierStruct",
 			"struct\n" +

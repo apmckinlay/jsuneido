@@ -36,33 +36,24 @@ public class ParseAndCompileStructTest {
 		"struct\n" +
 			"\t{\n" +
 			"\tbool a\n" +
-			"\tbool * pa\n" +
 			"\tbool[2] aa\n" +
-			"\tchar b\n" +
-			"\tchar * pb\n" +
-			"\tchar[2] ab\n" +
-			"\tshort c\n" +
-			"\tshort * pc\n" +
-			"\tshort[2] ac\n" +
-			"\tlong d\n" +
-			"\tlong * pd\n" +
-			"\tlong[2] ad\n" +
+			"\tint8 b\n" +
+			"\tint8[2] ab\n" +
+			"\tint16 c\n" +
+			"\tint16[2] ac\n" +
+			"\tint32 d\n" +
+			"\tint32[2] ad\n" +
 			"\tint64 e\n" +
-			"\tint64 * pe\n" +
 			"\tint64[2] ae\n" +
 			"\tpointer f\n" +
 			"\tpointer[2] af\n" +
 			"\tfloat g\n" +
-			"\tfloat * pg\n" +
 			"\tfloat[2] ag\n" +
 			"\tdouble h\n" +
-			"\tdouble * ph\n" +
 			"\tdouble [2] ah\n" +
 			"\thandle i\n" +
-			"\thandle * pi\n" +
 			"\thandle [2] ai\n" +
 			"\tgdiobj j\n" +
-			"\tgdiobj * pj\n" +
 			"\tgdiobj [2] aj\n" +
 			"\tstring k\n" +
 			"\tstring [2] ak\n" +

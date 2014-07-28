@@ -15,7 +15,14 @@ import suneido.jsdi.StorageType;
 import suneido.language.Numbers;
 import suneido.language.Ops;
 
-// TODO doc
+/**
+ * Represents a value type based on an underlying basic type, for example
+ * <code><b>int32</b></code>.
+ *
+ * @author Victor Schappert
+ * @see BasicArray
+ * @see BasicType
+ */
 @DllInterface
 @Immutable
 public final class BasicValue extends Type {
@@ -24,27 +31,31 @@ public final class BasicValue extends Type {
 	// DATA
 	//
 
-	private final BasicPointer pointerType;
 	private final BasicType basicType;
 
 	//
 	// CONSTRUCTORS
 	//
 
+	/**
+	 * Constructs a basic value based on an underlying basic type.
+	 *
+	 * @param basicType Basic type underlying the value type
+	 */
 	public BasicValue(BasicType basicType) {
 		super(TypeId.BASIC, StorageType.VALUE);
 		this.basicType = basicType;
-		this.pointerType = new BasicPointer(this);
 	}
 
 	//
 	// ACCESSORS
 	//
 
-	public BasicPointer getPointerType() {
-		return pointerType;
-	}
-
+	/**
+	 * Returns the basic type of this.
+	 *
+	 * @return Basic type
+	 */
 	public BasicType getBasicType() {
 		return basicType;
 	}

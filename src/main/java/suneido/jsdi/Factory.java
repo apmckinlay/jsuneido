@@ -8,6 +8,7 @@ import static suneido.SuInternalError.unreachable;
 
 import java.util.EnumMap;
 
+import suneido.SuInternalError;
 import suneido.jsdi.type.BasicArray;
 import suneido.jsdi.type.BasicType;
 import suneido.jsdi.type.BasicValue;
@@ -69,11 +70,11 @@ public abstract class Factory {
 
 	private static void check(StorageType storageType, int numElements) {
 		if (storageType == null)
-			throw new IllegalArgumentException("storageType cannot be null");
+			throw new SuInternalError("storageType cannot be null");
 		if (numElements < 1)
-			throw new IllegalArgumentException("numElements must be positive");
+			throw new SuInternalError("numElements must be positive");
 		if (StorageType.ARRAY != storageType && 1 != numElements)
-			throw new IllegalArgumentException(
+			throw new SuInternalError(
 					"numElements must be 1 for VALUE/POINTER");
 	}
 
@@ -89,17 +90,66 @@ public abstract class Factory {
 	 */
 	public abstract TypeList makeTypeList(Args args);
 
-	// TODO: Docs since 20140718
-	public final Type makeBasicType(BasicType basicType, StorageType storageType,
-			int numElements) {
+	/**
+	 * <p>
+	 * Returns an instance of {@link Type} representing the requested basic
+	 * type.
+	 * </p>
+	 *
+	 * <p>
+	 * As of 20140728, pointers to basic types are no longer permitted in
+	 * Suneido. Thus passing {@link StorageType#POINTER POINTER} as the
+	 * <code>storageType</code> parameter will result in an exception. The
+	 * reason for this is that a pointer to a basic type doesn't have an
+	 * intuitive marshalling syntax within the Suneido language. For example,
+	 * suppose you have a function
+	 * <code>f&nbsp;=&nbsp;<b>dll</b>&nbsp;lib:func(<b>int32</b>&nbsp;*&nbsp;a)</code>
+	 * and you wish to call it with code such as: <code>f(x)</code>. What
+	 * Suneido type(s) might <code>x</code> be? All possibilities are
+	 * unsatisfactory:
+	 * <ul>
+	 * <li>
+	 * If <code>x</code> can be a mere number&mdash;indicating the actual
+	 * <em>value</em> pointed-to&mdash;then it is impossible to pass a NULL
+	 * pointer; moreover, the value pointed to cannot be marshalled out since
+	 * Suneido numbers are passed by value, not by reference.
+	 * </li>
+	 * <li>
+	 * If <code>x</code> can be a Suneido <code>Object</code>, then it is not
+	 * obvious which member of <code>x</code> should be used to represent the
+	 * value pointed-to.
+	 * </li>
+	 * </ul>
+	 * For these reasons, pointers to basic types are not permitted and the
+	 * appropriate solution in Suneido is to define a <code>struct</code>
+	 * containing one member of the appropriate basic type and to use a pointer
+	 * to the <code>struct</code> type in the function signature. Using the
+	 * above example, and supposing <code>INT32</code> is defined to be
+	 * <code>struct&nbsp;{&nbsp;<b>int32</b>&nbsp;value&nbsp;}</code>, the
+	 * function should be declared as
+	 * <code>f&nbsp;=&nbsp;<b>dll</b>&nbsp;lib:func(INT32&nbsp;*&nbsp;a)</code>.
+	 * </p>
+	 * 
+	 * @param basicType The basic type underlying the type
+	 * @param storageType The storage type (value, pointer, or array)
+	 * @param numElements Number of elements in the array (ignored unless
+	 *        <code>storageType</code> is {@link StorageType#ARRAY ARRAY}
+	 * @return Type instance
+	 * @since 20140718
+	 * @throws JSDIException If <code>storageType</code> is
+	 *         {@link StorageType#POINTER POINTER}
+	 */
+	public final Type makeBasicType(BasicType basicType,
+			StorageType storageType, int numElements) {
 		if (basicType == null)
-			throw new IllegalArgumentException("basicType cannot be null");
+			throw new SuInternalError("basicType cannot be null");
 		check(storageType, numElements);
 		switch (storageType) {
 		case VALUE:
 			return basicValues.get(basicType);
 		case POINTER:
-			return basicValues.get(basicType).getPointerType();
+			throw new JSDIException("pointer to basic type not allowed: "
+					+ basicType.getName() + '*');
 		case ARRAY:
 			return makeBasicArray(basicValues.get(basicType), numElements);
 		}

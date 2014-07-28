@@ -4,17 +4,27 @@
 
 package suneido.jsdi.type;
 
+import static suneido.SuInternalError.unhandledEnum;
+
 import javax.annotation.concurrent.Immutable;
 
 import suneido.SuContainer;
-import suneido.jsdi.*;
+import suneido.jsdi.DllInterface;
+import suneido.jsdi.MarshallPlanBuilder;
+import suneido.jsdi.Marshaller;
+import suneido.jsdi.NumberConversions;
+import suneido.jsdi.ObjectConversions;
+import suneido.jsdi.StorageType;
 import suneido.language.Ops;
-import static suneido.SuInternalError.unhandledEnum;
 
 /**
- * TODO: docs
+ * Represents an array of an underlying basic type, such as
+ * <code><b>int8</b>&#8288;[10]</code>.
+ *
  * @author Victor Schappert
  * @since 20130625
+ * @see BasicValue
+ * @see StringDirect
  */
 @DllInterface
 @Immutable
@@ -31,6 +41,13 @@ public final class BasicArray extends Type {
 	// CONSTRUCTORS
 	//
 
+	/**
+	 * Constructs a basic array type given an underlying basic value and a
+	 * positive element count.
+	 *
+	 * @param underlying Underlying basic type
+	 * @param numElems Element count: <code>0 &lt; numElems</code>
+	 */
 	public BasicArray(BasicValue underlying, int numElems) {
 		super(TypeId.BASIC, StorageType.ARRAY);
 		this.underlying = underlying;
@@ -41,16 +58,13 @@ public final class BasicArray extends Type {
 	// ACCESSORS
 	//
 
-	public BasicValue getUnderlying() {
-		return underlying;
-	}
-
+	/**
+	 * Returns the underlying basic type.
+	 *
+	 * @return Underlying basic type
+	 */
 	public BasicType getBasicType() {
 		return underlying.getBasicType();
-	}
-
-	public int getNumElems() {
-		return numElems;
 	}
 
 	//

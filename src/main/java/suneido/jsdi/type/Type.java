@@ -46,9 +46,9 @@ public abstract class Type extends JSDIValue {
 
 	protected Type(TypeId typeId, StorageType storageType) {
 		if (null == typeId)
-			throw new IllegalArgumentException("typeId may not be null");
+			throw new SuInternalError("typeId may not be null");
 		if (null == storageType)
-			throw new IllegalArgumentException("storageType may not be null");
+			throw new SuInternalError("storageType may not be null");
 		this.typeId = typeId;
 		this.storageType = storageType;
 	}
