@@ -35,10 +35,12 @@ PARAMETER PASSING:
 [X] Remove BasicPointer
 [X] Clean up all warnings: jSuneido
 [X] Clean up all cleanable warnings: jsdi
-[ ] Normalize NDEBUG versus _NDEBUG in C++
+[X] Normalize NDEBUG versus _NDEBUG in C++
 [X] Move suneido.language.jsdi -> suneido.jsdi
 [ ] DOCS!
 [ ] Normalize JSDIException messages
+[ ] JSDI C++ should raise SuInternalError, not JSDIException...
+    or at least a JSDIInternalError derived from SuInternalError...
 
 ================================================================================
                            HAND-MEETS-FACE MOMENTS
