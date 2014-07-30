@@ -8,6 +8,7 @@ import suneido.SuValue;
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.JSDI;
 import suneido.jsdi.ThunkManager;
+import suneido.jsdi.marshall.MarshallPlan;
 import suneido.jsdi.type.Callback;
 
 /**
@@ -33,7 +34,7 @@ final class ThunkManagerX86 extends ThunkManager {
 
 	@Override
 	protected void newThunk(SuValue boundValue, Callback callback, long[] addrs) {
-		MarshallPlanX86 plan = ((CallbackX86)callback).getMarshallPlan();
+		MarshallPlan plan = callback.getMarshallPlan();
 		newThunkX86(callback, boundValue, plan.getSizeDirect(),
 				plan.getSizeTotal(), plan.getPtrArray(),
 				plan.getVariableIndirectCount(), addrs);

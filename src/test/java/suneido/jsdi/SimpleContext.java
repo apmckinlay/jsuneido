@@ -17,6 +17,7 @@ import suneido.language.Contexts;
  * @author Victor Schappert
  * @since 20130703
  */
+@DllInterface
 public final class SimpleContext extends ContextLayered {
 
 	//

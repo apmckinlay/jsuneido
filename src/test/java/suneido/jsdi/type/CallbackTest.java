@@ -14,6 +14,7 @@ import org.junit.Test;
 
 import suneido.SuContainer;
 import suneido.SuException;
+import suneido.jsdi.DllInterface;
 import suneido.jsdi.JSDIException;
 import suneido.jsdi.SimpleContext;
 import suneido.jsdi.ThunkManager;
@@ -29,6 +30,7 @@ import suneido.util.testing.Assumption;
  * @since 20130807
  * @see suneido.language.ParseAndCompileCallbackTest
  */
+@DllInterface
 public class CallbackTest {
 
 	@BeforeClass

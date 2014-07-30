@@ -8,9 +8,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
-import static suneido.jsdi.VariableIndirectInstruction.NO_ACTION;
-import static suneido.jsdi.VariableIndirectInstruction.RETURN_JAVA_STRING;
 import static suneido.jsdi.abi.x86.MarshallTestUtilX86.pointerPlan;
+import static suneido.jsdi.marshall.MarshallPlan.StorageCategory;
+import static suneido.jsdi.marshall.VariableIndirectInstruction.NO_ACTION;
+import static suneido.jsdi.marshall.VariableIndirectInstruction.RETURN_JAVA_STRING;
 import static suneido.util.testing.Throwing.assertThrew;
 
 import java.util.ArrayList;
@@ -19,16 +20,17 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import suneido.jsdi.Buffer;
-import static suneido.jsdi.MarshallPlan.StorageCategory;
+import suneido.jsdi.DllInterface;
 import suneido.jsdi.JSDI;
-import suneido.jsdi.MarshallTestUtil;
-import suneido.jsdi.PrimitiveSize;
-import suneido.jsdi.ReturnTypeGroup;
 import suneido.jsdi.TestCall;
-import suneido.jsdi.VariableIndirectInstruction;
 import suneido.jsdi.abi.x86.MarshallPlanX86;
 import suneido.jsdi.abi.x86.MarshallerX86;
 import suneido.jsdi.abi.x86.NativeCallX86;
+import suneido.jsdi.marshall.MarshallTestUtil;
+import suneido.jsdi.marshall.Marshaller;
+import suneido.jsdi.marshall.PrimitiveSize;
+import suneido.jsdi.marshall.ReturnTypeGroup;
+import suneido.jsdi.marshall.VariableIndirectInstruction;
 import suneido.util.testing.Assumption;
 
 /**
@@ -39,6 +41,7 @@ import suneido.util.testing.Assumption;
  * @since 20130723
  * @see NativeCallX86
  */
+@DllInterface
 public class NativeCallX86Test {
 
 	@BeforeClass
@@ -98,9 +101,9 @@ public class NativeCallX86Test {
 		return buffer.toString();
 	}
 
-	private static MarshallerX86 makeMarshaller(TestCall testcall) {
+	private static Marshaller makeMarshaller(TestCall testcall) {
 		final MarshallPlanX86 plan = (MarshallPlanX86)testcall.plan;
-		return plan.makeMarshallerX86();
+		return plan.makeMarshaller();
 	}
 
 	@Test
@@ -112,7 +115,7 @@ public class NativeCallX86Test {
 			if (Mask.DOUBLE == testcall.returnValueMask) continue;
 			for (NativeCallX86 nativecall : DOF_NORET_VI_OR_FLOAT) {
 				{
-					MarshallerX86 m = makeMarshaller(testcall);
+					Marshaller m = makeMarshaller(testcall);
 					long result = nativecall.invoke(testcall.ptr,
 							testcall.plan.getSizeDirect(), m)
 							& testcall.returnValueMask.value;
@@ -131,7 +134,7 @@ public class NativeCallX86Test {
 			final long[] x = new long[] { 27L, 0x2728L, 0x18120207L,
 					0xdeadbeef19820207L };
 			for (int k = 0; k < f.length; ++k) {
-				MarshallerX86 m = makeMarshaller(f[k]);
+				Marshaller m = makeMarshaller(f[k]);
 				if (PrimitiveSize.INT32 == f[k].plan.getSizeDirect())
 					m.putInt32((int) x[k]);
 				else if (PrimitiveSize.INT64 == f[k].plan.getSizeDirect())
@@ -149,7 +152,7 @@ public class NativeCallX86Test {
 		}
 		// sum functions
 		{
-			MarshallerX86 m = makeMarshaller(TestCall.SUM_TWO_INT32);
+			Marshaller m = makeMarshaller(TestCall.SUM_TWO_INT32);
 			m.putInt32(1);
 			m.putInt32(2);
 			for (NativeCallX86 nativecall : DOF_NORET_VI_OR_FLOAT) {
@@ -161,7 +164,7 @@ public class NativeCallX86Test {
 			}
 		}
 		{
-			MarshallerX86 m = makeMarshaller(TestCall.SUM_THREE_INT32);
+			Marshaller m = makeMarshaller(TestCall.SUM_THREE_INT32);
 			m.putInt32(3);
 			m.putInt32(2);
 			m.putInt32(1);
@@ -175,7 +178,7 @@ public class NativeCallX86Test {
 			}
 		}
 		{
-			MarshallerX86 m = makeMarshaller(TestCall.SUM_FOUR_INT32);
+			Marshaller m = makeMarshaller(TestCall.SUM_FOUR_INT32);
 			m.putInt32(-100);
 			m.putInt32(99);
 			m.putInt32(-200);
@@ -187,7 +190,7 @@ public class NativeCallX86Test {
 							TestCall.SUM_FOUR_INT32.plan.getSizeDirect(), m) & TestCall.SUM_FOUR_INT32.returnValueMask.value));
 		}
 		{
-			MarshallerX86 m = makeMarshaller(TestCall.SUM_PACKED_INT8_INT8_INT16_INT32);
+			Marshaller m = makeMarshaller(TestCall.SUM_PACKED_INT8_INT8_INT16_INT32);
 			m.putInt8(Byte.MIN_VALUE);
 			m.putInt8(Byte.MAX_VALUE);
 			m.putInt16(Short.MIN_VALUE);
@@ -210,7 +213,7 @@ public class NativeCallX86Test {
 			final TestCall[] f = { TestCall.RETURN1_0FLOAT,
 					TestCall.RETURN1_0DOUBLE };
 			for (TestCall testcall : f) {
-				MarshallerX86 m = makeMarshaller(testcall);
+				Marshaller m = makeMarshaller(testcall);
 				assertEquals(1.0, Double.longBitsToDouble(n.invoke(
 						testcall.ptr, testcall.plan.getSizeDirect(), m)), 0.0);
 			}
@@ -219,14 +222,14 @@ public class NativeCallX86Test {
 		{
 			{
 				TestCall testcall = TestCall.FLOAT;
-				MarshallerX86 m = makeMarshaller(testcall);
+				Marshaller m = makeMarshaller(testcall);
 				m.putFloat(33.5f);
 				assertEquals(33.5, Double.longBitsToDouble(n.invoke(
 						testcall.ptr, testcall.plan.getSizeDirect(), m)), 0.0);
 			}
 			{
 				TestCall testcall = TestCall.DOUBLE;
-				MarshallerX86 m = makeMarshaller(testcall);
+				Marshaller m = makeMarshaller(testcall);
 				m.putDouble(-3333333.5f);
 				assertEquals(-3333333.5, Double.longBitsToDouble(n.invoke(
 						testcall.ptr, testcall.plan.getSizeDirect(), m)), 0.0);
@@ -236,7 +239,7 @@ public class NativeCallX86Test {
 		{
 			{
 				TestCall testcall = TestCall.SUM_TWO_FLOATS;
-				MarshallerX86 m = makeMarshaller(testcall);
+				Marshaller m = makeMarshaller(testcall);
 				m.putFloat(.75f);
 				m.putFloat(-.50f);
 				assertEquals(.25, Double.longBitsToDouble(n.invoke(
@@ -244,7 +247,7 @@ public class NativeCallX86Test {
 			}
 			{
 				TestCall testcall = TestCall.SUM_TWO_DOUBLES;
-				MarshallerX86 m = makeMarshaller(testcall);
+				Marshaller m = makeMarshaller(testcall);
 				m.putDouble(.5);
 				m.putDouble(-.25);
 				assertEquals(.25, Double.longBitsToDouble(n.invoke(
@@ -259,7 +262,7 @@ public class NativeCallX86Test {
 		// the native side packed into 32-bit Java ints.
 		TestCall testcall = TestCall.REMOVE_SIGN_FROM_INT32;
 		for (NativeCallX86 nativecall : DOF_NORET_VI_OR_FLOAT) {
-			MarshallerX86 m = makeMarshaller(testcall);
+			Marshaller m = makeMarshaller(testcall);
 			int x = 0xffffffff;
 			assertTrue(x < 0);
 			m.putInt32(x);
@@ -273,7 +276,7 @@ public class NativeCallX86Test {
 	public void testIndirectOnlyNullPointers() {
 		MarshallPlanX86 plan = pointerPlan(PrimitiveSize.POINTER);
 		{
-			MarshallerX86 m = plan.makeMarshallerX86();
+			Marshaller m = plan.makeMarshaller();
 			m.putNullPtr();
 			for (TestCall testcall : new TestCall[] {
 					TestCall.HELLO_WORLD_OUT_PARAM, TestCall.NULL_PTR_OUT_PARAM }) {
@@ -289,7 +292,7 @@ public class NativeCallX86Test {
 		MarshallPlanX86 plan = pointerPlan(PrimitiveSize.POINTER);
 		{
 			for (NativeCallX86 nativecall : IND_NORET_VI_OR_FLOAT) {
-				MarshallerX86 m = plan.makeMarshallerX86();
+				Marshaller m = plan.makeMarshaller();
 				m.putPtr();
 				nativecall.invoke(TestCall.HELLO_WORLD_OUT_PARAM.ptr,
 						plan.getSizeDirect(), m);
@@ -301,7 +304,7 @@ public class NativeCallX86Test {
 		}
 		{
 			for (NativeCallX86 nativecall : IND_NORET_VI_OR_FLOAT) {
-				MarshallerX86 m = plan.makeMarshallerX86();
+				Marshaller m = plan.makeMarshaller();
 				m.putPtr();
 				m.putInt32(100); // This will be replaced by 0
 				nativecall.invoke(TestCall.NULL_PTR_OUT_PARAM.ptr,
@@ -317,7 +320,7 @@ public class NativeCallX86Test {
 	@Test
 	public void testIndirectOnlySendValue() {
 		TestCall testcall = TestCall.RETURN_PTR_PTR_PTR_DOUBLE;
-		MarshallerX86 m = makeMarshaller(testcall);
+		Marshaller m = makeMarshaller(testcall);
 		final double doubleValue = 100.0 + 1E-14;
 		m.putPtr();
 		m.putPtr();
@@ -336,7 +339,7 @@ public class NativeCallX86Test {
 		{
 			TestCall testcall = TestCall.STRLEN;
 			for (NativeCallX86 nativecall : VI_NORET_VI_OR_FLOAT) {
-				MarshallerX86 m = makeMarshaller(testcall);
+				Marshaller m = makeMarshaller(testcall);
 				m.putNullStringPtr(NO_ACTION);
 				nativecall.invoke(testcall.ptr, testcall.plan.getSizeDirect(), m);
 			}
@@ -347,7 +350,7 @@ public class NativeCallX86Test {
 		{
 			TestCall testcall = TestCall.HELLO_WORLD_OUT_BUFFER;
 			for (NativeCallX86 nativecall : VI_NORET_VI_OR_FLOAT) {
-				MarshallerX86 m = makeMarshaller(testcall);
+				Marshaller m = makeMarshaller(testcall);
 				m.putNullStringPtr(NO_ACTION);
 				m.putInt32(0);
 				nativecall.invoke(testcall.ptr, testcall.plan.getSizeDirect(), m);
@@ -359,7 +362,7 @@ public class NativeCallX86Test {
 		{
 			TestCall testcall = TestCall.SUM_STRING;
 			for (NativeCallX86 nativecall : VI_NORET_VI_OR_FLOAT) {
-				final MarshallerX86 m = makeMarshaller(testcall);
+				final Marshaller m = makeMarshaller(testcall);
 				m.putNullPtr();
 				m.skipBasicArrayElements(8);
 				m.putNullStringPtr(RETURN_JAVA_STRING);
@@ -385,7 +388,7 @@ public class NativeCallX86Test {
 		{
 			TestCall testcall = TestCall.SUM_RESOURCE;
 			for (NativeCallX86 nativecall : VI_NORET_VI_OR_FLOAT) {
-				final MarshallerX86 m = makeMarshaller(testcall);
+				final Marshaller m = makeMarshaller(testcall);
 				m.putINTRESOURCE((short) 0);
 				m.putNullPtr();
 				m.putINTRESOURCE((short) 0);
@@ -407,7 +410,7 @@ public class NativeCallX86Test {
 		TestCall testcall = TestCall.STRLEN;
 		for (NativeCallX86 nativecall : VI_NORET_VI_OR_FLOAT) {
 			for (int k = 0; k <= 10; ++k) {
-				MarshallerX86 m = makeMarshaller(testcall);
+				Marshaller m = makeMarshaller(testcall);
 				m.putStringPtr(strings[k], NO_ACTION);
 				long result = nativecall.invoke(testcall.ptr,
 						testcall.plan.getSizeDirect(), m);
@@ -426,7 +429,7 @@ public class NativeCallX86Test {
 			for (int size : sizes) {
 				byte[] src = new byte[size];
 				Buffer buffer = new Buffer(src, 0, size); // has a copy of src
-				MarshallerX86 m = makeMarshaller(testcall);
+				Marshaller m = makeMarshaller(testcall);
 				m.putStringPtr(buffer, NO_ACTION);
 				m.putInt32(size);
 				nativecall.invoke(testcall.ptr, testcall.plan.getSizeDirect(), m);
@@ -560,7 +563,7 @@ public class NativeCallX86Test {
 		// TEST 1
 		//
 		{
-			final MarshallerX86 m = makeMarshaller(testcall);
+			final Marshaller m = makeMarshaller(testcall);
 			m.putINTRESOURCE((short) 1);
 			m.putNullPtr();
 			m.putINTRESOURCE((short) 0);
@@ -575,7 +578,7 @@ public class NativeCallX86Test {
 		// TEST 2
 		//
 		{
-			final MarshallerX86 m = makeMarshaller(testcall);
+			final Marshaller m = makeMarshaller(testcall);
 			m.putINTRESOURCE((short) 10001);
 			m.putPtr();
 			m.putINTRESOURCE((short) 29999);
@@ -590,7 +593,7 @@ public class NativeCallX86Test {
 		// TEST 3
 		//
 		{
-			final MarshallerX86 m = makeMarshaller(testcall);
+			final Marshaller m = makeMarshaller(testcall);
 			m.putStringPtr(Integer.toString(0xffff),
 					VariableIndirectInstruction.RETURN_RESOURCE);
 			m.putPtr();
@@ -614,7 +617,7 @@ public class NativeCallX86Test {
 		final int sizeDirect = testcall.plan.getSizeDirect();
 		final long mask = testcall.returnValueMask.value;
 		{
-			final MarshallerX86 m = makeMarshaller(testcall);
+			final Marshaller m = makeMarshaller(testcall);
 			m.putPtr();
 			m.putNullStringPtr(RETURN_JAVA_STRING);
 			m.putInt32(1);
@@ -636,7 +639,7 @@ public class NativeCallX86Test {
 		Object[] expected = { Boolean.FALSE, "hello world" };
 		for (int k = 0; k < 2; ++k) {
 			for (NativeCallX86 nativecall : VI_RETVI) {
-				final MarshallerX86 m = makeMarshaller(testcall);
+				final Marshaller m = makeMarshaller(testcall);
 				m.putBool(flag[k]);
 				m.putNullStringPtr(RETURN_JAVA_STRING);
 				nativecall.invoke(testcall.ptr, sizeDirect, m);
@@ -660,7 +663,7 @@ public class NativeCallX86Test {
 		String[] values = { null, "", "1", "22", "thrice is nice!" };
 		for (String value : values) {
 			for (NativeCallX86 nativecall : VI_RETVI) {
-				MarshallerX86 m = makeMarshaller(testcall);
+				Marshaller m = makeMarshaller(testcall);
 				// Argument
 				if (null == value) {
 					m.putNullStringPtr(NO_ACTION);
@@ -689,7 +692,7 @@ public class NativeCallX86Test {
 		String[] values = { null, "", "1", "22", "the third non-null string!" };
 		for (String value : values) {
 			for (NativeCallX86 nativecall : VI_RETVI) {
-				MarshallerX86 m = makeMarshaller(testcall);
+				Marshaller m = makeMarshaller(testcall);
 				// Arguments
 				m.putPtr();
 				if (null == value) {
@@ -722,7 +725,7 @@ public class NativeCallX86Test {
 		for (String value : values) {
 			for (int bufferSize : bufferSizes) {
 				for (NativeCallX86 nativecall : VI_RETVI) {
-					MarshallerX86 m = makeMarshaller(testcall);
+					Marshaller m = makeMarshaller(testcall);
 					// Arguments
 					if (null == value) {
 						m.putNullStringPtr(NO_ACTION);

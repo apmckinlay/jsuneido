@@ -7,7 +7,9 @@ package suneido.jsdi.abi.x86;
 import suneido.jsdi.Dll;
 import suneido.jsdi.DllFactory;
 import suneido.jsdi.DllInterface;
-import suneido.jsdi.ReturnTypeGroup;
+import suneido.jsdi.marshall.MarshallPlan;
+import suneido.jsdi.marshall.Marshaller;
+import suneido.jsdi.marshall.ReturnTypeGroup;
 import suneido.jsdi.type.InOutString;
 import suneido.jsdi.type.Type;
 import suneido.jsdi.type.TypeList;
@@ -70,8 +72,8 @@ final class DllX86 extends Dll {
 	@Override
 	public Object call(Object... args) {
 		args = Args.massage(super.params, args);
-		final MarshallPlanX86 plan = getMarshallPlan();
-		final MarshallerX86 m = plan.makeMarshallerX86();
+		final MarshallPlan plan = getMarshallPlan();
+		final Marshaller m = plan.makeMarshaller();
 		dllParams.marshallInParams(m, args);
 		returnType.marshallInReturnValue(m);
 		NativeCallX86 nc = null == nativeCall ? NativeCallX86.get(

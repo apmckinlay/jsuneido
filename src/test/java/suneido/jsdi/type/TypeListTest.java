@@ -15,10 +15,11 @@ import org.junit.Test;
 
 import suneido.SuContainer;
 import suneido.jsdi.Buffer;
+import suneido.jsdi.DllInterface;
 import suneido.jsdi.JSDI;
-import suneido.jsdi.Marshaller;
 import suneido.jsdi.SimpleContext;
 import suneido.jsdi.StorageType;
+import suneido.jsdi.marshall.Marshaller;
 import suneido.jsdi.type.BasicArray;
 import suneido.jsdi.type.BasicType;
 import suneido.jsdi.type.BasicValue;
@@ -38,6 +39,7 @@ import suneido.util.testing.Assumption;
  * @author Victor Schappert
  * @since 20130722
  */
+@DllInterface
 public class TypeListTest {
 
 	@BeforeClass

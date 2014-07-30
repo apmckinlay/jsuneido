@@ -8,9 +8,9 @@ import javax.annotation.concurrent.Immutable;
 
 import suneido.SuInternalError;
 import suneido.jsdi.DllInterface;
-import suneido.jsdi.MarshallPlanBuilder;
-import suneido.jsdi.Marshaller;
 import suneido.jsdi.StorageType;
+import suneido.jsdi.marshall.MarshallPlanBuilder;
+import suneido.jsdi.marshall.Marshaller;
 
 /**
  * Pseudo-type representing the "type" of the return value of a {@code void}

@@ -16,6 +16,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import suneido.SuValue;
+import suneido.jsdi.DllInterface;
 import suneido.jsdi.SimpleContext;
 import suneido.jsdi.com.COMException;
 import suneido.jsdi.com.COMobject;
@@ -29,6 +30,7 @@ import suneido.util.testing.Assumption;
  * @author Victor Schappert
  * @since 20130928
  */
+@DllInterface
 public class COMobjectTest {
 
 	@BeforeClass

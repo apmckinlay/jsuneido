@@ -8,8 +8,8 @@ import suneido.jsdi.Dll;
 import suneido.jsdi.DllFactory;
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.JSDI;
-import suneido.jsdi.MarshallPlan.StorageCategory;
-import suneido.jsdi.ReturnTypeGroup;
+import suneido.jsdi.marshall.ReturnTypeGroup;
+import suneido.jsdi.marshall.MarshallPlan.StorageCategory;
 import suneido.jsdi.type.Type;
 import suneido.jsdi.type.TypeList;
 

@@ -5,15 +5,16 @@
 package suneido.jsdi.abi.x86;
 
 import static suneido.SuInternalError.unhandledEnum;
-import static suneido.jsdi.MarshallPlan.StorageCategory;
-import static suneido.jsdi.MarshallPlan.StorageCategory.DIRECT;
-import static suneido.jsdi.MarshallPlan.StorageCategory.INDIRECT;
-import static suneido.jsdi.MarshallPlan.StorageCategory.VARIABLE_INDIRECT;
-import static suneido.jsdi.ReturnTypeGroup.DOUBLE;
-import static suneido.jsdi.ReturnTypeGroup.INTEGER;
-import suneido.jsdi.MarshallPlan;
+import static suneido.jsdi.marshall.MarshallPlan.StorageCategory;
+import static suneido.jsdi.marshall.MarshallPlan.StorageCategory.DIRECT;
+import static suneido.jsdi.marshall.MarshallPlan.StorageCategory.INDIRECT;
+import static suneido.jsdi.marshall.MarshallPlan.StorageCategory.VARIABLE_INDIRECT;
+import static suneido.jsdi.marshall.ReturnTypeGroup.DOUBLE;
+import static suneido.jsdi.marshall.ReturnTypeGroup.INTEGER;
 import suneido.jsdi.DllInterface;
-import suneido.jsdi.ReturnTypeGroup;
+import suneido.jsdi.marshall.MarshallPlan;
+import suneido.jsdi.marshall.Marshaller;
+import suneido.jsdi.marshall.ReturnTypeGroup;
 
 /**
  * Contains logic for describing and making {@code dll} calls on x86.
@@ -70,7 +71,7 @@ enum NativeCallX86 {
 		return returnTypeGroup;
 	}
 
-	public long invoke(long funcPtr, int sizeDirect, MarshallerX86 marshaller) {
+	public long invoke(long funcPtr, int sizeDirect, Marshaller marshaller) {
 		switch (this) {
 		case DIRECT_RETURN_INT64:
 			return callDirectReturnInt64(funcPtr, sizeDirect,
@@ -143,26 +144,26 @@ enum NativeCallX86 {
 	//
 
 	private static native long callDirectReturnInt64(long funcPtr,
-			int sizeDirect, int[] args);
+			int sizeDirect, long[] args);
 
 	private static native long callIndirectReturnInt64(long funcPtr,
-			int sizeDirect, int[] args, int[] ptrArray);
+			int sizeDirect, long[] args, int[] ptrArray);
 
 	private static native long callVariableIndirectReturnInt64(long funcPtr,
-			int sizeDirect, int[] args, int[] ptrArray, Object[] viArray,
+			int sizeDirect, long[] args, int[] ptrArray, Object[] viArray,
 			int[] viInst);
 
 	private static native long callDirectReturnDouble(long funcPtr,
-			int sizeDirect, int[] args);
+			int sizeDirect, long[] args);
 
 	private static native long callIndirectReturnDouble(long funcPtr,
-			int sizeDirect, int[] args, int[] ptrArray);
+			int sizeDirect, long[] args, int[] ptrArray);
 
 	private static native long callVariableIndirectReturnDouble(long funcPtr,
-			int sizeDirect, int[] args, int[] ptrArray, Object[] viArray,
+			int sizeDirect, long[] args, int[] ptrArray, Object[] viArray,
 			int[] viInst);
 
 	private static native void callVariableIndirectReturnVariableIndirect(
-			long funcPtr, int sizeDirect, int[] args, int[] ptrArray,
+			long funcPtr, int sizeDirect, long[] args, int[] ptrArray,
 			Object[] viArray, int[] viInst);
 }

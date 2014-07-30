@@ -13,7 +13,9 @@ import java.util.EnumSet;
 
 import org.junit.Test;
 
-import suneido.jsdi.MarshallPlanBuilder;
+import suneido.jsdi.DllInterface;
+import suneido.jsdi.marshall.MarshallPlanBuilder;
+import suneido.jsdi.marshall.Marshaller;
 import suneido.jsdi.type.BasicType;
 import suneido.jsdi.type.BasicValue;
 import suneido.jsdi.type.BasicValueTest.BasicTypeSet;
@@ -25,6 +27,7 @@ import suneido.jsdi.type.BasicValueTest.BasicTypeSet;
  * @since 20140719
  * @see suneido.jsdi.type.BasicValueTest
  */
+@DllInterface
 public class BasicValueTestX86 {
 
 	//
@@ -41,7 +44,7 @@ public class BasicValueTestX86 {
 			type.addToPlan(builder, false);
 			MarshallPlanX86 mp = (MarshallPlanX86)builder.makeMarshallPlan();
 			for (Object value : bts.values) {
-				MarshallerX86 m = mp.makeMarshallerX86();
+				Marshaller m = mp.makeMarshaller();
 				type.marshallIn(m, value);
 				m.rewind();
 				assertEquals(value, type.marshallOut(m, null));

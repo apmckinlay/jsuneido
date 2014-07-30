@@ -10,22 +10,21 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import suneido.jsdi.Buffer;
+import suneido.jsdi.DllInterface;
 import suneido.jsdi._64BitIssue;
-import suneido.jsdi.abi.x86.MarshallPlanBuilderX86;
-import suneido.jsdi.abi.x86.MarshallPlanX86;
-import suneido.jsdi.abi.x86.StructureX86;
 import suneido.jsdi.type.Structure;
 import suneido.jsdi.type.StructureTest;
 import suneido.util.testing.Assumption;
 
 /**
- * Test for {@link StructureX86}.
+ * x86-specific tests for {@link Structure}.
  *
  * @author Victor Schappert
  * @since 20140719
  * @see suneido.jsdi.type.StructureTest
  */
-public class StructureX86Test {
+@DllInterface
+public class StructureTestX86 {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -119,19 +118,19 @@ public class StructureX86Test {
 	@Test
 	@_64BitIssue // TODO: Make AMD64 test for this
 	public void testMarshallPlan() {
-		assertEquals("MarshallPlan[ 16, 16, { }, { 0, 4, 8, 12 }, #vi:0 ]",
+		assertEquals("MarshallPlanX86[ 16, 16, { }, { 0, 4, 8, 12 }, #vi:0 ]",
 				getMarshallPlan("RECT").toString());
-		assertEquals("MarshallPlan[ 8, 8, { }, { 0, 4 }, #vi:0 ]",
+		assertEquals("MarshallPlanX86[ 8, 8, { }, { 0, 4 }, #vi:0 ]",
 				getMarshallPlan("POINT").toString());
 		assertEquals(
-				"MarshallPlan[ 64, 84, { 4:64, 15:80 }, " +
+				"MarshallPlanX86[ 64, 88, { 16:64, 60:80 }, " +
 					"{ 0, 4, 8, 12, 16, 64, 68, 72, 76, 20, 24, 28, 32, 36, " +
 					"40, 44, 48, 52, 56, 60, 80 }, #vi:0 ]",
 				getMarshallPlan("TwoTierStruct").toString());
 		assertEquals(
-				"MarshallPlan[ 260, 424, " +
-					"{ 4:260, 15:276, 16:280, 74:344, 85:360, 21:364, 32:380, 37:384, " +
-					"48:400, 53:404, 64:420 }, " +
+				"MarshallPlanX86[ 260, 424, " +
+					"{ 16:260, 60:276, 64:280, 296:344, 340:360, 84:364, 128:380, 148:384, " +
+					"192:400, 212:404, 256:420 }, " +
 						// tts1
 					"{ 0, 4, 8, 12, 16, 260, 264, 268, 272, 20, 24, 28, 32, 36, " +
 						"40, 44, 48, 52, 56, 60, 276, " +
@@ -149,22 +148,22 @@ public class StructureX86Test {
 						"228, 232, 236, 240, 244, 248, 252, 256, 420 " +
 					"}, #vi:0 ]",
 				getMarshallPlan("ThreeTierStruct").toString());
-		assertEquals("MarshallPlan[ 12, 12, { 1:12 }, { 0, 2, 4, 8 }, #vi:1 ]",
+		assertEquals("MarshallPlanX86[ 12, 16, { 4:16 }, { 0, 2, 4, 8 }, #vi:1 ]",
 				getMarshallPlan("StringStruct1").toString());
 		assertEquals(
-				"MarshallPlan[ 36, 36, { 1:36, 4:37, 8:38 }, " +
+				"MarshallPlanX86[ 36, 40, { 4:40, 16:41, 32:42 }, " +
 				"{ 0, 2, 4, 8, 12, 14, 16, 20, 24, 32 }, #vi:3 ]",
 				getMarshallPlan("StringStruct2").toString());
 		assertEquals(
-				"MarshallPlan[ 44, 80, { 2:80, 5:81, 9:82, 10:44, 12:83, 15:84, 19:85 }, " +
+				"MarshallPlanX86[ 44, 80, { 8:80, 20:81, 36:82, 40:44, 48:83, 60:84, 76:85 }, " +
 					"{ 0, 4, 6, 8, 12, 16, 18, 20, 24, 28, 36, 40, " +
 					"44, 46, 48, 52, 56, 58, 60, 64, 68, 76 }, #vi:6 ]",
 				getMarshallPlan("StringStruct3").toString());
 		assertEquals(
-				"MarshallPlan[ 8, 8, { }, { 0, 1, 2, 4 }, #vi:0 ]",
+				"MarshallPlanX86[ 8, 8, { }, { 0, 1, 2, 4 }, #vi:0 ]",
 				getMarshallPlan("Packed_CharCharShortLong").toString());
 		assertEquals(
-				"MarshallPlan[ 32, 64, { 4:64, 5:65, 7:32, 12:66, 13:67 }, " +
+				"MarshallPlanX86[ 32, 64, { 16:64, 20:65, 28:32, 48:66, 52:67 }, " +
 					"{ 0, 1, 2, 4, 8, 9, 10, 12, 16, 20, 24, 28, " +
 						"32, 33, 34, 36, 40, 41, 42, 44, 48, 52, 56, 60 }, #vi:4 ]",
 				getMarshallPlan("Recursive_StringSum1").toString());

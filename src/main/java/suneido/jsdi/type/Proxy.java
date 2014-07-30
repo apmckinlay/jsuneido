@@ -7,12 +7,12 @@ package suneido.jsdi.type;
 import static suneido.SuInternalError.unhandledEnum;
 import suneido.SuContainer;
 import suneido.jsdi.DllInterface;
-import suneido.jsdi.ElementSkipper;
-import suneido.jsdi.MarshallPlanBuilder;
-import suneido.jsdi.Marshaller;
-import suneido.jsdi.ObjectConversions;
-import suneido.jsdi.PrimitiveSize;
 import suneido.jsdi.StorageType;
+import suneido.jsdi.marshall.ElementSkipper;
+import suneido.jsdi.marshall.MarshallPlanBuilder;
+import suneido.jsdi.marshall.Marshaller;
+import suneido.jsdi.marshall.ObjectConversions;
+import suneido.jsdi.marshall.PrimitiveSize;
 import suneido.language.Context;
 import suneido.language.Ops;
 

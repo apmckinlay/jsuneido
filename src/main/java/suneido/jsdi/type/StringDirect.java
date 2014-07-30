@@ -7,6 +7,8 @@ package suneido.jsdi.type;
 import javax.annotation.concurrent.Immutable;
 
 import suneido.jsdi.*;
+import suneido.jsdi.marshall.Marshaller;
+import suneido.jsdi.marshall.PrimitiveSize;
 
 /**
  * <p>

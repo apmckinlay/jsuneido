@@ -5,7 +5,7 @@
 package suneido.jsdi.abi.x86;
 
 import suneido.jsdi.DllInterface;
-import suneido.jsdi.MarshallPlan;
+import suneido.jsdi.marshall.MarshallPlan;
 import suneido.jsdi.type.TypeList;
 
 /**

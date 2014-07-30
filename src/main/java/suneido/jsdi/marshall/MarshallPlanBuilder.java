@@ -2,11 +2,11 @@
  * Licensed under GPLv2.
  */
 
-package suneido.jsdi;
+package suneido.jsdi.marshall;
 
 import java.util.ArrayList;
 
-import suneido.util.Util;
+import suneido.jsdi.DllInterface;
 
 import com.google.common.primitives.Ints;
 
@@ -41,7 +41,6 @@ public abstract class MarshallPlanBuilder {
 	// CONSTANTS
 	//
 
-	private static final int PTR_LOG2 = Util.log2(PrimitiveSize.POINTER);
 	private static final int INDIRECT_MASK = 0x40000000; // Indicates a position is in the indirect storage part
 	private static final int VI_MASK = 0x20000000; // Indicates a variable indirect storage index 
 
@@ -171,6 +170,7 @@ public abstract class MarshallPlanBuilder {
 		//       deleted in any event.
 		final int ptrPos = pos(PrimitiveSize.POINTER, PrimitiveSize.POINTER);
 		final int pointedToPos = nextAligned(nextPtdToPos, alignTo);
+		minAlignIndirect = Math.max(minAlignIndirect, alignTo);
 		nextPtdToPos = pointedToPos + pointedToSizeBytes;
 		posList.add(pointedToPos);
 		++skipper.nPos;
@@ -389,14 +389,13 @@ public abstract class MarshallPlanBuilder {
 		int[] ptrArray = null;
 		int[] posArray = null;
 		if (0 == sizeIndirect && 0 == variableIndirectCount) {
-			sizeTotal = nextAligned(sizeDirect, PrimitiveSize.WORD);
+			sizeTotal = nextAligned(sizeDirect, Long.BYTES);
 			ptrArray = new int[0];
 			posArray = Ints.toArray(posList);
 		} else {
 			final int indirectStart = nextAligned(sizeDirect,
 					Math.max(PrimitiveSize.WORD, minAlignIndirect));
-			sizeTotal = nextAligned(indirectStart + sizeIndirect,
-					PrimitiveSize.WORD);
+			sizeTotal = nextAligned(indirectStart + sizeIndirect, Long.BYTES);
 			// Splice position lists together
 			final int N = posList.size();
 			posArray = new int[N];
@@ -414,9 +413,9 @@ public abstract class MarshallPlanBuilder {
 				final int ptrByteOffset = ptrList.get(k);
 				assert 0 == ptrByteOffset % PrimitiveSize.POINTER; // TODO: You can take this out when sure it works
 				if (INDIRECT_MASK == (ptrByteOffset & INDIRECT_MASK)) {
-					ptrArray[k] = (indirectStart + (ptrByteOffset & ~INDIRECT_MASK)) >> PTR_LOG2;
+					ptrArray[k] = (indirectStart + (ptrByteOffset & ~INDIRECT_MASK));
 				} else {
-					ptrArray[k] = ptrByteOffset >> PTR_LOG2;
+					ptrArray[k] = ptrByteOffset;
 				}
 				++k;
 				final int ptdToItem = ptrList.get(k);

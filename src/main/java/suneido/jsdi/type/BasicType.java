@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import suneido.jsdi.DllInterface;
-import suneido.jsdi.PrimitiveSize;
+import suneido.jsdi.marshall.PrimitiveSize;
 
 /**
  * Enumerates the available 'basic' (<em>ie</em> non-structure, non-callback)

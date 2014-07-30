@@ -4,7 +4,8 @@
 
 package suneido.jsdi.abi.x86;
 
-import suneido.jsdi.PrimitiveSize;
+import suneido.jsdi.DllInterface;
+import suneido.jsdi.marshall.PrimitiveSize;
 
 /**
  * Simple type for masking native call return values in tests.
@@ -12,6 +13,7 @@ import suneido.jsdi.PrimitiveSize;
  * @author Victor Schappert
  * @since 20130727
  */
+@DllInterface
 public enum Mask {
 
 	VOID(0),

@@ -12,7 +12,7 @@ import java.util.Map;
 import suneido.SuValue;
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.JSDIValue;
-import suneido.jsdi.NumberConversions;
+import suneido.jsdi.marshall.NumberConversions;
 import suneido.language.*;
 
 /**

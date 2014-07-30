@@ -9,9 +9,9 @@ import static suneido.SuInternalError.unhandledEnum;
 import javax.annotation.concurrent.Immutable;
 
 import suneido.jsdi.DllInterface;
-import suneido.jsdi.Marshaller;
-import suneido.jsdi.NumberConversions;
 import suneido.jsdi.StorageType;
+import suneido.jsdi.marshall.Marshaller;
+import suneido.jsdi.marshall.NumberConversions;
 import suneido.language.Numbers;
 import suneido.language.Ops;
 

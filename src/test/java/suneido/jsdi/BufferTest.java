@@ -22,6 +22,7 @@ import suneido.language.Pack;
  * @author Victor Schappert
  * @since 20130721
  */
+@DllInterface
 public class BufferTest {
 
 	private static final Buffer copyBuffer(Buffer buffer) {

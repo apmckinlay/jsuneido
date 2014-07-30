@@ -5,13 +5,14 @@
 package suneido.jsdi;
 
 import static suneido.jsdi.Platform.WIN32_X86;
-import static suneido.jsdi.VariableIndirectInstruction.NO_ACTION;
-import suneido.jsdi.MarshallPlan;
-import suneido.jsdi.Marshaller;
+import static suneido.jsdi.marshall.VariableIndirectInstruction.NO_ACTION;
 import suneido.jsdi.Platform;
-import suneido.jsdi.PrimitiveSize;
 import suneido.jsdi.abi.x86.MarshallTestUtilX86;
 import suneido.jsdi.abi.x86.Mask;
+import suneido.jsdi.marshall.MarshallPlan;
+import suneido.jsdi.marshall.MarshallTestUtil;
+import suneido.jsdi.marshall.Marshaller;
+import suneido.jsdi.marshall.PrimitiveSize;
 
 /**
  * Should be kept in sync with {@code test_exports.h/cpp}.

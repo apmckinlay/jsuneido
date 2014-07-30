@@ -4,14 +4,14 @@
 
 package suneido.jsdi.type;
 
-import static suneido.jsdi.VariableIndirectInstruction.RETURN_JAVA_STRING;
+import static suneido.jsdi.marshall.VariableIndirectInstruction.RETURN_JAVA_STRING;
 
 import javax.annotation.concurrent.Immutable;
 
 import suneido.jsdi.Buffer;
 import suneido.jsdi.DllInterface;
-import suneido.jsdi.Marshaller;
-import suneido.jsdi.VariableIndirectInstruction;
+import suneido.jsdi.marshall.Marshaller;
+import suneido.jsdi.marshall.VariableIndirectInstruction;
 
 /**
  * <p>

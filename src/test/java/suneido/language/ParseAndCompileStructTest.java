@@ -14,7 +14,7 @@ import org.junit.Test;
 import suneido.SuException;
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.JSDIException;
-import suneido.jsdi.PrimitiveSize;
+import suneido.jsdi.marshall.PrimitiveSize;
 import suneido.util.testing.Assumption;
 
 /**

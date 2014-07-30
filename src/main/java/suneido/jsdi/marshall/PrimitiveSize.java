@@ -2,8 +2,10 @@
  * Licensed under GPLv2.
  */
 
-package suneido.jsdi;
+package suneido.jsdi.marshall;
 
+import suneido.jsdi.DllInterface;
+import suneido.jsdi.Platform;
 import suneido.jsdi.type.BasicType;
 
 /**
@@ -79,47 +81,35 @@ public final class PrimitiveSize {
 	public static final int GDIOBJ = POINTER;
 
 	/**
-	 * Returns the minimum number of whole words that completely contains the
-	 * given number of bytes.
+	 * Returns the minimum number of contiguous Java <code><b>long</b></code>
+	 * values that completely contain the given number of bytes.
 	 * 
 	 * @param bytes
 	 *            Number of bytes
-	 * @return Number of whole words that completely contains {@bytes}
-	 * @see #sizeWholeWords(int)
-	 * @see #numWholeWords(int)
+	 * @return Minimum number of <code><b>long</b></code> values that completely
+	 *         contain {@code bytes}
+	 * @since 20140729
+	 * @see #sizeLongs(int)
 	 */
-	public static int minWholeWords(int bytes) {
-		return (bytes + WORD - 1) / WORD;
+	public static int minLongs(int bytes) {
+		return ((bytes + Long.BYTES - 1) / Long.BYTES);
 	}
 
 	/**
-	 * Returns the number of bytes taken by the minimum number of whole words
-	 * which contain the given number of bytes.
+	 * Returns the number of bytes taken by the minimum number of contiguous
+	 * Java <code><b>long</b></code> values which contain the given number of
+	 * bytes.
 	 * 
 	 * @param bytes
 	 *            Number of bytes
-	 * @return Number of bytes occupied by the minimum number of whole words
-	 *         which completely contain {@bytes}
-	 * @see #minWholeWords(int)
-	 * @see #numWholeWords(int)
+	 * @return Number of bytes occupied by the minimum number of
+	 *        <code><b>long</b></code> values which completely contain
+	 *        {@code bytes}
+	 * @since 20140729
+	 * @see #minLongs(int)
 	 */
-	public static int sizeWholeWords(int bytes) {
-		return minWholeWords(bytes) * WORD;
-	}
-
-	/**
-	 * Returns the number of whole words whose size is exactly equal to the
-	 * given quantity of bytes.
-	 * 
-	 * @param bytes
-	 *            Number of bytes <em>must be a multiple of </em> {@link #WORD}
-	 * @return Number of words whose size is exactly equal to {@code bytes}
-	 * @since 20140724
-	 * @see #sizeWholeWords(int)
-	 */
-	public static int numWholeWords(int bytes) {
-		assert 0 == bytes % WORD : "not a whole word multiple: " + bytes;
-		return bytes / WORD;
+	public static int sizeLongs(int bytes) {
+		return minLongs(bytes) * Long.BYTES;
 	}
 
 	// Don't instantiate!

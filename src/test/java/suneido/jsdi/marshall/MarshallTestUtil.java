@@ -1,11 +1,12 @@
-package suneido.jsdi;
+package suneido.jsdi.marshall;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
 import suneido.jsdi.Buffer;
-import suneido.jsdi.MarshallPlan;
+import suneido.jsdi.DllInterface;
+import suneido.jsdi.marshall.MarshallPlan;
 
 /**
  * Utility methods for testing marshalling.
@@ -13,7 +14,16 @@ import suneido.jsdi.MarshallPlan;
  * @author Victor Schappert
  * @since 20140719
  */
+@DllInterface
 public class MarshallTestUtil {
+
+	public static int minWholeWords(int bytes) {
+		return (bytes + PrimitiveSize.WORD - 1) / PrimitiveSize.WORD;
+	}
+
+	public static int sizeWholeWords(int bytes) {
+		return minWholeWords(bytes) * PrimitiveSize.WORD;
+	}
 
 	public static class Recursive_StringSum {
 		public byte a1;

@@ -2,7 +2,9 @@
  * Licensed under GPLv2.
  */
 
-package suneido.jsdi;
+package suneido.jsdi.marshall;
+
+import suneido.jsdi.DllInterface;
 
 /**
  * For a container type such as a {@code struct} or an array of {@code struct},

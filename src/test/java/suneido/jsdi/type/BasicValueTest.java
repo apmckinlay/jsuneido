@@ -18,6 +18,7 @@ import static suneido.jsdi.type.BasicType.OPAQUE_POINTER;
 
 import org.junit.Test;
 
+import suneido.jsdi.DllInterface;
 import suneido.jsdi.type.BasicType;
 import suneido.jsdi.type.BasicValue;
 import suneido.language.Numbers;
@@ -29,6 +30,7 @@ import suneido.language.Numbers;
  * @since 20130718
  * @see suneido.jsdi.abi.x86.BasicValueTestX86
  */
+@DllInterface
 public class BasicValueTest {
 
 	public static BasicValue bv(BasicType basicType) {
