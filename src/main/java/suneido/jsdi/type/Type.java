@@ -63,7 +63,8 @@ public abstract class Type extends JSDIValue {
 	 * </p>
 	 * <p>
 	 * The marshall plan for a 'closed' type is fixed at compile time. The type
-	 * doesn't contain any proxies which need to be resolved at runtime.
+	 * doesn't contain any late-binding types which need to be bound to concrete
+	 * types at runtime.
 	 * </p>
 	 * 
 	 * @return Whether this type is closed
@@ -73,10 +74,28 @@ public abstract class Type extends JSDIValue {
 		return true;
 	}
 
+	/**
+	 * <p>
+	 * Indicates the broad behaviour category of this type. For example, a Type
+	 * which behaves like a basic type (<em>eg</em> {@link BasicType} or
+	 * {@link BasicArray}) will return {@link TypeId#BASIC}. 
+	 * </p>
+	 *
+	 * @return Type identifier of this type
+	 * @see suneido.jsdi.marshall.ReturnTypeGroup
+	 */
 	public final TypeId getTypeId() {
 		return typeId;
 	}
 
+	/**
+	 * <p>
+	 * Indicates whether this type describes a single value, an array of values,
+	 * or a pointer to a value.
+	 * </p>
+	 *
+	 * @return Storage type of this type
+	 */
 	public final StorageType getStorageType() {
 		return storageType;
 	}

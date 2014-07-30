@@ -17,12 +17,17 @@ import suneido.language.Context;
 import suneido.language.Ops;
 
 /**
- * TODO: docs
+ * <p>
+ * Indirect reference to a type via a name. Because Suneido is a dynamic
+ * language, the underlying type bound to a LateBind's name may change as the
+ * program executes.
+ * </p>
+ * 
  * @author Victor Schappert
  * @since 20130625
  */
 @DllInterface
-public final class Proxy extends Type {
+public final class LateBinding extends Type {
 
 	//
 	// DATA
@@ -31,37 +36,37 @@ public final class Proxy extends Type {
 	/**
 	 * <p>
 	 * Naming context for looking up the Suneido language object which this
-	 * proxy refers to (hopefully it is a {@link Structure} or {@link Callback},
-	 * or else the user will get a runtime error).
+	 * late binding type refers to (hopefully it is a {@link Structure} or
+	 * {@link Callback}, or else the user will get a runtime error).
 	 * </p>
 	 * <p>
 	 * Conceptually, the context variable <em>could</em> be carried around
 	 * either by this class or, in the alternative, by {@link TypeList}.
 	 * However, because the vast majority of existing Suneido structs (as of
-	 * 20130702) are relatively flat (<em>ie</em> they don't contain any proxies
-	 * at all), the system will be more lightweight in general if the context
-	 * belongs to the proxy.
+	 * 20130702) are relatively flat (<em>ie</em> they don't contain any
+	 * late-binding types at all), the system will be more lightweight in
+	 * general if the context belongs to the late-binding type.
 	 * </p>
 	 */
 	private final Context context;
 	private final int typeNameSlot;
 	private final StorageType storageType;
 	private final int numElems;
-	private ComplexType lastResolvedType;
+	private ComplexType lastBoundType;
 	private ElementSkipper skipper;
 
 	//
 	// CONSTRUCTORS
 	//
 
-	public Proxy(Context context, int typeNameSlot, StorageType storageType,
+	public LateBinding(Context context, int typeNameSlot, StorageType storageType,
 			int numElems) {
-		super(TypeId.PROXY, storageType);
+		super(TypeId.LATE_BIND, storageType);
 		this.context = context;
 		this.typeNameSlot = typeNameSlot;
 		this.storageType = storageType;
 		this.numElems = numElems;
-		this.lastResolvedType = null;
+		this.lastBoundType = null;
 		this.skipper = null;
 	}
 
@@ -69,11 +74,30 @@ public final class Proxy extends Type {
 	// ACCESSORS
 	//
 
-	final boolean resolve(int level) throws ProxyResolveException {
+	/**
+	 * <p>
+	 * Binds this late-binding type to a concrete instance of
+	 * {@link ComplexType}, and then binds the type tree rooted at that
+	 * complex type. Returns a value indicating whether the type tree has
+	 * changed since the last bind operation.
+	 * </p>
+	 * 
+	 * @param level
+	 *            Level of the tree at which the bind operation was requested (0
+	 *            being the root)&mdash;necessary for detecting cycles in the
+	 *            type hierarchy
+	 * @return If the type tree has changed since the last bind, {@code true};
+	 *         otherwise, {@code false}
+	 * @throws BindException
+	 *             If any part of the type tree could not be bound to its
+	 *             underlying type
+	 * @see {@link ComplexType#bind(int)}
+	 */
+	final boolean bind(int level) throws BindException {
 		final Object maybeType = context.tryget(typeNameSlot);
 		if (null != maybeType) {
-			if (maybeType == lastResolvedType) {
-				return lastResolvedType.resolve(level);
+			if (maybeType == lastBoundType) {
+				return lastBoundType.bind(level);
 			} else if (maybeType instanceof ComplexType) {
 				// TODO: [CONCURRENCY]. At the point at which we detect this
 				//                      change for the first time, we'll need
@@ -81,13 +105,13 @@ public final class Proxy extends Type {
 				//                      be best to pass it as a parameter) so
 				//                      that concurrent threads don't mess up
 				//                      the same types
-				lastResolvedType = (ComplexType) maybeType;
-				lastResolvedType.resolve(level);
+				lastBoundType = (ComplexType) maybeType;
+				lastBoundType.bind(level);
 				return true;
 			}
 		}
 		final Class<?> clazz = null == maybeType ? null : maybeType.getClass();
-		throw new ProxyResolveException(this, clazz);
+		throw new BindException(this, clazz);
 	}
 
 	final String getUnderlyingTypeName() {
@@ -124,9 +148,9 @@ public final class Proxy extends Type {
 	public int getSizeDirect() {
 		switch (storageType) {
 		case VALUE:
-			return lastResolvedType.getSizeDirect();
+			return lastBoundType.getSizeDirect();
 		case ARRAY:
-			return lastResolvedType.getSizeDirect() * numElems;
+			return lastBoundType.getSizeDirect() * numElems;
 		case POINTER:
 			return PrimitiveSize.POINTER;
 		default:
@@ -138,12 +162,12 @@ public final class Proxy extends Type {
 	public int getSizeIndirect() {
 		switch (storageType) {
 		case VALUE:
-			return lastResolvedType.getSizeIndirect();
+			return lastBoundType.getSizeIndirect();
 		case ARRAY:
-			return lastResolvedType.getSizeIndirect() * numElems;
+			return lastBoundType.getSizeIndirect() * numElems;
 		case POINTER:
-			return lastResolvedType.getSizeDirect() +
-					lastResolvedType.getSizeIndirect();
+			return lastBoundType.getSizeDirect() +
+					lastBoundType.getSizeIndirect();
 		default:
 			throw unhandledEnum(StorageType.class);
 		}
@@ -154,9 +178,9 @@ public final class Proxy extends Type {
 		switch (storageType) {
 		case VALUE: // fall through
 		case POINTER:
-			return lastResolvedType.getVariableIndirectCount();
+			return lastBoundType.getVariableIndirectCount();
 		case ARRAY:
-			return numElems * lastResolvedType.getVariableIndirectCount();
+			return numElems * lastBoundType.getVariableIndirectCount();
 		default:
 			throw unhandledEnum(StorageType.class);
 		}
@@ -166,24 +190,24 @@ public final class Proxy extends Type {
 	public void addToPlan(MarshallPlanBuilder builder, boolean isCallbackPlan) {
 		switch (storageType) {
 		case VALUE:
-			lastResolvedType.addToPlan(builder, isCallbackPlan);
-			skipper = lastResolvedType.skipper;
+			lastBoundType.addToPlan(builder, isCallbackPlan);
+			skipper = lastBoundType.skipper;
 			break;
 		case ARRAY:
 			builder.arrayBegin();
 			for (int k = 0; k < numElems; ++k) {
 				// NOTE: This is doing a lot of extra work that could as easily
 				//       be done by multiplication... Not ideal.
-				lastResolvedType.addToPlan(builder, isCallbackPlan);
+				lastBoundType.addToPlan(builder, isCallbackPlan);
 			}
 			skipper = builder.arrayEnd();
 			break;
 		case POINTER:
-			builder.ptrBegin(lastResolvedType.getSizeDirect(),
-					lastResolvedType.getAlignDirect());
-			lastResolvedType.addToPlan(builder, isCallbackPlan);
+			builder.ptrBegin(lastBoundType.getSizeDirect(),
+					lastBoundType.getAlignDirect());
+			lastBoundType.addToPlan(builder, isCallbackPlan);
 			builder.ptrEnd();
-			skipper = lastResolvedType.skipper;
+			skipper = lastBoundType.skipper;
 			break;
 		}
 	}
@@ -193,7 +217,7 @@ public final class Proxy extends Type {
 		switch (storageType) {
 		case VALUE:
 			if (null != value) {
-				lastResolvedType.marshallIn(marshaller, value);
+				lastBoundType.marshallIn(marshaller, value);
 			} else {
 				marshaller.skipComplexElement(skipper);
 			}
@@ -201,7 +225,7 @@ public final class Proxy extends Type {
 		case POINTER:
 			if (! isNullPointerEquivalent(value)) {
 				marshaller.putPtr();
-				lastResolvedType.marshallIn(marshaller, value);
+				lastBoundType.marshallIn(marshaller, value);
 			} else {
 				marshaller.putNullPtr();
 				marshaller.skipComplexElement(skipper);
@@ -212,7 +236,7 @@ public final class Proxy extends Type {
 			if (null != c) {
 				for (int k = 0; k < numElems; ++k) {
 					value = c.get(k);
-					lastResolvedType.marshallIn(marshaller, value);
+					lastBoundType.marshallIn(marshaller, value);
 				}
 			} else {
 				marshaller.skipComplexElement(skipper);
@@ -227,7 +251,7 @@ public final class Proxy extends Type {
 	public Object marshallOut(Marshaller marshaller, Object oldValue) {
 		switch (storageType) {
 		case VALUE:
-			return lastResolvedType.marshallOut(marshaller, oldValue);
+			return lastBoundType.marshallOut(marshaller, oldValue);
 		case POINTER:
 			if (marshaller.isPtrNull()) {
 				marshaller.skipComplexElement(skipper);
@@ -236,7 +260,7 @@ public final class Proxy extends Type {
 				if (! (oldValue instanceof SuContainer) &&
 						isNullPointerEquivalent(oldValue))
 					oldValue = null;
-				return lastResolvedType.marshallOut(marshaller, oldValue);
+				return lastBoundType.marshallOut(marshaller, oldValue);
 			}
 		case ARRAY:
 			final SuContainer c = ObjectConversions.containerOrThrow(oldValue,
@@ -244,7 +268,7 @@ public final class Proxy extends Type {
 			if (c == oldValue) {
 				for (int k = 0; k < numElems; ++k) {
 					oldValue = c.getIfPresent(k);
-					Object newValue = lastResolvedType.marshallOut(marshaller,
+					Object newValue = lastBoundType.marshallOut(marshaller,
 							oldValue);
 					if (!newValue.equals(oldValue)) {
 						c.insert(k, newValue);
@@ -252,7 +276,7 @@ public final class Proxy extends Type {
 				}
 			} else {
 				for (int k = 0; k < numElems; ++k) {
-					Object newValue = lastResolvedType.marshallOut(marshaller,
+					Object newValue = lastBoundType.marshallOut(marshaller,
 							null);
 					c.insert(k, newValue);
 				}
@@ -265,6 +289,6 @@ public final class Proxy extends Type {
 
 	@Override
 	public void putMarshallOutInstruction(Marshaller marshaller) {
-		lastResolvedType.putMarshallOutInstruction(marshaller);
+		lastBoundType.putMarshallOutInstruction(marshaller);
 	}
 }

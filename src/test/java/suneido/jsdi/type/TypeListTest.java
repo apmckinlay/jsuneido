@@ -25,7 +25,7 @@ import suneido.jsdi.type.BasicType;
 import suneido.jsdi.type.BasicValue;
 import suneido.jsdi.type.InOutString;
 import suneido.jsdi.type.InString;
-import suneido.jsdi.type.Proxy;
+import suneido.jsdi.type.LateBinding;
 import suneido.jsdi.type.ResourceType;
 import suneido.jsdi.type.Type;
 import suneido.jsdi.type.TypeList;
@@ -78,9 +78,9 @@ public class TypeListTest {
 		return new SuContainer(Arrays.asList(elements));
 	}
 
-	private static Proxy proxy(String typeName, StorageType storageType,
+	private static LateBinding proxy(String typeName, StorageType storageType,
 			int numElems) {
-		return new Proxy(CONTEXT, CONTEXT.slotForName(typeName), storageType,
+		return new LateBinding(CONTEXT, CONTEXT.slotForName(typeName), storageType,
 				numElems);
 	}
 
@@ -163,7 +163,7 @@ public class TypeListTest {
 			TypeList tl = makeParams("c", proxy("CIRCLE", StorageType.VALUE, 1));
 			Object[] args1 = new Object[] { new SuContainer() };
 			Object[] args2 = new Object[] { new SuContainer() };
-			tl.resolve(0);
+			tl.bind(0);
 			Marshaller m = tl.makeParamsMarshallPlan(isCallbackPlan, false)
 					.makeMarshaller();
 			tl.marshallInParams(m, args1);
@@ -184,7 +184,7 @@ public class TypeListTest {
 			Object[] args1 = new Object[] { ca(CIRCLE_Radius(19),
 					CIRCLE(-1.0, -2.0, 123456.125)) };
 			Object[] args2 = new Object[] { new SuContainer() };
-			tl.resolve(0);
+			tl.bind(0);
 			Marshaller m = tl.makeParamsMarshallPlan(isCallbackPlan, false)
 					.makeMarshaller();
 			tl.marshallInParams(m, args1);
@@ -207,7 +207,7 @@ public class TypeListTest {
 					proxy("CIRCLE", StorageType.POINTER, 1));
 			Object[] args1 = new Object[] { CIRCLE(-1.0, -2.0, 123456.125) };
 			Object[] args2 = new Object[] { new SuContainer() };
-			tl.resolve(0);
+			tl.bind(0);
 			Marshaller m = tl.makeParamsMarshallPlan(isCallbackPlan, false)
 					.makeMarshaller();
 			tl.marshallInParams(m, args1);

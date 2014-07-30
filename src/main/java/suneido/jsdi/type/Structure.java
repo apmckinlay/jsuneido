@@ -30,8 +30,8 @@ import suneido.language.SuCallable;
  * </p>
  * <p>
  * This class is <em>not</em> immutable because certain internal characteristics
- * may change depending on the current resolved value of any members that are
- * proxies.
+ * may change depending on the current bound value of any members that are
+ * late-binding types.
  * </p>
  * @author Victor Schappert
  * @since 20130625
@@ -64,7 +64,7 @@ public final class Structure extends ComplexType {
 	//
 
 	protected final MarshallPlan getMarshallPlan() {
-		if (resolve(0) || null == marshallPlan) {
+		if (bind(0) || null == marshallPlan) {
 			marshallPlan = typeList.makeMembersMarshallPlan();
 		}
 		return marshallPlan;
@@ -150,10 +150,10 @@ public final class Structure extends ComplexType {
 	// ANCESTOR CLASS: ComplexType
 	//
 
-	boolean resolve(int level) {
+	boolean bind(int level) {
 		try {
-			return typeList.resolve(level);
-		} catch (ProxyResolveException e) {
+			return typeList.bind(level);
+		} catch (BindException e) {
 			e.setMemberType("member");
 			e.setParentName(valueName());
 			throw new JSDIException(e);
@@ -289,7 +289,7 @@ public final class Structure extends ComplexType {
 	 */
 	public static Object Size(Object self) {
 		Structure struct = (Structure)self;
-		struct.resolve(0);
+		struct.bind(0);
 		return struct.getSizeDirect();
 	}
 
