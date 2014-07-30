@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 import suneido.database.server.DbmsServer;
 import suneido.intfc.database.Database;
 import suneido.intfc.database.DatabasePackage;
+import suneido.jsdi.JSDI;
 import suneido.language.Compiler;
 import suneido.language.ContextLayered;
 import suneido.language.Contexts;
@@ -145,6 +146,9 @@ public class Suneido {
 			break;
 		case VERSION:
 			System.out.println("jSuneido " + WhenBuilt.when());
+			if (JSDI.isInitialized()) {
+				System.out.println("JSDI " + JSDI.getInstance().whenBuilt());
+			}
 			System.out.println("Java " + System.getProperty("java.version")
 					+ System.getProperty("java.vm.name").replace("Java", ""));
 			break;
