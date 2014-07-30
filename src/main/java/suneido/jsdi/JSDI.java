@@ -43,8 +43,35 @@ public final class JSDI {
 
 	private static final JSDI instance;
 
+	private static final Throwable initError;
+
+	/**
+	 * <p>
+	 * Returns the singleton instance if available, or throws an internal error
+	 * otherwise.
+	 * </p>
+	 *
+	 * @return Singleton
+	 * @throws SuInternalError If not {@link #isInitialized()}
+	 */
 	public static JSDI getInstance() {
-		return instance;
+		if (null != instance) {
+			return instance;
+		} else {
+			throw new SuInternalError("failed to initialize JSDI", initError);
+		}
+	}
+
+	/**
+	 * <p>
+	 * Indicates whether the singleton instance is available.
+	 * </p>
+	 *
+	 * @return Whether {@link #getInstance()} will return the singleton instance
+	 *         rather than throwing
+	 */
+	public static boolean isInitialized() {
+		return null != instance;
 	}
 
 	//
@@ -54,12 +81,21 @@ public final class JSDI {
 	private static native void init();
 
 	static {
-		File path = new File("lib\\jsdi.dll");
-		System.load(path.getAbsolutePath());
-		// TODO: Figure out how JNA picks the correct DLL right out of the JAR
-		// and do that.
-		init();
-		instance = new JSDI();
+		Throwable initError_ = null;
+		JSDI instance_ = null;
+		try {
+			File path = new File("lib\\jsdi.dll");
+			System.load(path.getAbsolutePath());
+			// TODO: Figure out how JNA picks the correct DLL right out of the JAR
+			// and do that.
+			init();
+			instance_ = new JSDI();
+		} catch (Throwable t) {
+			initError_ = t;
+		} finally {
+			initError = initError_;
+			instance = instance_;
+		}
 	}
 
 	//
@@ -176,5 +212,14 @@ public final class JSDI {
 	 */
 	public ThunkManager getThunkManager() {
 		return thunkManager;
+	}
+
+	/**
+	 * Returns a string indicating JSDI library version information. 
+	 *
+	 * @return Library version information
+	 */
+	public String whenBuilt() {
+		return whenBuilt;
 	}
 }
