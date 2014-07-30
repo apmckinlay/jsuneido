@@ -2,7 +2,9 @@
  * Licensed under GPLv2.
  */
 
-package suneido.jsdi;
+package suneido.jsdi.marshall;
+
+import suneido.jsdi.DllInterface;
 
 /**
  * <p>
@@ -73,13 +75,13 @@ public abstract class MarshallPlan {
 	// DATA
 	//
 
-	protected final int   sizeDirect;
-	protected final int   alignDirect;
-	protected final int   sizeIndirect;
-	protected final int   sizeTotal;
-	protected final int   variableIndirectCount;
-	protected final int[] ptrArray; // Pairs<x, y> => x: ptr idx, y: byte idx
-	protected final int[] posArray; // Byte indices
+	private final int   sizeDirect;
+	private final int   alignDirect;
+	private final int   sizeIndirect;
+	private final int   sizeTotal;
+	private final int   variableIndirectCount;
+	private final int[] ptrArray; // Pairs<x, y> => x: ptr idx, y: byte idx
+	private final int[] posArray; // Byte indices
 
 	//
 	// CONSTRUCTORS
@@ -101,6 +103,19 @@ public abstract class MarshallPlan {
 		this.posArray     = posArray;
 		this.variableIndirectCount = variableIndirectCount;
 	}
+
+	//
+	// INTERNALS
+	//
+
+	protected abstract Marshaller makeMarshallerInternal(int sizeTotal,
+			int variableIndirectCount, int[] ptrArray, int[] posArray);
+
+	protected abstract Marshaller makeUnMarshallerInternal(long[] data,
+			int[] ptrArray, int[] posArray);
+
+	protected abstract Marshaller makeUnMarshallerInternal(long[] data,
+			int[] ptrArray, int[] posArray, Object[] viArray, int[] viInstArray);
 
 	//
 	// ACCESSORS
@@ -133,6 +148,7 @@ public abstract class MarshallPlan {
 	 * </p>
 	 *
 	 * @return Amount of direct storage required to marshall the data
+	 * @see #getSizeDirectLongAligned()
 	 * @see #isDirectOnly()
 	 * @see #getAlignDirect()
 	 * @see #getSizeTotal()
@@ -140,6 +156,28 @@ public abstract class MarshallPlan {
 	 */
 	public final int getSizeDirect() {
 		return sizeDirect;
+	}
+
+	/**
+	 * <p>
+	 * Returns the long-aligned direct storage size.
+	 * </p>
+	 *
+	 * <p>
+	 * <code>0 &lt; {@link #getSizeDirect()} &le;
+	 * {@link #getSizeDirectLongAligned()}</code> and the number returned is
+	 * the size, in bytes, of the storage required by the minimum number of
+	 * contiguous Java {@code long} values that will hold
+	 * {@link #getSizeDirect()}. 
+	 * </p>
+	 *
+	 * @return Long-aligned direct storage size
+	 * @see #getSizeDirect()
+	 * @see #getAlignDirect()
+	 * @see #isDirectOnly()
+	 */
+	public final int getSizeDirectLongAligned() {
+		return PrimitiveSize.sizeLongs(sizeDirect);
 	}
 
 	/**
@@ -249,12 +287,58 @@ public abstract class MarshallPlan {
 	}
 
 	/**
-	 * This method is purely for testing purposes.
+	 * Creates a marshaller instance for the ordinary use case of putting data
+	 * into marshalled representation (<em>put</em> operations). The data
+	 * marshalled in is valid for <em>get</em> operations after a rewind.
 	 *
 	 * @return Marshaller on this plan
 	 * @since 20140719
 	 */
-	public abstract Marshaller makeMarshaller();
+	public final Marshaller makeMarshaller() {
+		return makeMarshallerInternal(sizeTotal, variableIndirectCount,
+				ptrArray, posArray);
+	}
+
+	/**
+	 * Creates a marshaller instance which is only valid for <em>get</em>
+	 * operations out of existing data.
+	 * 
+	 * @param data
+	 *            An existing data array of the correct length
+	 * @return Get-only marshaller based on this plan
+	 * @since 20130806
+	 * @see #makeMarshaller()
+	 * @see #makeUnMarshaller(long[], Object[], int[])
+	 */
+	public final Marshaller makeUnMarshaller(long[] data) {
+		assert 0 == variableIndirectCount;
+		assert data.length == sizeTotal / Long.BYTES;
+		return makeUnMarshallerInternal(data, ptrArray, posArray);
+	}
+
+	/**
+	 * Creates a marshaller instance which is only valid for <em>get</em>
+	 * operations out of existing data.
+	 *
+	 * @param data
+	 *            An existing data array of the correct length
+	 * @param viArray
+	 *            An existing, valid, variable indirect output array
+	 * @param viInstArray
+	 *            An existing, valid, variable indirect instruction array
+	 * @return Get-only marshaller based on this plan
+	 * @since 20130806
+	 * @see #makeMarshaller()
+	 * @see #makeUnMarshaller(long[])
+	 */
+	public final Marshaller makeUnMarshaller(long[] data, Object[] viArray,
+			int[] viInstArray) {
+		assert data.length == sizeTotal / Long.BYTES
+				&& viArray.length == variableIndirectCount
+				&& viInstArray.length == variableIndirectCount;
+		return makeUnMarshallerInternal(data, ptrArray, posArray, viArray,
+				viInstArray);
+	}
 
 	//
 	// ANCESTOR CLASS: Object
@@ -263,8 +347,8 @@ public abstract class MarshallPlan {
 	@Override
 	public final String toString() {
 		StringBuilder result = new StringBuilder(128);
-		result.append("MarshallPlan[ ").append(sizeDirect).append(", ")
-				.append(sizeTotal).append(", {");
+		result.append(getClass().getSimpleName()).append("[ ");
+		result.append(sizeDirect).append(", ").append(sizeTotal).append(", {");
 		final int N = ptrArray.length;
 		if (0 < N) {
 			result.append(' ').append(ptrArray[0]).append(':')

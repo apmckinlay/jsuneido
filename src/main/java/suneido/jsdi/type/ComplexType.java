@@ -5,8 +5,8 @@
 package suneido.jsdi.type;
 
 import suneido.jsdi.DllInterface;
-import suneido.jsdi.ElementSkipper;
 import suneido.jsdi.StorageType;
+import suneido.jsdi.marshall.ElementSkipper;
 
 /**
  * TODO: docs

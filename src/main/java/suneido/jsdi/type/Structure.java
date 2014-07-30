@@ -4,6 +4,8 @@
 
 package suneido.jsdi.type;
 
+import static suneido.SuInternalError.unhandledEnum;
+
 import java.util.Map;
 
 import suneido.SuContainer;
@@ -11,11 +13,12 @@ import suneido.SuValue;
 import suneido.jsdi.Buffer;
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.JSDIException;
-import suneido.jsdi.MarshallPlan;
-import suneido.jsdi.MarshallPlanBuilder;
-import suneido.jsdi.Marshaller;
-import suneido.jsdi.NumberConversions;
-import suneido.jsdi.ObjectConversions;
+import suneido.jsdi.marshall.ByteCopier;
+import suneido.jsdi.marshall.MarshallPlan;
+import suneido.jsdi.marshall.MarshallPlanBuilder;
+import suneido.jsdi.marshall.Marshaller;
+import suneido.jsdi.marshall.NumberConversions;
+import suneido.jsdi.marshall.ObjectConversions;
 import suneido.language.BuiltinMethods;
 import suneido.language.Ops;
 import suneido.language.Params;
@@ -34,19 +37,19 @@ import suneido.language.SuCallable;
  * @since 20130625
  */
 @DllInterface
-public abstract class Structure extends ComplexType {
+public final class Structure extends ComplexType {
 
 	//
 	// DATA
 	//
 
-	private MarshallPlan    marshallPlan;
+	private MarshallPlan marshallPlan;
 
 	//
 	// CONSTRUCTORS
 	//
 
-	protected Structure(String valueName, TypeList members) {
+	public Structure(String valueName, TypeList members) {
 		super(TypeId.STRUCT, valueName, members);
 		if (members.isEmpty()) {
 			throw new JSDIException("structure must have at least one member");
@@ -67,9 +70,38 @@ public abstract class Structure extends ComplexType {
 		return marshallPlan;
 	}
 
-	protected abstract Object copyOut(long structAddr);
+	private Object copyOut(long structAddr) {
+		final MarshallPlan p = getMarshallPlan();
+		final Marshaller m = p.makeMarshaller();
+		putMarshallOutInstruction(m);
+		switch (p.getStorageCategory()) {
+		case DIRECT: // intentional fall through
+			copyOutDirect(structAddr, m.getData(), p.getSizeDirect());
+			break;
+		case INDIRECT:
+			copyOutIndirect(structAddr, m.getData(), p.getSizeDirect(),
+					m.getPtrArray());
+			break;
+		case VARIABLE_INDIRECT:
+			copyOutVariableIndirect(structAddr, m.getData(), p.getSizeDirect(),
+					m.getPtrArray(), m.getViArray(), m.getViInstArray());
+			break;
+		default:
+			throw unhandledEnum(MarshallPlan.StorageCategory.class);
+		}
+		m.rewind();
+		return typeList.marshallOutMembers(m, null);
+	}
 
-	protected abstract Buffer toBuffer(SuContainer value, MarshallPlan plan);
+	private Buffer toBuffer(SuContainer value, MarshallPlan plan) {
+		Marshaller m = plan.makeMarshaller();
+		typeList.marshallInMembers(m, value);
+		final int N = plan.getSizeDirect();
+		final Buffer result = new Buffer(N);
+		new ByteCopier(m.getData(), 0, result.getInternalData())
+				.copyFromLongArr(N);
+		return result;
+	}
 
 	private Buffer toBuffer(SuContainer value) {
 		final MarshallPlan p = getMarshallPlan();
@@ -83,7 +115,17 @@ public abstract class Structure extends ComplexType {
 		return toBuffer(value, p);
 	}
 
-	protected abstract Object fromBuffer(Buffer data, MarshallPlan plan);
+	private Object fromBuffer(Buffer data, MarshallPlan plan) {
+		final int N = plan.getSizeDirect();
+		// TODO: For this case, it would be more efficient to make a dedicated
+		//       byte[] marshaller in the normal jsdi package and use the
+		//       Buffer's internal data they way we were doing before.
+		final long[] longData = new long[plan.getSizeDirectLongAligned()
+				/ Long.BYTES];
+		new ByteCopier(longData, 0, data.getInternalData()).copyToLongArr(N);
+		Marshaller m = plan.makeUnMarshaller(longData);
+		return marshallOut(m, null);
+	}
 
 	private Object fromBuffer(Buffer data) {
 		final MarshallPlan p = getMarshallPlan();
@@ -108,7 +150,7 @@ public abstract class Structure extends ComplexType {
 	// ANCESTOR CLASS: ComplexType
 	//
 
-	final boolean resolve(int level) {
+	boolean resolve(int level) {
 		try {
 			return typeList.resolve(level);
 		} catch (ProxyResolveException e) {
@@ -123,12 +165,12 @@ public abstract class Structure extends ComplexType {
 	//
 
 	@Override
-	public final boolean isClosed() {
+	public boolean isClosed() {
 		return typeList.isClosed();
 	}
 
 	@Override
-	public final String getDisplayName() {
+	public String getDisplayName() {
 		StringBuilder sb = new StringBuilder(128);
 		sb.append("struct { ");
 		for (TypeList.Entry entry : typeList) {
@@ -142,35 +184,34 @@ public abstract class Structure extends ComplexType {
 	}
 
 	@Override
-	public final int getSizeDirect() {
+	public int getSizeDirect() {
 		return getMarshallPlan().getSizeDirect();
 	}
 
 	@Override
-	public final int getAlignDirect() {
+	public int getAlignDirect() {
 		return getMarshallPlan().getAlignDirect();
 	}
 
 	@Override
-	public final int getSizeIndirect() {
+	public int getSizeIndirect() {
 		return getMarshallPlan().getSizeIndirect();
 	}
 
 	@Override
-	public final int getVariableIndirectCount() {
+	public int getVariableIndirectCount() {
 		return typeList.getVariableIndirectCount();
 	}
 
 	@Override
-	public final void addToPlan(MarshallPlanBuilder builder,
-			boolean isCallbackPlan) {
+	public void addToPlan(MarshallPlanBuilder builder, boolean isCallbackPlan) {
 		builder.containerBegin();
 		typeList.addToPlan(builder, isCallbackPlan);
 		skipper = builder.containerEnd();
 	}
 
 	@Override
-	public final void marshallIn(Marshaller marshaller, Object value) {
+	public void marshallIn(Marshaller marshaller, Object value) {
 		if (null == value) {
 			marshaller.skipComplexElement(skipper);
 		} else {
@@ -180,12 +221,12 @@ public abstract class Structure extends ComplexType {
 	}
 
 	@Override
-	public final Object marshallOut(Marshaller marshaller, Object oldValue) {
+	public Object marshallOut(Marshaller marshaller, Object oldValue) {
 		return typeList.marshallOutMembers(marshaller, oldValue);
 	}
 
 	@Override
-	public final void putMarshallOutInstruction(Marshaller marshaller) {
+	public void putMarshallOutInstruction(Marshaller marshaller) {
 		typeList.putMarshallOutInstructions(marshaller);
 	}
 
@@ -197,13 +238,13 @@ public abstract class Structure extends ComplexType {
 			.methods(Structure.class);
 
 	@Override
-	public final SuValue lookup(String method) {
+	public SuValue lookup(String method) {
 		SuValue result = builtins.get(method);
 		return null != result ? result : new SuValue.NotFound(method);
 	}
 
 	@Override
-	public final Object call1(Object arg) {
+	public Object call1(Object arg) {
 		if (arg instanceof Number) {
 			long ptr = NumberConversions.toPointer64(arg);
 			if (0 != ptr) {
@@ -230,7 +271,7 @@ public abstract class Structure extends ComplexType {
 	//
 
 	@Override
-	public final String toString() {
+	public String toString() {
 		return getDisplayName(); // Can be result of Suneido 'Display' built-in.
 	}
 
@@ -274,4 +315,18 @@ public abstract class Structure extends ComplexType {
 		//       Can it be removed?
 		throw new JSDIException("not implemented");
 	}
+
+	//
+	// NATIVE METHODS
+	//
+
+	private static native void copyOutDirect(long structAddr, long[] data,
+			int sizeDirect);
+
+	private static native void copyOutIndirect(long structAddr, long[] data,
+			int sizeDirect, int[] ptrArray);
+
+	private static native void copyOutVariableIndirect(long structAddr,
+			long[] data, int sizeDirect, int[] ptrArray, Object[] viArray,
+			int[] viInstArray);
 }

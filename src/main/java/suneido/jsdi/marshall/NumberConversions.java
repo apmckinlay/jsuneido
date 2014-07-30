@@ -2,10 +2,13 @@
  * Licensed under GPLv2.
  */
 
-package suneido.jsdi;
+package suneido.jsdi.marshall;
 
 import java.math.BigDecimal;
 
+import suneido.jsdi.DllInterface;
+import suneido.jsdi.JSDIException;
+import suneido.jsdi._64BitIssue;
 import suneido.language.Numbers;
 import suneido.language.Ops;
 

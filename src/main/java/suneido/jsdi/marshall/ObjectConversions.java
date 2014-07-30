@@ -2,9 +2,11 @@
  * Licensed under GPLv2.
  */
 
-package suneido.jsdi;
+package suneido.jsdi.marshall;
 
 import suneido.SuContainer;
+import suneido.jsdi.DllInterface;
+import suneido.jsdi.JSDIException;
 import suneido.language.Ops;
 
 /**

@@ -2,10 +2,10 @@
  * Licensed under GPLv2.
  */
 
-package suneido.jsdi;
+package suneido.jsdi.marshall;
 
 import static org.junit.Assert.assertEquals;
-import static suneido.jsdi.NumberConversions.*;
+import static suneido.jsdi.marshall.NumberConversions.*;
 import static suneido.util.testing.Throwing.assertThrew;
 
 import java.math.BigDecimal;
@@ -16,8 +16,9 @@ import org.junit.Test;
 
 import suneido.SuContainer;
 import suneido.jsdi.Buffer;
+import suneido.jsdi.DllInterface;
 import suneido.jsdi.JSDIException;
-import suneido.jsdi.NumberConversions;
+import suneido.jsdi.marshall.NumberConversions;
 import suneido.language.Concats;
 import suneido.language.Numbers;
 
@@ -26,8 +27,8 @@ import suneido.language.Numbers;
  *
  * @author Victor Schappert
  * @since 20130812
- *
  */
+@DllInterface
 public class NumberConversionsTest {
 
 	private static final Buffer makeBuffer(String value) {

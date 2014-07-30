@@ -4,13 +4,13 @@
 
 package suneido.jsdi.abi.x86;
 
-import suneido.jsdi.MarshallPlan;
-import suneido.jsdi.MarshallPlanBuilder;
-import suneido.jsdi.MarshallTestUtil;
-import suneido.jsdi.PrimitiveSize;
 import suneido.jsdi.abi.x86.MarshallPlanBuilderX86;
 import suneido.jsdi.abi.x86.MarshallPlanX86;
 import suneido.jsdi.abi.x86.MarshallerX86;
+import suneido.jsdi.marshall.MarshallPlan;
+import suneido.jsdi.marshall.MarshallPlanBuilder;
+import suneido.jsdi.marshall.MarshallTestUtil;
+import suneido.jsdi.marshall.PrimitiveSize;
 
 /**
  * Helper functions for making {@link MarshallerX86}'s and
@@ -27,17 +27,8 @@ public final class MarshallTestUtilX86 extends MarshallTestUtil {
 
 	public static MarshallPlanX86 directPlan(int sizeDirect, int alignDirect) {
 		return new MarshallPlanX86(sizeDirect, alignDirect, 0,
-				PrimitiveSize.sizeWholeWords(sizeDirect), new int[0],
+				PrimitiveSize.sizeLongs(sizeDirect), new int[0],
 				new int[] { 0 }, 0);
-	}
-
-	public static MarshallPlanX86 pointerPlan(int sizeDirect) {
-		return new MarshallPlanX86(PrimitiveSize.POINTER,
-				PrimitiveSize.POINTER, sizeDirect,
-				PrimitiveSize
-						.sizeWholeWords(PrimitiveSize.POINTER + sizeDirect),
-				new int[] { 0, PrimitiveSize.POINTER }, new int[] { 0,
-						PrimitiveSize.POINTER }, 0);
 	}
 
 	public static MarshallPlanX86 pointerPlan(int... sizeDirect) {
@@ -52,14 +43,15 @@ public final class MarshallTestUtilX86 extends MarshallTestUtil {
 			posArray[k] = sizeDirect * k;
 		}
 		return new MarshallPlanX86(sizeDirect * numElems, sizeDirect, 0,
-				sizeDirect * numElems, new int[0], posArray, 0);
+				PrimitiveSize.sizeLongs(sizeDirect * numElems), new int[0],
+				posArray, 0);
 	}
 
 	public static MarshallPlanX86 variableIndirectPlan() {
+		final int totalSize = PrimitiveSize.sizeLongs(PrimitiveSize.POINTER);
 		return new MarshallPlanX86(PrimitiveSize.POINTER,
-				PrimitiveSize.POINTER, 0, PrimitiveSize.POINTER, new int[] { 0,
-						PrimitiveSize.POINTER }, new int[] { 0,
-						PrimitiveSize.POINTER }, 1);
+				PrimitiveSize.POINTER, 0, totalSize,
+				new int[] { 0, totalSize }, new int[] { 0, totalSize }, 1);
 	}
 
 	public static MarshallPlanX86 variableIndirectPlan2() {
@@ -95,13 +87,14 @@ public final class MarshallTestUtilX86 extends MarshallTestUtil {
 			}
 		}
 		return new MarshallPlanX86(totalSizeDirect, alignDirect, 0,
-				totalSizeDirect, new int[0], posArray, 0);
+				PrimitiveSize.sizeLongs(totalSizeDirect), new int[0], posArray,
+				0);
 	}
 
 	public static MarshallPlanX86 paramPlan(int... sizeDirect) {
 		int[] sizeDirect2 = new int[sizeDirect.length];
 		for (int k = 0; k < sizeDirect.length; ++k) {
-			sizeDirect2[k] = PrimitiveSize.sizeWholeWords(sizeDirect[k]);
+			sizeDirect2[k] = sizeWholeWords(sizeDirect[k]);
 		}
 		return compoundPlan(1, sizeDirect2);
 	}

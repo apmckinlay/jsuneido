@@ -24,7 +24,7 @@ import suneido.util.testing.Assumption;
  * @author Victor Schappert
  * @since 20130703
  * @see suneido.language.ParseAndCompileStructTest
- * @see suneido.jsdi.abi.x86.StructureX86Test
+ * @see suneido.jsdi.abi.x86.StructureTestX86
  */
 @DllInterface
 public class StructureTest {

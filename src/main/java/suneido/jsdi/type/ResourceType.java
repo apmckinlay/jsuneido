@@ -7,6 +7,10 @@ package suneido.jsdi.type;
 import javax.annotation.concurrent.Immutable;
 
 import suneido.jsdi.*;
+import suneido.jsdi.marshall.MarshallPlanBuilder;
+import suneido.jsdi.marshall.Marshaller;
+import suneido.jsdi.marshall.NumberConversions;
+import suneido.jsdi.marshall.VariableIndirectInstruction;
 
 /**
  * <p>

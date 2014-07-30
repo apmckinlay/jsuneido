@@ -9,9 +9,9 @@ import suneido.SuInternalError;
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.JSDIException;
 import suneido.jsdi.JSDIValue;
-import suneido.jsdi.MarshallPlanBuilder;
-import suneido.jsdi.Marshaller;
 import suneido.jsdi.StorageType;
+import suneido.jsdi.marshall.MarshallPlanBuilder;
+import suneido.jsdi.marshall.Marshaller;
 import suneido.language.Numbers;
 
 /**

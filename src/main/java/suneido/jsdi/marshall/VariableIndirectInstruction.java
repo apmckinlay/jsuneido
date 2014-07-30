@@ -2,7 +2,9 @@
  * Licensed under GPLv2.
  */
 
-package suneido.jsdi;
+package suneido.jsdi.marshall;
+
+import suneido.jsdi.DllInterface;
 
 /**
  * Enumerates the possible actions that the C++-side marshaller/unmarshaller can

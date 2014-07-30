@@ -89,11 +89,11 @@
 			  code, but Java code is not generated from C++ code. -->
 		<javah class="${jsdi-package}.JSDI" classpath="${java-target-dir}" destdir="${jsdi-path}/src/gen"/>
 		<javah class="${jsdi-package}.DllFactory" classpath="${java-target-dir}" destdir="${jsdi-path}/src/gen"/>
+		<javah class="${jsdi-package}.type.Structure" classpath="${java-target-dir}" destdir="${jsdi-path}/src/gen"/>
 		<javah class="${jsdi-package}.abi.x86.ThunkManagerX86" destdir="${jsdi-path}/src/gen">
 			<classpath refid="javah-classpath"/>
 		</javah>
 		<javah class="${jsdi-package}.abi.x86.NativeCallX86" classpath="${java-target-dir}" destdir="${jsdi-path}/src/gen"/>
-		<javah class="${jsdi-package}.abi.x86.StructureX86" classpath="${java-target-dir}" destdir="${jsdi-path}/src/gen"/>
 		<javah class="${jsdi-package}.com.COMobject" classpath="${java-target-dir}" destdir="${jsdi-path}/src/gen"/>
 		<!--  Unfortunately, javah creates headers for inner classes which
 			  themselves contain no native methods. Clean up those extra

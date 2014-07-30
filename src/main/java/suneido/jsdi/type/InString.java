@@ -4,11 +4,14 @@
 
 package suneido.jsdi.type;
 
-import static suneido.jsdi.VariableIndirectInstruction.NO_ACTION;
+import static suneido.jsdi.marshall.VariableIndirectInstruction.NO_ACTION;
 
 import javax.annotation.concurrent.Immutable;
 
 import suneido.jsdi.*;
+import suneido.jsdi.marshall.MarshallPlanBuilder;
+import suneido.jsdi.marshall.Marshaller;
+import suneido.jsdi.marshall.VariableIndirectInstruction;
 
 /**
  * <p>

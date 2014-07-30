@@ -14,6 +14,7 @@ import suneido.jsdi.DllFactory;
  * @since 20130723
  * @see TestCall
  */
+@DllInterface
 final class QuickDll {
 
 	private final long hModule;

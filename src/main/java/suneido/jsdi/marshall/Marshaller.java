@@ -2,17 +2,24 @@
  * Licensed under GPLv2.
  */
 
-package suneido.jsdi;
+package suneido.jsdi.marshall;
 
-import static suneido.jsdi.VariableIndirectInstruction.NO_ACTION;
-import static suneido.jsdi.VariableIndirectInstruction.RETURN_JAVA_STRING;
-import static suneido.jsdi.VariableIndirectInstruction.RETURN_RESOURCE;
+import static suneido.jsdi.marshall.VariableIndirectInstruction.NO_ACTION;
+import static suneido.jsdi.marshall.VariableIndirectInstruction.RETURN_JAVA_STRING;
+import static suneido.jsdi.marshall.VariableIndirectInstruction.RETURN_RESOURCE;
 
 import java.util.Arrays;
+import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.SuInternalError;
+import suneido.jsdi.Buffer;
+import suneido.jsdi.DllInterface;
+import suneido.jsdi.JSDIException;
+
+import com.google.common.primitives.Ints;
+import com.google.common.primitives.Longs;
 
 /**
  * <p>
@@ -44,6 +51,14 @@ import suneido.SuInternalError;
  * </li>
  * </ul>
  * </p>
+ * <p>
+ * <strong>NOTE</strong>: One exception to the "is generally reusable" principle
+ * stated above is that this class stores data in little-endian format (since
+ * the data is stored in a <code><b>long[]</b></code>, this matters for all data
+ * types smaller than 8 bytes). In order to target big-endian CPU
+ * architectures, this class would have to be abstracted into, <em>eg</em>,
+ * <code>LittleEndianMarshaler</code> and <code>BigEndianMarshaller</code>.
+ * </p>
  *
  * @author Victor Schappert
  * @since 20130710
@@ -57,14 +72,15 @@ public abstract class Marshaller {
 	// DATA
 	//
 
-	private int[] ptrArray; // either ref to MarshallPlan's or copy
-	private final int[] posArray; // reference to MarshallPlan's array
-	private int ptrIndex; // index into ptrArray
-	private int posIndex; // index into posArray
-	private boolean isPtrArrayCopied; // whether ptrArray is a copy
-	private final Object[] viArray; // byte[], String, or null
-	private final int[] viInstArray; // native side should make strings?
-	private int viIndex; // index into viArray and viInstArray
+	protected final long[]   data;
+	private         int[]    ptrArray;  // either ref to MarshallPlan's or copy
+	private final   int[]    posArray;  // reference to MarshallPlan's array
+	private         int      ptrIndex;  // index into ptrArray
+	private         int      posIndex;  // index into posArray
+	private         boolean  isPtrArrayCopied; // did we copy plan's ptrArray?
+	private         Object[] viArray;   // ea. elem is byte[], String, or null
+	private         int[]    viInstArray; // native side should make strings?
+	private         int      viIndex;   // index into viArray and viInstArray
 
 	//
 	// PUBLIC CONSTANTS
@@ -86,43 +102,73 @@ public abstract class Marshaller {
 	// CONSTRUCTORS
 	//
 
-	protected Marshaller(int variableIndirectCount, int[] ptrArray,
-			int[] posArray) {
-		this.ptrArray = ptrArray;
-		this.posArray = posArray;
+	protected Marshaller(int sizeTotal, int variableIndirectCount,
+			int[] ptrArray, int[] posArray) {
+		this(new long[sizeTotal / Long.BYTES], ptrArray, posArray);
+		assert 0 == sizeTotal % Long.BYTES : "Total size must be an exact multiple of the size of a Java long";
 		if (0 < variableIndirectCount) {
 			this.viArray = new Object[variableIndirectCount];
 			this.viInstArray = new int[variableIndirectCount];
-		} else {
-			this.viArray = null;
-			this.viInstArray = null;
 		}
+	}
+
+	protected Marshaller(long[] data, int[] ptrArray, int posArray[]) {
+		assert null != data;
+		assert null != ptrArray && 0 == ptrArray.length % 2;
+		assert null != posArray;
+		this.data             = data;
+		this.ptrArray         = ptrArray;
+		this.posArray         = posArray;
 		this.isPtrArrayCopied = false;
+		this.viArray          = null;
+		this.viInstArray      = null;
 		rewind();
 	}
 
-	protected Marshaller(int[] ptrArray, int[] posArray) {
-		this.ptrArray = ptrArray;
-		this.posArray = posArray;
-		this.viArray = null;
-		this.viInstArray = null;
-		this.isPtrArrayCopied = false;
-		rewind();
-	}
-
-	protected Marshaller(int[] ptrArray, int[] posArray, Object[] viArray,
-			int[] viInstArray) {
-		this.ptrArray = ptrArray;
-		this.posArray = posArray;
+	protected Marshaller(long data[], int[] ptrArray, int[] posArray,
+			Object[] viArray, int[] viInstArray) {
+		this(data, ptrArray, posArray);
 		this.viArray = viArray;
 		this.viInstArray = viInstArray;
-		this.isPtrArrayCopied = false;
-		rewind();
+	}
+
+	//
+	// INTERNALS
+	//
+
+	private void copyToIntArr(byte[] src, int dataIndex, int length) {
+		new ByteCopier(data, dataIndex, src).copyToLongArr(length);
+	}
+
+	private void copyFromIntArr(byte[] dest, int dataIndex, int length) {
+		if (0 < length) {
+			new ByteCopier(data, dataIndex, dest).copyFromLongArr(length);	
+		}
 	}
 
 	//
 	// ACCESSORS
 	//
+
+	/**
+	 * <p>
+	 * Returns the marshaller's internal <em>data</em> array for the purposes of
+	 * passing it to {@code native} function calls.
+	 * </p>
+	 * <p>
+	 * While the contents of this array may be modified by {@code native} calls
+	 * which respect the JSDI marshalling framework, it should be treated as
+	 * opaque by other Java code and not modified by Java calls under any
+	 * circumstances!
+	 * </p>
+	 * @return Data array
+	 * @see #getPtrArray()
+	 * @see #getViArray()
+	 * @see #getViInstArray()
+	 */
+	public long[] getData() {
+		return data;
+	}
 
 	/**
 	 * <p>
@@ -220,14 +266,30 @@ public abstract class Marshaller {
 	 * @param value Boolean value
 	 * @see #getBool()
 	 */
-	public abstract void putBool(boolean value);
+	public final void putBool(boolean value) {
+		final int dataIndex = nextData();
+		if (value) {
+			data[dataIndex / 8] = 1;
+		}
+	}
 
 	/**
 	 * Puts a JSDI {@code int8} value at the next position in the marshaller.
 	 * @param value Single-byte integer value
 	 * @see #getInt8()
 	 */
-	public abstract void putInt8(byte value);
+	public final void putInt8(byte value) {
+		final int dataIndex = nextData();
+		final int wordIndex = dataIndex / 8;
+		final int byteIndex = dataIndex & 7;
+		// The AND with 0xff is necessary to override sign extension because
+		// otherwise Java will sign-extend any values in the range [-128..-1],
+		// i.e. [0x80..0xff], when promoting them to 'int'. For example,
+		// 0xff => 0xffffffff.
+// TODO: debug-step through here to make sure I'm right
+		final long orMask = ((long)value & 0xffL) << 8 * byteIndex;
+		data[wordIndex] |= orMask;
+	}
 
 	/**
 	 * Puts a JSDI {@code int16} value at the next position in the marshaller.
@@ -235,14 +297,30 @@ public abstract class Marshaller {
 	 * @see #getInt16()
 	 * @see #putIntResource(short)
 	 */
-	public abstract void putInt16(short value);
+	public final void putInt16(short value) {
+		final int dataIndex = nextData();
+		final int wordIndex = dataIndex / 8;
+		final int byteIndex = dataIndex & 7;
+		assert 0 == byteIndex % 2; // must be 0th, 2d, 4th, or 6th byte
+		// AND with 0xffff overrides Java sign extension
+// TODO: debug-step through here to make sure I'm right
+		final long orMask = ((long)value & 0xffffL) << 8 * byteIndex;
+		data[wordIndex] |= orMask;
+	}
 
 	/**
 	 * Puts a JSDI {@code int32} value at the next position in the marshaller.
 	 * @param value 32-bit JSDI {@code int32} value
 	 * @see #getInt32()
 	 */
-	public abstract void putInt32(int value);
+	public final void putInt32(int value) {
+		final int dataIndex = nextData();
+		final int wordIndex = dataIndex / 8;
+		final int byteIndex = dataIndex & 7;
+		assert 0 == byteIndex % 4; // must be 0th or 4th byte
+		final long orMask = ((long)value & 0xffffffffL) << 8 * byteIndex;
+		data[wordIndex] |= orMask;
+	}
 
 	/**
 	 * Puts a JSDI {@code int64} value at the next position in the marshaller.
@@ -250,6 +328,7 @@ public abstract class Marshaller {
 	 * @see #getInt64()
 	 */
 	public abstract void putInt64(long value);
+
 	/**
 	 * Puts an integer having the same size as a pointer at the next position
 	 * in the marshaller.
@@ -491,7 +570,13 @@ public abstract class Marshaller {
 	 * @see #putNonZeroTerminatedStringDirect(String, int)
 	 * @see #getZeroTerminatedStringDirect(int)
 	 */
-	public abstract void putZeroTerminatedStringDirect(String value, int maxChars);
+	public final void putZeroTerminatedStringDirect(String value, int maxChars) {
+		final int dataIndex = nextData();
+		final int N = Math.min(maxChars - 1, value.length());
+		if (0 < N) {
+			copyToIntArr(Buffer.copyStr(value, new byte[N], 0, N), dataIndex, N);
+		}
+	}
 
 	/**
 	 * <p>
@@ -511,7 +596,13 @@ public abstract class Marshaller {
 	 * @see #putNonZeroTerminatedStringDirect(Buffer, int)
 	 * @see #getZeroTerminatedStringDirect(int)
 	 */
-	public abstract void putZeroTerminatedStringDirect(Buffer value, int maxChars);
+	public final void putZeroTerminatedStringDirect(Buffer value, int maxChars) {
+		final int dataIndex = nextData();
+		final int N = Math.min(maxChars - 1, value.length()); 
+		if (0 < N) {
+			copyToIntArr(value.getInternalData(), dataIndex, N); 
+		}
+	}
 
 	/**
 	 * <p>
@@ -529,7 +620,14 @@ public abstract class Marshaller {
 	 * @see #putZeroTerminatedStringDirect(String, int)
 	 * @see #getNonZeroTerminatedStringDirect(int, Buffer)
 	 */
-	public abstract void putNonZeroTerminatedStringDirect(String value, int maxChars);
+	public final void putNonZeroTerminatedStringDirect(String value,
+			int maxChars) {
+		final int dataIndex = nextData();
+		final int N = Math.min(maxChars, value.length());
+		if (0 < N) {
+			copyToIntArr(Buffer.copyStr(value, new byte[N], 0, N), dataIndex, N);
+		}
+	}
 
 	/**
 	 * <p>
@@ -547,8 +645,14 @@ public abstract class Marshaller {
 	 * @see #putZeroTerminatedStringDirect(Buffer, int)
 	 * @see #getNonZeroTerminatedStringDirect(int, Buffer)
 	 */
-	public abstract void putNonZeroTerminatedStringDirect(Buffer value,
-			int maxChars);
+	public final void putNonZeroTerminatedStringDirect(Buffer value,
+			int maxChars) {
+		final int dataIndex = nextData();
+		final int N = Math.min(maxChars, value.length());
+		if (0 < N) {
+			copyToIntArr(value.getInternalData(), dataIndex, N);
+		}
+	}
 
 	/**
 	 * Extracts a JSDI {@code bool} value from the next position in the
@@ -566,7 +670,13 @@ public abstract class Marshaller {
 	 * @return Single-byte integer value
 	 * @see #putInt8(byte)
 	 */
-	public abstract int getInt8();
+	public final int getInt8() {
+		final int dataIndex = nextData();
+		final int wordIndex = dataIndex / 8;
+		final int byteIndex = dataIndex & 7;
+		// Cast once to get a byte, twice to sign-extend it to int
+		return (int)(byte)((data[wordIndex] >> 8 * byteIndex) & 0xffL);
+	}
 
 	/**
 	 * Extracts a JSDI {@code int16} value from the next position in the
@@ -574,7 +684,14 @@ public abstract class Marshaller {
 	 * @return 16-bit JSDI {@code int16} value
 	 * @see #putInt16(short)
 	 */
-	public abstract int getInt16();
+	public final int getInt16() {
+		final int dataIndex = nextData();
+		final int wordIndex = dataIndex / 8;
+		final int byteIndex = dataIndex & 7;
+		assert 0 == byteIndex % 2;
+		// Cast once to get a short, twice to sign-extend it to long
+		return (int)(short)((data[wordIndex] >>> 8 * byteIndex) & 0xffffL);
+	}
 
 	/**
 	 * Extracts a JSDI {@code int32} value from the next position in the
@@ -582,7 +699,13 @@ public abstract class Marshaller {
 	 * @return 32-bit JSDI {@code int32} value
 	 * @see #putInt32(int)
 	 */
-	public abstract int getInt32();
+	public final int getInt32() {
+		final int dataIndex = nextData();
+		final int wordIndex = dataIndex / 8;
+		final int byteIndex = dataIndex & 7;
+		assert 0 == byteIndex % 4;
+		return (int)((data[wordIndex] >>> 8 * byteIndex) & 0xffffffffL);
+	}
 
 	/**
 	 * Extracts a JSDI {@code int64} value from the next position in the
@@ -833,15 +956,22 @@ public abstract class Marshaller {
 	 * @see #getNonZeroTerminatedStringDirect(int, Buffer)
 	 */
 	public final String getZeroTerminatedStringDirect(int numChars) {
+		final int dataIndex = nextData();
 		if (numChars < 1) {
 			throw new JSDIException(
 					"zero-terminated string must have at least one character");
 		} else {
-			final String result = getZeroTerminatedStringDirectChecked(numChars);
-			if (null != result) {
-				return result;
+			final Buffer buffer = new Buffer(numChars);
+			final int zeroIndex = new ByteCopier(data, dataIndex,
+					buffer.getInternalData()).copyNonZeroFromLongArr(numChars);
+			if (0 == zeroIndex) {
+				return "";
+			} else if (zeroIndex < numChars) {
+				buffer.setSize(zeroIndex);
+				return buffer.toString();
+			} else {
+				throw new JSDIException("missing zero terminator");
 			}
-			throw new JSDIException("missing zero terminator");
 		}
 	}
 
@@ -861,8 +991,25 @@ public abstract class Marshaller {
 	 * @see #putNonZeroTerminatedStringDirect(Buffer, int)
 	 * @see #putNonZeroTerminatedStringDirect(String, int)
 	 */
-	public abstract Buffer getNonZeroTerminatedStringDirect(int numChars,
-			Buffer oldValue);
+	public final Buffer getNonZeroTerminatedStringDirect(int numChars,
+			Buffer oldValue) {
+		final int dataIndex = nextData();
+		// This could have weird side-effects if Suneido programmer has two
+		// containers both with references to the same Buffer and tries to
+		// unmarshall some data into one of them. In some cases, after the
+		// unmarshalling both containers will refer to the same buffer. In
+		// others, the container that was unmarshalled-into will refer to a new
+		// buffer. I'm not sure if this can be considered "wrong" or not.		
+		if (oldValue != null && numChars <= oldValue.capacity()) {
+			copyFromIntArr(oldValue.getInternalData(), dataIndex, numChars);
+			oldValue.setSize(numChars);
+			return oldValue;
+		} else {
+			final Buffer newValue = new Buffer(numChars);
+			copyFromIntArr(newValue.getInternalData(), dataIndex, numChars);
+			return newValue;
+		}
+	}
 
 	//
 	// INTERNALS
@@ -925,5 +1072,103 @@ public abstract class Marshaller {
 		}
 	}
 
-	protected abstract String getZeroTerminatedStringDirectChecked(int numChars);
+
+	//
+	// ANCESTOR CLASS: Object
+	//
+
+	@FunctionalInterface
+	private static interface ToStringElementAppender<T>{
+		void append(StringBuilder builder, T value, int ofInterestParam);
+	}
+
+	private static final <T> void toStringHelperAppendArrayAndGetIndex(
+			StringBuilder builder, List<T> list,
+			ToStringElementAppender<T> appender, int elementOfInterest,
+			int ofInterestParam) {
+		final int N = list.size();
+		if (0 < N) {
+			appender.append(builder, list.get(0),
+					0 == elementOfInterest ? ofInterestParam : -1);
+			for (int k = 1; k < N; ++k) {
+				builder.append(", ");
+				appender.append(builder, list.get(k),
+						k == elementOfInterest ? ofInterestParam : -1);
+			}
+		}
+	}
+
+	@Override
+	public final String toString() {
+		// Setup
+		int nextData$    = -1;
+		int nextDataWord = -1;
+		int nextDataByte = -1;
+		if (posIndex < posArray.length) {
+			nextData$ = posArray[posIndex];
+			nextDataWord = nextData$ / 8;
+			nextDataByte = nextData$ & 7;
+		}
+		// Generate String representation
+		StringBuilder result = new StringBuilder(512);
+		result.append(getClass().getSimpleName()).append("[\n");
+		result.append("\tposIndex: ").append(posIndex).append("; ptrIndex: ")
+				.append(ptrIndex).append("; viIndex: ").append(viIndex)
+				.append("; isPtrArrayCopied? ")
+				.append(isPtrArrayCopied ? 'Y' : 'n');
+		result.append("; nextData() => ");
+		if (0 <= nextData$) {
+			result.append(posArray[posIndex]);
+		} else {
+			result.append("???");
+		}
+		result.append('\n');
+		result.append("\tdata:        { ");
+		toStringHelperAppendArrayAndGetIndex(result, Longs.asList(data), (
+				StringBuilder x, Long y, int oip) -> {
+				// Output bytes little-endian so that if you just look at
+				// the output as if it were a contiguous byte array, it
+				// reads left to right.
+				for (int k = 0; k < 8; ++k) {
+					if (k == oip) {
+						x.append("**");
+					}
+					final byte b = (byte) ((y >>> 8 * k) & 0xffL);
+					x.append(String.format("%02x", b));
+				}
+			}, nextDataWord, nextDataByte);
+		result.append(" }\n");
+		result.append("\tposArray:    { ");
+		toStringHelperAppendArrayAndGetIndex(result, Ints.asList(posArray), (
+				StringBuilder x, Integer y, int oip) -> {
+			x.append(0 <= oip ? "**" : "").append(y);
+		}, posIndex, 0);
+		result.append(" }\n");
+		result.append("\tptrArray:    { ");
+		toStringHelperAppendArrayAndGetIndex(result, Ints.asList(ptrArray), (
+				StringBuilder x, Integer y, int oip) -> {
+			x.append(0 <= oip ? "**" : "").append(y);
+		}, ptrIndex, 0);
+		result.append(" }\n");
+		if (null != viArray) {
+			result.append("\tviArray:     { ");
+			toStringHelperAppendArrayAndGetIndex(result,
+					Arrays.asList(viArray),
+					(StringBuilder x, Object y, int oip) -> {
+						x.append(0 <= oip ? "**" : "").append(y);
+					}, viIndex, 0);
+			result.append(" }\n");
+			result.append("\tviInstArray: { ");
+			final VariableIndirectInstruction[] values = VariableIndirectInstruction.values();
+			toStringHelperAppendArrayAndGetIndex(result,
+					Ints.asList(viInstArray), (StringBuilder x, Integer y,
+							int oip) -> {
+						x.append(0 <= oip ? "**" : "").append(values[y]);
+					}, viIndex, 0);
+			result.append(" }\n");
+		}
+		result.append(']');
+		// Done
+		return result.toString();
+	}
 }

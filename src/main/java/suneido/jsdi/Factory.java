@@ -208,7 +208,10 @@ public abstract class Factory {
 	 * @return Constructed {@link Structure}
 	 * @since 20140718
 	 */
-	public abstract Structure makeStruct(String valueName, TypeList members);
+	@SuppressWarnings("static-method")
+	public final Structure makeStruct(String valueName, TypeList members) {
+		return new Structure(valueName, members);
+	}
 
 	/**
 	 * Constructs a {@link Callback} with the given parameter signature.
@@ -221,7 +224,9 @@ public abstract class Factory {
 	 * @return Constructed {@link Callback}
 	 * @since 20140718
 	 */
-	public abstract Callback makeCallback(String valueName, TypeList params);
+	public final Callback makeCallback(String valueName, TypeList params) {
+		return new Callback(valueName, params, jsdi.getThunkManager());
+	}
 
 	//
 	// DLL CREATION

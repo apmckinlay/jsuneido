@@ -5,8 +5,8 @@
 package suneido.jsdi.abi.x86;
 
 import suneido.jsdi.DllInterface;
-import suneido.jsdi.MarshallPlan;
-import suneido.jsdi.MarshallPlanBuilder;
+import suneido.jsdi.marshall.MarshallPlan;
+import suneido.jsdi.marshall.MarshallPlanBuilder;
 
 /**
  * Specialized builder for making x86 marshall plans.

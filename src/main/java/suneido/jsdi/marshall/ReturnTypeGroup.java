@@ -2,8 +2,10 @@
  * Licensed under GPLv2.
  */
 
-package suneido.jsdi;
+package suneido.jsdi.marshall;
 
+import suneido.jsdi.DllInterface;
+import suneido.jsdi.JSDIException;
 import suneido.jsdi.type.BasicValue;
 import suneido.jsdi.type.InOutString;
 import suneido.jsdi.type.Type;

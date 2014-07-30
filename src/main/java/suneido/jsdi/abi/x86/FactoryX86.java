@@ -8,8 +8,6 @@ import suneido.jsdi.Dll;
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.Factory;
 import suneido.jsdi.JSDI;
-import suneido.jsdi.type.Callback;
-import suneido.jsdi.type.Structure;
 import suneido.jsdi.type.Type;
 import suneido.jsdi.type.TypeList;
 import suneido.jsdi.type.TypeList.Args;
@@ -52,16 +50,6 @@ public final class FactoryX86 extends Factory {
 	@Override
 	public TypeList makeTypeList(Args args) {
 		return new TypeListX86(args);
-	}
-
-	@Override
-	public Structure makeStruct(String valueName, TypeList members) {
-		return new StructureX86(valueName, members);
-	}
-
-	@Override
-	public Callback makeCallback(String valueName, TypeList params) {
-		return new CallbackX86(valueName, params, jsdi.getThunkManager());
 	}
 
 	@Override

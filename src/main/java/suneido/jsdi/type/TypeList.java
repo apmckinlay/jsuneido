@@ -16,10 +16,10 @@ import suneido.SuInternalError;
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.Factory;
 import suneido.jsdi.JSDIException;
-import suneido.jsdi.MarshallPlan;
-import suneido.jsdi.MarshallPlanBuilder;
-import suneido.jsdi.Marshaller;
-import suneido.jsdi.ObjectConversions;
+import suneido.jsdi.marshall.MarshallPlan;
+import suneido.jsdi.marshall.MarshallPlanBuilder;
+import suneido.jsdi.marshall.Marshaller;
+import suneido.jsdi.marshall.ObjectConversions;
 import suneido.language.FunctionSpec;
 
 /**

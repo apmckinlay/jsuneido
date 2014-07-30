@@ -4,15 +4,19 @@
 
 package suneido.jsdi.type;
 
+import java.util.Arrays;
+
 import suneido.SuException;
 import suneido.SuInternalError;
 import suneido.SuValue;
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.JSDIException;
-import suneido.jsdi.Marshaller;
-import suneido.jsdi.NumberConversions;
-import suneido.jsdi.PrimitiveSize;
 import suneido.jsdi.ThunkManager;
+import suneido.jsdi.marshall.MarshallPlan;
+import suneido.jsdi.marshall.Marshaller;
+import suneido.jsdi.marshall.NumberConversions;
+import suneido.jsdi.marshall.PrimitiveSize;
+import suneido.jsdi.marshall.VariableIndirectInstruction;
 
 /**
  * Implements the JSDI {@code callback} type.
@@ -21,19 +25,20 @@ import suneido.jsdi.ThunkManager;
  * @since 20130625
  */
 @DllInterface
-public abstract class Callback extends ComplexType {
+public final class Callback extends ComplexType {
 
 	//
 	// DATA
 	//
 
 	private final ThunkManager thunkManager;
+	private       MarshallPlan marshallPlan;
 
 	//
 	// CONSTRUCTORS
 	//
 
-	protected Callback(String valueName, TypeList parameters,
+	public Callback(String valueName, TypeList parameters,
 			ThunkManager thunkManager) {
 		super(TypeId.CALLBACK, valueName, parameters);
 		if (null == thunkManager) {
@@ -56,6 +61,24 @@ public abstract class Callback extends ComplexType {
 		return NumberConversions.toLong(result);
 	}
 
+	// TODO: document
+	public MarshallPlan getMarshallPlan() { // Called by ThunkManagers
+		// TODO: resolve thread safety and update issues --
+		// this will cause problems if marshall plan on an already bound
+		// thunk can change
+		try {
+			if (typeList.resolve(0) || null == marshallPlan) {
+				marshallPlan = typeList
+						.makeParamsMarshallPlan(true, false);
+			}
+		} catch (ProxyResolveException e) {
+			e.setMemberType("parameter");
+			e.setParentName(valueName());
+			throw new JSDIException(e);
+		}
+		return marshallPlan;
+	}
+
 	//
 	// ACCESSORS
 	//
@@ -70,9 +93,14 @@ public abstract class Callback extends ComplexType {
 	 * @return The return value of {@code callable}, which must be coerceable to
 	 *         an {@code long}
 	 * @since 20130806
-	 * @see #invokeVariableIndirect(SuValue, byte[], Object[])
+	 * @see #invokeVariableIndirect(SuValue, byte[], long[])
 	 */
-	public abstract long invoke(SuValue boundValue, Object argsIn);
+	public long invoke(SuValue boundValue, long[] argsIn) {
+		final Marshaller marshaller = getMarshallPlan().makeUnMarshaller(argsIn);
+		final Object[] argsOut = typeList.marshallOutParams(marshaller);
+		final Object result = boundValue.call(argsOut);
+		return toLong(result);
+	}
 
 	// TODO: Add invoke0(SuValue) ... invoke4(SuValue, long a, ..., long d) for
 	// faster performance -- won't implement on X86, so should throw
@@ -92,25 +120,34 @@ public abstract class Callback extends ComplexType {
 	 * @since 20130806
 	 * @see #invoke(SuValue, byte[])
 	 */
-	public abstract long invokeVariableIndirect(SuValue boundValue,
-			Object argsIn, Object[] viArray);
+	public long invokeVariableIndirect(SuValue boundValue, long[] argsIn,
+			Object[] viArray) {
+		int[] viInstArray = new int[viArray.length];
+		Arrays.fill(viInstArray,
+				VariableIndirectInstruction.RETURN_JAVA_STRING.ordinal());
+		Marshaller marshaller = marshallPlan.makeUnMarshaller(argsIn, viArray,
+				viInstArray);
+		Object[] argsOut = typeList.marshallOutParams(marshaller);
+		Object result = boundValue.call(argsOut);
+		return toLong(result);
+	}
 
 	//
 	// ANCESTOR CLASS: Type
 	//
 
 	@Override
-	public final String getDisplayName() {
+	public String getDisplayName() {
 		return "callback" + typeList.toParamsTypeString();
 	}
 
 	@Override
-	public final int getSizeDirect() {
+	public int getSizeDirect() {
 		return PrimitiveSize.POINTER;
 	}
 
 	@Override
-	public final void marshallIn(Marshaller marshaller, Object value) {
+	public void marshallIn(Marshaller marshaller, Object value) {
 		if (null == value) {
 			marshaller.putPointerSizedInt(0L);
 		} else if (value instanceof SuValue) {
@@ -129,7 +166,7 @@ public abstract class Callback extends ComplexType {
 	}
 
 	@Override
-	public final Object marshallOut(Marshaller marshaller, Object oldValue) {
+	public Object marshallOut(Marshaller marshaller, Object oldValue) {
 		marshaller.skipBasicArrayElements(1);  // Nothing to be done here
 		return oldValue;
 	}
@@ -139,7 +176,7 @@ public abstract class Callback extends ComplexType {
 	//
 
 	@Override
-	public final String toString() {
+	public String toString() {
 		return getDisplayName(); // Can be result of Suneido 'Display' built-in.
 	}
 }

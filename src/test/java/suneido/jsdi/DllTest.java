@@ -31,6 +31,7 @@ import suneido.util.testing.Assumption;
  * @since 20130808
  * @see suneido.language.ParseAndCompileDllTeste
  */
+@DllInterface
 public class DllTest {
 
 	@BeforeClass

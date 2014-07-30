@@ -10,11 +10,11 @@ import javax.annotation.concurrent.Immutable;
 
 import suneido.SuContainer;
 import suneido.jsdi.DllInterface;
-import suneido.jsdi.MarshallPlanBuilder;
-import suneido.jsdi.Marshaller;
-import suneido.jsdi.NumberConversions;
-import suneido.jsdi.ObjectConversions;
 import suneido.jsdi.StorageType;
+import suneido.jsdi.marshall.MarshallPlanBuilder;
+import suneido.jsdi.marshall.Marshaller;
+import suneido.jsdi.marshall.NumberConversions;
+import suneido.jsdi.marshall.ObjectConversions;
 import suneido.language.Ops;
 
 /**

@@ -157,6 +157,13 @@ public final class Buffer extends JSDIValue implements CharSequence {
 		}
 	}
 
+	private static boolean arraysEqualN(byte[] b1, byte[] b2, int N) {
+		for (int k = 0; k < N; ++k) {
+			if (b1[k] != b2[k]) return false;
+		}
+		return true;
+	}
+
 	void setAndSetSize(byte[] src, int start, int end) {
 		int k = 0;
 		for (; start < end; ++k, ++start) {
@@ -183,7 +190,7 @@ public final class Buffer extends JSDIValue implements CharSequence {
 		// Used by marshallers to determine if they can unmarshall a string of
 		// a given length into a Buffer...
 		return data.length;
-	} // TODO: Should this be package-internal??
+	}
 
 	/**
 	 * Returns {@code true} iff the buffer contains one or more zero bytes.
@@ -209,22 +216,6 @@ public final class Buffer extends JSDIValue implements CharSequence {
 	 */
 	public byte[] getInternalData() {
 		return data;
-	}
-
-	/**
-	 * <p>
-	 * Changes the size of this buffer to a value between 0 and
-	 * {@link #capacity()}.
-	 * </p>
-	 * 
-	 * @param size
-	 *            New buffer size
-	 */
-	public void setSize(int size) {
-		if (size < 0 || capacity() < size) {
-			throw new SuInternalError("invalid buffer size: " + size);
-		}
-		this.size = size;
 	}
 
 	/**
@@ -280,7 +271,36 @@ public final class Buffer extends JSDIValue implements CharSequence {
 	// MUTATORS
 	//
 
-	Buffer truncate() {
+	/**
+	 * <p>
+	 * Changes the size of this buffer to a value between 0 and
+	 * {@link #capacity()}.
+	 * </p>
+	 * 
+	 * @param size
+	 *            New buffer size
+	 */
+	public void setSize(int size) {
+		if (size < 0 || capacity() < size) {
+			throw new SuInternalError("invalid buffer size: " + size);
+		}
+		this.size = size;
+	}
+
+	/**
+	 * <p>
+	 * Truncates the buffer just before the first zero by shrinking the buffer
+	 * size to be one less than the minimum size that would include the zero.
+	 * </p> 
+	 *
+	 * <p>
+	 * This method has no effect if the buffer does not contain a zero.
+	 * </p>
+	 *
+	 * @return This buffer
+	 * @see #setSize(int)
+	 */
+	public Buffer truncate() {
 		for (int k = 0; k < size; ++k) {
 			if (0 == data[k]) {
 				size = k;
@@ -289,17 +309,6 @@ public final class Buffer extends JSDIValue implements CharSequence {
 		}
 		return this;
 	} // Used by marshalling code to emulate cSuneido
-
-	//
-	// INTERNALS
-	//
-
-	private static boolean arraysEqualN(byte[] b1, byte[] b2, int N) {
-		for (int k = 0; k < N; ++k) {
-			if (b1[k] != b2[k]) return false;
-		}
-		return true;
-	}
 
 	//
 	// STATICS
