@@ -30,7 +30,7 @@ import suneido.language.FunctionSpec;
  * </p>
  * <p>
  * While some internal characteristics of a type list are subject to change over
- * its lifetime (<em>eg</em> as proxies are resolved), its external
+ * its lifetime (<em>eg</em> as late-binding types are resolved), its external
  * characteristic, namely the list of {@link Entry} objects, is immutable.
  * </p>
  * 
@@ -235,9 +235,9 @@ public abstract class TypeList implements Iterable<TypeList.Entry> {
 	 * Indicates whether this type list contains only 'closed' types.
 	 * </p>
 	 * <p>
-	 * The marshall plan for a 'closed' type is fixed at Suneido language
-	 * compile time. The type doesn't contain any proxies which need to be
-	 * resolved at runtime.
+	 * The marshall plan for a 'closed' type list is fixed at Suneido language
+	 * compile time. The list doesn't contain any late-binding types which need
+	 * to be resolved at runtime.
 	 * </p>
 	 * 
 	 * @return Whether this type list contains only closed types
@@ -251,7 +251,7 @@ public abstract class TypeList implements Iterable<TypeList.Entry> {
 	 * <p>
 	 * Returns the <em>current</em> total variable indirect count of the entries
 	 * in this type list. Note that the return value may vary across calls to
-	 * {@link #resolve(int)} if this is not a closed list. 
+	 * {@link #bind(int)} if this is not a closed list. 
 	 * </p>
 	 * 
 	 * @return Sum of the variable indirect counts of all entries in the list
@@ -508,40 +508,42 @@ public abstract class TypeList implements Iterable<TypeList.Entry> {
 
 	/**
 	 * <p>
-	 * Resolves the type proxies contained in this type list to concrete types
-	 * and returns a value indicating whether the concrete type tree has changed
-	 * since the previous proxy resolution.
+	 * Resolves any late-binding types directly-contained or
+	 * indirectly-contained (via type trees rooted in directly-contained members
+	 * of this list) in this type list to concrete types and returns a value
+	 * indicating whether the concrete type tree has changed since the previous
+	 * bind operation.
 	 * </p>
 	 * <p>
 	 * Note that for closed type lists (<em>ie</em> {@link #isClosed()} returns
 	 * {@code true}), this method will always do nothing and return
 	 * {@code false}. This is because a closed type list by definition contains
-	 * no proxies.
+	 * no late-binding types.
 	 * </p>
 	 *
 	 * @param level
-	 *            Nesting level, for prevention of infinite proxy loops such as
-	 *            would occur if "X" is defined as <code>struct { Y y }</code>
-	 *            and "Y" is defined as <code>struct { X x }</code>
+	 *            Nesting level, for prevention of infinite cycles such as would
+	 *            occur if "X" is defined as <code>struct { Y y }</code> and "Y"
+	 *            is defined as <code>struct { X x }</code>
 	 * @return Whether the type tree has changed since the last call to this
 	 *         method
-	 * @throws ProxyResolveException
-	 *             If the name of a proxy contained in the type tree of this
-	 *             type list cannot be resolved to a concrete type
-	 * @see {@link Proxy#resolve(int)}
+	 * @throws BindException
+	 *             If the name of a late-binding type contained in the type tree
+	 *             of this type list cannot be resolved to a concrete type
+	 * @see {@link LateBinding#bind(int)}
 	 */
-	public final boolean resolve(int level) throws ProxyResolveException {
+	public final boolean bind(int level) throws BindException {
 		boolean changed = false;
 		if (!isClosed) {
 			for (Entry entry : entries) {
-				if (TypeId.PROXY == entry.type.getTypeId()) {
+				if (TypeId.LATE_BIND == entry.type.getTypeId()) {
 					try {
 						if (100 < level) {
 							throw new JSDIException(
-									"Type nesting limit exceeded - possible cycle?");
+									"type nesting limit exceeded - possible cycle?");
 						}
-						changed |= ((Proxy) entry.type).resolve(level + 1);
-					} catch (ProxyResolveException e) {
+						changed |= ((LateBinding) entry.type).bind(level + 1);
+					} catch (BindException e) {
 						e.setMemberName(entry.name);
 						throw e;
 					}

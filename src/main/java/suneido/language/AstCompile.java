@@ -26,7 +26,7 @@ import suneido.jsdi.type.BasicType;
 import suneido.jsdi.type.Callback;
 import suneido.jsdi.type.InOutString;
 import suneido.jsdi.type.InString;
-import suneido.jsdi.type.Proxy;
+import suneido.jsdi.type.LateBinding;
 import suneido.jsdi.type.ResourceType;
 import suneido.jsdi.type.StringType;
 import suneido.jsdi.type.Structure;
@@ -301,9 +301,9 @@ public class AstCompile {
 						.getFactory()
 						.makeResourceType(storageType, numElems, false,
 								inModifier);
-			} else // otherwise it's a name which may be undefined, so add a
-			{      // proxy
-				type = new Proxy(context, context.slotForName(typeName),
+			} else { // otherwise it's a name which may be undefined, so proxy
+			         // it with a late-binding wrapper
+				type = new LateBinding(context, context.slotForName(typeName),
 						storageType, numElems);
 			}
 			if (type != InString.INSTANCE && inModifier) {

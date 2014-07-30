@@ -77,7 +77,7 @@ public class StructureTest {
 
 	public static Structure getAndResolve(String name) {
 		final Structure s = (Structure)CONTEXT.get(name);
-		s.resolve(0);
+		s.bind(0);
 		return s;
 	}
 

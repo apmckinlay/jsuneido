@@ -8,7 +8,7 @@ import java.util.Map;
 
 import suneido.SuValue;
 import suneido.jsdi.type.InOutString;
-import suneido.jsdi.type.ProxyResolveException;
+import suneido.jsdi.type.BindException;
 import suneido.jsdi.type.Type;
 import suneido.jsdi.type.TypeId;
 import suneido.jsdi.type.TypeList;
@@ -69,11 +69,12 @@ public abstract class Dll extends SuCallable {
 	// MUTATORS
 	//
 
-	protected boolean resolve() {
+	protected boolean bind() {
 		try {
-			return dllParams.resolve(0);
-		} catch (ProxyResolveException e) {
+			return dllParams.bind(0);
+		} catch (BindException e) {
 			e.setMemberType("parameter");
+			e.setParentName(valueName());
 			throw new JSDIException(e);
 		}
 	}

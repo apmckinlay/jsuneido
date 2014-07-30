@@ -58,7 +58,7 @@ final class DllX86 extends Dll {
 		//        I think the main issue is thread (A) could store plan (A)
 		//        and thread (B) could "concurrently" store plan (B) in such a
 		//        way that thread (A) reads back plan (B). Is this a problem?
-		if (resolve() || null == marshallPlan) {
+		if (bind() || null == marshallPlan) {
 			marshallPlan = (MarshallPlanX86) dllParams.makeParamsMarshallPlan(
 					false, InOutString.INSTANCE == returnType);
 		}

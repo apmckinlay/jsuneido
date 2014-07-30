@@ -67,11 +67,11 @@ public final class Callback extends ComplexType {
 		// this will cause problems if marshall plan on an already bound
 		// thunk can change
 		try {
-			if (typeList.resolve(0) || null == marshallPlan) {
+			if (typeList.bind(0) || null == marshallPlan) {
 				marshallPlan = typeList
 						.makeParamsMarshallPlan(true, false);
 			}
-		} catch (ProxyResolveException e) {
+		} catch (BindException e) {
 			e.setMemberType("parameter");
 			e.setParentName(valueName());
 			throw new JSDIException(e);
