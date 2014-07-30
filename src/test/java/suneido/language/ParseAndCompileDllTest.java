@@ -321,8 +321,8 @@ public class ParseAndCompileDllTest {
 	public void compileErrors() {
 		String bad[] = {
 			"dll NotARealType jsdi:TestVoid()",
-			"dll long[4] jsdi:TestVoid()",
-			"dll char * jsdi:TestVoid()",
+			"dll int32[4] jsdi:TestVoid()",
+			"dll int8 * jsdi:TestVoid()",
 			"dll buffer jsdi:TestVoid()",
 			"dll [in] string jsdi:TestVoid()",
 			"dll void jsdi:TestVoid(string * ps)",

@@ -75,17 +75,19 @@ public class ParseAndCompileCallbackTest {
 
 	@Test
 	public void parseValueType() {
-		parse("callback ( long a )");
+		parse("callback ( int32 a )");
 	}
 
 	@Test
 	public void parsePointerType() {
-		parse("callback(long*a)");
+		// This can be parsed, but not compiled: see
+		// compileInvalidBasicPointerType(), below
+		parse("callback(int32*a)");
 	}
 
 	@Test
 	public void parseArrayType() {
-		parse("callback ( long[100]a )");
+		parse("callback ( int32[100]a )");
 	}
 
 	@Test
@@ -125,7 +127,7 @@ public class ParseAndCompileCallbackTest {
 		{
 			for (char ch = 'a'; ch <= 'z' && j < N; ++ch, ++j)
 			{
-				code.append("long ");
+				code.append("int32 ");
 				code.append(new String(new char[i+1]).replace('\0', ch));
 				code.append(';');
 			}
@@ -167,7 +169,7 @@ public class ParseAndCompileCallbackTest {
 	@Test(expected=SuException.class)
 	public void parseArrayPointer() {
 		// In the future, we may want to support this syntax.
-		parse("callback  (  long [] * ptrToArr )  ");
+		parse("callback  (  int32 [] * ptrToArr )  ");
 	}
 
 	// COMPILING TESTS
@@ -182,7 +184,7 @@ public class ParseAndCompileCallbackTest {
 
 	@Test(expected=SuException.class)
 	public void compileDuplicateParameterName() {
-		compile("callback(bool a, long a)");
+		compile("callback(bool a, int32 a)");
 	}
 
 	@Test(expected=SuException.class)
