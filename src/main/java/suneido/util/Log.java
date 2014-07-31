@@ -12,6 +12,8 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuException;
 
+// FIXME: This class has 0 users in the project. Is it being used indirectly,
+//        or should it be removed...?
 @ThreadSafe
 public class Log {
 	private static final LinkedList<String> list = new LinkedList<>();
