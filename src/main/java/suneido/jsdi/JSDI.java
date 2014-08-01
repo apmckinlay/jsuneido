@@ -36,6 +36,10 @@ public final class JSDI {
 	// CONSTANTS
 	//
 
+	private static final String LIBRARY_PATH_PROPERTY_NAME = "suneido.library.path";
+		// NOTE: We will want to move this library path property name constant
+		//       into the Suneido class i we end up adding any more native
+		//       libraries besides jsdi.
 	private static final String LIBRARY_NAME = "jsdi.dll";
 	private static final String PACKAGE_X86 = "suneido.jsdi.abi.x86";
 	private static final String PACKAGE_AMD64 = "suneido.jsdi.abi.amd64";
@@ -131,6 +135,7 @@ public final class JSDI {
 
 	private static final File findLibrary(Platform platform) throws IOException {
 		final FileFinder finder = new FileFinder(true);
+		finder.addSearchPathPropertyNames(LIBRARY_PATH_PROPERTY_NAME);
 		switch (platform) {
 		case WIN32_X86:
 			finder.addRelPaths(RELPATH_X86);
