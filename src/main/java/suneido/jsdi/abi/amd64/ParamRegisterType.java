@@ -34,6 +34,12 @@ enum ParamRegisterType {
 	FLOAT;
 
 	//
+	// CONSTANTS
+	//
+
+	static final int ALL_FOUR_REGISTERS_ARE_UINTS = 0;
+
+	//
 	// INTERNALS
 	//
 

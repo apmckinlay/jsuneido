@@ -8,10 +8,12 @@ import static suneido.SuInternalError.unhandledEnum;
 
 import javax.annotation.concurrent.Immutable;
 
+import suneido.SuInternalError;
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.StorageType;
 import suneido.jsdi.marshall.Marshaller;
 import suneido.jsdi.marshall.NumberConversions;
+import suneido.jsdi.marshall.PrimitiveSize;
 import suneido.language.Numbers;
 import suneido.language.Ops;
 
@@ -48,6 +50,21 @@ public final class BasicValue extends Type {
 	}
 
 	//
+	// INTERNALS
+	//
+
+	public static long marshallPointerInToLong(Object value) {
+		if (Long.BYTES == PrimitiveSize.POINTER) {
+			return NumberConversions.toPointer64(value);
+		} else if (Integer.BYTES == PrimitiveSize.POINTER) {
+			return NumberConversions.toPointer32(value);
+		} else {
+			throw new SuInternalError("unsupported pointer size: "
+					+ PrimitiveSize.POINTER);
+		}
+	}
+
+	//
 	// ACCESSORS
 	//
 
@@ -67,6 +84,11 @@ public final class BasicValue extends Type {
 	@Override
 	public String getDisplayName() {
 		return basicType.getName();
+	}
+
+	@Override
+	public boolean isMarshallableToLong() {
+		return true; 
 	}
 
 	@Override
@@ -163,14 +185,14 @@ public final class BasicValue extends Type {
 		case INT16:
 			// Cast once to truncate, twice to box the result into an Integer.
 			return (int)(short)returnValue;
+		case INT32:
+			return (int)returnValue;
 		case GDIOBJ:
 			// intentional fall-through
 		case HANDLE:
 			// intentional fall-through
 		case OPAQUE_POINTER:
 			// intentional fall-through
-		case INT32:
-			return (int)returnValue;
 		case INT64:
 			return returnValue;
 		case FLOAT:
@@ -179,6 +201,64 @@ public final class BasicValue extends Type {
 			// doubles.
 		case DOUBLE:
 			return Numbers.toBigDecimal(Double.longBitsToDouble(returnValue));
+		default:
+			throw unhandledEnum(BasicType.class);
+		}
+	}
+
+	@Override
+	public long marshallInToLong(Object value) {
+		switch (basicType) {
+		case BOOL:
+			return Ops.toBoolean_(value) ? 1L : 0L;
+		case INT8:
+			return (long)Ops.toInt(value) & 0xffL; 
+		case INT16:
+			return (long)Ops.toInt(value) & 0xffffL;
+		case INT32:
+			return (long)Ops.toInt(value) & 0xffffffffL;
+		case GDIOBJ:
+			// intentional fall-through
+		case HANDLE:
+			// intentional fall-through
+		case OPAQUE_POINTER:
+			// intentional fall-through
+			return marshallPointerInToLong(value);
+		case INT64:
+			return NumberConversions.toLong(value);
+		case FLOAT:
+			return 0xffffffffL &
+					(long)Float.floatToRawIntBits(NumberConversions.toFloat(value));
+		case DOUBLE:
+			return Double.doubleToRawLongBits(NumberConversions.toDouble(value));
+		default:
+			throw unhandledEnum(BasicType.class);
+		}
+	}
+
+	@Override
+	public Object marshallOutFromLong(long marshalledData, Object oldValue) {
+		switch (basicType) {
+		case BOOL:
+			return 0L != (marshalledData & 0xffffffffL);  
+		case INT8:
+			return (int)(byte)marshalledData; 
+		case INT16:
+			return (int)(short)marshalledData;
+		case INT32:
+			return (int)marshalledData;
+		case GDIOBJ:
+			// intentional fall-through
+		case HANDLE:
+			// intentional fall-through
+		case OPAQUE_POINTER:
+			// intentional fall-through
+		case INT64:
+			return marshalledData;
+		case FLOAT:
+			return Numbers.toBigDecimal(Float.intBitsToFloat((int)marshalledData));
+		case DOUBLE:
+			return Numbers.toBigDecimal(Double.longBitsToDouble(marshalledData));
 		default:
 			throw unhandledEnum(BasicType.class);
 		}

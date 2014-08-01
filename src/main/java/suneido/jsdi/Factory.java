@@ -224,7 +224,7 @@ public abstract class Factory {
 	 * @return Constructed {@link Callback}
 	 * @since 20140718
 	 */
-	public final Callback makeCallback(String valueName, TypeList params) {
+	public Callback makeCallback(String valueName, TypeList params) {
 		return new Callback(valueName, params, jsdi.getThunkManager());
 	}
 

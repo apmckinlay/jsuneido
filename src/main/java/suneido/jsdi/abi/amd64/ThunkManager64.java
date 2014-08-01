@@ -9,6 +9,7 @@ import suneido.jsdi.DllInterface;
 import suneido.jsdi.JSDI;
 import suneido.jsdi.ThunkManager;
 import suneido.jsdi.marshall.MarshallPlan;
+import suneido.jsdi.marshall.ReturnTypeGroup;
 import suneido.jsdi.type.Callback;
 
 /**
@@ -34,11 +35,16 @@ final class ThunkManager64 extends ThunkManager {
 
 	@Override
 	protected void newThunk(SuValue boundValue, Callback callback, long[] addrs) {
-		MarshallPlan plan = callback.getMarshallPlan();
-//		newThunk64(callback, boundValue, plan.getSizeDirect(),
-//				plan.getSizeTotal(), plan.getPtrArray(),
-//				plan.getVariableIndirectCount(), addrs);
-throw new RuntimeException("not implemented"); // FIXME: core funtionality not implemented
+		final Callback64 c = (Callback64)callback;
+		final MarshallPlan p = c.getMarshallPlan(); // Triggers a bind on params
+		final NativeCall64 nc = NativeCall64.get(p.getStorageCategory(),
+				ReturnTypeGroup.INTEGER, c.params.size(),
+				c.params.needsFpRegister(), false);
+		final int registerUsage = c.params.getRegisterUsage();
+		newThunk64(callback, boundValue, p.getSizeDirect(), p.getSizeTotal(),
+				p.getPtrArray(), p.getVariableIndirectCount(), registerUsage,
+				c.params.size(), jsdi.isFastMode() && nc.isFastCallable(),
+				addrs);
 	}
 
 	@Override
@@ -50,10 +56,10 @@ throw new RuntimeException("not implemented"); // FIXME: core funtionality not i
 	// NATIVE CALLS
 	//
 
-	private static native void newThunk64(Callback callback, SuValue boundValue,
-			int sizeDirect, int registers, int sizeTotal, int[] ptrArray,
-			int variableIndirectCount, long[] outThunkAddrs);
+	private static native void newThunk64(Callback callback,
+			SuValue boundValue, int sizeDirect, int sizeTotal, int[] ptrArray,
+			int variableIndirectCount, int registers, int numParams,
+			boolean makeFastCall, long[] outThunkAddrs);
 
 	private static native void deleteThunk64(long thunkObjectAddr);
-
 }

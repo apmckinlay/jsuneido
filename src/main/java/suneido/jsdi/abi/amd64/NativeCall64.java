@@ -71,6 +71,7 @@ enum NativeCall64 {
 	private final int             numParams;
 	private final boolean         hasFpParams;
 	private final boolean         is32BitIEEEFloatReturn;
+	private final boolean         isFastCallable;
 
 	//
 	// CONSTRUCTORS
@@ -78,7 +79,7 @@ enum NativeCall64 {
 
 	private NativeCall64(StorageCategory storageCategory,
 			ReturnTypeGroup returnTypeGroup, int numParams,
-			boolean hasFpParams, boolean is32BitIEEEFloatReturn) {
+			boolean hasFpParams, boolean is32BitIEEEFloatReturn, boolean isFastCallable) {
 		assert null != storageCategory;
 		assert null != returnTypeGroup;
 		assert 0 <= numParams && numParams <= MAX_NUMPARAMS_VALUE;
@@ -87,23 +88,46 @@ enum NativeCall64 {
 		this.numParams              = numParams;
 		this.hasFpParams            = hasFpParams;
 		this.is32BitIEEEFloatReturn = is32BitIEEEFloatReturn;
+		this.isFastCallable         = isFastCallable;
 	}
 
 	private NativeCall64(int numParams) {
 		this(StorageCategory.DIRECT, ReturnTypeGroup.INTEGER, numParams, false,
-				false);
+				false, true);
+		assert numParams <= MAX_LONGMARSHALL_PARAMS;
 	}
 
 	private NativeCall64(StorageCategory storageCategory,
 			ReturnTypeGroup returnTypeGroup, boolean hasFpParams,
 			boolean is32BitIEEEFloatReturn) {
 		this(storageCategory, returnTypeGroup, -1, hasFpParams,
-				is32BitIEEEFloatReturn);
+				is32BitIEEEFloatReturn, false);
 	}
 
 	//
 	// ACCESSORS
 	//
+
+	/**
+	 * Returns true iff this enumerator meets the criteria for fast calling.
+	 *
+	 * <p>
+	 * The fast-calling criteria are:
+	 * <ul>
+	 * <li>four parameters or fewer;</li>
+	 * <li>parameters and return value use direct storage only;</li>
+	 * <li>all parameters can be marshalled into a 64-bit Java {@code long} value</li>
+	 * <li>return value is can be marshalled into a 64-bit Java {@code long} value</li>
+	 * </ul>
+	 * </p>
+	 * 
+	 *
+	 * @return Whether this native call can be fast-called
+	 * @since 20140801
+	 */
+	public boolean isFastCallable() {
+		return isFastCallable;
+	}
 
 	/**
 	 * <p>

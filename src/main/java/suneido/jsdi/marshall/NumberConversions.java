@@ -312,7 +312,7 @@ public final class NumberConversions {
 	private static long toPointer64FromNumber(Number x) {
 		BigDecimal d = Numbers.toBigDecimal(x);
 		if (Numbers.integral(x)
-				&& Numbers.isInRange(d,  Numbers.BD_LONG_MIN, Numbers.BD_LONG_MAX)) {
+				&& Numbers.isInRange(d, Numbers.BD_LONG_MIN, Numbers.BD_LONG_MAX)) {
 			return d.longValue();
 		} else {
 			throw cantConvertToPointer(x);

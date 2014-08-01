@@ -147,6 +147,17 @@ public abstract class TypeList implements Iterable<TypeList.Entry> {
 			entries.add(new Entry(name, type));
 			isClosed &= type.isClosed();
 		}
+	
+		/**
+		 * Returns {@code true} iff this arugments list will construct a
+		 * parameters type list.
+		 *
+		 * @return Whether these arguments are for parameters or members
+		 * @since 20140801
+		 */
+		public boolean isParams() {
+			return isParams;
+		}
 	}
 
 	private final class EntryIterator implements Iterator<Entry> {
@@ -215,13 +226,6 @@ public abstract class TypeList implements Iterable<TypeList.Entry> {
 		return isParams ? "parameter" : "member";
 	}
 
-	private void updateStateAfterBind() {
-		countVariableIndirect();
-		if (isParams) {
-			figureOutSkippableParams();
-		}
-	}
-
 	private void countVariableIndirect() {
 		int variableIndirectCount = 0;
 		for (Entry entry : entries) {
@@ -236,6 +240,15 @@ public abstract class TypeList implements Iterable<TypeList.Entry> {
 			// to some other value.
 			entry.skip = 0 == entry.type.getSizeIndirect()
 					&& 0 == entry.type.getVariableIndirectCount();
+		}
+	}
+
+	protected void updateStateAfterBind() {
+		// Subclasses can overide this to update other things, but they need to
+		// make sure they call superclass version.
+		countVariableIndirect();
+		if (isParams) {
+			figureOutSkippableParams();
 		}
 	}
 
@@ -313,6 +326,31 @@ public abstract class TypeList implements Iterable<TypeList.Entry> {
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * Returns the number of entries in the list.
+	 *
+	 * @return List size
+	 * @since 20140801
+	 * @see #get(int)
+	 */
+	public final int size() {
+		return entries.length;
+	}
+
+	/**
+	 * Subscripts the list of entries.
+	 *
+	 * @param i
+	 *            Index of the entry to return: <code>code 0 &le; i &lt;</code>
+	 *            {@link #size()}
+	 * @return Returns the i<sup>th</sup> entry in the list.
+	 * @since 20140801
+	 * @see #size()
+	 */
+	public final Entry get(int i) {
+		return entries[i];
 	}
 
 	/**

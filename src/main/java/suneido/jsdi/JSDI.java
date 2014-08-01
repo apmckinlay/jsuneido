@@ -189,8 +189,6 @@ public final class JSDI {
 
 	private static native String when();
 
-	private static native void setFast(boolean isFast);
-
 	private static native LogLevel logThreshold(LogLevel level);
 
 	private static Class<? extends Factory> loadFactoryClass(Platform platform) {
@@ -345,7 +343,6 @@ public final class JSDI {
 	 * @see #isFastMode()
 	 */
 	public void setFastMode(boolean inFastMode) {
-		setFast(inFastMode);
 		isFastMode = inFastMode;
 	}
 

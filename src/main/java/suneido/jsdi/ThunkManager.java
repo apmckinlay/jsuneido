@@ -91,8 +91,7 @@ public abstract class ThunkManager {
 	// DATA
 	//
 
-	@SuppressWarnings("unused")
-	private final JSDI jsdi;
+	protected final JSDI jsdi;
 	private final HashMap<SuValue, BoundThunk> boundValueMap;
 
 	//

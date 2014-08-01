@@ -52,7 +52,6 @@ final class DllX86 extends Dll {
 	// INTERNALS
 	//
 
-
 	private MarshallPlanX86 getMarshallPlan() {
 		// FIXME: resolve: thread safety
 		//        I think the main issue is thread (A) could store plan (A)
