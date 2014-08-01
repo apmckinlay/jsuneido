@@ -38,7 +38,7 @@ public abstract class DllFactory {
 	// DATA
 	//
 
-	private final JSDI jsdi;
+	protected final JSDI jsdi;
 	private final Object lock = new Object();
 	private final Map<String, LoadedLibrary> libraries =
 		new HashMap<>();

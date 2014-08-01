@@ -4,13 +4,8 @@
 
 package suneido.jsdi.abi.amd64;
 
-import suneido.SuInternalError;
 import suneido.jsdi.DllInterface;
-import suneido.jsdi.StorageType;
 import suneido.jsdi.marshall.MarshallPlanBuilder;
-import suneido.jsdi.type.LateBinding;
-import suneido.jsdi.type.Type;
-import suneido.jsdi.type.TypeId;
 import suneido.jsdi.type.TypeList;
 
 /**
@@ -20,7 +15,7 @@ import suneido.jsdi.type.TypeList;
  * @since 20140730
  */
 @DllInterface
-public final class TypeList64 extends TypeList {
+public class TypeList64 extends TypeList {
 
 	//
 	// CONSTRUCTORS
@@ -28,19 +23,6 @@ public final class TypeList64 extends TypeList {
 
 	TypeList64(Args args) {
 		super(args);
-		// If this is a parameters plan, shim the LateBinding pass-by-value
-		// types where necessary.
-		if (isParams()) {
-			int k = 0;
-			for (final Entry entry : this) {
-				final Type type = entry.getType();
-				if (TypeId.LATE_BINDING == type.getTypeId() &&
-						StorageType.VALUE == type.getStorageType()) {
-					modifyEntryType(k, new ByValShim((LateBinding)type));
-				}
-				++k;
-			}
-		}
 	}
 
 	//
@@ -48,9 +30,9 @@ public final class TypeList64 extends TypeList {
 	//
 
 	@Override
-	protected MarshallPlanBuilder makeBuilder(int variableIndirectCount,
+	protected final MarshallPlanBuilder makeBuilder(int variableIndirectCount,
 			boolean alignToWordBoundary) {
-		throw new SuInternalError("not implemented"); // TODO: implement me
-		//return new MarshallPlanBuilderX86(variableIndirectCount, alignToWordBoundary);
+		return new MarshallPlanBuilder64(variableIndirectCount,
+				alignToWordBoundary);
 	}
 }

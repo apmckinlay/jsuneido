@@ -47,8 +47,7 @@ final class DllFactoryX86 extends DllFactory {
 			StorageCategory sc = paramsPlan.getStorageCategory();
 			nc = NativeCallX86.get(sc, rtg);
 		}
-		final DllX86 result = new DllX86(funcPtr, params, returnType, rtg, nc,
-				suTypeName, this, libraryName, userFuncName, paramsPlan);
-		return result;
+		return new DllX86(funcPtr, params, returnType, rtg, nc, suTypeName,
+				this, libraryName, userFuncName, paramsPlan);
 	}
 }

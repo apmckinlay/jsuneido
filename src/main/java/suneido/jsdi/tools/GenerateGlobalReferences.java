@@ -85,9 +85,17 @@ public final class GenerateGlobalReferences {
 						Date.class.getMethod("getTime")),
 				new Ref(LogLevel.class, LogLevel.class.getMethod("values")),
 				new Ref(Callback.class, Callback.class.getMethod("invoke",
-						SuValue.class, long[].class),
-						Callback.class.getMethod("invokeVariableIndirect",
-								SuValue.class, long[].class, Object[].class)),
+						SuValue.class, long[].class), Callback.class.getMethod(
+						"invokeVariableIndirect", SuValue.class, long[].class,
+						Object[].class), Callback.class.getMethod("invoke0",
+						SuValue.class), Callback.class.getMethod("invoke1",
+						SuValue.class, Long.TYPE), Callback.class.getMethod(
+						"invoke2", SuValue.class, Long.TYPE, Long.TYPE),
+						Callback.class.getMethod("invoke3", SuValue.class,
+								Long.TYPE, Long.TYPE, Long.TYPE),
+						Callback.class.getMethod("invoke4", SuValue.class,
+								Long.TYPE, Long.TYPE, Long.TYPE, Long.TYPE)
+				),
 				new Ref(COMobject.class,
 						COMobject.class.getDeclaredConstructor(
 							String.class, Long.TYPE, Boolean.TYPE),

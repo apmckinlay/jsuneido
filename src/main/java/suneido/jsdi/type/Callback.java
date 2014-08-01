@@ -26,7 +26,7 @@ import suneido.jsdi.marshall.VariableIndirectInstruction;
  * @since 20130625
  */
 @DllInterface
-public final class Callback extends ComplexType {
+public class Callback extends ComplexType {
 
 	//
 	// DATA
@@ -66,7 +66,7 @@ public final class Callback extends ComplexType {
 	}
 
 	// TODO: document
-	public MarshallPlan getMarshallPlan() { // Called by ThunkManagers
+	public final MarshallPlan getMarshallPlan() { // Called by ThunkManagers
 		// TODO: resolve thread safety and update issues --
 		// this will cause problems if marshall plan on an already bound
 		// thunk can change
@@ -88,21 +88,22 @@ public final class Callback extends ComplexType {
 	 *            Bound value to invoke
 	 * @param argsIn
 	 *            Argument array to unmarshall
-	 * @return The return value of {@code callable}, which must be coerceable to
-	 *         an {@code long}
+	 * @return The return value of calling {@code boundValue}, which must be
+	 *         coerceable to a {@code long}
 	 * @since 20130806
 	 * @see #invokeVariableIndirect(SuValue, byte[], long[])
+	 * @see #invoke0(SuValue)
+	 * @see #invoke1(SuValue, long)
+	 * @see #invoke2(SuValue, long, long)
+	 * @see #invoke3(SuValue, long, long, long)
+	 * @see #invoke4(SuValue, long, long, long, long)
 	 */
-	public long invoke(SuValue boundValue, long[] argsIn) {
+	public final long invoke(SuValue boundValue, long[] argsIn) {
 		final Marshaller marshaller = getMarshallPlan().makeUnMarshaller(argsIn);
 		final Object[] argsOut = typeList.marshallOutParams(marshaller);
 		final Object result = boundValue.call(argsOut);
 		return toLong(result);
 	}
-
-	// TODO: Add invoke0(SuValue) ... invoke4(SuValue, long a, ..., long d) for
-	// faster performance -- won't implement on X86, so should throw
-	// InternalError instead of being abstract.
 
 	/**
 	 * Invoked from native side.
@@ -113,12 +114,17 @@ public final class Callback extends ComplexType {
 	 *            Argument array to unmarshall
 	 * @param viArray
 	 *            Variable indirect component of arguments
-	 * @return The return value of {@code callable}, which must be coerceable to
-	 *         an {@code int}
+	 * @return The return value of calling {@code boundValue}, which must be
+	 *         coerceable to a {@code long}
 	 * @since 20130806
 	 * @see #invoke(SuValue, byte[])
+	 * @see #invoke0(SuValue)
+	 * @see #invoke1(SuValue, long)
+	 * @see #invoke2(SuValue, long, long)
+	 * @see #invoke3(SuValue, long, long, long)
+	 * @see #invoke4(SuValue, long, long, long, long)
 	 */
-	public long invokeVariableIndirect(SuValue boundValue, long[] argsIn,
+	public final long invokeVariableIndirect(SuValue boundValue, long[] argsIn,
 			Object[] viArray) {
 		int[] viInstArray = new int[viArray.length];
 		Arrays.fill(viInstArray,
@@ -130,22 +136,133 @@ public final class Callback extends ComplexType {
 		return toLong(result);
 	}
 
+	/**
+	 * Invoked from native side.
+	 *
+	 * @param boundValue
+	 *            Bound value to invoke
+	 * @return The return value from calling {@code boundValue}, which must be
+	 *         coerceable to a {@code long}
+	 * @since 20140801
+	 * @see #invoke(SuValue, long[])
+	 * @see #invokeVariableIndirect(SuValue, long[], Object[])
+	 */
+	public static final long invoke0(SuValue boundValue) {
+		Object result = boundValue.call0();
+		return toLong(result);
+	}
+
+	/**
+	 * Invoked from native side.
+	 *
+	 * @param boundValue
+	 *            Bound value to invoke
+	 * @param a
+	 *            First argument
+	 * @return The return value from calling {@code boundValue}, which must be
+	 *         coerceable to a {@code long}
+	 * @since 20140801
+	 * @see #invoke(SuValue, long[])
+	 * @see #invokeVariableIndirect(SuValue, long[], Object[])
+	 */
+	public final long invoke1(SuValue boundValue, long a) {
+		Object a_ = typeList.get(0).getType().marshallOutFromLong(a, null);
+		Object result = boundValue.call1(a_);
+		return toLong(result);
+	}
+
+	/**
+	 * Invoked from native side.
+	 *
+	 * @param boundValue
+	 *            Bound value to invoke
+	 * @param a
+	 *            First argument
+	 * @param b
+	 *            Second argument
+	 * @return The return value from calling {@code boundValue}, which must be
+	 *         coerceable to a {@code long}
+	 * @since 20140801
+	 * @see #invoke(SuValue, long[])
+	 * @see #invokeVariableIndirect(SuValue, long[], Object[])
+	 */
+	public final long invoke2(SuValue boundValue, long a, long b) {
+		Object a_ = typeList.get(0).getType().marshallOutFromLong(a, null);
+		Object b_ = typeList.get(1).getType().marshallOutFromLong(b, null);
+		Object result = boundValue.call2(a_, b_);
+		return toLong(result);
+	}
+
+	/**
+	 * Invoked from native side.
+	 *
+	 * @param boundValue
+	 *            Bound value to invoke
+	 * @param a
+	 *            First argument
+	 * @param b
+	 *            Second argument
+	 * @param c
+	 *            Third argument
+	 * @return The return value from calling {@code boundValue}, which must be
+	 *         coerceable to a {@code long}
+	 * @since 20140801
+	 * @see #invoke(SuValue, long[])
+	 * @see #invokeVariableIndirect(SuValue, long[], Object[])
+	 */
+	public final long invoke3(SuValue boundValue, long a, long b, long c) {
+		Object a_ = typeList.get(0).getType().marshallOutFromLong(a, null);
+		Object b_ = typeList.get(1).getType().marshallOutFromLong(b, null);
+		Object c_ = typeList.get(2).getType().marshallOutFromLong(c, null);
+		Object result = boundValue.call3(a_, b_, c_);
+		return toLong(result);
+	}
+
+	/**
+	 * Invoked from native side.
+	 *
+	 * @param boundValue
+	 *            Bound value to invoke
+	 * @param a
+	 *            First argument
+	 * @param b
+	 *            Second argument
+	 * @param c
+	 *            Third argument
+	 * @param d
+	 *            Fourth argument
+	 * @return The return value from calling {@code boundValue}, which must be
+	 *         coerceable to a {@code long}
+	 * @since 20140801
+	 * @see #invoke(SuValue, long[])
+	 * @see #invokeVariableIndirect(SuValue, long[], Object[])
+	 */
+	public final long invoke4(SuValue boundValue, long a, long b, long c, long d) {
+		Object a_ = typeList.get(0).getType().marshallOutFromLong(a, null);
+		Object b_ = typeList.get(1).getType().marshallOutFromLong(b, null);
+		Object c_ = typeList.get(2).getType().marshallOutFromLong(c, null);
+		Object d_ = typeList.get(3).getType().marshallOutFromLong(d, null);
+		Object result = boundValue.call4(a_, b_, c_, d_);
+		return toLong(result);
+	}
+
+
 	//
 	// ANCESTOR CLASS: Type
 	//
 
 	@Override
-	public String getDisplayName() {
+	public final String getDisplayName() {
 		return "callback" + typeList.toParamsTypeString();
 	}
 
 	@Override
-	public int getSizeDirect() {
+	public final int getSizeDirect() {
 		return PrimitiveSize.POINTER;
 	}
 
 	@Override
-	public void marshallIn(Marshaller marshaller, Object value) {
+	public final void marshallIn(Marshaller marshaller, Object value) {
 		if (null == value) {
 			marshaller.putPointerSizedInt(0L);
 		} else if (value instanceof SuValue) {
@@ -164,13 +281,13 @@ public final class Callback extends ComplexType {
 	}
 
 	@Override
-	public Object marshallOut(Marshaller marshaller, Object oldValue) {
+	public final Object marshallOut(Marshaller marshaller, Object oldValue) {
 		skipMarshalling(marshaller);
 		return oldValue;
 	}
 
 	@Override
-	public void skipMarshalling(Marshaller marshaller) {
+	public final void skipMarshalling(Marshaller marshaller) {
 		marshaller.skipBasicArrayElements(1);
 	}
 
@@ -179,7 +296,7 @@ public final class Callback extends ComplexType {
 	//
 
 	@Override
-	public String toString() {
+	public final String toString() {
 		return getDisplayName(); // Can be result of Suneido 'Display' built-in.
 	}
 }
