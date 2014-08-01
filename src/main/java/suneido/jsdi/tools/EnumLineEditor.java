@@ -96,10 +96,22 @@ abstract class EnumLineEditor<E extends Enum<E>> extends LineEditor {
 		sig.append(" jni_enum_to_cpp(JNIEnv *");
 		if (!header)
 			sig.append(' ').append(JNIENV_VAR_NAME);
-		sig.append(", jclass");
-		if (!header)
-			sig.append(' ').append(JCLASS_VAR_NAME);
 		sig.append(", jobject");
+		if (!header)
+			sig.append(' ').append(ENUM_VAR_NAME);
+		sig.append(')');
+		if (header)
+			sig.append(';');
+		add(sig);
+	}
+
+	protected final void addToJNISignature(boolean header) {
+		add(indent(0).append("template <>"));
+		StringBuilder sig = indent(0);
+		sig.append("jobject cpp_to_jni_enum(JNIEnv *");
+		if (!header)
+			sig.append(' ').append(JNIENV_VAR_NAME);
+		sig.append(", ").append(getEnumCPPTypeName());
 		if (!header)
 			sig.append(' ').append(ENUM_VAR_NAME);
 		sig.append(')');
@@ -203,8 +215,14 @@ abstract class EnumLineEditor<E extends Enum<E>> extends LineEditor {
 			add("");
 		}
 
-		private static void addToJNIConverter() {
-			throw new RuntimeException("Not implemented");
+		private void addToJNIConverter() {
+			// Suppress Doxygen documentation
+			add(indent(0).append("/** \\cond internal */"));
+			// Actual function declaration
+			addToJNISignature(true);
+			// End suppress Doxygen documentation
+			add(indent(0).append("/** \\endcond */"));
+			add("");
 		}
 
 		private void addFromJNIConverter() {
@@ -284,8 +302,34 @@ abstract class EnumLineEditor<E extends Enum<E>> extends LineEditor {
 			return lines;
 		}
 
-		private static void addToJNIConverter() {
-			throw new RuntimeException("Not implemented");
+		private void addToJNIConverter() {
+			// Note for this to work, the specific enum type's values() static
+			// method has to be added to the global references
+			addToJNISignature(false);
+			add(indent(0).append('{'));
+			add(indent(1)
+					.append("jmethodID method_id = GLOBAL_REFS->" +
+							getEnumCPPTypeName() + "__m_values();"));
+			add(indent(1).append("jobjectArray values = static_cast<jobjectArray>(")
+					.append(JNIENV_VAR_NAME)
+					.append("->CallStaticObjectMethod(GLOBAL_REFS->")
+					.append(getEnumCPPTypeName() + "(), method_id));"));
+			add(indent(1).append(JNIEXCEPTION_CHECK_MACRO).append('(')
+					.append(JNIENV_VAR_NAME).append(");"));
+			add(indent(1).append("assert(values || !\"got null from JNI\");"));
+			add(indent(1)
+					.append("jobject result = ")
+					.append(JNIENV_VAR_NAME)
+					.append("->GetObjectArrayElement(values, static_cast<jsize>(")
+					.append(ENUM_VAR_NAME).append("));"));
+			add(indent(1).append(JNIEXCEPTION_CHECK_MACRO).append('(')
+					.append(JNIENV_VAR_NAME).append(");"));
+			add(indent(1).append("assert(result || !\"got null from JNI\");"));
+			add(indent(1).append(JNIENV_VAR_NAME).append(
+					"->DeleteLocalRef(values);"));
+			add(indent(1).append("return result;"));
+			add(indent(0).append('}'));
+			add("");
 		}
 
 		private void addFromJNIConverter() {
