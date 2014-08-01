@@ -249,8 +249,8 @@ abstract class EnumLineEditor<E extends Enum<E>> extends LineEditor {
 			// Doxygen documentation
 			add(indent(0).append("/**"));
 			add(indent(0)
-					.append(" * \\brief Stream insertion operator for \\link ")
-					.append(getEnumCPPTypeName()).append("\\endlink."));
+					.append(" * \\brief Stream insertion operator for \\link jsdi::java_enum::")
+					.append(getEnumCPPTypeName()).append("\\endlink"));
 			add(indent(0).append(" * \\author ").append(
 					getGeneratorClass().getSimpleName()));
 			add(indent(0).append(" * \\param o Stream to insert into"));
