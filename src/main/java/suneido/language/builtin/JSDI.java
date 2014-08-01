@@ -11,16 +11,6 @@ import suneido.language.Params;
  * Simple built-in class for inspecting JSDI.
  * </p>
  *
- * <p>
- * The intention is for this class to give the following diagnostic information
- * to the Suneido programmer:
- * </p>
- * <ul>
- * <li>Is JSDI available? {@link #Built(Object)}</li>
- * <li>If so, when and for what platform was it built? {@link #Built(Object)}</li>
- * <li>If not, what was the initialization error? {@link #Error(Object)}</li>
- * </ul> 
- * 
  * @author Victor Schappert
  * @since 20140731
  */
