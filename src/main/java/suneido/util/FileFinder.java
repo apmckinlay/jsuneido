@@ -421,8 +421,8 @@ public final class FileFinder {
 				if (null == firstSuccess) {
 					firstSuccess = result;
 				}
-				if (processor.process(result)) {
-					break;
+				if (! processor.process(result)) {
+					firstSuccess.stop = true;
 				}
 			}
 			lastRelPathSearched = relPath;
@@ -519,7 +519,7 @@ public final class FileFinder {
 						firstSuccess = thisResult;
 					}
 					if (!processor.process(thisResult)) {
-						thisResult.stop = true;
+						firstSuccess.stop = true;
 						break;
 					}
 				}
