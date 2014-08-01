@@ -1,7 +1,6 @@
 syntax: glob
 **.class
 **.launch
-jsuneido.jar
 WhenBuilt.jar
 .DS_Store
 
@@ -73,7 +72,7 @@ syntax: regexp
 syntax: regexp
 ^axis\.go$
 syntax: regexp
-^jsuneido-raw\.jar$
+^jsuneido(-(amd64|x86))?(-raw)?\.jar$
 
 syntax: regexp
 ^dump-data\.txt$

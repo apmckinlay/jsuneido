@@ -5,7 +5,6 @@
 package suneido.jsdi.abi.x86;
 
 import static suneido.SuInternalError.unhandledEnum;
-import static suneido.jsdi.marshall.MarshallPlan.StorageCategory;
 import static suneido.jsdi.marshall.MarshallPlan.StorageCategory.DIRECT;
 import static suneido.jsdi.marshall.MarshallPlan.StorageCategory.INDIRECT;
 import static suneido.jsdi.marshall.MarshallPlan.StorageCategory.VARIABLE_INDIRECT;
@@ -13,6 +12,7 @@ import static suneido.jsdi.marshall.ReturnTypeGroup.DOUBLE;
 import static suneido.jsdi.marshall.ReturnTypeGroup.INTEGER;
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.marshall.MarshallPlan;
+import suneido.jsdi.marshall.MarshallPlan.StorageCategory;
 import suneido.jsdi.marshall.Marshaller;
 import suneido.jsdi.marshall.ReturnTypeGroup;
 
@@ -21,6 +21,7 @@ import suneido.jsdi.marshall.ReturnTypeGroup;
  *
  * @author Victor Schappert
  * @since 20130717
+ * @see suneido.jsdi.abi.amd64.NativeCall64
  */
 @DllInterface
 enum NativeCallX86 {
@@ -41,8 +42,8 @@ enum NativeCallX86 {
 	// DATA
 	//
 
-	private final StorageCategory storageCategory;
-	private final ReturnTypeGroup returnTypeGroup;
+	final StorageCategory storageCategory;
+	final ReturnTypeGroup returnTypeGroup;
 
 	//
 	// CONSTRUCTORS
@@ -58,19 +59,20 @@ enum NativeCallX86 {
 	// ACCESSORS
 	//
 
-	// TODO: docs -- since 20130808
-	public boolean isFloatingPointReturn() {
-		return DOUBLE == returnTypeGroup;
-	}
-
-	public StorageCategory getStorageCategory() {
-		return storageCategory;
-	}
-
-	public ReturnTypeGroup getReturnTypeGroup() {
-		return returnTypeGroup;
-	}
-
+	/**
+	 * <p>
+	 * Invokes a native function using an invocation method appropriate for this
+	 * enumerator.
+	 * </p>
+	 *
+	 * @param funcPtr
+	 *            Address of the native function to call
+	 * @param sizeDirect
+	 *            Size, in bytes, of the marshalled data to pass as arguments
+	 * @param marshaller
+	 *            Marshaller with all required data marshalled in
+	 * @return Value returned from the invoked function as a 64-bit integer
+	 */
 	public long invoke(long funcPtr, int sizeDirect, Marshaller marshaller) {
 		switch (this) {
 		case DIRECT_RETURN_INT64:
@@ -115,10 +117,10 @@ enum NativeCallX86 {
 		final StorageCategory[] sc = StorageCategory.values();
 		final ReturnTypeGroup[] rt = ReturnTypeGroup.values();
 		final NativeCallX86[] nc = NativeCallX86.values();
-		final int N_cg = sc.length;
+		final int N_sc = sc.length;
 		final int N_rt = rt.length;
-		map = new NativeCallX86[N_cg][];
-		for (int i = 0; i < N_cg; ++i) {
+		map = new NativeCallX86[N_sc][];
+		for (int i = 0; i < N_sc; ++i) {
 			map[i] = new NativeCallX86[N_rt];
 			for (int j = 0; j < N_rt; ++j) {
 				inner: for (NativeCallX86 n : nc) {
@@ -132,6 +134,14 @@ enum NativeCallX86 {
 		}
 	}
 
+	/**
+	 * Returns the enumerator applicable for a native function having a given
+	 * storage category and return type group.
+	 *
+	 * @param storageCategory Storage category of the native function
+	 * @param returnTypeGroup Return type group of the native function
+	 * @return Applicable enumerator
+	 */
 	public static NativeCallX86 get(
 			MarshallPlan.StorageCategory storageCategory,
 			ReturnTypeGroup returnTypeGroup) {
@@ -139,8 +149,7 @@ enum NativeCallX86 {
 	}
 
 	//
-	// NATIVE METHODS. These functions are available to specific instances of
-	// DllBase which are derived from this class.
+	// NATIVE METHODS
 	//
 
 	private static native long callDirectReturnInt64(long funcPtr,

@@ -63,7 +63,7 @@ public final class Structure extends ComplexType {
 	// INTERNALS
 	//
 
-	protected final MarshallPlan getMarshallPlan() {
+	private final MarshallPlan getMarshallPlan() {
 		if (bind(0) || null == marshallPlan) {
 			marshallPlan = typeList.makeMembersMarshallPlan();
 		}
@@ -147,20 +147,6 @@ public final class Structure extends ComplexType {
 	}
 
 	//
-	// ANCESTOR CLASS: ComplexType
-	//
-
-	boolean bind(int level) {
-		try {
-			return typeList.bind(level);
-		} catch (BindException e) {
-			e.setMemberType("member");
-			e.setParentName(valueName());
-			throw new JSDIException(e);
-		}
-	}
-
-	//
 	// ANCESTOR CLASS: Type
 	//
 
@@ -224,6 +210,10 @@ public final class Structure extends ComplexType {
 	public Object marshallOut(Marshaller marshaller, Object oldValue) {
 		return typeList.marshallOutMembers(marshaller, oldValue);
 	}
+
+	// skipMarshalling() deliberately not overridden for the time being since
+	// a structure is currently only accessible through a LateBinding, which
+	// uses the structure's element skipper.
 
 	@Override
 	public void putMarshallOutInstruction(Marshaller marshaller) {

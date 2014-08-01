@@ -8,17 +8,22 @@ import static org.junit.Assert.assertArrayEquals;
 import static suneido.jsdi.type.BasicType.*;
 import static suneido.util.testing.Throwing.assertThrew;
 
+
 import java.util.Arrays;
+
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+
 import suneido.SuContainer;
+import suneido.SuException;
 import suneido.jsdi.Buffer;
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.JSDI;
 import suneido.jsdi.SimpleContext;
 import suneido.jsdi.StorageType;
+import suneido.jsdi._64BitIssue;
 import suneido.jsdi.marshall.Marshaller;
 import suneido.jsdi.type.BasicArray;
 import suneido.jsdi.type.BasicType;
@@ -42,6 +47,7 @@ import suneido.util.testing.Assumption;
 @DllInterface
 public class TypeListTest {
 
+	@_64BitIssue 		// TODO: Relax assumption to just windows
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		Assumption.jvmIs32BitOnWindows();
@@ -58,7 +64,7 @@ public class TypeListTest {
 	private static TypeList makeParams(Object... tuples) {
 		final int N = tuples.length;
 		assert 0 == N % 2;
-		final TypeList.Args args = new TypeList.Args("params", N / 2);
+		final TypeList.Args args = new TypeList.Args(true, N / 2);
 		int k = 0;
 		while (k < N) {
 			args.add((String)tuples[k++], (Type)tuples[k++]);
@@ -78,7 +84,7 @@ public class TypeListTest {
 		return new SuContainer(Arrays.asList(elements));
 	}
 
-	private static LateBinding proxy(String typeName, StorageType storageType,
+	private static LateBinding lateBind(String typeName, StorageType storageType,
 			int numElems) {
 		return new LateBinding(CONTEXT, CONTEXT.slotForName(typeName), storageType,
 				numElems);
@@ -160,7 +166,7 @@ public class TypeListTest {
 	@Test
 	public void marshallParamsStructValue() throws Exception {
 		for (boolean isCallbackPlan : FALSETRUE) {
-			TypeList tl = makeParams("c", proxy("CIRCLE", StorageType.VALUE, 1));
+			TypeList tl = makeParams("c", lateBind("CIRCLE", StorageType.VALUE, 1));
 			Object[] args1 = new Object[] { new SuContainer() };
 			Object[] args2 = new Object[] { new SuContainer() };
 			tl.bind(0);
@@ -168,19 +174,22 @@ public class TypeListTest {
 					.makeMarshaller();
 			tl.marshallInParams(m, args1);
 			m.rewind();
+			// Normal marshallOutParams won't change args2 because marshalling
+			// out a value type has no effect.
 			tl.marshallOutParams(m, args2);
-			// Unlike with basic types, with structures that are passed by
-			// value, they *might* contain a pointer which has to be marshalled
-			// out, so we do marshall out structures even though the native side
-			// couldn't have changed anything that was copied on the stack.
-			assertArrayEquals(new Object[] { CIRCLE(0.0, 0.0, 0.0) }, args2);
+			assertArrayEquals(args2, new Object[] { new SuContainer() });
+			// However, if we marshall out as if to a callback, the values will
+			// be changed.
+			m.rewind();
+			Object[] args3 = tl.marshallOutParams(m);
+			assertArrayEquals(new Object[] { CIRCLE(0.0, 0.0, 0.0) }, args3);
 		}
 	}
 
 	@Test
 	public void marshallParamsStructArray() throws Exception {
 		for (boolean isCallbackPlan : FALSETRUE) {
-			TypeList tl = makeParams("c", proxy("CIRCLE", StorageType.ARRAY, 2));
+			TypeList tl = makeParams("c", lateBind("CIRCLE", StorageType.ARRAY, 2));
 			Object[] args1 = new Object[] { ca(CIRCLE_Radius(19),
 					CIRCLE(-1.0, -2.0, 123456.125)) };
 			Object[] args2 = new Object[] { new SuContainer() };
@@ -190,13 +199,6 @@ public class TypeListTest {
 			tl.marshallInParams(m, args1);
 			m.rewind();
 			tl.marshallOutParams(m, args2);
-			// Unlike with basic types, with structures that are passed as
-			// arrays, they *might* contain a pointer which has to be marshalled
-			// out, so we do marshall out structures even though the native side
-			// couldn't have changed anything that was copied on the stack.
-			assertArrayEquals(
-					new Object[] { ca(CIRCLE(0, 0, 19),
-							CIRCLE(-1.0, -2.0, 123456.125)) }, args2);
 		}
 	}
 
@@ -204,7 +206,7 @@ public class TypeListTest {
 	public void marshallParamsStructPointer() throws Exception {
 		for (boolean isCallbackPlan : FALSETRUE) {
 			TypeList tl = makeParams("c",
-					proxy("CIRCLE", StorageType.POINTER, 1));
+					lateBind("CIRCLE", StorageType.POINTER, 1));
 			Object[] args1 = new Object[] { CIRCLE(-1.0, -2.0, 123456.125) };
 			Object[] args2 = new Object[] { new SuContainer() };
 			tl.bind(0);
@@ -219,6 +221,38 @@ public class TypeListTest {
 			assertArrayEquals(new Object[] { CIRCLE(-1.0, -2.0, 123456.125) },
 					args2);
 		}
+	}
+
+	@Test
+	public void marshallParamsNoModifyReadonly() throws Exception {
+		for (boolean isCallbackPlan : FALSETRUE) {
+			TypeList tl = makeParams("c",
+					lateBind("CIRCLE", StorageType.POINTER, 1));
+			tl.bind(0);
+			SuContainer out = new SuContainer();
+			out.setReadonly();
+			Object[] args1 = new Object[] { CIRCLE(-1.0, -2.0, 123456.125) };
+			Object[] args2 = new Object[] { out };
+			Marshaller m = tl.makeParamsMarshallPlan(isCallbackPlan, false)
+					.makeMarshaller();
+			tl.marshallInParams(m, args1);
+			m.rewind();
+			// Simulate native side storing a non-null pointer
+			m.putInt8((byte) 1);
+			m.rewind();
+			assertThrew(() -> {
+				tl.marshallOutParams(m, args2);
+			}, SuException.class, "can't modify readonly objects");
+		}
+
+		// Unlike with basic types, with structures that are passed as
+		// arrays, they *might* contain a pointer which has to be marshalled
+		// out, so we do marshall out structures even though the native side
+		// couldn't have changed anything that was copied on the stack.
+//		assertArrayEquals(
+//				new Object[] { ca(CIRCLE(0, 0, 19),
+//						CIRCLE(-1.0, -2.0, 123456.125)) }, args2);
+
 	}
 
 	@Test

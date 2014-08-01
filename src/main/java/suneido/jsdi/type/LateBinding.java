@@ -61,7 +61,7 @@ public final class LateBinding extends Type {
 
 	public LateBinding(Context context, int typeNameSlot, StorageType storageType,
 			int numElems) {
-		super(TypeId.LATE_BIND, storageType);
+		super(TypeId.LATE_BINDING, storageType);
 		this.context = context;
 		this.typeNameSlot = typeNameSlot;
 		this.storageType = storageType;
@@ -74,48 +74,19 @@ public final class LateBinding extends Type {
 	// ACCESSORS
 	//
 
-	/**
-	 * <p>
-	 * Binds this late-binding type to a concrete instance of
-	 * {@link ComplexType}, and then binds the type tree rooted at that
-	 * complex type. Returns a value indicating whether the type tree has
-	 * changed since the last bind operation.
-	 * </p>
-	 * 
-	 * @param level
-	 *            Level of the tree at which the bind operation was requested (0
-	 *            being the root)&mdash;necessary for detecting cycles in the
-	 *            type hierarchy
-	 * @return If the type tree has changed since the last bind, {@code true};
-	 *         otherwise, {@code false}
-	 * @throws BindException
-	 *             If any part of the type tree could not be bound to its
-	 *             underlying type
-	 * @see {@link ComplexType#bind(int)}
-	 */
-	final boolean bind(int level) throws BindException {
-		final Object maybeType = context.tryget(typeNameSlot);
-		if (null != maybeType) {
-			if (maybeType == lastBoundType) {
-				return lastBoundType.bind(level);
-			} else if (maybeType instanceof ComplexType) {
-				// TODO: [CONCURRENCY]. At the point at which we detect this
-				//                      change for the first time, we'll need
-				//                      to lock some kind of global lock (might
-				//                      be best to pass it as a parameter) so
-				//                      that concurrent threads don't mess up
-				//                      the same types
-				lastBoundType = (ComplexType) maybeType;
-				lastBoundType.bind(level);
-				return true;
-			}
-		}
-		final Class<?> clazz = null == maybeType ? null : maybeType.getClass();
-		throw new BindException(this, clazz);
+	String getUnderlyingTypeName() {
+		return context.nameForSlot(typeNameSlot);
 	}
 
-	final String getUnderlyingTypeName() {
-		return context.nameForSlot(typeNameSlot);
+	/**
+	 * Returns the type last bound to this late-binding type.
+	 *
+	 * @return Last type bound by {@link #bind(int)}, or <code>null</code> if
+	 *         there was no last bind or the last bind threw an exception
+	 * @since 20140730
+	 */
+	public ComplexType getLastBoundType() {
+		return lastBoundType;
 	}
 
 	//
@@ -151,6 +122,19 @@ public final class LateBinding extends Type {
 			return lastBoundType.getSizeDirect();
 		case ARRAY:
 			return lastBoundType.getSizeDirect() * numElems;
+		case POINTER:
+			return PrimitiveSize.POINTER;
+		default:
+			throw unhandledEnum(StorageType.class);
+		}
+	}
+
+	@Override
+	public int getAlignDirect() {
+		switch (storageType) {
+		case VALUE: // fall through
+		case ARRAY:
+			return lastBoundType.getAlignDirect();
 		case POINTER:
 			return PrimitiveSize.POINTER;
 		default:
@@ -288,7 +272,41 @@ public final class LateBinding extends Type {
 	}
 
 	@Override
+	public void skipMarshalling(Marshaller marshaller) {
+		switch (storageType) {
+		case VALUE:
+		case ARRAY:
+			marshaller.skipComplexElement(skipper);
+			break;
+		case POINTER:
+			super.skipMarshalling(marshaller); // Will throw
+		}
+	}
+
+	@Override
 	public void putMarshallOutInstruction(Marshaller marshaller) {
 		lastBoundType.putMarshallOutInstruction(marshaller);
+	}
+
+	@Override
+	protected final boolean bind(int level) throws BindException {
+		final Object maybeType = context.tryget(typeNameSlot);
+		if (null != maybeType) {
+			if (maybeType == lastBoundType) {
+				return lastBoundType.bind(level);
+			} else if (maybeType instanceof ComplexType) {
+				// TODO: [CONCURRENCY]. At the point at which we detect this
+				//                      change for the first time, we'll need
+				//                      to lock some kind of global lock (might
+				//                      be best to pass it as a parameter) so
+				//                      that concurrent threads don't mess up
+				//                      the same types
+				lastBoundType = (ComplexType) maybeType;
+				lastBoundType.bind(level);
+				return true;
+			}
+		}
+		final Class<?> clazz = null == maybeType ? null : maybeType.getClass();
+		throw new BindException(this, clazz);
 	}
 }

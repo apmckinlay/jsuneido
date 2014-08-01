@@ -76,6 +76,19 @@ public abstract class Type extends JSDIValue {
 
 	/**
 	 * <p>
+	 * Indicates whether this type is marshallable to a Java {@code long}
+	 * </p>
+	 *
+	 * @return Whether the type can be marshalled into and out of a {@code long}
+	 * @see #marshallInToLong(Object)
+	 * @see #marshallOutFromLong(long, Object)
+	 */
+	public boolean isMarshallableToLong() {
+		return false;
+	}
+
+	/**
+	 * <p>
 	 * Indicates the broad behaviour category of this type. For example, a Type
 	 * which behaves like a basic type (<em>eg</em> {@link BasicType} or
 	 * {@link BasicArray}) will return {@link TypeId#BASIC}. 
@@ -227,10 +240,32 @@ public abstract class Type extends JSDIValue {
 	 * @return Value retrieved from the marshaller, or {@link Boolean#FALSE} in
 	 * the case of a {@code NULL} pointer.
 	 * @since 20130717
+	 * @see #marshallIn(Marshaller, Object)
+	 * @see #skipMarshalling(Marshaller)
 	 */
 	public Object marshallOut(Marshaller marshaller, Object oldValue) {
 		throw new SuInternalError(getDisplayName()
 				+ " cannot be marshalled out");
+	}
+
+	/**
+	 * <p>
+	 * Skips over the marshalled representation of this type.
+	 * </p>
+	 *
+	 * <p>
+	 * The use case for this method is marshalling out {@code dll} parameters
+	 * that were passed by value. Since the function that was called could not
+	 * have changed these values, there is no need to physically read them out:
+	 * they can simply be skipped over.
+	 * </p>
+	 *
+	 * @param marshaller Storage in which to skip the marshalled value
+	 * @since 20140730
+	 * @see #marshallOut(Marshaller, Object)
+	 */
+	public void skipMarshalling(Marshaller marshaller) {
+		throw new SuInternalError("can't skip marshalling " + getDisplayName());
 	}
 
 	/**
@@ -286,6 +321,48 @@ public abstract class Type extends JSDIValue {
 	}
 
 	/**
+	 * <p>
+	 * Marshalls a value of this type ({@code value}) into a Java {@code long}.
+	 * </p>
+	 * 
+	 * @param value Value to marshall
+	 * @return Marshalled representation of {@code value}
+	 * @since 20140730
+	 * @see #isMarshallableToLong()
+	 * @see #marshallOutFromLong(long, Object)
+	 * @see #marshallIn(Marshaller, Object)
+	 * @see #marshallInReturnValue(Marshaller)
+	 */
+	public long marshallInToLong(Object value) {
+		assert !isMarshallableToLong();
+		throw new SuInternalError(getDisplayName()
+				+ "cannot be marshalled into a Java long");
+	}
+
+	/**
+	 * <p>
+	 * Marshalls a value of this type back out of a Java {@code long}.
+	 * </p>
+	 *
+	 * @param marshaller
+	 *            Storage from which to retrieve the marshalled value
+	 * @param oldValue
+	 *            Previous value of the marshalled value (see NOTE)
+	 * @return Value retrieved from the marshaller, or {@link Boolean#FALSE} in
+	 *         the case of a {@code NULL} pointer.
+	 * @since 20140730
+	 * @see #isMarshallableToLong()
+	 * @see #marshallInToLong(Object)
+	 * @see #marshallOut(Marshaller, Object)
+	 * @see #marshallOutReturnValue(long, Marshaller)
+	 */
+	public Object marshallOutFromLong(long marshalledData, Object oldValue) {
+		assert !isMarshallableToLong();
+		throw new SuInternalError(getDisplayName()
+				+ "cannot be marshalled into a Java long");
+	}
+
+	/**
 	 * Return a human-readable name for the type. This is the value which will
 	 * be printed for a user of the built-in Suneido function {@code Display()}.
 	 * The {@link #toString()} method is deliberately not overridden because it
@@ -297,7 +374,64 @@ public abstract class Type extends JSDIValue {
 	 */
 	public abstract String getDisplayName();
 
+	/**
+	 * <p>
+	 * Binds any late-binding types participating in the type tree rooted at
+	 * this type to their underlying types and returns a flag indicating whether
+	 * the type tree has changed since the last bind operation.
+	 * </p>
+	 * 
+	 * @param level
+	 *            Level of the tree at which the bind operation was requested (0
+	 *            being the root)&mdash;necessary for detecting cycles in the
+	 *            type hierarchy
+	 * @return If the type tree has changed since the last bind, {@code true};
+	 *         otherwise, {@code false}
+	 * @throws BindException
+	 *             If any part of the type tree could not be bound to its
+	 *             underlying type
+	 * @see LateBinding
+	 * @see LateBinding#bind(int)
+	 */
+	protected boolean bind(int level) throws BindException {
+		// Subclasses have to explicitly implement bind.
+		throw new SuInternalError(getDisplayName() + " cannot be bound");
+	}
+
+	/**
+	 * <p>
+	 * Throws an exception where there is an attempt to receive a type as a
+	 * callback parameter (either directly as a parameter, or in indirect
+	 * storage referred to by a parameter) that isn't valid for callbacks.
+	 * This method is called by callback-unfriendly subclasses on an as-needs
+	 * basis.
+	 * </p>
+	 *
+	 * <p>
+	 * There are two principal reasons this method might be called.
+	 * <ol>
+	 * <li>
+	 * The type makes no sense as a {@code callback} parameter. For example, an
+	 * <code>[<b>in</b>] string</code> is pointless in {@code callbacks}.
+	 * </li>
+	 * <li>
+	 * Support for using the type as a {@code callback} parameter is simply not
+	 * yet implemented (for example, for <code><b>resource</b></code>,
+	 * {@link ResourceType} simply doesn't yet support being used as a callback
+	 * parameter as of 20140730). 
+	 * </li>
+	 * </ol>
+	 * </p>
+	 *
+	 * @throws JSDIException Unconditionally
+	 */
 	protected final void throwNotValidForCallback() throws JSDIException {
+		// The reason this is JSDIException and not SuInternalError is that it
+		// can happen for indirect reasons (e.g. parameter to callback is a
+		// struct, but struct contains a member whose type is invalid for
+		// callbacks). Such indirect invalid uses can't be prohibited by the
+		// compiler because of the dynamic nature of the language, so this is
+		// not an internal error, it's a normal runtime exception.
 		throw new JSDIException(getDisplayName()
 				+ " may not directly or indirectly be passed to a callback");
 	}

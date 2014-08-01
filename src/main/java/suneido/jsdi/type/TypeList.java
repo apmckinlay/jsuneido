@@ -54,12 +54,14 @@ public abstract class TypeList implements Iterable<TypeList.Entry> {
 	 */
 	@Immutable
 	public static final class Entry {
-		private final String name;
-		private final Type type;
+		private final String  name;
+		private       Type    type; // might be modified by a subclass
+		private       boolean skip; // skip during marshall out param by value?
 
 		private Entry(String name, Type type) {
 			this.name = name;
 			this.type = type;
+			this.skip = false;
 		}
 
 		/**
@@ -98,27 +100,26 @@ public abstract class TypeList implements Iterable<TypeList.Entry> {
 	 */
 	@NotThreadSafe
 	public static final class Args {
-		private final String memberType;
 		private final ArrayList<Entry> entries;
 		private final TreeSet<String> names; // deliberate
+		private final boolean isParams;
 		private boolean isClosed;
 		private boolean isUsed;
 
 		/**
 		 * Constructs new type list arguments.
 		 *
-		 * @param memberType
-		 *            Explanatory string indicating what the type list entries
-		 *            represent (<em>eg</em> {@code "parameter"} or
-		 *            {@code member}) for the purpose of generating descriptive
-		 *            error messages
+		 * @param isParams
+		 *            Whether these arguments are being used to construct a
+		 *            parameters type list ({@code true}) or a members type list
+		 *            {@code false}.
 		 * @param size
 		 *            Hint indicating number of entries the type list
 		 *            constructed from these Args will contain, for the purpose
 		 *            of efficient memory allocation
 		 */
-		public Args(String memberType, int size) {
-			this.memberType = memberType;
+		public Args(boolean isParams, int size) {
+			this.isParams = isParams;
 			this.entries = new ArrayList<>(size);
 			this.names = new TreeSet<>();
 			this.isClosed = true;
@@ -137,11 +138,11 @@ public abstract class TypeList implements Iterable<TypeList.Entry> {
 		public void add(String name, Type type) {
 			if (isUsed) {
 				throw new SuInternalError(
-						"This Args object has already been used to construct a TypeList");
+						"this Args object has already been used to construct a TypeList");
 			}
 			if (!names.add(name)) {
-				throw new JSDIException("duplicate " + memberType + ": '"
-						+ name + "'");
+				throw new JSDIException("duplicate "
+						+ getMemberTypeString(isParams) + ": '" + name + "'");
 			}
 			entries.add(new Entry(name, type));
 			isClosed &= type.isClosed();
@@ -174,6 +175,7 @@ public abstract class TypeList implements Iterable<TypeList.Entry> {
 
 	private final Entry[] entries;
 	private final boolean isClosed;
+	private final boolean isParams; // true if params, false if members
 	private int           variableIndirectCount;
 
 	//
@@ -197,8 +199,9 @@ public abstract class TypeList implements Iterable<TypeList.Entry> {
 		args.isUsed = true;
 		this.entries = args.entries.toArray(new Entry[args.entries.size()]);
 		this.isClosed = args.isClosed;
+		this.isParams = args.isParams;
 		if (isClosed) {
-			countVariableIndirect();
+			updateStateAfterBind();
 		} else {
 			this.variableIndirectCount = -1;
 		}
@@ -208,6 +211,17 @@ public abstract class TypeList implements Iterable<TypeList.Entry> {
 	// INTERNALS
 	//
 
+	private static String getMemberTypeString(boolean isParams) {
+		return isParams ? "parameter" : "member";
+	}
+
+	private void updateStateAfterBind() {
+		countVariableIndirect();
+		if (isParams) {
+			figureOutSkippableParams();
+		}
+	}
+
 	private void countVariableIndirect() {
 		int variableIndirectCount = 0;
 		for (Entry entry : entries) {
@@ -215,6 +229,30 @@ public abstract class TypeList implements Iterable<TypeList.Entry> {
 		}
 		this.variableIndirectCount = variableIndirectCount;
 	}
+
+	private void figureOutSkippableParams() {
+		for (Entry entry : entries) {
+			// We can skip any value that doesn't directly OR indirectly point
+			// to some other value.
+			entry.skip = 0 == entry.type.getSizeIndirect()
+					&& 0 == entry.type.getVariableIndirectCount();
+		}
+	}
+
+	protected final void modifyEntryType(int index, Type newType) {
+		final Entry entry = entries[index];
+		if (newType.isClosed() == entry.type.isClosed()
+				&& newType.getTypeId() == entry.type.getTypeId()
+				&& newType.getStorageType() == entry.type.getStorageType()) {
+			entry.type = newType;
+		} else {
+			throw new SuInternalError(
+					"new type must match closed, type id, and storage properties of old type");
+		}
+	}
+
+	protected abstract MarshallPlanBuilder makeBuilder(
+			int variableIndirectCount, boolean alignToWordBoundary);
 
 	//
 	// ACCESSORS
@@ -228,6 +266,16 @@ public abstract class TypeList implements Iterable<TypeList.Entry> {
 	 */
 	public final boolean isEmpty() {
 		return 0 == entries.length;
+	}
+
+	/**
+	 * Indicates whether this is a parameters type list.
+	 *
+	 * @return {@code true} iff this is a parameters list.
+	 * @since 20140730
+	 */
+	public final boolean isParams() {
+		return isParams;
 	}
 
 	/**
@@ -245,6 +293,26 @@ public abstract class TypeList implements Iterable<TypeList.Entry> {
 	 */
 	public final boolean isClosed() {
 		return isClosed;
+	}
+
+	/**
+	 * <p>
+	 * Indicates whether this type list contains only types that can be
+	 * marshalled to Java {@code long} values.
+	 * </p>
+	 **
+	 * @return Whether this type list consists 100% of types that can be
+	 *         marshalled to {@code long}
+	 * @since 20140730
+	 * @see Type#isMarshallableToLong()
+	 */
+	public final boolean isMarshallableToLong() {
+		for (final Entry entry : entries) {
+			if (! entry.type.isMarshallableToLong()) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
@@ -302,8 +370,23 @@ public abstract class TypeList implements Iterable<TypeList.Entry> {
 	 * @return Marshall plan
 	 * @see #makeMembersMarshallPlan()
 	 */
-	public abstract MarshallPlan makeParamsMarshallPlan(boolean isCallbackPlan,
-			boolean hasViReturnValue);
+	public final MarshallPlan makeParamsMarshallPlan(boolean isCallbackPlan,
+			boolean hasViReturnValue) {
+		assert isParams();
+		int variableIndirectCount = getVariableIndirectCount();
+		if (hasViReturnValue) {
+			++variableIndirectCount;
+		}
+		final MarshallPlanBuilder builder = makeBuilder(variableIndirectCount,
+				true);
+		addToPlan(builder, isCallbackPlan);
+		if (hasViReturnValue) {
+			// Need to add another variable indirect slot for the variable
+			// indirect return value pseudo-parameter.
+			builder.ptrVariableIndirectPseudoParam();
+		}
+		return builder.makeMarshallPlan();
+	}
 
 	/**
 	 * <p>
@@ -314,7 +397,13 @@ public abstract class TypeList implements Iterable<TypeList.Entry> {
 	 * @since 20130812
 	 * @see #makeParamsMarshallPlan(boolean, boolean)
 	 */
-	public abstract MarshallPlan makeMembersMarshallPlan();
+	public final MarshallPlan makeMembersMarshallPlan() {
+		assert !isParams();
+		final MarshallPlanBuilder builder = makeBuilder(
+				getVariableIndirectCount(), false);
+		addToPlan(builder, false);
+		return builder.makeMarshallPlan();
+	}
 
 	/**
 	 * <p>
@@ -364,7 +453,12 @@ public abstract class TypeList implements Iterable<TypeList.Entry> {
 		final int N = entries.length;
 		assert N == args.length;
 		for (int k = 0; k < N; ++k) {
-			entries[k].type.marshallOut(marshaller, args[k]);
+			final Entry entry = entries[k];
+			final Type type = entry.type;
+			if (entry.skip)
+				type.skipMarshalling(marshaller);
+			else
+				type.marshallOut(marshaller, args[k]);
 		}
 	}
 
@@ -536,23 +630,24 @@ public abstract class TypeList implements Iterable<TypeList.Entry> {
 		boolean changed = false;
 		if (!isClosed) {
 			for (Entry entry : entries) {
-				if (TypeId.LATE_BIND == entry.type.getTypeId()) {
+				if (TypeId.LATE_BINDING == entry.type.getTypeId()) {
 					try {
 						if (100 < level) {
 							throw new JSDIException(
 									"type nesting limit exceeded - possible cycle?");
 						}
-						changed |= ((LateBinding) entry.type).bind(level + 1);
+						changed |= entry.type.bind(level + 1);
 					} catch (BindException e) {
 						e.setMemberName(entry.name);
+						e.setMemberType(getMemberTypeString(isParams));
 						throw e;
 					}
 				}
 			}
 			if (changed) {
-				// Only need to recompute sizes for a non-closed list of types
+				// Only need to recompute state for a non-closed list of types
 				// where at least one of the members types has changed.
-				countVariableIndirect();
+				updateStateAfterBind();
 			}
 		}
 		return changed;

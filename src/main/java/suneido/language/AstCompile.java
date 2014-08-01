@@ -253,14 +253,11 @@ public class AstCompile {
 
 	@DllInterface
 	private TypeList typeList(Token listType, List<AstNode> list) {
-		String memberType = null;
+		boolean isParams = true;
 		if (Token.STRUCT == listType) {
-			memberType = "member";
-		} else {
-			assert Token.DLL == listType || Token.CALLBACK == listType;
-			memberType = "parameter";
+			isParams = false;
 		}
-		TypeList.Args args = new TypeList.Args(memberType, list.size());
+		TypeList.Args args = new TypeList.Args(isParams, list.size());
 		for (AstNode member : list) {
 			String memberName = member.value;
 			AstNode typeInfo = member.first();

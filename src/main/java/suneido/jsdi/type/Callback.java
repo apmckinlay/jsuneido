@@ -12,6 +12,7 @@ import suneido.SuValue;
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.JSDIException;
 import suneido.jsdi.ThunkManager;
+import suneido.jsdi.marshall.ElementSkipper;
 import suneido.jsdi.marshall.MarshallPlan;
 import suneido.jsdi.marshall.Marshaller;
 import suneido.jsdi.marshall.NumberConversions;
@@ -45,11 +46,14 @@ public final class Callback extends ComplexType {
 			throw new SuInternalError("thunkManager cannot be null");
 		}
 		this.thunkManager = thunkManager;
+		this.skipper = SKIPPER;
 	}
 
 	//
 	// INTERNALS
 	//
+
+	private static final ElementSkipper SKIPPER = new ElementSkipper(1, 0);
 
 	protected static long toLong(Object result) {
 		if (null == result) {
@@ -66,15 +70,9 @@ public final class Callback extends ComplexType {
 		// TODO: resolve thread safety and update issues --
 		// this will cause problems if marshall plan on an already bound
 		// thunk can change
-		try {
-			if (typeList.bind(0) || null == marshallPlan) {
-				marshallPlan = typeList
-						.makeParamsMarshallPlan(true, false);
-			}
-		} catch (BindException e) {
-			e.setMemberType("parameter");
-			e.setParentName(valueName());
-			throw new JSDIException(e);
+		if (bind(0) || null == marshallPlan) {
+			marshallPlan = typeList
+					.makeParamsMarshallPlan(true, false);
 		}
 		return marshallPlan;
 	}
@@ -167,8 +165,13 @@ public final class Callback extends ComplexType {
 
 	@Override
 	public Object marshallOut(Marshaller marshaller, Object oldValue) {
-		marshaller.skipBasicArrayElements(1);  // Nothing to be done here
+		skipMarshalling(marshaller);
 		return oldValue;
+	}
+
+	@Override
+	public void skipMarshalling(Marshaller marshaller) {
+		marshaller.skipBasicArrayElements(1);
 	}
 
 	//

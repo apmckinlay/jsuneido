@@ -73,7 +73,6 @@ public abstract class Dll extends SuCallable {
 		try {
 			return dllParams.bind(0);
 		} catch (BindException e) {
-			e.setMemberType("parameter");
 			e.setParentName(valueName());
 			throw new JSDIException(e);
 		}

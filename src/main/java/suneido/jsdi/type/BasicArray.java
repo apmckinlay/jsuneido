@@ -192,4 +192,9 @@ public final class BasicArray extends Type {
 		}
 		return c;
 	}
+
+	@Override
+	public void skipMarshalling(Marshaller marshaller) {
+		marshaller.skipBasicArrayElements(numElems);
+	}
 }

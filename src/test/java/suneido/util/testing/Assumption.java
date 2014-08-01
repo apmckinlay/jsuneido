@@ -36,10 +36,32 @@ public final class Assumption {
 	 * See: <a href="http://stackoverflow.com/a/2062036/1911388">How can I tell
 	 * if I'm running in 64-bit JVM or 32-bit JVM...?</a>
 	 * </p>
+	 * 
 	 * @author Victor Schappert
 	 * @since 20130711
+	 * @see #jvmIsOnWindows()
 	 */
 	public static void jvmIs32BitOnWindows() {
 		Assume.assumeTrue(Platform.WIN32_X86 == Platform.getPlatform());
+	}
+
+	/**
+	 * <p>
+	 * States the assumption that the executing JVM is running on Windows.
+	 * </p>
+	 *
+	 * @author Victor Schappert
+	 * @since 20140730
+	 * @see #jvmIs32BitOnWindows()
+	 */
+	public static void jvmIsOnWindows() {
+		switch (Platform.getPlatform()) {
+		case WIN32_X86:
+		case WIN32_AMD64:
+			Assume.assumeTrue(true);
+			break;
+		default:
+			Assume.assumeTrue(false);;
+		}
 	}
 }

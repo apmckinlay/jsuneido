@@ -4,7 +4,9 @@
 
 package suneido.jsdi.type;
 
+import suneido.SuInternalError;
 import suneido.jsdi.DllInterface;
+import suneido.jsdi.JSDIException;
 import suneido.jsdi.StorageType;
 import suneido.jsdi.marshall.ElementSkipper;
 
@@ -41,7 +43,7 @@ public abstract class ComplexType extends Type {
 	protected ComplexType(TypeId typeId, String valueName, TypeList typeList) {
 		super(typeId, StorageType.VALUE);
 		if (null == valueName)
-			throw new IllegalArgumentException("suTypeName cannot be null");
+			throw new SuInternalError("suTypeName cannot be null");
 		this.valueName = valueName;
 		this.typeList = typeList;
 	}
@@ -62,31 +64,17 @@ public abstract class ComplexType extends Type {
 	}
 
 	//
-	// MUTATORS
+	// ANCESTOR CLASS: Type
 	//
 
-	/**
-	 * <p>
-	 * Binds any late-binding types participating in the type tree rooted at
-	 * this complex type to their underlying types and returns a value
-	 * indicating whether the type tree has changed since the last bind
-	 * operation.
-	 * </p>
-	 * 
-	 * @param level
-	 *            Level of the tree at which the bind operation was requested (0
-	 *            being the root)&mdash;necessary for detecting cycles in the
-	 *            type hierarchy
-	 * @return If the type tree has changed since the last bind, {@code true};
-	 *         otherwise, {@code false}
-	 * @throws BindException
-	 *             If any part of the type tree could not be bound to its
-	 *             underlying type
-	 * @see LateBinding
-	 * @see LateBinding#bind(int)
-	 */
-	boolean bind(int level) throws BindException {
-		return false;
+	@Override
+	protected boolean bind(int level) {
+		try {
+			return typeList.bind(level);
+		} catch (BindException e) {
+			e.setParentName(valueName());
+			throw new JSDIException(e);
+		}
 	}
 
 	//

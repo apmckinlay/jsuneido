@@ -287,14 +287,6 @@ public class DllTest {
 				eval("TestSumPackedInt8Int8Int16Int32(Object(b: 50, c: 1000, d: -950))"));
 		assertNeedObject("TestSumPackedInt8Int8Int16Int32(%s)",
 				JSDIException.class, "can't convert .* to object");
-		// In cSuneido, you can get away with passing read-only objects to the
-		// dll marshaller, which happily modifies them. However, it seems like
-		// more consistent behaviour is to throw. Why should the marshaller be
-		// exempt from the read-only object rule?
-		assertThrew(() -> { eval("TestSumPackedInt8Int8Int16Int32(#())"); },
-				SuException.class, "readonly");
-		assertThrew(() -> { eval("TestSumPackedInt8Int8Int16Int32(#(b: 25, c: 1050, d: -875))"); },
-				SuException.class, "readonly");
 	}
 
 	@Test
@@ -606,5 +598,20 @@ public class DllTest {
 			-19800725L,
 			eval("class { Call(@x) { .mydll(@x) } mydll: dll int64 jsdi:TestInt64(int64 a) }()(-19800725)")
 		);
+	}
+
+	@Test
+	public void testNoModifyReadOnly() {
+		// In cSuneido, you can get away with passing read-only objects to the
+		// dll marshaller, which happily modifies them. However, it seems like
+		// more consistent behaviour is to throw. Why should the marshaller be
+		// exempt from the read-only object rule?
+		assertThrew(() -> {
+			eval("TestHelloWorldOutParam(#())");
+		}, SuException.class, "readonly");
+		assertThrew(
+				() -> {
+					eval("TestReturnStatic_Packed_Int8Int8Int16Int32(#(b: 25, c: 1050, d: -875))");
+				}, SuException.class, "readonly");
 	}
 }
