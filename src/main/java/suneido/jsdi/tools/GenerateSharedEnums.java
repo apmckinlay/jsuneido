@@ -32,7 +32,8 @@ public final class GenerateSharedEnums {
 	}
 
 	private static final Ref[] REFS = { new Ref(
-			suneido.jsdi.marshall.VariableIndirectInstruction.class, false, true, true) };
+			suneido.jsdi.marshall.VariableIndirectInstruction.class, false, true, false),
+			new Ref(suneido.jsdi.LogLevel.class, true, true, true)};
 
 	private static void error(String message) {
 		System.err.println(message);

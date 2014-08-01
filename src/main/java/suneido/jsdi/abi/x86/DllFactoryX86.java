@@ -14,7 +14,7 @@ import suneido.jsdi.type.Type;
 import suneido.jsdi.type.TypeList;
 
 /**
- * Dll factory specialized to create {@code x86} {@code dll} values.
+ * Dll factory specialized to create x86 {@code dll} values.
  *
  * @author Victor Schappert
  * @since 20140718

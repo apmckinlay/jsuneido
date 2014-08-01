@@ -63,25 +63,21 @@ public class NativeCallX86Test {
 		ArrayList<NativeCallX86> vi_noret_vi_or_float = new ArrayList<>();
 		ArrayList<NativeCallX86> vi_retvi = new ArrayList<>();
 		for (NativeCallX86 nativecall : NativeCallX86.values()) {
-			if (nativecall.isFloatingPointReturn())
+			if (ReturnTypeGroup.DOUBLE == nativecall.returnTypeGroup) {
 				continue;
-			if (ReturnTypeGroup.VARIABLE_INDIRECT == nativecall
-					.getReturnTypeGroup()) {
-				if (StorageCategory.VARIABLE_INDIRECT == nativecall
-						.getStorageCategory()) {
+			} else if (ReturnTypeGroup.VARIABLE_INDIRECT == nativecall.returnTypeGroup) {
+				if (StorageCategory.VARIABLE_INDIRECT == nativecall.storageCategory) {
 					vi_retvi.add(nativecall);
 				} else {
 					continue;
 				}
 			} else {
-				if (StorageCategory.DIRECT == nativecall.getStorageCategory()) {
+				if (StorageCategory.DIRECT == nativecall.storageCategory) {
 					dof_noret_vi_or_float.add(nativecall);
-				} else if (StorageCategory.INDIRECT == nativecall
-						.getStorageCategory()) {
+				} else if (StorageCategory.INDIRECT == nativecall.storageCategory) {
 					ind_noret_vi_or_float.add(nativecall);
 				} else {
-					assert StorageCategory.VARIABLE_INDIRECT == nativecall
-							.getStorageCategory();
+					assert StorageCategory.VARIABLE_INDIRECT == nativecall.storageCategory;
 					vi_noret_vi_or_float.add(nativecall);
 				}
 			}

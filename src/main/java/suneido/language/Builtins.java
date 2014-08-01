@@ -80,6 +80,7 @@ public class Builtins {
 			.put("GlobalsInfo", function(GlobalsInfo.class))
 			.put("Gt", function(Gt.class))
 			.put("Gte", function(Gte.class))
+			.put("JSDI", JSDI.singleton)
 			.put("Libraries", function(Libraries.class))
 			.put("Locals", function(Locals.class))
 			.put("Lt", function(Lt.class))

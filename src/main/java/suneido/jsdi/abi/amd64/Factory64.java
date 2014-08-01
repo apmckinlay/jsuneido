@@ -2,7 +2,7 @@
  * Licensed under GPLv2.
  */
 
-package suneido.jsdi.abi.x86;
+package suneido.jsdi.abi.amd64;
 
 import suneido.jsdi.Dll;
 import suneido.jsdi.DllInterface;
@@ -13,34 +13,33 @@ import suneido.jsdi.type.TypeList;
 import suneido.jsdi.type.TypeList.Args;
 
 /**
- * Concrete factory for instantiating objects for the Win32 x86
- * {@code __stdcall} calling convention.
+ * Concrete factory for instantiating objects for the Windows x64 ABI.
  * 
  * @author Victor Schappert
- * @since 20140718
+ * @since 20140730
  */
 @DllInterface
-final class FactoryX86 extends Factory {
+final class Factory64 extends Factory {
 
 	//
 	// DATA
 	//
 
-	private final DllFactoryX86 dllFactory;
+	private final DllFactory64 dllFactory;
 
 	//
 	// CONSTRUCTORS
 	//
 
 	/**
-	 * Constructs a new x86 factory.
+	 * Constructs a new amd64 factory.
 	 * 
 	 * @param jsdi
 	 *            Non-NULL reference a JSDI instance.
 	 */
-	FactoryX86(JSDI jsdi) {
+	Factory64(JSDI jsdi) {
 		super(jsdi);
-		dllFactory = new DllFactoryX86(jsdi);
+		dllFactory = new DllFactory64(jsdi);
 	}
 
 	//
@@ -49,7 +48,7 @@ final class FactoryX86 extends Factory {
 
 	@Override
 	public TypeList makeTypeList(Args args) {
-		return new TypeListX86(args);
+		return new TypeList64(args);
 	}
 
 	@Override

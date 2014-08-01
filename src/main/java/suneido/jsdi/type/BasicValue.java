@@ -143,6 +143,11 @@ public final class BasicValue extends Type {
 	}
 
 	@Override
+	public void skipMarshalling(Marshaller marshaller) {
+		marshaller.skipBasicArrayElements(1);
+	}
+
+	@Override
 	public void marshallInReturnValue(Marshaller marshaller) {
 		// Do nothing
 	}

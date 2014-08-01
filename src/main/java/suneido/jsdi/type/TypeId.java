@@ -50,7 +50,7 @@ public enum TypeId {
 	 * instance of a user-defined {@link ComplexType}, such as a
 	 * {@code callback} or {@code struct}.
 	 */
-	LATE_BIND,
+	LATE_BINDING,
 	/**
 	 * The type behaves like a concrete instance of {@link Structure}, a
 	 * user-defined {@code struct}.

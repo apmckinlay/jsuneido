@@ -18,6 +18,7 @@ import java.util.Date;
 import org.objectweb.asm.Type;
 
 import suneido.SuValue;
+import suneido.jsdi.LogLevel;
 import suneido.jsdi.com.COMException;
 import suneido.jsdi.com.COMobject;
 import suneido.jsdi.suneido_protocol.InternetProtocol;
@@ -82,6 +83,7 @@ public final class GenerateGlobalReferences {
 				new Ref(Date.class,
 						Date.class.getConstructor(Long.TYPE),
 						Date.class.getMethod("getTime")),
+				new Ref(LogLevel.class, LogLevel.class.getMethod("values")),
 				new Ref(Callback.class, Callback.class.getMethod("invoke",
 						SuValue.class, long[].class),
 						Callback.class.getMethod("invokeVariableIndirect",
