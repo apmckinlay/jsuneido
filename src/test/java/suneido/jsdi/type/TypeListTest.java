@@ -5,16 +5,22 @@
 package suneido.jsdi.type;
 
 import static org.junit.Assert.assertArrayEquals;
-import static suneido.jsdi.type.BasicType.*;
+import static suneido.jsdi.type.BasicType.BOOL;
+import static suneido.jsdi.type.BasicType.DOUBLE;
+import static suneido.jsdi.type.BasicType.FLOAT;
+import static suneido.jsdi.type.BasicType.GDIOBJ;
+import static suneido.jsdi.type.BasicType.HANDLE;
+import static suneido.jsdi.type.BasicType.INT16;
+import static suneido.jsdi.type.BasicType.INT32;
+import static suneido.jsdi.type.BasicType.INT64;
+import static suneido.jsdi.type.BasicType.INT8;
+import static suneido.jsdi.type.BasicType.OPAQUE_POINTER;
 import static suneido.util.testing.Throwing.assertThrew;
-
 
 import java.util.Arrays;
 
-
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 
 import suneido.SuContainer;
 import suneido.SuException;
@@ -23,17 +29,7 @@ import suneido.jsdi.DllInterface;
 import suneido.jsdi.JSDI;
 import suneido.jsdi.SimpleContext;
 import suneido.jsdi.StorageType;
-import suneido.jsdi._64BitIssue;
 import suneido.jsdi.marshall.Marshaller;
-import suneido.jsdi.type.BasicArray;
-import suneido.jsdi.type.BasicType;
-import suneido.jsdi.type.BasicValue;
-import suneido.jsdi.type.InOutString;
-import suneido.jsdi.type.InString;
-import suneido.jsdi.type.LateBinding;
-import suneido.jsdi.type.ResourceType;
-import suneido.jsdi.type.Type;
-import suneido.jsdi.type.TypeList;
 import suneido.language.ContextLayered;
 import suneido.language.Numbers;
 import suneido.util.testing.Assumption;
@@ -47,10 +43,9 @@ import suneido.util.testing.Assumption;
 @DllInterface
 public class TypeListTest {
 
-	@_64BitIssue 		// TODO: Relax assumption to just windows
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		Assumption.jvmIs32BitOnWindows();
+		Assumption.jvmIsOnWindows();
 		CONTEXT = new SimpleContext(NAMED_VALUES);
 	}
 
