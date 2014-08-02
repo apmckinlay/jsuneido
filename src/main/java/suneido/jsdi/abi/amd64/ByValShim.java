@@ -116,7 +116,7 @@ final class ByValShim extends Proxy {
 
 	@Override
 	public boolean bind(int level) throws BindException {
-		final boolean changed = super.bind(level);
+		final boolean changed = underlying.bind(level);
 		final ComplexType lastBoundType = underlying.getLastBoundType();
 		needsPassByPointer = TypeId.STRUCT == lastBoundType.getTypeId() &&
 				isPassByReferenceSize(lastBoundType.getSizeDirect());

@@ -68,7 +68,7 @@ public abstract class ComplexType extends Type {
 	//
 
 	@Override
-	protected boolean bind(int level) {
+	public boolean bind(int level) {
 		try {
 			return typeList.bind(level);
 		} catch (BindException e) {

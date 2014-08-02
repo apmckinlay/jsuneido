@@ -393,7 +393,7 @@ public abstract class Type extends JSDIValue {
 	 * @see LateBinding
 	 * @see LateBinding#bind(int)
 	 */
-	protected boolean bind(int level) throws BindException {
+	public boolean bind(int level) throws BindException {
 		// Subclasses have to explicitly implement bind.
 		throw new SuInternalError(getDisplayName() + " cannot be bound");
 	}

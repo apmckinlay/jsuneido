@@ -289,7 +289,7 @@ public final class LateBinding extends Type {
 	}
 
 	@Override
-	protected final boolean bind(int level) throws BindException {
+	public final boolean bind(int level) throws BindException {
 		final Object maybeType = context.tryget(typeNameSlot);
 		if (null != maybeType) {
 			if (maybeType == lastBoundType) {
