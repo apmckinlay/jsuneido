@@ -1,4 +1,10 @@
+/* Copyright 2014 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.jsdi.marshall;
+
+import suneido.jsdi.DllInterface;
 
 /**
  * Trivial partial implementation of marshaller for general testing.
@@ -6,6 +12,7 @@ package suneido.jsdi.marshall;
  * @author Victor Schappert
  * @since 20140801
  */
+@DllInterface
 final class TestMarshaller extends Marshaller {
 
 	TestMarshaller(int sizeTotal, int variableIndirectCount,
