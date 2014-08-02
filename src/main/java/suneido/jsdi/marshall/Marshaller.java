@@ -267,9 +267,10 @@ public abstract class Marshaller {
 	 * @see #getBool()
 	 */
 	public final void putBool(boolean value) {
-		final int dataIndex = nextData();
 		if (value) {
-			data[dataIndex / 8] = 1;
+			putInt32(1);
+		} else {
+			nextData();
 		}
 	}
 
