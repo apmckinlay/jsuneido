@@ -176,7 +176,7 @@ public class ParseAndCompileCallbackTest {
 	//
 
 	private static Object compile(CharSequence code) {
-		Assumption.jvmIs32BitOnWindows();
+		Assumption.jvmIsOnWindows();
 		return Compiler.compile(
 				ParseAndCompileStructTest.class.getSimpleName(),
 				code.toString());
