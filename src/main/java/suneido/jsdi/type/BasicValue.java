@@ -53,14 +53,29 @@ public final class BasicValue extends Type {
 	// INTERNALS
 	//
 
+	private static SuInternalError unsupportedPointerSize() {
+		return new SuInternalError("unsupported pointer size: "
+				+ PrimitiveSize.POINTER);
+	}
+
 	public static long marshallPointerInToLong(Object value) {
 		if (Long.BYTES == PrimitiveSize.POINTER) {
 			return NumberConversions.toPointer64(value);
 		} else if (Integer.BYTES == PrimitiveSize.POINTER) {
 			return NumberConversions.toPointer32(value);
 		} else {
-			throw new SuInternalError("unsupported pointer size: "
-					+ PrimitiveSize.POINTER);
+			throw unsupportedPointerSize();
+		}
+	}
+
+	public static Object marshallPointerOutFromLong(long value) {
+		if (Long.BYTES == PrimitiveSize.POINTER) {
+			return value;
+		} else if (Integer.BYTES == PrimitiveSize.POINTER) {
+			// High order 32 bits may be full of garbage and we just drop them.
+			return (int)value;
+		} else {
+			throw unsupportedPointerSize();
 		}
 	}
 
@@ -192,7 +207,7 @@ public final class BasicValue extends Type {
 		case HANDLE:
 			// intentional fall-through
 		case OPAQUE_POINTER:
-			// intentional fall-through
+			return marshallPointerOutFromLong(returnValue);
 		case INT64:
 			return returnValue;
 		case FLOAT:
@@ -222,7 +237,6 @@ public final class BasicValue extends Type {
 		case HANDLE:
 			// intentional fall-through
 		case OPAQUE_POINTER:
-			// intentional fall-through
 			return marshallPointerInToLong(value);
 		case INT64:
 			return NumberConversions.toLong(value);
@@ -252,7 +266,7 @@ public final class BasicValue extends Type {
 		case HANDLE:
 			// intentional fall-through
 		case OPAQUE_POINTER:
-			// intentional fall-through
+			return marshallPointerOutFromLong(marshalledData);
 		case INT64:
 			return marshalledData;
 		case FLOAT:
