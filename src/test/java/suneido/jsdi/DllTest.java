@@ -52,7 +52,6 @@ public class DllTest {
 	}
 
 	public DllTest(boolean isFast) {
-System.out.println("isFast => " + isFast);
 		JSDI.getInstance().setFastMode(isFast);
 	}
 
