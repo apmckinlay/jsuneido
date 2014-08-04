@@ -120,7 +120,7 @@ public class Numbers {
 	}
 
 	public static boolean isInRange(BigDecimal x, BigDecimal lo, BigDecimal hi) {
-		return x.compareTo(lo) >= 0 && x.compareTo(BD_INT_MAX) <= 0;
+		return x.compareTo(lo) >= 0 && x.compareTo(hi) <= 0;
 	}
 
 	public static Number narrow(long x) {
