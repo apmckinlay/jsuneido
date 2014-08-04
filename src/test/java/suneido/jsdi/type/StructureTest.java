@@ -4,16 +4,16 @@
 
 package suneido.jsdi.type;
 
+import static org.junit.Assert.assertEquals;
 import static suneido.util.testing.Throwing.assertThrew;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import suneido.jsdi.Buffer;
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.JSDIException;
 import suneido.jsdi.SimpleContext;
-import suneido.jsdi._64BitIssue;
-import suneido.jsdi.type.Structure;
 import suneido.language.Compiler;
 import suneido.language.ContextLayered;
 import suneido.util.testing.Assumption;
@@ -25,14 +25,14 @@ import suneido.util.testing.Assumption;
  * @since 20130703
  * @see suneido.language.ParseAndCompileStructTest
  * @see suneido.jsdi.abi.x86.StructureTestX86
+ * @see suneido.jsdi.abi.amd64.StructureTest64
  */
 @DllInterface
 public class StructureTest {
 
 	@BeforeClass
-	@_64BitIssue // This should be relaxed to jvmIsOnWindows()
 	public static void setUpBeforeClass() throws Exception {
-		Assumption.jvmIs32BitOnWindows();
+		Assumption.jvmIsOnWindows();
 	}
 
 	private static final String[] NAMED_TYPES = {
@@ -97,6 +97,32 @@ public class StructureTest {
 					".*cycle.*"
 			);
 		}
+	}
+
+	@Test
+	public void testCallOnObject() {
+		assertEquals(new Buffer(4 * 4, ""), eval("RECT(Object())"));
+		assertEquals(new Buffer(new byte[] { (byte) 0xff, (byte) 0xee,
+				(byte) 0xdd, (byte) 0x0c, (byte) 0xbb, (byte) 0xaa,
+				(byte) 0x99, 0x08 }, 0, 8),
+				eval("POINT(#(x: 0x0cddeeff, y: 0x0899aabb))"));
+		assertEquals(
+				new Buffer(new byte[] { (byte)'x', 0, (byte)'y', 0, 1, 0, 0, 0, 0, 0, 0, 0 }, 0, 12),
+				eval("(struct { buffer[2] a; string[2] b; Packed_CharCharShortLong c })(#(a: x, b: y, c: #(a: 1)))")
+		);
+	}
+
+	@Test
+	public void testCallOnBuffer() {
+		assertEquals(eval("#(left:0,top:0,right:0,bottom:0)"),
+				eval("RECT(Buffer(RECT.Size(), ''))"));
+		assertEquals(
+				eval("#(x: 1, y: 1)"),
+				eval("POINT(Buffer(POINT.Size(), '\\x01\\x00\\x00\\x00\\x01'))"));
+		assertEquals(
+				eval("#(a:1, b:-1, c:2, d:-2)"),
+				eval("Packed_CharCharShortLong(Packed_CharCharShortLong(Object(a:1, b:-1, c:2, d:-2)))")
+		);
 	}
 
 	@Test

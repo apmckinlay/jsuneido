@@ -28,6 +28,7 @@ public abstract class MarshallPlanBuilder {
 	private   final ArrayList<Integer> posList;
 	protected final ArrayList<Integer> ptrList;
 	private   final ArrayList<Integer> nextPosStack; // indirection
+	private   final ArrayList<Integer> alignStack;   // container alignment
 	private   final ArrayList<ElementSkipper> skipperStack; // containers
 	private   final boolean alignToWordBoundary;
 	private         ElementSkipper skipper;
@@ -55,6 +56,7 @@ public abstract class MarshallPlanBuilder {
 		this.ptrList = new ArrayList<>();
 		this.nextPosStack = new ArrayList<>();
 		this.skipperStack = new ArrayList<>();
+		this.alignStack = new ArrayList<>();
 		this.alignToWordBoundary = alignToWordBoundary;
 		this.skipper = new ElementSkipper(0, 0);
 		this.nextPos = 0;
@@ -260,16 +262,21 @@ public abstract class MarshallPlanBuilder {
 	 * This method should be called to initiate storage for a container-type
 	 * aggregate (<em>ie</em> {@code struct}). Each call to this method must be
 	 * bracketed by a matching call to {@link #containerEnd()} after all of the
-	 * storage required by the container's elements has been allocated. 
+	 * storage required by the container's elements has been allocated.
 	 * </p>
 	 *
+	 * @param alignTo
+	 *            Required alignment, in bytes, of the whole container (
+	 *            <em>eg</em> 1, 2, 4, 8)
 	 * @see #containerEnd()
 	 * @see #arrayBegin()
 	 * @see #ptrBegin(int, int)
 	 */
-	public final void containerBegin() {
+	public final void containerBegin(int alignTo) {
 		skipperStack.add(skipper);
 		skipper = new ElementSkipper(0, 0);
+		nextPos = nextAligned(alignTo);
+		alignStack.add(alignTo);
 	}
 
 	/**
@@ -303,23 +310,28 @@ public abstract class MarshallPlanBuilder {
 		skipper = skipperStack.remove(N - 1);
 		skipper.nPos += result.nPos;
 		skipper.nPtr += result.nPtr;
-		// If we are now at the outermost containment level (i.e. we just
-		// finished a parameter that is itself a container), make sure we
-		// advance to the next word boundary.
+		assert N == alignStack.size();
+		final int nextAlignTo = alignStack.remove(N - 1);
 		if (alignToWordBoundary && nextPosStack.isEmpty()
 				&& skipperStack.isEmpty()) {
+			// If we are now at the outermost containment level (i.e. we just
+			// finished a parameter that is itself a container), make sure we
+			// advance to the next word boundary.
 			final int rem = nextPos % PrimitiveSize.WORD;
 			if (0 != rem) {
 				nextPos += PrimitiveSize.WORD - rem;
 			}
+		} else {
+			nextPos = nextAligned(nextAlignTo);
 		}
+		// 
 		return result;
 	}
 
 	/**
 	 * <p>
-	 * Increments the containment level and indicates the start of an
-	 * array-type aggregate.
+	 * Increments the containment level and indicates the start of an array-type
+	 * aggregate.
 	 * </p>
 	 *
 	 * <p>
@@ -327,15 +339,18 @@ public abstract class MarshallPlanBuilder {
 	 * aggregate (<em>ie</em> <code><strong>int32</strong>[6]</code>). Each call
 	 * to this method must be bracketed by a matching call to
 	 * {@link #arrayEnd()} after all of the storage required by the container's
-	 * elements has been allocated. 
+	 * elements has been allocated.
 	 * </p>
 	 *
+	 * @param alignTo
+	 *            Required alignment, in bytes, of the the array elements (
+	 *            <em>eg</em> 1, 2, 4, 8)
 	 * @see #arrayEnd()
 	 * @see #containerBegin()
 	 * @see #ptrBegin(int, int)
 	 */
-	public final void arrayBegin() {
-		containerBegin();
+	public final void arrayBegin(int alignTo) {
+		containerBegin(alignTo);
 	}
 
 	/**
@@ -373,6 +388,7 @@ public abstract class MarshallPlanBuilder {
 		assert posList.size() == skipper.nPos;
 		assert ptrList.size() == skipper.nPtr;
 		assert skipperStack.isEmpty();
+		assert alignStack.isEmpty();
 		assert variableIndirectPos == variableIndirectCount;
 		// While the builder is still in use to allocate storage in a plan (i.e.
 		// before this method gets called), the ultimate direct and indirect

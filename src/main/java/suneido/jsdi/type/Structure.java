@@ -191,7 +191,7 @@ public final class Structure extends ComplexType {
 
 	@Override
 	public void addToPlan(MarshallPlanBuilder builder, boolean isCallbackPlan) {
-		builder.containerBegin();
+		builder.containerBegin(getAlignDirect());
 		typeList.addToPlan(builder, isCallbackPlan);
 		skipper = builder.containerEnd();
 	}

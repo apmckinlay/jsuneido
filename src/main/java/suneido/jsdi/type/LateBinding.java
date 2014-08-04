@@ -178,7 +178,7 @@ public final class LateBinding extends Type {
 			skipper = lastBoundType.skipper;
 			break;
 		case ARRAY:
-			builder.arrayBegin();
+			builder.arrayBegin(lastBoundType.getAlignDirect());
 			for (int k = 0; k < numElems; ++k) {
 				// NOTE: This is doing a lot of extra work that could as easily
 				//       be done by multiplication... Not ideal.

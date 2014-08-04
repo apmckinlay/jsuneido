@@ -91,7 +91,7 @@ public final class BasicArray extends Type {
 
 	@Override
 	public void addToPlan(MarshallPlanBuilder builder, boolean isCallbackPlan) {
-		builder.arrayBegin();
+		builder.arrayBegin(getAlignDirect());
 		for (int k = 0; k < numElems; ++k) {
 			underlying.addToPlan(builder, isCallbackPlan);
 		}

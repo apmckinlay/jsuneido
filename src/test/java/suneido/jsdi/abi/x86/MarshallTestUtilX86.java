@@ -101,7 +101,7 @@ public final class MarshallTestUtilX86 extends MarshallTestUtil {
 
 	public static MarshallPlan packedCharCharShortLongPlan() {
 		MarshallPlanBuilder builder = new MarshallPlanBuilderX86(0, true);
-		builder.containerBegin();
+		builder.containerBegin(PrimitiveSize.INT64);
 		builder.basic(PrimitiveSize.INT8, PrimitiveSize.INT8);
 		builder.basic(PrimitiveSize.INT8, PrimitiveSize.INT8);
 		builder.basic(PrimitiveSize.INT16, PrimitiveSize.INT16);
@@ -112,7 +112,7 @@ public final class MarshallTestUtilX86 extends MarshallTestUtil {
 
 	public static MarshallPlan packedInt8x3Plan() {
 		MarshallPlanBuilder builder = new MarshallPlanBuilderX86(0, true);
-		builder.containerBegin();
+		builder.containerBegin(PrimitiveSize.INT8);
 		builder.basic(PrimitiveSize.INT8, PrimitiveSize.INT8);
 		builder.basic(PrimitiveSize.INT8, PrimitiveSize.INT8);
 		builder.basic(PrimitiveSize.INT8, PrimitiveSize.INT8);
@@ -150,15 +150,15 @@ public final class MarshallTestUtilX86 extends MarshallTestUtil {
 				* PrimitiveSize.POINTER + PrimitiveSize.INT32);
 		MarshallPlanBuilder builder = new MarshallPlanBuilderX86(2 * 2, true);
 		builder.ptrBegin(sizeOf_RecursiveStringSum, PrimitiveSize.POINTER);
-			builder.containerBegin();              // struct RecursiveStringSum
-				builder.arrayBegin();
-					builder.containerBegin();          // struct Packed_Int8Int8Int16Int32
+			builder.containerBegin(PrimitiveSize.POINTER);       // struct RecursiveStringSum
+				builder.arrayBegin(PrimitiveSize.INT32);
+					builder.containerBegin(PrimitiveSize.INT32); // struct Packed_Int8Int8Int16Int32
 					builder.basic(PrimitiveSize.INT8, PrimitiveSize.INT8);
 					builder.basic(PrimitiveSize.INT8, PrimitiveSize.INT8);
 					builder.basic(PrimitiveSize.INT16, PrimitiveSize.INT16);
 					builder.basic(PrimitiveSize.INT32, PrimitiveSize.INT32);
 					builder.containerEnd();
-					builder.containerBegin();          // struct Packed_Int8Int8Int16Int32
+					builder.containerBegin(PrimitiveSize.INT32); // struct Packed_Int8Int8Int16Int32
 					builder.basic(PrimitiveSize.INT8, PrimitiveSize.INT8);
 					builder.basic(PrimitiveSize.INT8, PrimitiveSize.INT8);
 					builder.basic(PrimitiveSize.INT16, PrimitiveSize.INT16);
@@ -169,15 +169,15 @@ public final class MarshallTestUtilX86 extends MarshallTestUtil {
 				builder.ptrVariableIndirect();
 				builder.basic(PrimitiveSize.INT32, PrimitiveSize.INT32);
 				builder.ptrBegin(sizeOf_RecursiveStringSum, PrimitiveSize.POINTER);
-					builder.containerBegin();
-						builder.arrayBegin();
-							builder.containerBegin();          // struct Packed_Int8Int8Int16Int32
+					builder.containerBegin(PrimitiveSize.POINTER);
+						builder.arrayBegin(PrimitiveSize.INT32);
+							builder.containerBegin(PrimitiveSize.INT32); // struct Packed_Int8Int8Int16Int32
 							builder.basic(PrimitiveSize.INT8, PrimitiveSize.INT8);
 							builder.basic(PrimitiveSize.INT8, PrimitiveSize.INT8);
 							builder.basic(PrimitiveSize.INT16, PrimitiveSize.INT16);
 							builder.basic(PrimitiveSize.INT32, PrimitiveSize.INT32);
 							builder.containerEnd();
-							builder.containerBegin();          // struct Packed_Int8Int8Int16Int32
+							builder.containerBegin(PrimitiveSize.INT32); // struct Packed_Int8Int8Int16Int32
 							builder.basic(PrimitiveSize.INT8, PrimitiveSize.INT8);
 							builder.basic(PrimitiveSize.INT8, PrimitiveSize.INT8);
 							builder.basic(PrimitiveSize.INT16, PrimitiveSize.INT16);
@@ -208,7 +208,7 @@ public final class MarshallTestUtilX86 extends MarshallTestUtil {
 		MarshallPlanBuilder builder = new MarshallPlanBuilderX86(1, true);
 		builder.ptrBegin(PrimitiveSize.POINTER + 2 * PrimitiveSize.INT32,
 				PrimitiveSize.POINTER);
-		builder.containerBegin();
+		builder.containerBegin(PrimitiveSize.POINTER);
 		builder.ptrVariableIndirect();
 		builder.basic(PrimitiveSize.INT32, PrimitiveSize.INT32);
 		builder.basic(PrimitiveSize.INT32, PrimitiveSize.INT32);
