@@ -51,7 +51,7 @@ class FastDll3 extends Dll {
 
 	@Override
 	public Object call(Object... args) {
-		Args.massage(params, args);
+		args = Args.massage(params, args);
 		return call3(args[0], args[1], args[2]);
 	}
 
