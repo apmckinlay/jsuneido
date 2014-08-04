@@ -31,6 +31,7 @@ PARAMETER PASSING:
                            SIDE GOALS/NICE-TO-HAVEs
 ================================================================================
 
+[ ] Marshall callback into long since it's basically a pointer
 [ ] Proper SEH support
 [X] Remove BasicPointer
 [X] Clean up all warnings: jSuneido
