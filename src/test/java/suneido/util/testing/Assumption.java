@@ -39,10 +39,27 @@ public final class Assumption {
 	 * 
 	 * @author Victor Schappert
 	 * @since 20130711
+	 * @see #jvmIs64BitOnWindows()
 	 * @see #jvmIsOnWindows()
 	 */
 	public static void jvmIs32BitOnWindows() {
 		Assume.assumeTrue(Platform.WIN32_X86 == Platform.getPlatform());
+	}
+
+	/**
+	/**
+	 * <p>
+	 * States the assumption that the executing JVM is a 64-bit executable
+	 * running on Windows.
+	 * </p>
+	 *
+	 * @author Victor Schappert
+	 * @since 20140803
+	 * @see #jvmIs32BitOnWindows()
+	 * @see #jvmIsOnWindows()
+	 */
+	public static void jvmIs64BitOnWindows() {
+		Assume.assumeTrue(Platform.WIN32_AMD64 == Platform.getPlatform());
 	}
 
 	/**
@@ -53,6 +70,7 @@ public final class Assumption {
 	 * @author Victor Schappert
 	 * @since 20140730
 	 * @see #jvmIs32BitOnWindows()
+	 * @see #jvmIs64BitOnWindows()
 	 */
 	public static void jvmIsOnWindows() {
 		switch (Platform.getPlatform()) {
