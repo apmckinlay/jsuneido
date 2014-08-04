@@ -10,9 +10,14 @@ import static org.junit.Assert.assertSame;
 import static suneido.util.testing.Throwing.assertThrew;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.Collection;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
 import suneido.SuException;
 import suneido.jsdi.Buffer;
@@ -32,12 +37,23 @@ import suneido.util.testing.Assumption;
  * @see suneido.language.ParseAndCompileDllTeste
  */
 @DllInterface
+@RunWith(Parameterized.class)
 public class DllTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		Assumption.jvmIs32BitOnWindows();
+		Assumption.jvmIsOnWindows();
 		CONTEXT = new SimpleContext(NAMED_TYPES);
+	}
+
+	@Parameters
+	public static Collection<Object[]> isFast() {
+		return Arrays.asList(new Object[][] { { Boolean.FALSE }, { Boolean.TRUE } }); 
+	}
+
+	public DllTest(boolean isFast) {
+System.out.println("isFast => " + isFast);
+		JSDI.getInstance().setFastMode(isFast);
 	}
 
 	private static ContextLayered CONTEXT;
@@ -125,11 +141,11 @@ public class DllTest {
 		"TestReturnPtrString", "dll string jsdi:TestReturnPtrString(StringWrapper * ptr)",
 		"TestReturnStringOutBuffer", "dll string jsdi:TestReturnStringOutBuffer(string str, buffer buffer_, int32 size)",
 		"TestReturnStatic_Packed_Int8Int8Int16Int32",
-			"dll int32 jsdi:TestReturnStatic_Packed_Int8Int8Int16Int32(Packed_Int8Int8Int16Int32 * ptr)",
+			"dll pointer jsdi:TestReturnStatic_Packed_Int8Int8Int16Int32(Packed_Int8Int8Int16Int32 * ptr)",
 		"TestReturnStatic_Recursive_Int8Int8Int16Int32",
-			"dll int32 jsdi:TestReturnStatic_Recursive_Int8Int8Int16Int32(Recursive_Int8Int8Int16Int32_2 * ptr)",
+			"dll pointer jsdi:TestReturnStatic_Recursive_Int8Int8Int16Int32(Recursive_Int8Int8Int16Int32_2 * ptr)",
 		"TestReturnStatic_Recursive_StringSum",
-			"dll int32 jsdi:TestReturnStatic_Recursive_StringSum(Recursive_StringSum2 * ptr)",
+			"dll pointer jsdi:TestReturnStatic_Recursive_StringSum(Recursive_StringSum2 * ptr)",
 	};
 
 	private static Object eval(String src) {
