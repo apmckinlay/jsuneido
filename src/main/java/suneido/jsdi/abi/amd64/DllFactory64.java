@@ -52,7 +52,8 @@ final class DllFactory64 extends DllFactory {
 			paramsPlan = (MarshallPlan64) params.makeParamsMarshallPlan(false,
 					0 < returnType.getVariableIndirectCount());
 			StorageCategory sc = paramsPlan.getStorageCategory();
-			nc = NativeCall64.get(sc, rtg, ptl.size(), ptl.needsFpRegister(),
+			nc = NativeCall64.get(sc, rtg, ptl.size(),
+					ptl.isMarshallableToLong(), ptl.needsFpRegister(),
 					isFloatReturn);
 			if (jsdi.isFastMode() && nc.isFastCallable()) {
 				return makeFastDll(nc, funcPtr, ptl, returnType, suTypeName,

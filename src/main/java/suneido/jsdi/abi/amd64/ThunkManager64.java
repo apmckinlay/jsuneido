@@ -39,7 +39,8 @@ final class ThunkManager64 extends ThunkManager {
 		final MarshallPlan p = c.getMarshallPlan(); // Triggers a bind on params
 		final NativeCall64 nc = NativeCall64.get(p.getStorageCategory(),
 				ReturnTypeGroup.INTEGER, c.params.size(),
-				c.params.needsFpRegister(), false);
+				c.params.isMarshallableToLong(), c.params.needsFpRegister(),
+				false);
 		final int registerUsage = c.params.getRegisterUsage();
 		newThunk64(callback, boundValue, p.getSizeDirect(), p.getSizeTotal(),
 				p.getPtrArray(), p.getVariableIndirectCount(), registerUsage,

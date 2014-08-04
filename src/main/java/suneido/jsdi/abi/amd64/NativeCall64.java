@@ -8,6 +8,9 @@ import static suneido.jsdi.marshall.MarshallPlan.StorageCategory.DIRECT;
 import static suneido.jsdi.marshall.MarshallPlan.StorageCategory.INDIRECT;
 import static suneido.jsdi.marshall.ReturnTypeGroup.DOUBLE;
 import static suneido.jsdi.marshall.ReturnTypeGroup.INTEGER;
+
+import java.util.Arrays;
+
 import suneido.SuInternalError;
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.marshall.MarshallPlan.StorageCategory;
@@ -100,8 +103,8 @@ enum NativeCall64 {
 	private NativeCall64(StorageCategory storageCategory,
 			ReturnTypeGroup returnTypeGroup, boolean hasFpParams,
 			boolean is32BitIEEEFloatReturn) {
-		this(storageCategory, returnTypeGroup, -1, hasFpParams,
-				is32BitIEEEFloatReturn, false);
+		this(storageCategory, returnTypeGroup, MAX_NUMPARAMS_VALUE,
+				hasFpParams, is32BitIEEEFloatReturn, false);
 	}
 
 	//
@@ -220,63 +223,65 @@ enum NativeCall64 {
 
 	private static final int MAX_NUMPARAMS_VALUE = MAX_LONGMARSHALL_PARAMS + 1;
 
-	private static final int rtIndex(ReturnTypeGroup rtg, boolean hasFpParams,
+	private static final int rtIndex(ReturnTypeGroup rtg,
 			boolean is32BitIEEEFloatReturn) {
-		int result = 0;
 		switch (rtg) {
 		case INTEGER:
 			assert !is32BitIEEEFloatReturn;
-			break;
+			return 0;
 		case DOUBLE:
-			result = is32BitIEEEFloatReturn ? 1 : 2;
-			break;
+			return is32BitIEEEFloatReturn ? 2 : 1;
 		case VARIABLE_INDIRECT:
 			assert !is32BitIEEEFloatReturn;
-			result = 3;
+			return 3;
+		default:
+			throw SuInternalError.unhandledEnum(ReturnTypeGroup.class);
 		}
-		if (hasFpParams) {
-			result += 4;
-		}
-		return result;
 	}
 
-	// map[rtIndex 0..7][StorageCategory][numParams 0..5]
-	private static final NativeCall64[][][] map;
-	static {
-		final ReturnTypeGroup[] rt = ReturnTypeGroup.values();
-		final boolean B[] = { false, true };
-		final StorageCategory[] sc = StorageCategory.values();
-		final NativeCall64[] nc = NativeCall64.values();
-		final int N_sc = sc.length;
-		map = new NativeCall64[4][N_sc][MAX_NUMPARAMS_VALUE + 1];
-		// Put the generic values
-		for (final ReturnTypeGroup rtg : rt) {
-			for (final boolean hasFpParams : B) {
-				for (final boolean is32BitIEEEFloatReturn : B) {
-					for (int i = 0; i < N_sc; ++i) {
-						inner: for (final NativeCall64 n : nc) {
-							if (rtg == n.returnTypeGroup
-									&& is32BitIEEEFloatReturn == n.is32BitIEEEFloatReturn
-									&& hasFpParams == n.hasFpParams
-									&& sc[i] == n.storageCategory) {
-								for (int j = 0; j <= MAX_NUMPARAMS_VALUE; ++j) {
-									map[rtIndex(rtg, hasFpParams, is32BitIEEEFloatReturn)][i][j] = n;
-								}
-								break inner;
-							}
-						}
-					}
+	private static final int scIndex(StorageCategory sc, boolean hasFpParams) {
+		int index = sc.ordinal();
+		return hasFpParams ? index + 3 : index; 
+	}
 
+	// fastCallMap[numParams:0..4]
+	private static final NativeCall64[] fastCallMap;
+	// ordinaryCallMap[rtIndex 0..3][scIndex 0..5]
+	private static final NativeCall64[][] ordinaryCallMap;
+
+	private static void initSCMap(StorageCategory[] SC, ReturnTypeGroup rtg,
+			boolean is32BitIEEEFloatReturn, NativeCall64[] map) {
+		final NativeCall64[] NC = values();
+		for (final StorageCategory sc : SC) {
+			inner: for (final boolean hasFpParams : new boolean[] { false, true }) {
+				for (final NativeCall64 nc : NC) {
+					if (nc.storageCategory == sc
+							&& nc.hasFpParams == hasFpParams
+							&& nc.is32BitIEEEFloatReturn == is32BitIEEEFloatReturn
+							&& nc.returnTypeGroup == rtg
+							&& nc.isFastCallable == false) {
+						map[scIndex(sc, hasFpParams)] = nc;
+						break inner;
+					}
 				}
 			}
 		}
-		// Put the specific fastcall values
-		final int SC_DIRECT = DIRECT.ordinal();
-		map[0][SC_DIRECT][0] = J0_RETURN_INT64;
-		map[0][SC_DIRECT][1] = J1_RETURN_INT64;
-		map[0][SC_DIRECT][2] = J2_RETURN_INT64;
-		map[0][SC_DIRECT][3] = J3_RETURN_INT64;
-		map[0][SC_DIRECT][4] = J4_RETURN_INT64;
+	}
+	
+	static {
+		// Fastcall map
+		fastCallMap = new NativeCall64[] { J0_RETURN_INT64, J1_RETURN_INT64,
+				J2_RETURN_INT64, J3_RETURN_INT64, J4_RETURN_INT64 };
+		// Ordinary call map
+		final ReturnTypeGroup[] RTG = ReturnTypeGroup.values();
+		final StorageCategory[] SC = StorageCategory.values();
+		ordinaryCallMap = new NativeCall64[RTG.length + 1][SC.length * 2];
+		for (final NativeCall64 nc : values()) {
+			if (nc.isFastCallable) continue;
+			final int rtIndex = rtIndex(nc.returnTypeGroup, nc.is32BitIEEEFloatReturn);
+			final int scIndex = scIndex(nc.storageCategory, nc.hasFpParams);
+			ordinaryCallMap[rtIndex][scIndex] = nc;
+		}
 	}
 
 	/**
@@ -289,6 +294,9 @@ enum NativeCall64 {
 	 *            Return type group of the native function
 	 * @param numParams
 	 *            Non-negative parameter count of the native function
+	 * @param isLongMarshallable
+	 *            Whether <em>all</em> parameters can be marshalled into and
+	 *            out of a Java {@code long} value
 	 * @param hasFpParams
 	 *            Whether any of the native function's first for parameters are
 	 *            {@code float} or {@code double}
@@ -302,11 +310,31 @@ enum NativeCall64 {
 	 */
 	public static NativeCall64 get(StorageCategory storageCategory,
 			ReturnTypeGroup returnTypeGroup, int numParams,
-			boolean hasFpParams, boolean is32BitIEEEFloatReturn) {
+			boolean isLongMarshallable, boolean hasFpParams,
+			boolean is32BitIEEEFloatReturn) {
 		assert 0 <= numParams;
-		numParams = Math.max(numParams, MAX_NUMPARAMS_VALUE);
-		return map[rtIndex(returnTypeGroup, hasFpParams, is32BitIEEEFloatReturn)][storageCategory
-				.ordinal()][numParams];
+		if (numParams <= MAX_LONGMARSHALL_PARAMS && isLongMarshallable &&
+			INTEGER == returnTypeGroup) {
+			assert StorageCategory.DIRECT == storageCategory;
+			assert ! hasFpParams;
+			assert ! is32BitIEEEFloatReturn;
+			return fastCallMap[numParams];
+		} else {
+			final int rtIndex = rtIndex(returnTypeGroup, is32BitIEEEFloatReturn);
+			final int scIndex = scIndex(storageCategory, hasFpParams);
+			return ordinaryCallMap[rtIndex][scIndex];
+		}
+	}
+
+	//
+	// TESTING
+	//
+
+	public static void main(String[] args) {
+		for (int rtIndex = 0; rtIndex < 4; ++rtIndex) {
+			System.out.println("rtindex " + rtIndex + "...");
+			System.out.println("\t" + Arrays.toString(ordinaryCallMap[rtIndex]));
+		}
 	}
 
 	//

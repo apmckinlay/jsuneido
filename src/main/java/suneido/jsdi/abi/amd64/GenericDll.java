@@ -74,9 +74,11 @@ final class GenericDll extends Dll {
 		returnType.marshallInReturnValue(m);
 		final NativeCall64 nc = null == nativeCall ? NativeCall64.get(
 				plan.getStorageCategory(), returnTypeGroup, params.size(),
-				params.needsFpRegister(), is32BitIEEEFloatReturn) : nativeCall;
+				false, params.needsFpRegister(), is32BitIEEEFloatReturn)
+				: nativeCall;
 		final long returnValueRaw = nc.invoke(funcPtr, plan.getSizeDirect(),
 				params.getRegisterUsage(), m);
+		m.rewind();
 		params.marshallOutParams(m, args);
 		return returnType.marshallOutReturnValue(returnValueRaw, m);
 	}
