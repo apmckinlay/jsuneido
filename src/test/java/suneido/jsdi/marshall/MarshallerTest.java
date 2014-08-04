@@ -27,7 +27,7 @@ public class MarshallerTest {
 			}
 			int sizeTotal = posArray[N-1] + sizes[N-1];
 			return new TestMarshaller(
-					PrimitiveSize.sizeLongs(sizeTotal), 0, null, posArray);
+					PrimitiveSize.sizeLongs(sizeTotal), 0, new int[0], posArray);
 		}
 		throw new IllegalArgumentException("can't have empty size array");
 	}
