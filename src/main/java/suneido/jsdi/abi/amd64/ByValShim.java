@@ -110,6 +110,15 @@ final class ByValShim extends Proxy {
 	}
 
 	@Override
+	public void skipMarshalling(Marshaller marshaller) {
+		if (needsPassByPointer) {
+			marshaller.isPtrNull();
+		}
+		underlying.skipMarshalling(marshaller);
+	}
+
+
+	@Override
 	public void putMarshallOutInstruction(Marshaller marshaller) {
 		throw new SuInternalError("not implemented"); // TODO: implement
 	}
