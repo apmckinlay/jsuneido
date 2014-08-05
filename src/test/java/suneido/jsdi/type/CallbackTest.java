@@ -35,7 +35,7 @@ public class CallbackTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		Assumption.jvmIs32BitOnWindows();
+		Assumption.jvmIsOnWindows();
 		CONTEXT = new SimpleContext(NAMED_TYPES);
 	}
 
@@ -493,11 +493,11 @@ public class CallbackTest {
 		//             to call a second callback, y(), before F() returns back
 		//             to Suneido.
 		assertThrew(() -> {
-			eval("TestInvokeCallback_Int32_1_2({ throw 'a' }, 1, {  }, 2)");
-			}, SuException.class, "a");
+			eval("TestInvokeCallback_Int32_1_2({|x| throw 'one' $ x }, 1, {|y| }, 2)");
+			}, SuException.class, "one1");
 		assertThrew(() -> {
-			eval("TestInvokeCallback_Int32_1_2({ throw 'a' }, 1, { throw 'b' }, 2)");
-			}, SuException.class, "a");
+			eval("TestInvokeCallback_Int32_1_2({|x| throw 'one' $ x }, 1, {|y| throw 'two' $ y }, 2)");
+			}, SuException.class, "one1");
 	}
 
 	@Test
