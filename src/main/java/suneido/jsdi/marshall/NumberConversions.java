@@ -8,7 +8,6 @@ import java.math.BigDecimal;
 
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.JSDIException;
-import suneido.jsdi._64BitIssue;
 import suneido.language.Numbers;
 import suneido.language.Ops;
 
@@ -133,7 +132,7 @@ public final class NumberConversions {
 	 * {@code => x}</li>
 	 * <li>Any string-type value {@code y} which can be parsed into a number
 	 * {@code x} meeting the above criteria {@code => x}
-	 * <li>Anything else {@code =>} {@link JSDIException}</li> 
+	 * <li>Anything else {@code =>} {@link JSDIException}</li>
 	 * </ul>
 	 * The result of the conversion is an {@code int} in the range
 	 * 0x00000000-0xffffffff. Although Java treats this number as a signed
@@ -141,24 +140,18 @@ public final class NumberConversions {
 	 * 32-bit pointer.
 	 * </p>
 	 * <p>
-	 * <strong>NOTE:</strong> This function represents a problem for using JSDI
-	 * with 64-bit shared libraries, and hence using a 64-bit JVM. To minimize
-	 * the pain of transitioning to 64-bit, do <em>NOT</em>, for any reason,
-	 * use 32-bit pointers in your JNI interfaces. If you make a
-	 * <code>native</code> function that requires pointer arguments, the
-	 * pointers should be passed as <code>long</code> and converted using
-	 * {@link #toPointer64(Object)}. This function should be restricted to
-	 * marshalling parameters for 32-bit <code>dll</code> functions which
-	 * expect 32-bit pointers. 
+	 * This function's use should be restricted to marshalling parameters for
+	 * 32-bit <code>dll</code> functions which expect 32-bit pointers.
 	 * </p>
-	 * @param a Value to convert
+	 * 
+	 * @param a
+	 *            Value to convert
 	 * @return Value that is bitwise equivalent to the pointer represented by
-	 * {@code a}
-	 * @throws JSDIException If {@code a} cannot be converted to a 32-bit
-	 * pointer
+	 *         {@code a}
+	 * @throws JSDIException
+	 *             If {@code a} cannot be converted to a 32-bit pointer
 	 * @since 20130912
 	 */
-	@_64BitIssue
 	public static int toPointer32(Object a) {
 		if (a instanceof Number) {
 			if (a instanceof Integer) {
@@ -289,7 +282,6 @@ public final class NumberConversions {
 		return result;
 	}
 
-	@_64BitIssue
 	private static int toPointer32FromLong(long x) {
 		if ((long)Integer.MIN_VALUE <= x && x <= (long)Integer.MAX_VALUE) {
 			return (int)x;
@@ -298,7 +290,6 @@ public final class NumberConversions {
 		}
 	}
 
-	@_64BitIssue
 	private static int toPointer32FromNumber(Number x) {
 		BigDecimal d = Numbers.toBigDecimal(x);
 		if (Numbers.integral(x)
