@@ -11,12 +11,18 @@ import static org.junit.Assert.assertTrue;
 import static suneido.util.testing.Throwing.assertThrew;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.Collection;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
 import suneido.SuValue;
 import suneido.jsdi.DllInterface;
+import suneido.jsdi.JSDI;
 import suneido.jsdi.SimpleContext;
 import suneido.jsdi.com.COMException;
 import suneido.jsdi.com.COMobject;
@@ -31,12 +37,22 @@ import suneido.util.testing.Assumption;
  * @since 20130928
  */
 @DllInterface
+@RunWith(Parameterized.class)
 public class COMobjectTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		Assumption.jvmIs32BitOnWindows();
+		Assumption.jvmIsOnWindows();
 		CONTEXT = new SimpleContext(NAMED_TYPES);
+	}
+
+	@Parameters
+	public static Collection<Object[]> isFast() {
+		return Arrays.asList(new Object[][] { { Boolean.FALSE }, { Boolean.TRUE } }); 
+	}
+
+	public COMobjectTest(boolean isFast) {
+		JSDI.getInstance().setFastMode(isFast);
 	}
 
 	private static ContextLayered CONTEXT;

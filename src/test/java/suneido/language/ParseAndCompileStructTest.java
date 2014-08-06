@@ -9,10 +9,17 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static suneido.util.testing.Throwing.assertThrew;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
 import suneido.SuException;
 import suneido.jsdi.DllInterface;
+import suneido.jsdi.JSDI;
 import suneido.jsdi.JSDIException;
 import suneido.jsdi.marshall.PrimitiveSize;
 import suneido.util.testing.Assumption;
@@ -26,7 +33,17 @@ import suneido.util.testing.Assumption;
  * @see ParseAndCompileCallbackTest
  */
 @DllInterface
+@RunWith(Parameterized.class)
 public class ParseAndCompileStructTest {
+
+	@Parameters
+	public static Collection<Object[]> isFast() {
+		return Arrays.asList(new Object[][] { { Boolean.FALSE }, { Boolean.TRUE } }); 
+	}
+
+	public ParseAndCompileStructTest(boolean isFast) {
+		JSDI.getInstance().setFastMode(isFast);
+	}
 
 	//
 	// CONSTANTS

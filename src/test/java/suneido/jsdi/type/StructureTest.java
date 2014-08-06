@@ -7,11 +7,18 @@ package suneido.jsdi.type;
 import static org.junit.Assert.assertEquals;
 import static suneido.util.testing.Throwing.assertThrew;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
 import suneido.jsdi.Buffer;
 import suneido.jsdi.DllInterface;
+import suneido.jsdi.JSDI;
 import suneido.jsdi.JSDIException;
 import suneido.jsdi.SimpleContext;
 import suneido.language.Compiler;
@@ -28,11 +35,21 @@ import suneido.util.testing.Assumption;
  * @see suneido.jsdi.abi.amd64.StructureTest64
  */
 @DllInterface
+@RunWith(Parameterized.class)
 public class StructureTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		Assumption.jvmIsOnWindows();
+	}
+
+	@Parameters
+	public static Collection<Object[]> isFast() {
+		return Arrays.asList(new Object[][] { { Boolean.FALSE }, { Boolean.TRUE } }); 
+	}
+
+	public StructureTest(boolean isFast) {
+		JSDI.getInstance().setFastMode(isFast);
 	}
 
 	private static final String[] NAMED_TYPES = {
