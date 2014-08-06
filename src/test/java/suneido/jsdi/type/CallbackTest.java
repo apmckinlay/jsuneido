@@ -60,6 +60,7 @@ public class CallbackTest {
 	private static final String[] NAMED_TYPES = {
 		"TestCallback_Int32_1", "callback(int32 a)",
 		"TestCallback_Int32_2", "callback(int32 a, int32 b)",
+		"TestCallback_Int64", "callback(int64 a)",
 		"TestCallback_Mixed_6", "callback(double a, int8 b, float c, int16 d, float e, int64 f)",
 		"TestCallback_Packed_Int8Int8Int16Int32", "callback(Packed_Int8Int8Int16Int32 a)",
 		"TestCallback_Recursive_StringSum", "callback(Recursive_StringSum1_Callback * ptr)",
@@ -108,6 +109,8 @@ public class CallbackTest {
 					"TestCallback_Int32_1 f, int32 a, TestCallback_Int32_1 g, int32 b)",
 		"TestInvokeCallback_Int32_2",
 			"dll int32 jsdi:TestInvokeCallback_Int32_2(TestCallback_Int32_2 f, int32 a, int32 b)",
+		"TestInvokeCallback_Int64",
+			"dll int64 jsdi:TestInvokeCallback_Int64(TestCallback_Int64 f, int64 a)",
 		"TestInvokeCallback_Mixed_6",
 			"dll int32 jsdi:TestInvokeCallback_Mixed_6(TestCallback_Mixed_6 g, double a, int8 b, float c, int16 d, float e, int64 f)",
 		"TestInvokeCallback_Packed_Int8Int8Int16Int32",
@@ -306,6 +309,16 @@ public class CallbackTest {
 						"97, 2, -60, -9, 10, -3)"
 			)
 		);
+	}
+
+	@Test
+	public void testBasicValueInt64() {
+		final long VALUE = 0x00006666666666666L;
+		for (final String preamble : new String[] { "function(x) { ", "{|x| " }) {
+			assertEquals(VALUE, eval(String.format(
+					"TestInvokeCallback_Int64(%s return x }, %d)", preamble,
+					VALUE)));
+		}
 	}
 
 	@Test
