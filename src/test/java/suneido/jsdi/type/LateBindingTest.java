@@ -12,7 +12,6 @@ import org.junit.Test;
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.SimpleContext;
 import suneido.jsdi.StorageType;
-import suneido.jsdi._64BitIssue;
 import suneido.jsdi.marshall.PrimitiveSize;
 import suneido.language.ContextLayered;
 import suneido.util.testing.Assumption;
@@ -27,9 +26,8 @@ import suneido.util.testing.Assumption;
 public class LateBindingTest {
 
 	@BeforeClass
-	@_64BitIssue // This should be relaxed to jvmIsOnWindows()
 	public static void setUpBeforeClass() throws Exception {
-		Assumption.jvmIs32BitOnWindows();
+		Assumption.jvmIsOnWindows();
 	}
 
 	private static final String[] NAMED_TYPES = {
