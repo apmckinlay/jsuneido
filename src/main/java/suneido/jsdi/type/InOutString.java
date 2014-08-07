@@ -20,6 +20,8 @@ import suneido.jsdi.marshall.VariableIndirectInstruction;
  *
  * @author Victor Schappert
  * @since 20130718
+ * @see BufferType
+ * @see InString
  */
 @DllInterface
 @Immutable
