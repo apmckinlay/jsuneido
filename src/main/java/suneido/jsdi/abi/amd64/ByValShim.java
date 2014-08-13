@@ -117,12 +117,6 @@ final class ByValShim extends Proxy {
 		underlying.skipMarshalling(marshaller);
 	}
 
-
-	@Override
-	public void putMarshallOutInstruction(Marshaller marshaller) {
-		throw new SuInternalError("not implemented"); // TODO: implement
-	}
-
 	@Override
 	public boolean bind(int level) throws BindException {
 		final boolean changed = underlying.bind(level);
