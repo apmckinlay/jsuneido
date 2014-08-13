@@ -26,6 +26,7 @@ import suneido.util.testing.Assumption;
 
 /**
  * Tests parsing and compiling of Suneido language {@code struct} elements.
+ *
  * @author Victor Schappert
  * @since 20130621
  * @see suneido.jsdi.type.StructureTest
@@ -239,7 +240,7 @@ public class ParseAndCompileStructTest {
 
 	@Test
 	public void compileErrors() {
-		Assumption.jvmIs32BitOnWindows();
+		Assumption.jvmIsOnWindows();
 		String bad[] = {
 			"struct { string * ps }",
 			"struct { buffer * pb }",
@@ -247,11 +248,8 @@ public class ParseAndCompileStructTest {
 			"struct { resource * pr }"
 		};
 		for (final String s : bad)
-			assertThrew(
-				() -> {
-					compile(s);
-		},
-				JSDIException.class
-			);
+			assertThrew(() -> {
+				compile(s);
+			}, JSDIException.class);
 	}
 }

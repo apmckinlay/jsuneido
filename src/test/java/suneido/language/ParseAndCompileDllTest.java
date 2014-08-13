@@ -260,7 +260,7 @@ public class ParseAndCompileDllTest {
 
 	@Test
 	public void compileInvalidReturnTypes() {
-		Assumption.jvmIs32BitOnWindows();
+		Assumption.jvmIsOnWindows();
 		final StringBuilder sb = new StringBuilder("dll ");
 		for (String returnType : INVALID_RETURN_TYPES) {
 			sb.delete(4, sb.length());
@@ -273,7 +273,7 @@ public class ParseAndCompileDllTest {
 
 	@Test
 	public void compileInvalidReturnTypes_Syntax() {
-		Assumption.jvmIs32BitOnWindows();
+		Assumption.jvmIsOnWindows();
 		final StringBuilder sb = new StringBuilder("dll ");
 		for (String returnType : INVALID_RETURN_TYPES_SYNTAX) {
 			sb.delete(4, sb.length());
