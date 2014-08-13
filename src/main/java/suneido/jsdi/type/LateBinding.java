@@ -111,7 +111,7 @@ public final class LateBinding extends Type {
 			return sb.append(typeName).append('[').append(numElems).append(']')
 					.toString();
 		default:
-			throw unhandledEnum(StorageType.class);
+			throw unhandledEnum(storageType);
 		}
 	}
 
@@ -125,7 +125,7 @@ public final class LateBinding extends Type {
 		case POINTER:
 			return PrimitiveSize.POINTER;
 		default:
-			throw unhandledEnum(StorageType.class);
+			throw unhandledEnum(storageType);
 		}
 	}
 
@@ -138,7 +138,7 @@ public final class LateBinding extends Type {
 		case POINTER:
 			return PrimitiveSize.POINTER;
 		default:
-			throw unhandledEnum(StorageType.class);
+			throw unhandledEnum(storageType);
 		}
 	}
 
@@ -153,7 +153,7 @@ public final class LateBinding extends Type {
 			return lastBoundType.getSizeDirect() +
 					lastBoundType.getSizeIndirect();
 		default:
-			throw unhandledEnum(StorageType.class);
+			throw unhandledEnum(storageType);
 		}
 	}
 
@@ -166,7 +166,7 @@ public final class LateBinding extends Type {
 		case ARRAY:
 			return numElems * lastBoundType.getVariableIndirectCount();
 		default:
-			throw unhandledEnum(StorageType.class);
+			throw unhandledEnum(storageType);
 		}
 	}
 
@@ -227,7 +227,7 @@ public final class LateBinding extends Type {
 			}
 			break;
 		default:
-			throw unhandledEnum(StorageType.class);
+			throw unhandledEnum(storageType);
 		}
 	}
 
@@ -267,7 +267,7 @@ public final class LateBinding extends Type {
 			}
 			return c;
 		default:
-			throw unhandledEnum(StorageType.class);
+			throw unhandledEnum(storageType);
 		}
 	}
 
@@ -280,6 +280,8 @@ public final class LateBinding extends Type {
 			break;
 		case POINTER:
 			super.skipMarshalling(marshaller); // Will throw
+		default:
+			throw unhandledEnum(storageType);
 		}
 	}
 

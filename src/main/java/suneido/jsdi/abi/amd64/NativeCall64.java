@@ -210,7 +210,7 @@ enum NativeCall64 {
 					marshaller.getViArray(), marshaller.getViInstArray());
 			return 0L;
 		default:
-			throw SuInternalError.unhandledEnum(NativeCall64.class);
+			throw SuInternalError.unhandledEnum(this);
 		}
 	}
 
@@ -235,7 +235,7 @@ enum NativeCall64 {
 			assert !is32BitIEEEFloatReturn;
 			return 3;
 		default:
-			throw SuInternalError.unhandledEnum(ReturnTypeGroup.class);
+			throw SuInternalError.unhandledEnum(rtg);
 		}
 	}
 

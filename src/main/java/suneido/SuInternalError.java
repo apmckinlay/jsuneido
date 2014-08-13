@@ -86,11 +86,12 @@ public final class SuInternalError extends Error {
 	 * Constructs and returns an internal error to throw when a switch statement
 	 * unexpectedly fails to handle an {@code enum} enumerator.
 	 *
-	 * @param e Type of the {@code enum} that wasn't handled 
+	 * @param e Enumerator that wasn't handled 
 	 * @return Unhandled enumerator error to throw
 	 * @see #unreachable()
 	 */
-	public static final <E extends Enum<E>> SuInternalError unhandledEnum(Class<E> e) {
-		return new SuInternalError("unhandled " + e.getSimpleName() + " enumerator in switch");
+	public static final <E extends Enum<E>> SuInternalError unhandledEnum(E e) {
+		return new SuInternalError("unhandled " + e.getClass().getSimpleName()
+				+ " enumerator in switch: " + e);
 	}
 }

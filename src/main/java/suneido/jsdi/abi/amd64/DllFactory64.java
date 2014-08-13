@@ -95,7 +95,7 @@ final class DllFactory64 extends DllFactory {
 			return new FastDll4(funcPtr, params, returnType, suTypeName, this,
 					libraryName, userFuncName);
 		default:
-			throw SuInternalError.unhandledEnum(NativeCall64.class);
+			throw SuInternalError.unhandledEnum(nc);
 		}
 	}
 }
