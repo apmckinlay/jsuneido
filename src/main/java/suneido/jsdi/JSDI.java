@@ -153,9 +153,6 @@ public final class JSDI {
 			throw new SuInternalError("can't find '" + LIBRARY_NAME
 					+ "': result => " + result);
 		}
-		if (FileFinder.SearchStage.RELPATH_RELATIVE_TO_CLASSPATH == result.stage) {
-			result.file.deleteOnExit();
-		}
 		return result.file;
 	}
 
