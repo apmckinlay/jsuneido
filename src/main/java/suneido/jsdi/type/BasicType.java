@@ -85,7 +85,7 @@ public enum BasicType {
 	 * <p>
 	 * TODO: Determine whether we care about tracking calls to
 	 * {@code CloseHandle()} in JSuneido. If not, it will be simpler just to
-	 * delete this type and use plain {@code long} instead.
+	 * delete this type and use plain {@code pointer} instead.
 	 * </p>
 	 * @see #GDIOBJ
 	 */
@@ -96,7 +96,7 @@ public enum BasicType {
 	 * <p>
 	 * TODO: Determine whether we care about tracking calls to
 	 * {@code DeleteObject()} in JSuneido. If not, it will be simpler just to
-	 * delete this type and use plain {@code long} instead.
+	 * delete this type and use plain {@code pointer} instead.
 	 * </p>
 	 * @see #HANDLE
 	 */
