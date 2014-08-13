@@ -52,9 +52,9 @@ public final class FileFinder {
 		 * path to a temporary file created with
 		 * {@link java.io.File#createTempFile(String, String)
 		 * File.createTempFile(...)} into which the actual file has been copied.
-		 * The search algorithm does not request deletion on exit using {@link
-		 * java.io.File.deleteOnExit()} so this must be done, if needed, by the
-		 * caller.
+		 * The search algorithm marks the file for deletion on JVM exit before
+		 * returning, so that caller must copy the file if it needs to persist
+		 * beyond the current JVM invocation. 
 		 */
 		RELPATH_RELATIVE_TO_CLASSPATH,
 		/**
@@ -572,7 +572,9 @@ public final class FileFinder {
 
 	private static File makeTmpFile(String name) throws IOException {
 		final String[] ps = makeTmpFilePre_And_Suff_ix(name);
-		return File.createTempFile(ps[0], ps[1]);
+		final File tmpFile = File.createTempFile(ps[0], ps[1]);
+		tmpFile.deleteOnExit();
+		return tmpFile;
 	}
 
 	private static void copy(InputStream is, FileOutputStream fos)
