@@ -15,6 +15,7 @@ import suneido.jsdi.marshall.MarshallPlanBuilder;
 import suneido.jsdi.marshall.Marshaller;
 import suneido.jsdi.marshall.NumberConversions;
 import suneido.jsdi.marshall.ObjectConversions;
+import suneido.language.Numbers;
 import suneido.language.Ops;
 
 /**
@@ -181,10 +182,10 @@ public final class BasicArray extends Type {
 				c.insert(k, marshaller.getInt64());
 				break;
 			case FLOAT:
-				c.insert(k, marshaller.getFloat()); // TODO: this should insert a BigDecimal, not a float
+				c.insert(k, Numbers.toBigDecimal(marshaller.getFloat()));
 				break;
 			case DOUBLE:
-				c.insert(k, marshaller.getDouble()); // TODO: this should insert a BigDecimal, not a double
+				c.insert(k, Numbers.toBigDecimal(marshaller.getDouble()));
 				break;
 			default:
 				throw unhandledEnum(type);
