@@ -3,9 +3,13 @@ SCRATCH NOTES -- VCS 20140717
 
 TEST COVERAGE:
 
-    [ ] Ensure DllFactory64 creates void dll
-    [ ] Ensure void dll is tested
     [ ] Test bind failures:
             (1) Type not defined
             (2) Type changes definition after first bind: call1, change defn,
                 call2
+
+TODO ELIMINATION
+
+    [ ] 'debug-step through here'
+    [ ] 'add callback'
+    [ ] ObjectConversions docs
