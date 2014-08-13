@@ -145,7 +145,7 @@ public final class BasicArray extends Type {
 					marshaller.putDouble(NumberConversions.toDouble(elem));
 					break;
 				default:
-					throw unhandledEnum(BasicType.class);
+					throw unhandledEnum(type);
 				}
 			}
 		}
@@ -187,7 +187,7 @@ public final class BasicArray extends Type {
 				c.insert(k, marshaller.getDouble()); // TODO: this should insert a BigDecimal, not a double
 				break;
 			default:
-				throw unhandledEnum(BasicType.class);
+				throw unhandledEnum(type);
 			}
 		}
 		return c;

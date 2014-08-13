@@ -16,6 +16,7 @@ import java.util.Map;
 
 import suneido.SuContainer;
 import suneido.SuException;
+import suneido.SuInternalError;
 import suneido.SuValue;
 import suneido.language.builtin.ContainerMethods;
 import suneido.language.builtin.NumberMethods;
@@ -95,7 +96,7 @@ public class BuiltinMethods extends SuValue {
 					MethodHandle mh = lookup.unreflect(m);
 					b.put(name, Builtin.function(mh, name, params(m, 0)));
 				} catch (IllegalAccessException e) {
-					throw new SuException("error getting function " +
+					throw new SuInternalError("error getting function " +
 							c.getName() + " " + m.getName(), e);
 				}
 			}

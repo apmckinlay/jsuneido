@@ -146,7 +146,7 @@ public final class JSDI {
 		case UNSUPPORTED_PLATFORM:
 			throw new SuInternalError("unsupported platform");
 		default:
-			throw SuInternalError.unhandledEnum(Platform.class);
+			throw SuInternalError.unhandledEnum(platform);
 		}
 		final FileFinder.SearchResult result = finder.find(LIBRARY_NAME);
 		if (!result.success()) {

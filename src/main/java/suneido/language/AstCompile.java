@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import suneido.SuContainer;
 import suneido.SuDate;
 import suneido.SuException;
+import suneido.SuInternalError;
 import suneido.SuRecord;
 import suneido.jsdi.Dll;
 import suneido.jsdi.DllInterface;
@@ -386,7 +387,7 @@ public class AstCompile {
 		try {
 			return cg.end(suClass);
 		} catch (Error e) {
-			throw new SuException("error compiling " + curName, e);
+			throw new SuInternalError("error compiling " + curName, e);
 		}
 	}
 
@@ -915,7 +916,7 @@ public class AstCompile {
 				resultType = ExprType.INTBOOL;
 			break;
 		default:
-			throw new SuException("expression: unhandled: " + ast.token);
+			throw SuInternalError.unhandledEnum(ast.token);
 		}
 		if (option == ExprOption.POP)
 			cg.pop();
@@ -1286,7 +1287,7 @@ public class AstCompile {
 		case MATCHNOT:
 			return Ops.matchnot(left, right);
 		default:
-			throw new SuException("eval: unhandled: " + token);
+			throw SuInternalError.unhandledEnum(token);
 		}
 	}
 
