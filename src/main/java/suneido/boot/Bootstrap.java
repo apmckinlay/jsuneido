@@ -83,23 +83,23 @@ public final class Bootstrap {
 									fatals.add(x);
 								return true; // Always echo stderr
 						});
-					if (0 != exitCode && !fatals.isEmpty()) {
-						for (String fatal : fatals) {
-							Suneido.errlog("bootstrapper can't start new JVM: "
-									+ fatal);
+					if (0 != exitCode) { 
+						if (! fatals.isEmpty()) {
+							for (String fatal : fatals) {
+								Suneido.errlog("bootstrapper can't start new JVM: "
+										+ fatal);
+							}
+							runSuneidoInThisJVM(args); // Fall back
+						} else {
+							System.exit(exitCode);
 						}
-						runSuneidoInThisJVM(args); // Fall back
-					} else {
-						System.exit(exitCode);
 					}
 				} catch (SuInternalError e) {
 					Suneido.errlog("bootstrapper can't start new JVM", e);
 					runSuneidoInThisJVM(args); // Fall back
 				}
-			} else if (validateDebugOption(debugOption)) {
-				runSuneidoInThisJVM(args);
 			} else {
-				exitWithError();
+				runSuneidoInThisJVM(args);
 			}
 		}
 	}
@@ -154,20 +154,11 @@ public final class Bootstrap {
 	// INTERNALS
 	//
 
-	private static final String SKIP_BOOT_PROPERTY_NAME = "suneido.boot.skip";
+	static final String SKIP_BOOT_PROPERTY_NAME = "suneido.boot.skip";
 
 	private static void runSuneidoInThisJVM(String[] args) {
 		// Classloader will not load suneido.Suneido until we get here.
 		Suneido.main(args);
-	}
-
-	private static void exitWithError() {
-		System.exit(-1);
-	}
-
-	private static boolean validateDebugOption(String debugOption) {
-		return DEBUG_OPTION_STACK.equals(debugOption)
-				|| DEBUG_OPTION_NONE.equals(debugOption);
 	}
 
 	private static ArrayList<String> getJVMArguments() {
