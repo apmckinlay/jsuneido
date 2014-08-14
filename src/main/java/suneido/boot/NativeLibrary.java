@@ -39,7 +39,9 @@ public final class NativeLibrary {
 	 * </p>
 	 *
 	 * @param libraryName
-	 *            File name of the library to search for
+	 *            File name of the library to search for <em>minus any platform-
+	 *            specific filename extension&mdash;this is added
+	 *            automatically</em>
 	 * @return Either {@code null} if native libraries aren't supported on the
 	 *         current {@link Platform}, or a non-{@code null} reference to a
 	 *         {@link SearchResult} indicating the (possibly unsuccessful)
@@ -57,6 +59,7 @@ public final class NativeLibrary {
 		final FileFinder finder = new FileFinder(true);
 		finder.addSearchPathPropertyNames(PATH_PROPERTY_NAME);
 		finder.addRelPaths(relPath);
+		libraryName += Platform.getPlatform().libraryFilenameExtension;
 		return finder.find(libraryName);
 	}
 
@@ -112,6 +115,7 @@ public final class NativeLibrary {
 			}
 		}
 		// At this point, we have a valid directory we can try to copy into.
+		libraryName += Platform.getPlatform().libraryFilenameExtension;
 		File libraryFile = new File(libraryDir, libraryName);
 		try {
 			FileUtils.copy(result.file, libraryFile);

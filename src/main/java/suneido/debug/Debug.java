@@ -127,8 +127,9 @@ public final class Debug {
 	private static String getLibraryName() {
 		switch (Platform.getPlatform()) {
 		case WIN32_AMD64:	// intentional fall-through
-		case WIN32_X86:
-			return LIBRARY_NAME_ROOT + ".dll";
+		case WIN32_X86:		// intentional fall-through
+		case LINUX_AMD64:
+			return LIBRARY_NAME_ROOT;
 		case UNKNOWN_PLATFORM:
 			return null;
 		default:

@@ -14,22 +14,36 @@ public enum Platform {
 	 * architecture <em>or</em> a JVM running in 32-bit mode on 64-bit Windows
 	 * on the AMD64 architecture.
 	 */
-	WIN32_X86,
+	WIN32_X86(".dll"),
 	/**
 	 * Enumerator indicating the Windows operating system running on the AMD64
 	 * CPU architecture where the JVM is running in 64-bit mode.
 	 */
-	WIN32_AMD64,
+	WIN32_AMD64(".dll"),
 	/**
 	 * Enumerator indicating a Linux distribution running on the AMD64 CPU
 	 * architecture.
 	 */
-	LINUX_AMD64,
+	LINUX_AMD64(".so"),
 	/**
 	 * Enumerator indicating that Suneido does not know what platform it is
 	 * running on.
 	 */
-	UNKNOWN_PLATFORM;
+	UNKNOWN_PLATFORM(null);
+
+	//
+	// DATA
+	//
+
+	final String libraryFilenameExtension; // package internal
+
+	//
+	// CONSTRUCTORS
+	//
+
+	private Platform(String libraryFilenameExtention) {
+		this.libraryFilenameExtension = libraryFilenameExtention;
+	}
 
 	//
 	// STATICS

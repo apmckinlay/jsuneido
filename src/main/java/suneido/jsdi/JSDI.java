@@ -38,7 +38,7 @@ public final class JSDI {
 	// CONSTANTS
 	//
 
-	private static final String LIBRARY_NAME = "jsdi.dll";
+	private static final String LIBRARY_NAME = "jsdi";
 	private static final String PACKAGE_X86 = "suneido.jsdi.abi.x86";
 	private static final String PACKAGE_AMD64 = "suneido.jsdi.abi.amd64";
 	private static final String RELPATH_X86 = "lib/x86";
