@@ -95,6 +95,10 @@ public class DbTools {
 		int i = arg.indexOf(SEPARATOR);
 		String filename = arg.substring(0, i);
 		String tempfile = arg.substring(i + SEPARATOR.length());
+		// FIXME: The three lines above just assume the existence of SEPARATOR.
+		//        But if it's not there, i == -1 and this function throws an
+		//        obscure -- in the sense of non-informational --
+		//        StringIndexOutOfBoundsError...
 		Database db = dbpkg.create(tempfile);
 		try {
 			@SuppressWarnings("resource")
