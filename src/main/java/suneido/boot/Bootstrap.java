@@ -2,31 +2,33 @@ package suneido.boot;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintStream;
+import java.lang.ProcessBuilder.Redirect;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ListIterator;
-
-import com.google.common.base.Joiner;
 
 import suneido.SuInternalError;
 import suneido.Suneido;
 import suneido.debug.Debug;
-import suneido.util.JarPath;
+import suneido.util.Filter;
+import suneido.util.FilteredStreamEchoer;
 
+import com.google.common.base.Joiner;
 
 /**
  * <p>
- * Technical entry-point to start Suneido runtime. Will pass control over to
- * the "logical" entry point, {@link suneido.Suneido Suneido}, either in the
- * current JVM or after starting a new JVM.
+ * Technical entry-point to start Suneido runtime. Will pass control over to the
+ * "logical" entry point, {@link suneido.Suneido Suneido}, either in the current
+ * JVM or after starting a new JVM.
  * </p>
  *
  * <p>
  * The code for this class should be as small as possible and refer to as few
- * other classes as possible to minimize classloading in the bootstrap JVM if
- * we will have to start Suneido in a newly started JVM anyway.
+ * other classes as possible to minimize classloading in the bootstrap JVM if we
+ * will have to start Suneido in a newly started JVM anyway.
  * </p>
  *
  * @author Victor Schappert
@@ -37,13 +39,14 @@ public final class Bootstrap {
 	/**
 	 * Entry-point.
 	 *
-	 * @param args Command-line arguments
+	 * @param args
+	 *            Command-line arguments
 	 */
 	public static void main(String[] args) {
 		// If the bootstrip skip flag is set, proceed directly to Suneido
 		if (null != System.getProperty(SKIP_BOOT_PROPERTY_NAME)) {
 			runSuneidoInThisJVM(args);
-		// Otherwise, run the bootstrap process...
+			// Otherwise, run the bootstrap process...
 		} else {
 			String debugOption = DEBUG_OPTION_ALL;
 			// Determine the debug option
@@ -63,12 +66,33 @@ public final class Bootstrap {
 			}
 			// Process the debug option
 			if (DEBUG_OPTION_ALL.equals(debugOption)) {
-				try
-					{
-						int exitCode = runSuneidoInNewJVM(args, true);
+				try {
+					ArrayList<String> fatals = new ArrayList<String>();
+					// Start a new JVM, collecting the exit code. Echo the new
+					// process's stdout to our stdout, but filter out phrases
+					// relating to the bootstrapping process itself. Echo the
+					// new process's stderr to our stderr, and try to determine
+					// whether error messages printed to stderr indicate a fatal
+					// for the new JVM startup that we can recover from by
+					// falling back to running Suneido from this JVM.
+					int exitCode = runSuneidoInNewJVM(args, true,
+							(String x) -> {
+								return !isFilterableOutput(x);
+							}, (String x) -> {
+								if (isFatalErrorPreventingNewJVMStartup(x))
+									fatals.add(x);
+								return true; // Always echo stderr
+						});
+					if (0 != exitCode && !fatals.isEmpty()) {
+						for (String fatal : fatals) {
+							Suneido.errlog("bootstrapper can't start new JVM: "
+									+ fatal);
+						}
+						runSuneidoInThisJVM(args); // Fall back
+					} else {
 						System.exit(exitCode);
 					}
-				catch (SuInternalError e) {
+				} catch (SuInternalError e) {
 					Suneido.errlog("bootstrapper can't start new JVM", e);
 					runSuneidoInThisJVM(args); // Fall back
 				}
@@ -85,24 +109,43 @@ public final class Bootstrap {
 	 * Synchronously runs Suneido as a child process in its own JVM and returns
 	 * the process exit code.
 	 * </p>
-	 * TODO !! FINISH DOCUMENTING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	 * TODO !! NEED TO TAKE FULL DEBUGGING OPTIONS *OUT* OF SUB-JVM... !!!!
-	 * TODO !! VERIFY THAT ExePath BUILTIN WORKS ...
+	 * TODO !! FINISH DOCUMENTING
+	 * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! TODO !! NEED
+	 * TO TAKE FULL DEBUGGING OPTIONS *OUT* OF SUB-JVM... !!!! TODO !! VERIFY
+	 * THAT ExePath BUILTIN WORKS ...
+	 * 
 	 * @param args
 	 * @param isFullDebugging
 	 * @return
 	 */
-	public static int runSuneidoInNewJVM(String[] args, boolean isFullDebugging) {
+	public static int runSuneidoInNewJVM(String[] args,
+			boolean isFullDebugging, Filter<String> stdoutFilter,
+			Filter<String> stderrFilter) {
 		final ProcessBuilder builder = runSuneidoInNewJVMBuilder(args,
 				isFullDebugging);
+		final ArrayList<Thread> echoThreads = new ArrayList<Thread>(2);
+		if (null == stdoutFilter) {
+			builder.redirectInput(Redirect.INHERIT);
+		}
+		if (null == stderrFilter) {
+			builder.redirectError(Redirect.INHERIT);
+		}
 		try {
-			return builder.start().waitFor();
+			Process process = builder.start();
+			startEchoThread(echoThreads, process.getInputStream(),
+					stdoutFilter, System.out); // Only if not inheriting stdout
+			startEchoThread(echoThreads, process.getErrorStream(),
+					stderrFilter, System.err); // Only if not inheriting stderr
+			for (final Thread thread : echoThreads) {
+				thread.join();
+			}
+			return process.waitFor();
 		} catch (IOException e) {
 			throw new SuInternalError("failed to run \""
 					+ Joiner.on(' ').join(builder.command(), e));
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
-			throw new SuInternalError("interrupted while running \"" 
+			throw new SuInternalError("interrupted while running \""
 					+ Joiner.on(' ').join(builder.command(), e));
 		}
 	}
@@ -112,8 +155,6 @@ public final class Bootstrap {
 	//
 
 	private static final String SKIP_BOOT_PROPERTY_NAME = "suneido.boot.skip";
-	private static final String SKIP_BOOT_JVM_ARG = "-D"
-			+ SKIP_BOOT_PROPERTY_NAME;
 
 	private static void runSuneidoInThisJVM(String[] args) {
 		// Classloader will not load suneido.Suneido until we get here.
@@ -144,43 +185,11 @@ public final class Bootstrap {
 		// due to a duplicate port. Another reason is there's no point loading
 		// agents unless needed.
 		for (final String jvmArgument : jvmArguments) {
-			if (! jvmArgument.startsWith("-agent")) {
+			if (!jvmArgument.startsWith("-agent")) {
 				result.add(jvmArgument);
 			}
 		}
 		return result;
-	}
-
-	private static void putUniqueJVMArg(List<String> jvmArguments, String newArg,
-			String prefix) {
-		// This method strips out any JVM arguments beginning with prefix, and
-		// adds the value newArg to the JVM argument list.
-		final ListIterator<String> i = jvmArguments.listIterator();
-		boolean foundAlready = false;
-		while (i.hasNext()) {
-			final String currentArg = i.next();
-			if (null == prefix && currentArg.startsWith(prefix)) {
-				if (foundAlready) {
-					i.remove();
-				} else {
-					i.set(newArg);
-					foundAlready = true;
-				}
-			}
-		}
-		if (!foundAlready) {
-			jvmArguments.add(newArg);
-		}
-	}
-
-	// FIXME: NOT NEEDED!!! CLASSPATH IS SUFFICIENT...?
-	private static boolean isJar(List<String> jvmArguments) {
-		for (final String arg : jvmArguments) {
-			if ("-jar".equals(arg)) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	private static String makeJavaCmd() {
@@ -191,11 +200,8 @@ public final class Bootstrap {
 	}
 
 	private static String[] makeJavaArgs(String javaCmd,
-			List<String> jvmArguments, boolean isJar, String[] args) {
-		int n = 1 + jvmArguments.size() + 2 + args.length;
-		if (! isJar) {
-			++n;
-		}
+			List<String> jvmArguments, String[] args) {
+		int n = 1 + jvmArguments.size() + 3 + args.length;
 		final String[] result = new String[n];
 		result[0] = javaCmd;
 		int k = 1;
@@ -205,9 +211,9 @@ public final class Bootstrap {
 		final String classPath = System.getProperty("java.class.path");
 		result[k++] = "-cp";
 		result[k++] = classPath;
-		if (! isJar) {
-			result[k++] = Bootstrap.class.getName();
-		}
+		// Skip bootstrap altogether and just load the main Suneido class
+		result[k++] = Suneido.class.getName();
+		// Add command-line arguments to the Suneido program
 		for (final String suneidoArgument : args) {
 			result[k++] = suneidoArgument;
 		}
@@ -217,9 +223,6 @@ public final class Bootstrap {
 	private static ProcessBuilder runSuneidoInNewJVMBuilder(String[] args,
 			boolean isFullDebugging) {
 		final ArrayList<String> jvmArgs = getJVMArguments();
-		final boolean isJar = isJar(jvmArgs);
-		// Skip the Suneido bootstrap process in the new JVM.
-		putUniqueJVMArg(jvmArgs, SKIP_BOOT_JVM_ARG, SKIP_BOOT_JVM_ARG);
 		// Start the JVM with the appropriate agent if full debugging support is
 		// required.
 		if (isFullDebugging) {
@@ -230,15 +233,35 @@ public final class Bootstrap {
 			} else {
 				jvmAgentArg = "-agentpath:" + jvmtiAgentPath.getAbsolutePath();
 			}
-			putUniqueJVMArg(jvmArgs, jvmAgentArg, jvmAgentArg);
+			jvmArgs.add(jvmAgentArg);
 		}
 		// Create the full process builder argument list.
-		String[] allArgs = makeJavaArgs(makeJavaCmd(), jvmArgs, isJar, args);
+		String[] allArgs = makeJavaArgs(makeJavaCmd(), jvmArgs, args);
 		// Return the process builder.
-		final ProcessBuilder result = new ProcessBuilder(allArgs);
-		result.inheritIO(); // Inherit this process' stdin, stdout, stderr
-System.err.println(Joiner.on(' ').join(result.command())); // TODO: deleteme
-		return result;
+		return new ProcessBuilder(allArgs);
+	}
+
+	private static void startEchoThread(ArrayList<Thread> echoThreads,
+			InputStream in, Filter<String> filter, PrintStream out) {
+		if (null != filter) {
+			final Thread t = new Thread(new FilteredStreamEchoer(in, filter,
+					out));
+			echoThreads.add(t);
+			t.start();
+		}
+	}
+
+	private static boolean isFilterableOutput(String message) {
+		return message
+				.startsWith("Listening for transport dt_socket at address:");
+	}
+
+	private static boolean isFatalErrorPreventingNewJVMStartup(String message) {
+		if (message.startsWith("FATAL")) {
+			if (message.startsWith("FATAL ERROR in native method: JDWP"))
+				return true;
+		}
+		return false;
 	}
 
 	//
@@ -257,7 +280,7 @@ System.err.println(Joiner.on(' ').join(result.command())); // TODO: deleteme
 	/**
 	 * On the command line, indicates that the next argument is one of
 	 * {@link #DEBUG_OPTION_LOCALS}, {@link #DEBUG_OPTION_STACK},
-	 * {@link #DEBUG_OPTION_NONE}. 
+	 * {@link #DEBUG_OPTION_NONE}.
 	 */
 	public static final String DEBUG_OPTION = "-debug";
 	/**
@@ -271,32 +294,27 @@ System.err.println(Joiner.on(' ').join(result.command())); // TODO: deleteme
 	 * <ul>
 	 * <li>
 	 * the Suneido {@code Locals()} built-in provides accurate information on
-	 * local variables;
-	 * </li>
+	 * local variables;</li>
 	 * <li>
 	 * exception stack-traces are "human readable" (or perhaps it would be
 	 * better to say readable by a Suneido programmer): internal Java stack
 	 * frames are eliminated and Suneido stack frames are given their Suneido
-	 * names, not their internal Java names<sup>&dagger;</sup>;
-	 * </li>
+	 * names, not their internal Java names<sup>&dagger;</sup>;</li>
 	 * <li>
 	 * the bootstrapper must start another JVM to run {@link suneido.Suneido}
 	 * because it needs to load the appropriate debugging support JVMTI agent
-	 * (either the platform-appropriate native {@code jsdebug} library or, if
-	 * no such library available on the platform, the {@code jdwp} agent);
-	 * </li>
+	 * (either the platform-appropriate native {@code jsdebug} library or, if no
+	 * such library available on the platform, the {@code jdwp} agent);</li>
 	 * <li>
 	 * the Suneido runtime may run slower than it would without full debugging
 	 * support (particularly if the {@code jdwp} agent needs to be used) because
 	 * there is some overhead associated with JVMTI and, if the {@code jdwp}
 	 * agent needs to be used, the JDI debug "client" thread(s) and transport
-	 * over sockets; and
-	 * </li>
+	 * over sockets; and</li>
 	 * <li>
 	 * if for some reason the bootstrapper can't start a fresh JVM with the
-	 * appropriate JVMTI agent loaded, it will log an error and fall back to
-	 * a simpler debug model.
-	 * </li>
+	 * appropriate JVMTI agent loaded, it will log an error and fall back to a
+	 * simpler debug model.</li>
 	 * </ul>
 	 * <sup>&dagger;</sup>: <em>This evidently involves a small amount of
 	 * information loss the sense that suppressed internal Java stack frames
@@ -335,7 +353,7 @@ System.err.println(Joiner.on(' ').join(result.command())); // TODO: deleteme
 	/**
 	 * <p>
 	 * On the command-line, indicates that no extra debugging support should be
-	 * enabled. 
+	 * enabled.
 	 * </p>
 	 *
 	 * <p>
