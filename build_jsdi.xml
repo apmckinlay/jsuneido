@@ -9,7 +9,7 @@
 	<property name="jsdi-vs-sln" value="vs12_nov2013_ctp.sln"/>
 	<property name="jsdi-package" value="suneido.jsdi"/>
 	<property name="jsdi-tools-package" value="suneido.jsdi.tools"/>
-    <property name="jsdi-make-config" value="amd64"/>
+	<property name="jsdi-make-config" value="amd64"/>
 	<property name="jsdi-msbuild-config" value="Release-dll"/>
 	<property name="java-lib-dir" value="lib"/>
 	<property name="java-target-dir" value="target/classes"/>
@@ -31,7 +31,7 @@
 	<target name="clean" depends="clean-amd64,clean-x86"/>
 
 	<target name="build-amd64" depends="gen_jni,gen_global_refs,gen_enums"
-	        description="Use visual studio to make the AMD64 version of the dll"
+	        description="Use Visual Studio to make the Windows AMD64 version of the dll"
 	>
 		<exec executable="msbuild" dir="${jsdi-vs-path}" failonerror="true">
 			<arg value="${jsdi-vs-sln}"/>
@@ -55,7 +55,7 @@
 	<target name="rebuild-amd64" depends="clean-amd64,build-amd64"/>
 
 	<target name="build-x86" depends="gen_jni,gen_global_refs,gen_enums"
-	        description="Use visual studio to make the AMD64 version of the dll"
+	        description="Use Visual Studio to make the Windows x86 version of the dll"
 	>
 		<exec executable="msbuild" dir="${jsdi-vs-path}" failonerror="true">
 			<arg value="${jsdi-vs-sln}"/>
