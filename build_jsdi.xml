@@ -9,7 +9,6 @@
 	<property name="jsdi-vs-sln" value="vs12_nov2013_ctp.sln"/>
 	<property name="jsdi-package" value="suneido.jsdi"/>
 	<property name="jsdi-tools-package" value="suneido.jsdi.tools"/>
-	<property name="jsdi-make-config" value="amd64"/>
 	<property name="jsdi-msbuild-config" value="Release-dll"/>
 	<property name="java-lib-dir" value="lib"/>
 	<property name="java-target-dir" value="target/classes"/>
