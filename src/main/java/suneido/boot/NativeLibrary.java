@@ -144,9 +144,9 @@ public final class NativeLibrary {
 		case UNKNOWN_PLATFORM:
 			return null; // NOTICE: Return value is null if not supported
 		case WIN32_AMD64:
-			return LIB_RELPATH + "amd64";
+			return LIB_RELPATH + "win32-amd64";
 		case WIN32_X86:
-			return LIB_RELPATH + "x86";
+			return LIB_RELPATH + "win32-x86";
 		default:
 			throw SuInternalError.unhandledEnum(Platform.getPlatform());
 		}
