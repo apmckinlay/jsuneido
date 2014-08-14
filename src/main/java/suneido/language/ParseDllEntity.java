@@ -27,6 +27,7 @@ import suneido.jsdi.DllInterface;
 /**
  * Shared members and functionality for matching entities that form part of the
  * DLL interface.
+ * 
  * @author Victor Schappert
  * @since 20130621
  */
