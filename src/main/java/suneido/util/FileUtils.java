@@ -20,12 +20,16 @@ public class FileUtils {
 
 	public static void copy(String sourceFile, String destFile)
 			throws IOException {
-		copy(sourceFile, destFile, new File(sourceFile).length());
+		copy(new File(sourceFile), new File(destFile));
 	}
 
 	public static void copy(String sourceFile, String destFile, long length)
 			throws IOException {
 		copy(new File(sourceFile), new File(destFile), length);
+	}
+
+	public static void copy(File sourceFile, File destFile) throws IOException {
+		copy(sourceFile, destFile, sourceFile.length());
 	}
 
 	public static void copy(File sourceFile, File destFile, long length)

@@ -6,7 +6,7 @@ package suneido.util.testing;
 
 import org.junit.Assume;
 
-import suneido.jsdi.Platform;
+import suneido.boot.Platform;
 
 /**
  * <p>

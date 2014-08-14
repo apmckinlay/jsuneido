@@ -204,22 +204,23 @@ public class Suneido {
 	private static void printHelp() {
 		System.out.println("usage: [options] [--] [arguments]");
 		System.out.println("options:");
-		System.out.println("-s[erver]               start the server");
-		System.out.println("-c[lient]               run as client");
-		System.out.println("-p[ort] #               the TCP/IP port for server or client (default 3147)");
-		System.out.println("-repl                   (default) interactive read-eval-print-loop command line");
-		System.out.println("-d[ump] [table]         dump to database.su or <table> to <table>.su");
-		System.out.println("-l[oad] [table]         load from database.su or <table> from <table>.su");
-		System.out.println("-check                  check the database integrity");
-		System.out.println("-rebuild                check and rebuild the database, i.e. for crash recovery");
-		System.out.println("-compact                remove deleted records");
-		System.out.println("-v[ersion]              print the version");
-		System.out.println("-i[mpersonate] version  tell clients this version");
-		System.out.println("-t[ime]o[ut] #          time out in minutes for idle clients (default is 240)");
-		System.out.println("-ut #                   set max update tran duration in seconds (default 10)");
-		System.out.println("-mw #                   set max writes per update transaction (default 10000)");
-		System.out.println("-h[elp] or -?           print this message");
-		System.out.println("--                      end the options, useful if arguments start with '-'");
+		System.out.println("-s[erver]                 start the server");
+		System.out.println("-c[lient]                 run as client");
+		System.out.println("-p[ort] #                 the TCP/IP port for server or client (default 3147)");
+		System.out.println("-repl                     (default) interactive read-eval-print-loop command line");
+		System.out.println("-debug all|stack|none     debug model (default is 'all': most information, may be slower)");
+		System.out.println("-d[ump] [table]           dump to database.su or <table> to <table>.su");
+		System.out.println("-l[oad] [table]           load from database.su or <table> from <table>.su");
+		System.out.println("-check                    check the database integrity");
+		System.out.println("-rebuild                  check and rebuild the database, i.e. for crash recovery");
+		System.out.println("-compact                  remove deleted records");
+		System.out.println("-v[ersion]                print the version");
+		System.out.println("-i[mpersonate] <version>  tell clients this version");
+		System.out.println("-t[ime]o[ut] #            time out in minutes for idle clients (default is 240)");
+		System.out.println("-ut #                     set max update tran duration in seconds (default 10)");
+		System.out.println("-mw #                     set max writes per update transaction (default 10000)");
+		System.out.println("-h[elp] or -?             print this message");
+		System.out.println("--                        end the options, useful if arguments start with '-'");
 	}
 
 	public static void schedule(Runnable fn, long delay, TimeUnit unit) {
