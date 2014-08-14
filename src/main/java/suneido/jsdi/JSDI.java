@@ -12,7 +12,9 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import suneido.SuInternalError;
-import suneido.util.FileFinder;
+import suneido.boot.NativeLibrary;
+import suneido.boot.Platform;
+import suneido.util.FileFinder.SearchResult;
 
 /**
  * <p>
@@ -36,10 +38,6 @@ public final class JSDI {
 	// CONSTANTS
 	//
 
-	private static final String LIBRARY_PATH_PROPERTY_NAME = "suneido.library.path";
-		// NOTE: We will want to move this library path property name constant
-		//       into the Suneido class i we end up adding any more native
-		//       libraries besides jsdi.
 	private static final String LIBRARY_NAME = "jsdi.dll";
 	private static final String PACKAGE_X86 = "suneido.jsdi.abi.x86";
 	private static final String PACKAGE_AMD64 = "suneido.jsdi.abi.amd64";
@@ -119,12 +117,11 @@ public final class JSDI {
 			Class<? extends Factory> factoryClass = loadFactoryClass(platform);
 			Class<? extends ThunkManager> thunkManagerClass = loadThunkManagerClass(platform);
 			// Now load and initialize the DLL
-			File path = findLibrary(platform); // throws if can't find
+			File path = findLibrary(); // throws if can't find
 			System.load(path.getAbsolutePath());
 			init();
 			// Finally instantiate the JSDI instance
-			instance_ = new JSDI(platform, path, factoryClass,
-					thunkManagerClass);
+			instance_ = new JSDI(path, factoryClass, thunkManagerClass);
 		} catch (Throwable t) {
 			initError_ = t; /* squelch, but it is available if needed */
 		} finally {
@@ -133,23 +130,11 @@ public final class JSDI {
 		}
 	}
 
-	private static final File findLibrary(Platform platform) throws IOException {
-		final FileFinder finder = new FileFinder(true);
-		finder.addSearchPathPropertyNames(LIBRARY_PATH_PROPERTY_NAME);
-		switch (platform) {
-		case WIN32_X86:
-			finder.addRelPaths(RELPATH_X86);
-			break;
-		case WIN32_AMD64:
-			finder.addRelPaths(RELPATH_AMD64);
-			break;
-		case UNSUPPORTED_PLATFORM:
+	private static final File findLibrary() throws IOException {
+		final SearchResult result = NativeLibrary.findLibrary(LIBRARY_NAME);
+		if (null == result) {
 			throw new SuInternalError("unsupported platform");
-		default:
-			throw SuInternalError.unhandledEnum(platform);
-		}
-		final FileFinder.SearchResult result = finder.find(LIBRARY_NAME);
-		if (!result.success()) {
+		} else if (!result.success()) {
 			throw new SuInternalError("can't find '" + LIBRARY_NAME
 					+ "': result => " + result);
 		}
@@ -160,7 +145,6 @@ public final class JSDI {
 	// DATA and CONSTRUCTORS
 	//
 
-	private final Platform platform;
 	private final File path; // path to native DLL
 	private final String whenBuilt; // when the native DLL was built
 	private final Factory factory;
@@ -168,10 +152,8 @@ public final class JSDI {
 	private boolean isFastMode;
 	private LogLevel logThreshold;
 
-	private JSDI(Platform platform, File path,
-			Class<? extends Factory> factoryClass,
+	private JSDI(File path, Class<? extends Factory> factoryClass,
 			Class<? extends ThunkManager> thunkManagerClass) {
-		this.platform = platform;
 		this.path = path;
 		this.whenBuilt = when();
 		this.factory = makeSubclass(factoryClass, "factory");
@@ -197,7 +179,7 @@ public final class JSDI {
 		case WIN32_AMD64:
 			className = PACKAGE_AMD64 + ".Factory64";
 			break;
-		case UNSUPPORTED_PLATFORM:
+		case UNKNOWN_PLATFORM:
 			throw notSupported();
 		default:
 			throw unreachable();
@@ -215,7 +197,7 @@ public final class JSDI {
 		case WIN32_AMD64:
 			className = PACKAGE_AMD64 + ".ThunkManager64";
 			break;
-		case UNSUPPORTED_PLATFORM:
+		case UNKNOWN_PLATFORM:
 			throw notSupported();
 		default:
 			throw unreachable();
