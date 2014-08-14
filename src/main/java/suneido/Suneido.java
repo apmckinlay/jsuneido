@@ -67,6 +67,11 @@ public class Suneido {
 		errlog("UNCAUGHT: " + s + ": " + e, e);
 	}
 
+	// TODO: I think it would be useful to move the errlog methods out to a
+	//       suneido.util class. One reason is that if the bootstrap class calls
+	//       Suneido.errlog purely to report an error, a large amount of static
+	//       initialization has to be done that might not be needed, e.g. if
+	//       the current JVM is going to shut down.
 	public static synchronized void errlog(String s) {
 		errlog(s, null);
 	}
