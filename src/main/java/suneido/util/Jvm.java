@@ -9,7 +9,8 @@ import suneido.boot.Bootstrap;
 public class Jvm {
 
 	public static boolean runWithNewJvm(String cmd) {
-		return 0 == Bootstrap.runSuneidoInNewJVM(new String[] { cmd }, false);
+		return 0 == Bootstrap.runSuneidoInNewJVM(new String[] { cmd }, false,
+				null, null);
 	}
 
 	public static void main(String[] args) {
