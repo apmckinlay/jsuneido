@@ -168,7 +168,7 @@ public class BasicValueTest {
 	}
 
 	@Test
-	public void marshallReturnValueLong_Bool() {
+	public void marshallToFromLong_Bool() {
 		// General tests
 		LongMarshallHelper[] arr = { lmh(BOOL, Boolean.FALSE, 0L),
 				lmh(BOOL, Boolean.TRUE, 1L) };
@@ -183,7 +183,7 @@ public class BasicValueTest {
 	}
 
 	@Test
-	public void marshallReturnValueLong_Int8() {
+	public void marshallToFromLong_Int8() {
 		// General tests
 		LongMarshallHelper[] arr = { lmh(INT8, 0, 0L), lmh(INT8, 1, 1L),
 				lmh(INT8, -1, 0xffL), lmh(INT8, -128, 0x80L),
@@ -198,7 +198,7 @@ public class BasicValueTest {
 	}
 
 	@Test
-	public void marshallReturnValueLong_Int16() {
+	public void marshallToFromLong_Int16() {
 		// General tests
 		LongMarshallHelper[] arr = { lmh(INT16, 0, 0L), lmh(INT16, 1, 1L),
 				lmh(INT16, -1, 0xffffL), lmh(INT16, -32768, 0x8000L),
@@ -213,7 +213,7 @@ public class BasicValueTest {
 	}
 
 	@Test
-	public void marshallReturnValueLong_Int32() {
+	public void marshallToFromLong_Int32() {
 		// General tests
 		LongMarshallHelper[] arr = { lmh(INT32, 0, 0L), lmh(INT32, 1, 1L),
 				lmh(INT32, -1, 0xffffffffL), lmh(INT32, 32768, 0x8000L),
@@ -231,7 +231,7 @@ public class BasicValueTest {
 	}
 
 	@Test
-	public void marshallReturnValueLong_Int64() {
+	public void marshallToFromLong_Int64() {
 		LongMarshallHelper[] arr = { lmh(INT64, 0L, 0L), lmh(INT64, 1L, 1L),
 				lmh(INT64, 0xffffffffL, 0xffffffffL), lmh(INT64, 32768L, 0x8000L),
 				lmh(INT64, 32767L, 0x7fffL),
@@ -245,7 +245,7 @@ public class BasicValueTest {
 	}
 
 	@Test
-	public void marshallReturnValueLong_Float() {
+	public void marshallToFromLong_Float() {
 		LongMarshallHelper[] arr = { lmh(FLOAT, 1.0f, 0x3f800000L), lmh(FLOAT, 2.0f, 0x40000000L),
 				lmh(FLOAT, -1.0f, 0xbf800000L), lmh(FLOAT, -128.5f, 0xc3008000L) };
 		for (LongMarshallHelper x : arr) {
@@ -255,7 +255,7 @@ public class BasicValueTest {
 	}
 
 	@Test
-	public void marshallReturnValueLong_Double() {
+	public void marshallToFromLong_Double() {
 		LongMarshallHelper[] arr = { lmh(DOUBLE, 0.0, 0L),
 				lmh(DOUBLE, 1.0, 0x3ff0000000000000L),
 				lmh(DOUBLE, 2.0, 0x4000000000000000L),
@@ -268,7 +268,7 @@ public class BasicValueTest {
 	}
 
 	@Test
-	public void marshallReturnValueLong_Pointer32() {
+	public void marshallToFromLong_Pointer32() {
 		assumeTrue(Integer.BYTES == PrimitiveSize.POINTER);
 		for (final BasicType ptr_type : PTR_TYPES) {
 			LongMarshallHelper[] arr = { lmh(ptr_type, 0, 0L),
@@ -298,7 +298,7 @@ public class BasicValueTest {
 	}
 
 	@Test
-	public void marshallReturnVauleLong_Pointer64() {
+	public void marshallToFromLong_Pointer64() {
 		assumeTrue(Long.BYTES == PrimitiveSize.POINTER);
 		for (BasicType ptr_type : PTR_TYPES) {
 			LongMarshallHelper[] arr = { lmh(ptr_type, 0L, 0L),
@@ -316,6 +316,35 @@ public class BasicValueTest {
 				assertEquals(y.j, y.type.marshallInToLong(y.obj));
 				assertEquals(y.obj, y.type.marshallOutFromLong(y.j, null));
 			}
+		}
+	}
+
+	@Test
+	public void marshallToLong_Boolean_InOpaquePointerType() {
+		for (BasicType ptr_type : PTR_TYPES) {
+			LongMarshallHelper[] arr = { lmh(ptr_type, Boolean.FALSE, 0L),
+					lmh(ptr_type, Boolean.TRUE, 1L) };
+			for (LongMarshallHelper x : arr) {
+				assertEquals(x.j, x.type.marshallInToLong(x.obj));
+			}
+		}
+	}
+
+	@Test
+	public void marshallToLong_32bit_Overflow() {
+		assumeTrue(Integer.BYTES == PrimitiveSize.POINTER);
+		for (BasicType ptr_type : PTR_TYPES) {
+			BasicValue b = bv(ptr_type);
+			assertEquals((long) Integer.MIN_VALUE,
+					b.marshallInToLong((long) Integer.MIN_VALUE));
+			assertEquals((long) Integer.MAX_VALUE,
+					b.marshallInToLong((long) Integer.MAX_VALUE));
+			assertThrew(() -> {
+				b.marshallInToLong((long) Integer.MIN_VALUE - 1L);
+			}, JSDIException.class, "can't convert.*32-bit");
+			assertThrew(() -> {
+				b.marshallInToLong((long) Integer.MAX_VALUE + 1L);
+			}, JSDIException.class, "can't convert.*32-bit");
 		}
 	}
 }

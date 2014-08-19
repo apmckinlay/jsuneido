@@ -57,7 +57,7 @@ public final class NumberConversions {
 			return toLongFromString(x.toString());
 		else if (Boolean.TRUE == x)
 			return 1L;
-		throw new JSDIException("can't convert " + Ops.typeName(x) + " to long");
+		throw new JSDIException("can't convert " + Ops.typeName(x) + " to Java long");
 	}
 
 	/**

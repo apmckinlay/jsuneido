@@ -10,6 +10,7 @@ import javax.annotation.concurrent.Immutable;
 
 import suneido.SuInternalError;
 import suneido.jsdi.DllInterface;
+import suneido.jsdi.JSDIException;
 import suneido.jsdi.StorageType;
 import suneido.jsdi.marshall.Marshaller;
 import suneido.jsdi.marshall.NumberConversions;
@@ -58,17 +59,25 @@ public final class BasicValue extends Type {
 				+ PrimitiveSize.POINTER);
 	}
 
-	public static long marshallPointerInToLong(Object value) {
+	public static long marshallOpaquePointerInToLong(Object value) {
 		if (Long.BYTES == PrimitiveSize.POINTER) {
-			return NumberConversions.toPointer64(value);
+			return NumberConversions.toLong(value);
 		} else if (Integer.BYTES == PrimitiveSize.POINTER) {
-			return NumberConversions.toPointer32(value);
+			long result = NumberConversions.toLong(value);
+			if ((long) Integer.MIN_VALUE <= result
+					&& result <= (long) Integer.MAX_VALUE) {
+				return result;
+			} else {
+				throw new JSDIException(
+						"can't convert opaque pointer to Java long: " + result
+								+ " is outside the 32-bit range");
+			}
 		} else {
 			throw unsupportedPointerSize();
 		}
 	}
 
-	public static Object marshallPointerOutFromLong(long value) {
+	public static Object marshallOpaquePointerOutFromLong(long value) {
 		if (Long.BYTES == PrimitiveSize.POINTER) {
 			return value;
 		} else if (Integer.BYTES == PrimitiveSize.POINTER) {
@@ -207,7 +216,7 @@ public final class BasicValue extends Type {
 		case HANDLE:
 			// intentional fall-through
 		case OPAQUE_POINTER:
-			return marshallPointerOutFromLong(returnValue);
+			return marshallOpaquePointerOutFromLong(returnValue);
 		case INT64:
 			return returnValue;
 		case FLOAT:
@@ -237,7 +246,7 @@ public final class BasicValue extends Type {
 		case HANDLE:
 			// intentional fall-through
 		case OPAQUE_POINTER:
-			return marshallPointerInToLong(value);
+			return marshallOpaquePointerInToLong(value);
 		case INT64:
 			return NumberConversions.toLong(value);
 		case FLOAT:
@@ -266,7 +275,7 @@ public final class BasicValue extends Type {
 		case HANDLE:
 			// intentional fall-through
 		case OPAQUE_POINTER:
-			return marshallPointerOutFromLong(marshalledData);
+			return marshallOpaquePointerOutFromLong(marshalledData);
 		case INT64:
 			return marshalledData;
 		case FLOAT:
