@@ -532,4 +532,28 @@ public class DllTest {
 			eval("TestSumString(Object(inner: Object(inner: 1)))");
 		}, JSDIException.class, "win32 exception: ACCESS_VIOLATION");
 	}
+
+	//
+	// TESTS for regressions
+	//
+
+	@Test
+	public void testRegression64BitNumber() {
+		// This is a test to prevent reappearance of the following bug fixed on
+		// 20140820: Object.Add(value, at: index) was silently failing to add
+		// the value under the following conditions: index is an integer
+		// returned by a 'dll' function returning type 'int64'; index is 0; and
+		// the Object in question already has an element at index 0.
+		for (String funcName : new String[] { "TestInt64", "TestInt32",
+				"TestInt16", "TestInt8" }) {
+			String code = String.format(
+				"x = Object()\n" +
+				"for (k = 10; 1 <= k; --k)\n" +
+				"    x.Add(k, at: %s(0))\n" +
+				"x",
+				funcName
+			);
+			assertEquals(eval("#(1 2 3 4 5 6 7 8 9 10)"), eval(code));
+		}
+	}
 }
