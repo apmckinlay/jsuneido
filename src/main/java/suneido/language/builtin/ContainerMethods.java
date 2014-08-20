@@ -62,7 +62,7 @@ public final class ContainerMethods {
 						// If it's outside the range of 'int', can't put it in
 						// the vector.
 						throw new SuException("index " + bd
-								+ " outside valid numeric positions");
+								+ " outside range of valid numeric positions");
 					}
 				} else { // Dictionary put "at" non-integer number
 					putAt(c, atArg, numValuesToAdd, args);
