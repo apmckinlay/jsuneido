@@ -5,7 +5,6 @@
 package suneido.jsdi;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static suneido.util.testing.Throwing.assertThrew;
 
@@ -20,10 +19,6 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import suneido.SuException;
-import suneido.jsdi.Buffer;
-import suneido.jsdi.Dll;
-import suneido.jsdi.JSDIException;
-import suneido.jsdi.type.Structure;
 import suneido.language.Compiler;
 import suneido.language.ContextLayered;
 import suneido.language.Numbers;
@@ -59,21 +54,6 @@ public class DllTest {
 	private static final String[] NAMED_TYPES = {
 		"Packed_Int8Int8Int16Int32", "struct { int8 a; int8 b; int16 c; int32 d; }",
 		"Packed_Int8x3", "struct { int8 a; int8 b; int8 c; }",
-		"Recursive_Int8Int8Int16Int32_2",
-			"struct { Packed_Int8Int8Int16Int32 x; Recursive_Int8Int8Int16Int32_1 * inner; }",
-		"Recursive_Int8Int8Int16Int32_1",
-			"struct { Packed_Int8Int8Int16Int32 x; Recursive_Int8Int8Int16Int32_0 * inner; }",
-		"Recursive_Int8Int8Int16Int32_0",
-			"struct { Packed_Int8Int8Int16Int32 x; pointer inner; }",
-		"Recursive_StringSum2",
-			"struct\n" +
-			"\t{\n" +
-			"\tPacked_Int8Int8Int16Int32[2] x\n" +
-			"\tstring str\n" +
-			"\tbuffer buffer_\n" +
-			"\tint32 len\n" +
-			"\tRecursive_StringSum1 * inner\n" +
-			"\t}",
 		"Recursive_StringSum1",
 			"struct\n" +
 			"\t{\n" +
@@ -127,6 +107,7 @@ public class DllTest {
 		"TestSumPackedInt8Int8Int16Int32", "dll int32 jsdi:TestSumPackedInt8Int8Int16Int32(Packed_Int8Int8Int16Int32 x)",
 		"TestSumPackedInt8x3", "dll int32 jsdi:TestSumPackedInt8x3(Packed_Int8x3 x)",
 		"TestSumManyInts", "dll int64 jsdi:TestSumManyInts(int8 a, int16 b, int32 c, Swap_StringInt32Int32 d, int64 e, Packed_Int8Int8Int16Int32 f, Packed_Int8x3 g, Recursive_StringSum1 h, Recursive_StringSum0 * i)",
+		"TestDivideTwoInt32s", "dll int32 jsdi:TestDivideTwoInt32s(int32 a, int32 b)",
 		"TestStrLen", "dll int32 jsdi:TestStrLen([in] string str)",
 		"TestHelloWorldReturn", "dll string jsdi:TestHelloWorldReturn(bool flag)",
 		"TestHelloWorldOutParam", "dll void jsdi:TestHelloWorldOutParam(StringWrapper * ptr)",
@@ -141,18 +122,10 @@ public class DllTest {
 		"TestReturnStringOutBuffer", "dll string jsdi:TestReturnStringOutBuffer(string str, buffer buffer_, int32 size)",
 		"TestReturnStatic_Packed_Int8Int8Int16Int32",
 			"dll pointer jsdi:TestReturnStatic_Packed_Int8Int8Int16Int32(Packed_Int8Int8Int16Int32 * ptr)",
-		"TestReturnStatic_Recursive_Int8Int8Int16Int32",
-			"dll pointer jsdi:TestReturnStatic_Recursive_Int8Int8Int16Int32(Recursive_Int8Int8Int16Int32_2 * ptr)",
-		"TestReturnStatic_Recursive_StringSum",
-			"dll pointer jsdi:TestReturnStatic_Recursive_StringSum(Recursive_StringSum2 * ptr)",
 	};
 
 	private static Object eval(String src) {
 		return Compiler.eval(src, CONTEXT);
-	}
-
-	private static Structure struct(String src) {
-		return (Structure)Compiler.eval(src, CONTEXT);
 	}
 
 	private static final String[] NOT_AN_OBJECT = { "50", "true", "false",
@@ -505,101 +478,6 @@ public class DllTest {
 		}
 	}
 
-	//
-	// TESTS for copying out Structures
-	//
-
-	@Test
-	public void testStructureCopyOutNull() {
-		for (String structName : new String[] { "Packed_Int8Int8Int16Int32",
-				"Recursive_Int8Int8Int16Int32_2", "Recursive_Int8Int8Int16Int32_1",
-				"Recursive_Int8Int8Int16Int32_0", "Recursive_StringSum2",
-				"Recursive_StringSum1", "Recursive_StringSum0" }) {
-			for (String nullValue : new String[] { "false", "0" }) {
-				assertEquals(Boolean.FALSE,
-						eval(String.format("%s(%s)", structName, nullValue)));
-			}
-		}
-	}
-
-	@Test
-	public void testStructureCopyOutDirect() {
-		Object addr = eval("TestReturnStatic_Packed_Int8Int8Int16Int32(false)");
-		assertFalse(Numbers.isZero(addr));
-		assertEquals(addr, eval("TestReturnStatic_Packed_Int8Int8Int16Int32(Object(a: 5, d: -1))"));
-		String code = String.format("Packed_Int8Int8Int16Int32(%d)", addr);
-		assertEquals(eval("#(a: 5, b: 0, c: 0, d: -1)"), eval(code));
-		assertEquals(addr, eval("TestReturnStatic_Packed_Int8Int8Int16Int32(Object(a: 0, b: 5, c: -1))"));
-		assertEquals(
-				eval("#(a: 0, b: 5, c: -1, d: 0)"),
-				struct("Packed_Int8Int8Int16Int32").call1(addr));
-	}
-
-	@Test
-	public void testStructureCopyOutIndirect() {
-		Object addr = eval("TestReturnStatic_Recursive_Int8Int8Int16Int32(false)");
-		assertFalse(Numbers.isZero(addr));
-		assertEquals(addr, eval("TestReturnStatic_Recursive_Int8Int8Int16Int32(Object(x: Object(a: 5, d: -1)))"));
-		final String code0 = String.format("Recursive_Int8Int8Int16Int32_0(%d)", addr); // doesn't engage indirect copy out
-		assertEquals(eval("#(x: #(a: 5, b: 0, c: 0, d: -1), inner: 0)"), eval(code0));
-		final String code1 = String.format("Recursive_Int8Int8Int16Int32_1(%d)", addr); // indirect copy out
-		assertEquals(eval("#(x: #(a: 5, b: 0, c: 0, d: -1), inner: false)"), eval(code1));
-		final String code2 = String.format("Recursive_Int8Int8Int16Int32_2(%d)", addr); // indirect copy out
-		assertEquals(eval("#(x: #(a: 5, b: 0, c: 0, d: -1), inner: false)"), eval(code2));
-		assertEquals(
-				addr,
-				eval("TestReturnStatic_Recursive_Int8Int8Int16Int32(" +
-						"Object(inner: Object(inner: Object(x: Object(c: 5555)))))"
-		));
-		assertEquals(
-				eval("#(x: #(a:0,b:0,c:0,d:0), " +
-						"inner: #(x: #(a:0,b:0,c:0,d:0), " +
-							"inner: #(x: #(a:0,b:0,c:5555,d:0), " +
-							"inner: 0)" +
-					"))"),
-				eval(code2)
-		);
-	}
-
-	@Test
-	public void testStructureCopyOutVariableIndirect() {
-		Object addr = eval("TestReturnStatic_Recursive_StringSum(0)");
-		String array = "Object(Object(a: 10, b: 9, c: 8, d: 7), Object(a: 6, b: 5, c: 4, d: 3))";
-		String array0 = "#(#(a:0,b:0,c:0,d:0),#(a:0,b:0,c:0,d:0))";
-		String hello = "'Ol� mundo'";
-		assertFalse(Numbers.isZero(addr));
-		Object value = eval(String.format("TestReturnStatic_Recursive_StringSum(Object(x: %s, str: %s))", array, hello));
-		assertEquals(addr, value);
-		for (String s : new String[] { "Recursive_StringSum2", "Recursive_StringSum1" }) {
-			assertEquals(
-					eval(String.format("Object(x: %s, str: %s, buffer_: false, len: 0, inner: false)", array, hello)),
-					eval(String.format("%s(%d)", s, addr))
-			);
-		}
-		value = eval(String.format("TestReturnStatic_Recursive_StringSum(Object(x: %s, str: %s, inner: Object()))", array, hello));
-		assertEquals(addr, value);
-		for (String s : new String[] { "Recursive_StringSum2/false", "Recursive_StringSum1/0" }) {
-			String[] split = s.split("/");
-			assertEquals(
-					eval(String.format("Object(x: %s, str: %s, buffer_: false, len: 0, " +
-							"inner: #(x: %s, str: false, buffer_: false, len: 0, inner: %s))", array, hello, array0, split[1])),
-					eval(String.format("%s(%d)", split[0], addr))
-			);
-		}
-		value = eval(String.format(
-					"TestReturnStatic_Recursive_StringSum(" +
-							"Object(x: %s, str: %s, " +
-							"inner: Object(str: 'inner1', " +
-								"inner: Object(x: %s, str: 'inner2'))))", array, hello, array));
-		assertEquals(addr, value);
-		assertEquals(
-				eval(String.format("Object(x: %s, str: %s, buffer_: false, len: 0, " +
-						"inner: Object(x: %s, str: 'inner1', buffer_: false, len: 0, " +
-						"inner: Object(x: %s, str: 'inner2', buffer_: false, len: 0, inner: 0)))",
-						array, hello, array0, array)),
-				eval(String.format("Recursive_StringSum2(%d)", addr)));
-	}
-
 	@Test
 	public void testDllAsClassMember() {
 		assertEquals(12,
@@ -628,5 +506,30 @@ public class DllTest {
 				() -> {
 					eval("TestReturnStatic_Packed_Int8Int8Int16Int32(#(b: 25, c: 1050, d: -875))");
 				}, SuException.class, "readonly");
+	}
+
+	//
+	// TESTS for Win32 exceptions
+	//
+
+	@Test
+	public void testWin32ExceptionDirect() {
+		assertThrew(() -> {
+			eval("TestDivideTwoInt32s(10, 0)");
+		}, JSDIException.class, "win32 exception: INT_DIVIDE_BY_ZERO");
+	}
+
+	@Test
+	public void testWin32ExceptionIndirect() {
+		assertThrew(() -> {
+			eval("(dll void jsdi:TestCopyInt32Value(Int32Wrapper * src, pointer dst))(Object(x: 1), 1)");
+		}, JSDIException.class, "win32 exception: ACCESS_VIOLATION");
+	}
+
+	@Test
+	public void testWin32ExceptionVariableIndirect() {
+		assertThrew(() -> {
+			eval("TestSumString(Object(inner: Object(inner: 1)))");
+		}, JSDIException.class, "win32 exception: ACCESS_VIOLATION");
 	}
 }

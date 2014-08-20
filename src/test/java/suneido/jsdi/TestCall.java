@@ -74,6 +74,8 @@ public enum TestCall {
 	SUM_PACKED_INT8_INT8_INT16_INT32("TestSumPackedInt8Int8Int16Int32",
 			Mask.INT32, "packedCharCharShortLongPlan"),
 	SUM_PACKED_INT8x3("TestSumPackedInt8x3", Mask.INT32, "packedInt8x3Plan"),
+	DIVIDE_TWO_INT32("TestDivideTwoInt32s", Mask.INT32, PrimitiveSize.INT32,
+			PrimitiveSize.INT32),
 	STRLEN("TestStrLen", Mask.INT32, "inStringPlan"),
 	HELLO_WORLD_RETURN("TestHelloWorldReturn", Mask.INT32,
 			"helloWorldReturnPlan"),
