@@ -131,7 +131,7 @@ public class StructureTest64 {
 				getMarshallPlan("StringStruct3").toString());
 		assertEquals(
 				"MarshallPlan64[ 8, 8, { }, { 0, 1, 2, 4 }, #vi:0 ]",
-				getMarshallPlan("Packed_CharCharShortLong").toString());
+				getMarshallPlan("Packed_Int8Int8Int16Int32").toString());
 		assertEquals(
 				"MarshallPlan64[ 48, 96, { 16:96, 24:97, 40:48, 64:98, 72:99 }, " +
 					"{ 0, 1, 2, 4, 8, 9, 10, 12, 16, 24, 32, 40, " +

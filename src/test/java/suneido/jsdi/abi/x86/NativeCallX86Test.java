@@ -111,6 +111,9 @@ public class NativeCallX86Test {
 			if (Mask.DOUBLE == testcall.returnValueMask) continue;
 			for (NativeCallX86 nativecall : DOF_NORET_VI_OR_FLOAT) {
 				{
+					if (TestCall.DIVIDE_TWO_INT32 == testcall) {
+						continue; // Will raise a divide-by-zero exception
+					}
 					Marshaller m = makeMarshaller(testcall);
 					long result = nativecall.invoke(testcall.ptr,
 							testcall.plan.getSizeDirect(), m)

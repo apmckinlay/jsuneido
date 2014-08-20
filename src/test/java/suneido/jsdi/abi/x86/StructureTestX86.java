@@ -118,7 +118,7 @@ public class StructureTestX86 {
 				getMarshallPlan("StringStruct3").toString());
 		assertEquals(
 				"MarshallPlanX86[ 8, 8, { }, { 0, 1, 2, 4 }, #vi:0 ]",
-				getMarshallPlan("Packed_CharCharShortLong").toString());
+				getMarshallPlan("Packed_Int8Int8Int16Int32").toString());
 		assertEquals(
 				"MarshallPlanX86[ 32, 64, { 16:64, 20:65, 28:32, 48:66, 52:67 }, " +
 					"{ 0, 1, 2, 4, 8, 9, 10, 12, 16, 20, 24, 28, " +
