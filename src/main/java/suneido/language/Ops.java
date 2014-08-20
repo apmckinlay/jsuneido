@@ -643,7 +643,7 @@ public final class Ops {
 		if (x instanceof SuValue) {
 			Object y = ((SuValue) x).get(member);
 			if (y == null)
-				throw new SuException("uninitialized member " + member);
+				throw new SuException("uninitialized member: " + member);
 			return y;
 		} else if (isString(x))
 			return getString((CharSequence)x, member);
