@@ -9,6 +9,7 @@ import static java.lang.Math.min;
 import static suneido.language.Ops.toInt;
 import static suneido.util.Util.array;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 import suneido.*;
@@ -29,43 +30,74 @@ public final class ContainerMethods {
 	@SuppressWarnings("unchecked")
 	public static Object Add(Object self, Object... args) {
 		SuContainer c = (SuContainer) self;
-		Object at = c.vecSize();
-		int n = 0;
+		int at = c.vecSize();
+		int numValuesToAdd = 0;
+		Object atArg = null;
 		ArgsIterator iter = new ArgsIterator(args);
 		while (iter.hasNext()) {
 			Object x = iter.next();
 			if (x instanceof Map.Entry
 					&& ((Map.Entry<Object, Object>) x).getKey() == "at") {
-				at = ((Map.Entry<Object, Object>) x).getValue();
+				atArg = ((Map.Entry<Object, Object>) x).getValue();
 				if (iter.hasNext())
 					addUsage();
 				break;
 			}
-			++n;
+			++numValuesToAdd;
 		}
-		if (n == 0)
+		if (numValuesToAdd == 0)
 			return c;
-		iter = new ArgsIterator(args);
-		if (at instanceof Integer) {
-			int at_i = (Integer) at;
-			for (Object x : iter) {
-				if (x instanceof Map.Entry)
-					addUsage();
-				else
-					c.insert(at_i++, x);
-				if (--n == 0)
-					break; // stop before at:
+		if (null == atArg) {
+			addAt(c, at, numValuesToAdd, args);
+		} else if (atArg instanceof Number) {
+			if (atArg instanceof Integer) {
+				addAt(c, ((Integer) atArg).intValue(), numValuesToAdd, args);
+			} else {
+				BigDecimal bd = Numbers.toBigDecimal(atArg);
+				if (Numbers.integral(bd)) {
+					if (Numbers.isInRange(bd, Numbers.BD_INT_MIN,
+							Numbers.BD_INT_MAX)) {
+						addAt(c, bd.intValue(), numValuesToAdd, args);
+					} else {
+						// If it's outside the range of 'int', can't put it in
+						// the vector.
+						throw new SuException("index " + bd
+								+ " outside valid numeric positions");
+					}
+				} else { // Dictionary put "at" non-integer number
+					putAt(c, atArg, numValuesToAdd, args);
+				}
 			}
-		} else if (n == 1)
-			c.put(at, iter.next());
-		else
-			throw new SuException("can only Add multiple values to un-named "
-					+ "or to numeric positions");
+		} else
+			putAt(c, atArg, numValuesToAdd, args); // Dictionary put "at"
+													// non-number
 		return c;
 	}
 
 	private static void addUsage() {
 		throw new SuException("usage: object.Add(value, ... [ at: position ])");
+	}
+
+	private static void addAt(SuContainer c, int at, int count, Object...args) {
+		final int endIndex = at + count;
+		final ArgsIterator iter = new ArgsIterator(args);
+		for (; at < endIndex; ++at) {
+			Object x = iter.next();
+			if (x instanceof Map.Entry)
+				addUsage();
+			else
+				c.insert(at, x);
+		}
+	}
+
+	private static void putAt(SuContainer c, Object atArg, int numValuesToAdd,
+			Object... args) {
+		if (1 == numValuesToAdd) {
+			c.put(atArg, new ArgsIterator(args).next());
+		} else {
+			throw new SuException("can only Add multiple values to un-named "
+					+ "or to numeric positions");
+		}
 	}
 
 	public static Object Assocs(Object self, Object... args) {
