@@ -246,14 +246,13 @@ public class Callback extends ComplexType {
 		return toLong(result);
 	}
 
-
 	//
 	// ANCESTOR CLASS: Type
 	//
 
 	@Override
-	public final String getDisplayName() {
-		return "callback" + typeList.toParamsTypeString();
+	public final boolean isMarshallableToLong() {
+		return true;
 	}
 
 	@Override
@@ -263,32 +262,55 @@ public class Callback extends ComplexType {
 
 	@Override
 	public final void marshallIn(Marshaller marshaller, Object value) {
-		if (null == value) {
-			marshaller.putPointerSizedInt(0L);
-		} else if (value instanceof SuValue) {
-			long thunkFuncAddr = thunkManager.lookupOrCreateBoundThunk(
-					(SuValue) value, this);
-			marshaller.putPointerSizedInt(NumberConversions
-					.toPointer64(thunkFuncAddr));
-		} else
-			try {
-				marshaller.putPointerSizedInt(NumberConversions
-						.toPointer64(value));
-			} catch (SuException e) {
-				throw new JSDIException("can't marshall " + value + " into "
-						+ toString());
-			}
+		final long addr = marshallInToLong(value);
+		marshaller.putPointerSizedInt(addr);
 	}
 
 	@Override
 	public final Object marshallOut(Marshaller marshaller, Object oldValue) {
-		skipMarshalling(marshaller);
-		return oldValue;
+		if (null != oldValue) {
+			skipMarshalling(marshaller);
+			return oldValue;
+		} else {
+			return marshaller.getPointerSizedInt();
+		}
+	}
+
+	@Override
+	public final long marshallInToLong(Object value) {
+		if (null == value) {
+			return 0L;
+		} else if (value instanceof SuValue) {
+			return thunkManager.lookupOrCreateBoundThunk(
+					(SuValue) value, this);
+		} else {
+			try {
+				if (8 == PrimitiveSize.POINTER) {
+					return NumberConversions.toPointer64(value);
+				} else if (4 == PrimitiveSize.POINTER) {
+					return NumberConversions.toPointer32(value);
+				}
+			} catch (SuException e) {
+				throw new JSDIException("can't marshall " + value + " into "
+					+ toString());
+			}
+		}
+		throw new SuInternalError("unsupported pointer size");
+	}
+
+	@Override
+	public final Object marshallOutFromLong(long marshalledData, Object oldValue) {
+		return null != oldValue ? oldValue : marshalledData; 
 	}
 
 	@Override
 	public final void skipMarshalling(Marshaller marshaller) {
 		marshaller.skipBasicArrayElements(1);
+	}
+
+	@Override
+	public final String getDisplayName() {
+		return "callback" + typeList.toParamsTypeString();
 	}
 
 	//
