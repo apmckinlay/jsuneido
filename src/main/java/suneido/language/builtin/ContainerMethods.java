@@ -30,7 +30,6 @@ public final class ContainerMethods {
 	@SuppressWarnings("unchecked")
 	public static Object Add(Object self, Object... args) {
 		SuContainer c = (SuContainer) self;
-		int at = c.vecSize();
 		int numValuesToAdd = 0;
 		Object atArg = null;
 		ArgsIterator iter = new ArgsIterator(args);
@@ -45,32 +44,29 @@ public final class ContainerMethods {
 			}
 			++numValuesToAdd;
 		}
-		if (numValuesToAdd == 0)
+		if (0 == numValuesToAdd) {
 			return c;
-		if (null == atArg) {
-			addAt(c, at, numValuesToAdd, args);
+		} else if (null == atArg) {
+			addAt(c, c.vecSize(), numValuesToAdd, args);
+			return c;
 		} else if (atArg instanceof Number) {
 			if (atArg instanceof Integer) {
 				addAt(c, ((Integer) atArg).intValue(), numValuesToAdd, args);
+				return c;
 			} else {
 				BigDecimal bd = Numbers.toBigDecimal(atArg);
-				if (Numbers.integral(bd)) {
-					if (Numbers.isInRange(bd, Numbers.BD_INT_MIN,
-							Numbers.BD_INT_MAX)) {
-						addAt(c, bd.intValue(), numValuesToAdd, args);
-					} else {
-						// If it's outside the range of 'int', can't put it in
-						// the vector.
-						throw new SuException("index " + bd
-								+ " outside range of valid numeric positions");
-					}
-				} else { // Dictionary put "at" non-integer number
-					putAt(c, atArg, numValuesToAdd, args);
+				if (Numbers.integral(bd)
+						&& Numbers.isInRange(bd, Numbers.BD_INT_MIN,
+								Numbers.BD_INT_MAX)) {
+					addAt(c, bd.intValue(), numValuesToAdd, args);
+					return c;
 				}
+				// NOTE: This means if it's an integer but it doesn't fit in
+				//       the range of primitive "int", it's going in as a
+				//       dictionary put, not a vector add.
 			}
-		} else
-			putAt(c, atArg, numValuesToAdd, args); // Dictionary put "at"
-													// non-number
+		}
+		putAt(c, atArg, numValuesToAdd, args); // Dictionary put "at"
 		return c;
 	}
 
