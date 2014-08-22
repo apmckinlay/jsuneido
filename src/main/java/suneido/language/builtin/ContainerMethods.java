@@ -36,7 +36,7 @@ public final class ContainerMethods {
 		while (iter.hasNext()) {
 			Object x = iter.next();
 			if (x instanceof Map.Entry
-					&& ((Map.Entry<Object, Object>) x).getKey() == "at") {
+					&& ((Map.Entry<Object, Object>) x).getKey().equals("at")) {
 				atArg = ((Map.Entry<Object, Object>) x).getValue();
 				if (iter.hasNext())
 					addUsage();

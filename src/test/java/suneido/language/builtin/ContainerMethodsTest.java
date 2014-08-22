@@ -37,6 +37,8 @@ public class ContainerMethodsTest {
 		test("[1,2].Add(3,4)", "[1, 2, 3, 4]");
 		test("[1,2,3].Add(11,22,at: 1)", "[1, 11, 22, 2, 3]");
 		test("[].Add(123, at: 'a')", "[a: 123]");
+		test("[].Add(1, 2, 3, at: 0)", "[1, 2, 3]");
+		test("[].Add(@#(1, 2, 3, at: 0))", "[1, 2, 3]");
 	}
 	@Test
 	public void test_list_named() {
