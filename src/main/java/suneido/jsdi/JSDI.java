@@ -25,7 +25,7 @@ import suneido.util.FileFinder;
  * it provides access to factory and manager objects needed to construct JSDI
  * types.
  * </p>
- * 
+ *
  * @author Victor Schappert
  * @since 20130624
  */
@@ -38,7 +38,7 @@ public final class JSDI {
 
 	private static final String LIBRARY_PATH_PROPERTY_NAME = "suneido.library.path";
 		// NOTE: We will want to move this library path property name constant
-		//       into the Suneido class i we end up adding any more native
+		//       into the Suneido class if we end up adding any more native
 		//       libraries besides jsdi.
 	private static final String LIBRARY_NAME = "jsdi.dll";
 	private static final String PACKAGE_X86 = "suneido.jsdi.abi.x86";
@@ -272,7 +272,7 @@ public final class JSDI {
 	/**
 	 * Returns the factory required to instantiate JSDI types in an
 	 * implementation-neutral fashion.
-	 * 
+	 *
 	 * @return Factory
 	 * @since 20140718
 	 */
@@ -283,7 +283,7 @@ public final class JSDI {
 	/**
 	 * Returns the thunk manager used to map between bound Suneido values and
 	 * callbacks.
-	 * 
+	 *
 	 * @return Thunk manager
 	 */
 	public ThunkManager getThunkManager() {
@@ -291,7 +291,7 @@ public final class JSDI {
 	}
 
 	/**
-	 * Returns the path to the loaded native DLL. 
+	 * Returns the path to the loaded native DLL.
 	 *
 	 * @return Library path
 	 * @since 20140731
