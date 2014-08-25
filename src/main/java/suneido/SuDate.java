@@ -158,7 +158,7 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 
 	private static boolean valid(int year, int month, int day,
 			int hour, int minute, int second, int millisecond) {
-		if (year == YEAR.max && (month != 1 || day != 1 || 
+		if (year == YEAR.max && (month != 1 || day != 1 ||
 				hour != 0 || minute != 0 || second != 0 || millisecond != 0))
 			return false;
 		if (! YEAR.valid(year) || ! MONTH.valid(month) || ! DAY.valid(day) ||
@@ -532,7 +532,12 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 						return null;
 				}
 			} else if (!"".equals(next = nextNumber(s, si))) {
-				int n = Integer.parseInt(next);
+				int n;
+				try {
+					n = Integer.parseInt(next);
+				} catch (Throwable e) {
+					n = Integer.MAX_VALUE;
+				}
 				int len = next.length();
 				si += len;
 				c = get(s, si);
