@@ -21,6 +21,7 @@ import suneido.intfc.database.RecordBuilder;
 import suneido.language.Ops;
 import suneido.language.Pack;
 import suneido.language.Range;
+import suneido.language.SuInstance;
 import suneido.language.builtin.ContainerMethods;
 import suneido.util.NullIterator;
 import suneido.util.PairStack;
@@ -392,9 +393,12 @@ public class SuContainer extends SuValue
 		}
 	}
 
-	private static boolean equals3(Object x, Object y, PairStack stack) {
+	// public since also called by SuInstance.equals2
+	public static boolean equals3(Object x, Object y, PairStack stack) {
 		if (x == y)
 			return true;
+		if (x instanceof SuInstance && y instanceof SuInstance)
+			return SuInstance.equals2((SuInstance) x, (SuInstance) y, stack);
 		SuContainer cx = Ops.toContainer(x);
 		if (cx == null)
 			return Ops.is_(x, y);
