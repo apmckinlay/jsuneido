@@ -145,7 +145,7 @@ public class SuInstance extends SuValue {
 	public static SuContainer Members(Object self) {
 		return new SuContainer(((SuInstance) self).ivars.keySet());
 	}
-	
+
 	public static Object Size(Object self) {
 		return ((SuInstance) self).ivars.size();
 	}
@@ -184,7 +184,7 @@ public class SuInstance extends SuValue {
 	}
 
 	// avoid infinite recursion from self-reference
-	private static boolean equals2(SuInstance x, SuInstance y, PairStack stack) {
+	public static boolean equals2(SuInstance x, SuInstance y, PairStack stack) {
 		if (x.myclass != y.myclass || x.ivars.size() != y.ivars.size())
 			return false;
 		if (stack.contains(x, y))
@@ -192,22 +192,12 @@ public class SuInstance extends SuValue {
 		stack.push(x, y);
 		try {
 			for (Map.Entry<String, Object> e : x.ivars.entrySet())
-				if (! equals3(e.getValue(), y.ivars.get(e.getKey()), stack))
+				if (! SuContainer.equals3(e.getValue(), y.ivars.get(e.getKey()), stack))
 					return false;
 			return true;
 		} finally {
 			stack.pop();
 		}
-	}
-
-	private static boolean equals3(Object x, Object y, PairStack stack) {
-		if (x == y)
-			return true;
-		if (! (x instanceof SuInstance))
-			return Ops.is_(x, y);
-		return (y instanceof SuInstance)
-				? equals2((SuInstance) x, (SuInstance) y, stack)
-				: false;
 	}
 
 	@Override
