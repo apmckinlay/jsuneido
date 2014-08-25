@@ -332,7 +332,7 @@ public final class ContainerMethods {
 	public static Object Set_readonly(Object self) {
 		SuContainer c = (SuContainer) self;
 		c.setReadonly();
-		return c.getReadonly();
+		return self;
 	}
 
 	@Params("i, n=INTMAX")
