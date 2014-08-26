@@ -580,4 +580,42 @@ public class CallbackTest {
 		assertEquals(6, eval(code));
 		assertEquals(eval("#()"), eval("Callbacks()"));
 	}
+
+	@Test
+	public void testClearingManyActiveCallbacks() {
+		// It should also be possible to clear a callback that is much further
+		// down the call stack and have the operation complete safely. (Note,
+		// however, that it is not permissible for a callback to be invoked
+		// once it has been cleared; this test is just testing that invocations
+		// that were unfinished at the time of the callback clearing can
+		// complete safely.)
+		final int N = 20;
+		final String code =
+			"c = class\n" +
+			"\t{\n" +
+			"\tNew()\n" +
+			"\t\t{\n" +
+			"\t\t.list = Object()\n" +
+			"\t\t}\n" +
+			"\tCall(x)\n" +
+			"\t\t{\n" +
+			"\t\tif 0 < x\n" +
+			"\t\t\t{\n" +
+			"\t\t\tthis_ = this\n" +
+			"\t\t\tb = { |n| this_(n) }\n" +
+			"\t\t\t.list.Add(b)\n" +
+			"\t\t\treturn TestInvokeCallback_Int32_1(b, x - 1)\n" +
+			"\t\t\t}\n" +
+			"\t\telse\n" +
+			"\t\t\t{\n" +
+			"\t\t\tfor (f in .list)\n" +
+			"\t\t\t\tClearCallback(f)\n" +
+			"\t\t\treturn -43\n" +
+			"\t\t\t}\n" +
+			"\t\t}\n" +
+			"\t}\n" +
+			"(new c)(" + N + ")";
+		assertEquals(-43, eval(code));
+		assertEquals(eval("#()"), eval("Callbacks()"));
+	}
 }
