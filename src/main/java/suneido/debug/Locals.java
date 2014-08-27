@@ -28,9 +28,9 @@ public final class Locals {
 	// DATA
 	//
 
-	private String[][] localsNames;
-	private Object[][] localsValues;
-	private String[]   frameNames;
+	public String[][] localsNames;
+	public Object[][] localsValues;
+	public String[]   frameNames;
 
 	//
 	// CONSTRUCTORS
