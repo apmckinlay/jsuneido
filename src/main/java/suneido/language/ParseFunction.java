@@ -135,7 +135,7 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		match(BREAK);
 		matchIf(SEMICOLON);
 		if (! context.breakAllowed)
-			syntaxError("break can only be used in a loop");
+			syntaxError("break can only be used in a loop, switch case, or block");
 		return generator.breakStatement(lineNumber);
 	}
 
@@ -144,7 +144,7 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		match(CONTINUE);
 		matchIf(SEMICOLON);
 		if (! context.continueAllowed)
-			syntaxError("continue can only be used in a loop or switch case");
+			syntaxError("continue can only be used in a loop or block");
 		return generator.continueStatement(lineNumber);
 	}
 
