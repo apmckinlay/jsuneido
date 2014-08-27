@@ -88,8 +88,6 @@ public class Lexer {
 		if (si >= source.length())
 			return EOF;
 		char c = source.charAt(si);
-		if (Character.isWhitespace(c))
-			return whitespace();
 		++si;
 		switch (c) {
 		case '#':
@@ -156,10 +154,22 @@ public class Lexer {
 			return matchIf('.') ? RANGETO
 					: Character.isDigit(charAt(si)) ? number()
 					: DOT;
+		case ' ':
+		case '\t':
+		case '\n':
+		case '\r':
+			return whitespace();
+		case '_':
+			return identifier();
 		default:
-			return Character.isDigit(c) ? number()
-					: (c == '_' || Character.isLetter(c)) ? identifier()
-					: ERROR;
+			if (Character.isLetter(c))
+				return identifier();
+			else if (Character.isDigit(c))
+				return number();
+			else if (Character.isWhitespace(c))
+				return whitespace();
+			else
+				return ERROR;
 		}
 	}
 
