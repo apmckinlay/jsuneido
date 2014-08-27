@@ -9,11 +9,11 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 import suneido.SuInternalError;
 import suneido.Suneido;
 import suneido.debug.Debug;
-import suneido.util.Filter;
 import suneido.util.FilteredStreamEchoer;
 
 import com.google.common.base.Joiner;
@@ -77,8 +77,6 @@ public final class Bootstrap {
 					// falling back to running Suneido from this JVM.
 					int exitCode = runSuneidoInNewJVM(args, true,
 							(String x) -> {
-								return !isFilterableOutput(x);
-							}, (String x) -> {
 								if (isFatalErrorPreventingNewJVMStartup(x))
 									fatals.add(x);
 								return true; // Always echo stderr
@@ -119,22 +117,17 @@ public final class Bootstrap {
 	 * @return
 	 */
 	public static int runSuneidoInNewJVM(String[] args,
-			boolean isFullDebugging, Filter<String> stdoutFilter,
-			Filter<String> stderrFilter) {
+			boolean isFullDebugging, Predicate<String> stderrFilter) {
 		final ProcessBuilder builder = runSuneidoInNewJVMBuilder(args,
 				isFullDebugging);
 		final ArrayList<Thread> echoThreads = new ArrayList<Thread>(2);
 		builder.redirectOutput(Redirect.INHERIT);
-		if (null == stdoutFilter) {
-			builder.redirectInput(Redirect.INHERIT);
-		}
+		builder.redirectInput(Redirect.INHERIT);
 		if (null == stderrFilter) {
 			builder.redirectError(Redirect.INHERIT);
 		}
 		try {
 			Process process = builder.start();
-			startEchoThread(echoThreads, process.getInputStream(),
-					stdoutFilter, System.out); // Only if not inheriting stdout
 			startEchoThread(echoThreads, process.getErrorStream(),
 					stderrFilter, System.err); // Only if not inheriting stderr
 			for (final Thread thread : echoThreads) {
@@ -234,18 +227,13 @@ public final class Bootstrap {
 	}
 
 	private static void startEchoThread(ArrayList<Thread> echoThreads,
-			InputStream in, Filter<String> filter, PrintStream out) {
+			InputStream in, Predicate<String> filter, PrintStream out) {
 		if (null != filter) {
 			final Thread t = new Thread(new FilteredStreamEchoer(in, filter,
 					out));
 			echoThreads.add(t);
 			t.start();
 		}
-	}
-
-	private static boolean isFilterableOutput(String message) {
-		return message
-				.startsWith("Listening for transport dt_socket at address:");
 	}
 
 	private static boolean isFatalErrorPreventingNewJVMStartup(String message) {
