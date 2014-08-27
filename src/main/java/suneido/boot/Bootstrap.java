@@ -124,6 +124,7 @@ public final class Bootstrap {
 		final ProcessBuilder builder = runSuneidoInNewJVMBuilder(args,
 				isFullDebugging);
 		final ArrayList<Thread> echoThreads = new ArrayList<Thread>(2);
+		builder.redirectOutput(Redirect.INHERIT);
 		if (null == stdoutFilter) {
 			builder.redirectInput(Redirect.INHERIT);
 		}
