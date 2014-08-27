@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 /**
@@ -54,7 +55,7 @@ public final class FileFinder {
 		 * File.createTempFile(...)} into which the actual file has been copied.
 		 * The search algorithm marks the file for deletion on JVM exit before
 		 * returning, so that caller must copy the file if it needs to persist
-		 * beyond the current JVM invocation. 
+		 * beyond the current JVM invocation.
 		 */
 		RELPATH_RELATIVE_TO_CLASSPATH,
 		/**
@@ -108,7 +109,7 @@ public final class FileFinder {
 		 * </dl>
 		 */
 		public final String searchInfo;
-		private boolean stop; // hidden field: search processor said to stop
+		private boolean stop; // hidden field: search predicate said to stop
 
 		private SearchResult(File file, SearchStage stage, String searchInfo) {
 			assert null != stage && null != searchInfo;
@@ -143,22 +144,6 @@ public final class FileFinder {
 			return '[' + (null == file ? "N/A" : '\'' + file.toString() + '\'')
 					+ ", " + stage + ", '" + searchInfo + "']";
 		}
-	}
-
-	/**
-	 * Interface to an entity that processes search results and decides if the
-	 * search should continue.
-	 */
-	public interface SearchResultProcessor {
-		/**
-		 * Process a search result and return {@code true} iff search should
-		 * continue.
-		 * 
-		 * @param result
-		 *            Result to process
-		 * @return Whether search should continue
-		 */
-		boolean process(SearchResult result);
 	}
 
 	//
@@ -203,7 +188,7 @@ public final class FileFinder {
 	 *
 	 * @param propertyNames
 	 *            List of non-NULL property names
-	 * @see #findUsingSearchPathPropertyNames(String, SearchResultProcessor)
+	 * @see #findUsingSearchPathPropertyNames(String, Predicate<SearchResult>)
 	 * @see #addRelPaths(String...)
 	 * @see #setSearchSystemLibraryPath(boolean)
 	 */
@@ -225,8 +210,8 @@ public final class FileFinder {
 	 *
 	 * @param relPaths
 	 *            List of non-NULL relpaths
-	 * @see #findRelToCwd(String, SearchResultProcessor)
-	 * @see #findRelToClasspath(String, SearchResultProcessor)
+	 * @see #findRelToCwd(String, Predicate<SearchResult>)
+	 * @see #findRelToClasspath(String, Predicate<SearchResult>)
 	 * @see #addSearchPathPropertyNames(String...)
 	 */
 	public void addRelPaths(String... relPaths) {
@@ -291,7 +276,7 @@ public final class FileFinder {
 	 *            File name to search for
 	 * @return Result of the search
 	 * @throws IOException
-	 * @see {@link #find(String, SearchResultProcessor)}
+	 * @see {@link #find(String, Predicate<SearchResult>)}
 	 */
 	public SearchResult find(String name) throws IOException {
 		return find(name, (SearchResult) -> {
@@ -302,30 +287,31 @@ public final class FileFinder {
 	/**
 	 * <p>
 	 * Executes the full search algorithm, stopping only when instructed to do
-	 * so by a search result processor or all applicable search stages have been
+	 * so by a search result predicate or all applicable search stages have been
 	 * exhausted without finding anything.
 	 * </p>
 	 *
 	 * @param name
 	 *            File name to search for
-	 * @param processor
-	 *            Instructs whether to stop on a given successful search result
+	 * @param predicate
+	 *            Given a successful search result, returns {@code true} if
+	 *            the search should continue, or {@code false} if it should stop
 	 * @return First successful search result, if any were found, or a non-NULL
 	 *         failed search result otherwise
 	 * @throws IOException
 	 *             If an I/O exception occurs while searching relative to the
 	 *             classpath
 	 * @see #find(String)
-	 * @see #findUsingSearchPathPropertyNames(String, SearchResultProcessor)
-	 * @see #findRelToCwd(String, SearchResultProcessor)
-	 * @see #findRelToClasspath(String, SearchResultProcessor)
-	 * @see #findInSystemLibraryPath(String, SearchResultProcessor)
+	 * @see #findUsingSearchPathPropertyNames(String, Predicate<SearchResult>)
+	 * @see #findRelToCwd(String, Predicate<SearchResult>)
+	 * @see #findRelToClasspath(String, Predicate<SearchResult>)
+	 * @see #findInSystemLibraryPath(String, Predicate<SearchResult>)
 	 */
-	public SearchResult find(String name, SearchResultProcessor processor)
+	public SearchResult find(String name, Predicate<SearchResult> predicate)
 			throws IOException {
 		SearchResult firstSuccess = null;
 		SearchResult lastResult = findUsingSearchPathPropertyNames(name,
-				processor);
+				predicate);
 		if (lastResult.success()) {
 			if (null == firstSuccess) {
 				firstSuccess = lastResult;
@@ -334,7 +320,7 @@ public final class FileFinder {
 				return firstSuccess;
 			}
 		}
-		lastResult = findRelToCwd(name, processor);
+		lastResult = findRelToCwd(name, predicate);
 		if (lastResult.success()) {
 			if (null == firstSuccess) {
 				firstSuccess = lastResult;
@@ -343,7 +329,7 @@ public final class FileFinder {
 				return firstSuccess;
 			}
 		}
-		lastResult = findRelToClasspath(name, processor); // may throw
+		lastResult = findRelToClasspath(name, predicate); // may throw
 															// IOException
 		if (lastResult.success()) {
 			if (null == firstSuccess) {
@@ -354,7 +340,7 @@ public final class FileFinder {
 			}
 		}
 		if (searchSystemLibraryPath) {
-			lastResult = findInSystemLibraryPath(name, processor);
+			lastResult = findInSystemLibraryPath(name, predicate);
 		}
 		assert null != lastResult;
 		return null != firstSuccess ? firstSuccess : lastResult;
@@ -365,21 +351,22 @@ public final class FileFinder {
 	 *
 	 * @param name
 	 *            File name to search for
-	 * @param processor
-	 *            Instructs whether to stop on a given successful search result
+	 * @param predicate
+	 *            Given a successful search result, returns {@code true} if
+	 *            the search should continue, or {@code false} if it should stop
 	 * @return First successful search result, if any were found, or a non-NULL
 	 *         failed search result otherwise
 	 * @see #addSearchPathPropertyNames(String...)
-	 * @see #find(String, SearchResultProcessor)
+	 * @see #find(String, Predicate<SearchResult>)
 	 */
 	public SearchResult findUsingSearchPathPropertyNames(String name,
-			SearchResultProcessor processor) {
+			Predicate<SearchResult> predicate) {
 		SearchResult firstSuccess = null;
 		SearchResult lastFail = null;
 		for (final String propName : searchPathPropertyNames) {
 			final SearchResult result = findUsingSearchPathPropertyName(name,
 					propName, SearchStage.EXPLICIT_SEARCH_PATH_PROPERTY,
-					processor);
+					predicate);
 			if (result.success()) {
 				if (null == firstSuccess) {
 					firstSuccess = result;
@@ -401,16 +388,17 @@ public final class FileFinder {
 	 *
 	 * @param name
 	 *            File name to search for
-	 * @param processor
-	 *            Instructs whether to stop on a given successful search result
+	 * @param predicate
+	 *            Given a successful search result, returns {@code true} if
+	 *            the search should continue, or {@code false} if it should stop
 	 * @return First successful search result, if any were found, or a non-NULL
 	 *         failed search result otherwise
 	 * @see #addRelPaths(String...)
-	 * @see #findRelToClasspath(String, SearchResultProcessor)
-	 * @see #find(String, SearchResultProcessor)
+	 * @see #findRelToClasspath(String, Predicate<SearchResult>)
+	 * @see #find(String, Predicate<SearchResult>)
 	 */
 	public SearchResult findRelToCwd(String name,
-			SearchResultProcessor processor) {
+			Predicate<SearchResult> predicate) {
 		SearchResult firstSuccess = null;
 		String lastRelPathSearched = "";
 		for (final String relPath : relPaths) {
@@ -421,7 +409,7 @@ public final class FileFinder {
 				if (null == firstSuccess) {
 					firstSuccess = result;
 				}
-				if (! processor.process(result)) {
+				if (!predicate.test(result)) {
 					firstSuccess.stop = true;
 				}
 			}
@@ -437,24 +425,25 @@ public final class FileFinder {
 	 *
 	 * @param name
 	 *            File name to search for
-	 * @param processor
-	 *            Instructs whether to stop on a given successful search result
+	 * @param predicate
+	 *            Given a successful search result, returns {@code true} if
+	 *            the search should continue, or {@code false} if it should stop
 	 * @return First successful search result, if any were found, or a non-NULL
 	 *         failed search result otherwise
 	 * @throws IOException
 	 *             If reading from the classpath, or writing to the requisite
 	 *             temporary file, triggers an I/O exception
 	 * @see #addRelPaths(String...)
-	 * @see #findRelToCwd(String, SearchResultProcessor)
-	 * @see #find(String, SearchResultProcessor)
+	 * @see #findRelToCwd(String, Predicate<SearchResult>)
+	 * @see #find(String, Predicate<SearchResult>)
 	 */
 	public SearchResult findRelToClasspath(String name,
-			SearchResultProcessor processor) throws IOException {
+			Predicate<SearchResult> predicate) throws IOException {
 		SearchResult firstSuccess = null;
 		String lastRelPathSearched = "";
 		for (final String relPath : relPaths) {
 			final SearchResult result = findRelToClasspath(name, relPath,
-					processor);
+					predicate);
 			if (null != result) {
 				assert result.success();
 				if (null == firstSuccess) {
@@ -476,18 +465,19 @@ public final class FileFinder {
 	 *
 	 * @param name
 	 *            File name to search for
-	 * @param processor
-	 *            Instructs whether to stop on a given successful search result
+	 * @param predicate
+	 *            Given a successful search result, returns {@code true} if
+	 *            the search should continue, or {@code false} if it should stop
 	 * @return First successful search result, if any were found, or a non-NULL
 	 *         failed search result otherwise
-	 * @see #find(String, SearchResultProcessor)
+	 * @see #find(String, Predicate<SearchResult>)
 	 * @see #setSearchSystemLibraryPath(boolean)
 	 */
 	public static SearchResult findInSystemLibraryPath(String name,
-			SearchResultProcessor processor) {
+			Predicate<SearchResult> predicate) {
 		return findUsingSearchPathPropertyName(name,
 				SYSTEM_LIBRARY_PATH_PROPERTY_NAME,
-				SearchStage.SYSTEM_LIBARY_PATH, processor);
+				SearchStage.SYSTEM_LIBARY_PATH, predicate);
 	}
 
 	//
@@ -505,7 +495,8 @@ public final class FileFinder {
 	}
 
 	private static SearchResult findUsingSearchPathPropertyName(String name,
-			String propName, SearchStage stage, SearchResultProcessor processor) {
+			String propName, SearchStage stage,
+			Predicate<SearchResult> predicate) {
 		SearchResult firstSuccess = null;
 		final String propValue = System.getProperty(propName);
 		if (null != propValue) {
@@ -518,7 +509,7 @@ public final class FileFinder {
 					if (null == firstSuccess) {
 						firstSuccess = thisResult;
 					}
-					if (!processor.process(thisResult)) {
+					if (!predicate.test(thisResult)) {
 						firstSuccess.stop = true;
 						break;
 					}
@@ -530,7 +521,7 @@ public final class FileFinder {
 	}
 
 	private SearchResult findRelToClasspath(String name, String relPath,
-			SearchResultProcessor processor) throws IOException {
+			Predicate<SearchResult> predicate) throws IOException {
 		String absResourcePath = null;
 		if ("".equals(relPath)) {
 			absResourcePath = '/' + name;
@@ -551,7 +542,7 @@ public final class FileFinder {
 		}
 		final SearchResult result = SearchResult.succeeded(tmpFile,
 				SearchStage.RELPATH_RELATIVE_TO_CLASSPATH, relPath);
-		if (!processor.process(result)) {
+		if (!predicate.test(result)) {
 			result.stop = true;
 		}
 		return result;
