@@ -24,4 +24,27 @@ package suneido.debug;
  */
 public final class Locals {
 
+	//
+	// DATA
+	//
+
+	private String[][] localsNames;
+	private Object[][] localsValues;
+	private String[]   frameNames;
+
+	//
+	// CONSTRUCTORS
+	//
+
+	public Locals() {
+		fetchLocals();
+	}
+
+	//
+	// INTERNALS
+	//
+
+	private void fetchLocals() {
+		// Placeholder for breakpoint
+	}
 }
