@@ -283,19 +283,19 @@ public class Lexer {
 	}
 
 	private Token whitespace(char c) {
-		boolean eol = false;
+		Token kind = WHITE;
 		do {
 			if (c == '\n') {
-				eol = true;
+				kind = NEWLINE;
 				++lineNumber;
 			} else if (c == '\r')
-				eol = true;
+				kind = NEWLINE;
 			c = charAt(si);
 			if (! Character.isWhitespace(c))
 				break;
 			++si;
 		} while (true);
-		return eol ? NEWLINE : WHITE;
+		return kind;
 	}
 
 	private Token value(Token token) {
