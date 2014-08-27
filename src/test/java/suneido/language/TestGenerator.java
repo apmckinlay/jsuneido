@@ -38,7 +38,7 @@ public class TestGenerator extends Generator<Object> {
 	}
 
 	@Override
-	public Object bool(boolean value) {
+	public Object bool(boolean value, int lineNumber) {
 		print("bool", value);
 		return null;
 	}
@@ -50,7 +50,7 @@ public class TestGenerator extends Generator<Object> {
 	}
 
 	@Override
-	public Object date(String value) {
+	public Object date(String value, int lineNumber) {
 		print("date", value);
 		return null;
 	}
@@ -92,7 +92,8 @@ public class TestGenerator extends Generator<Object> {
 	}
 
 	@Override
-	public Object object(suneido.language.Generator.MType which, Object members) {
+	public Object object(suneido.language.Generator.MType which,
+			Object members, int lineNumber) {
 		print("object", which, members);
 		return null;
 	}
@@ -116,7 +117,7 @@ public class TestGenerator extends Generator<Object> {
 	}
 
 	@Override
-	public Object symbol(String identifier) {
+	public Object symbol(String identifier, int lineNumber) {
 		print("symbol", identifier);
 		return identifier;
 	}
@@ -134,13 +135,14 @@ public class TestGenerator extends Generator<Object> {
 	}
 
 	@Override
-	public Object clazz(String base, Object members) {
+	public Object clazz(String base, Object members, int lineNumber) {
 		print("classEnd", base, members);
 		return "classEnd-result";
 	}
 
 	@Override
-	public Object function(Object params, Object compound, boolean isMethod) {
+	public Object function(Object params, Object compound, boolean isMethod,
+			int lineNumber) {
 		print("functionEnd", params, compound);
 		return "functionEnd-result";
 	}
@@ -158,13 +160,14 @@ public class TestGenerator extends Generator<Object> {
 	}
 
 	@Override
-	public Object memberRef(Object term, String identifier) {
+	public Object memberRef(Object term, String identifier, int lineNumber) {
 		print("member", term, identifier);
 		return "member-" + identifier;
 	}
 
 	@Override
-	public Object returnStatement(Object expression, Object context) {
+	public Object returnStatement(Object expression, Object context,
+			int lineNumber) {
 		print("returnStatement", expression, context);
 		return "returnStatement-result";
 	}

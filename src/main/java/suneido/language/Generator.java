@@ -36,8 +36,12 @@ public abstract class Generator<T> {
 		return null;
 	}
 
-	public T function(T params, T compound, boolean isMethod) {
+	public T function(T params, T compound, boolean isMethod, int lineNumber) {
 		return null;
+	}
+
+	public T identifier(String text, int lineNumber) {
+		return identifier(text);
 	}
 
 	public abstract T identifier(String text);
@@ -48,7 +52,7 @@ public abstract class Generator<T> {
 
 	public abstract T in(T expression, T list);
 
-	public T returnStatement(T expression, Object context) {
+	public T returnStatement(T expression, Object context, int lineNumber) {
 		return null;
 	}
 
@@ -62,25 +66,37 @@ public abstract class Generator<T> {
 		return null;
 	}
 
+	public T number(String value, int lineNumber) {
+		return number(value);
+	}
+
 	public abstract T number(String value);
+
+	public T string(String value, int lineNumber) {
+		return string(value);
+	}
 
 	public abstract T string(String value);
 
-	public abstract T date(String value);
+	public abstract T date(String value, int lineNumber);
 
-	public abstract T symbol(String identifier);
+	public abstract T symbol(String identifier, int lineNumber);
 
-	public abstract T bool(boolean value);
+	public abstract T bool(boolean value, int lineNumber); // Actual boolean literal in source
 
-	public T breakStatement() {
+	public T boolTrue() { // Synthetic true literal inserted by the compiler
+		return bool(true, -1);
+	}
+
+	public T breakStatement(int lineNumber) {
 		return null;
 	}
 
-	public T continueStatement() {
+	public T continueStatement(int lineNumber) {
 		return null;
 	}
 
-	public T throwStatement(T expression) {
+	public T throwStatement(T expression, int lineNumber) {
 		return null;
 	}
 
@@ -124,7 +140,7 @@ public abstract class Generator<T> {
 		return null;
 	}
 
-	public T memberRef(T term, String identifier) {
+	public T memberRef(T term, String identifier, int lineNumber) {
 		return null;
 	}
 
@@ -147,7 +163,7 @@ public abstract class Generator<T> {
 		return null;
 	}
 
-	public T block(T params, T statements) {
+	public T block(T params, T statements, int lineNumber) {
 		return null;
 	}
 
@@ -159,13 +175,13 @@ public abstract class Generator<T> {
 
 	public abstract T memberList(MType which, T list, T member);
 
-	public T clazz(String base, T members) {
+	public T clazz(String base, T members, int lineNumber) {
 		return null;
 	}
 
 	public enum MType { OBJECT, RECORD };
 
-	public abstract T object(MType which, T members);
+	public abstract T object(MType which, T members, int lineNumber);
 
 	public T rvalue(T expr) {
 		return expr;
@@ -192,18 +208,18 @@ public abstract class Generator<T> {
 	//
 
 	@DllInterface
-	public T struct(T structMembers) {
+	public T struct(T structMembers, int lineNumber) {
 		return null;
 	}
 
 	@DllInterface
 	public T dll(String libraryName, String userFunctionName, String returnType,
-			T dllParams) {
+			T dllParams, int lineNumber) {
 		return null;
 	}
 
 	@DllInterface
-	public T callback(T dllParams) {
+	public T callback(T dllParams, int lineNumber) {
 		return null;
 	}
 

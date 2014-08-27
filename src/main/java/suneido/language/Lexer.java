@@ -48,6 +48,17 @@ public class Lexer {
 		return lineNumber;
 	}
 
+	public int getColumnNumber() {
+		int prevLineEnd = prev - 1;
+		for (; 0 <= prevLineEnd; --prevLineEnd) {
+			final char c = source.charAt(prevLineEnd);
+			if ('\n' == c || '\r' == c) {
+				break;
+			}
+		}
+		return prev - prevLineEnd;
+	}
+
 	public Token nextSkipNewlines() {
 		Token token;
 		do
@@ -76,8 +87,6 @@ public class Lexer {
 		if (si >= source.length())
 			return EOF;
 		char c = source.charAt(si);
-		if (Character.isWhitespace(c))
-			return whitespace();
 		++si;
 		switch (c) {
 		case '#':
@@ -144,10 +153,22 @@ public class Lexer {
 			return matchIf('.') ? RANGETO
 					: Character.isDigit(charAt(si)) ? number()
 					: DOT;
+		case ' ':
+		case '\t':
+		case '\n':
+		case '\r':
+			return whitespace(c);
+		case '_':
+			return identifier();
 		default:
-			return Character.isDigit(c) ? number()
-					: (c == '_' || Character.isLetter(c)) ? identifier()
-					: ERROR;
+			if (Character.isLetter(c))
+				return identifier();
+			else if (Character.isDigit(c))
+				return number();
+			else if (Character.isWhitespace(c))
+				return whitespace(c);
+			else
+				return ERROR;
 		}
 	}
 
@@ -261,16 +282,20 @@ public class Lexer {
 			si = save;
 	}
 
-	private Token whitespace() {
-		char c;
-		boolean eol = false;
-		for (; Character.isWhitespace(c = charAt(si)); ++si)
+	private Token whitespace(char c) {
+		Token kind = WHITE;
+		do {
 			if (c == '\n') {
-				eol = true;
+				kind = NEWLINE;
 				++lineNumber;
 			} else if (c == '\r')
-				eol = true;
-		return eol ? NEWLINE : WHITE;
+				kind = NEWLINE;
+			c = charAt(si);
+			if (! Character.isWhitespace(c))
+				break;
+			++si;
+		} while (true);
+		return kind;
 	}
 
 	private Token value(Token token) {

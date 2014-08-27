@@ -5,7 +5,7 @@
 package suneido.language;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static suneido.util.testing.Throwing.assertThrew;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 
 import org.junit.Test;
 
+import suneido.SuException;
 import suneido.Suneido;
 
 public class CompileTest {
@@ -444,12 +445,9 @@ public class CompileTest {
 
 	@Test
 	public void test_super() {
-		try {
+		assertThrew(() -> {
 			test("a = super.y", "");
-			fail("invalid use of super");
-		} catch (Exception e) {
-			assertEquals("syntax error at line 1: invalid use of super", e.toString());
-		}
+		}, SuException.class, "syntax error at line 1.*: invalid use of super"); 
 
 		test("super.Fn()", "this, self, 'Fn', superInvoke, ARETURN");
 	}

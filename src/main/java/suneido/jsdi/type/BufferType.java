@@ -14,9 +14,14 @@ import suneido.jsdi.marshall.Marshaller;
 import suneido.language.Ops;
 
 /**
- * TODO: docs
+ * <p>
+ * Implements the JSDI {@code buffer} type.
+ * </p>
+ *
  * @author Victor Schappert
  * @since 20130718
+ * @see InOutString
+ * @see InString
  */
 @DllInterface
 @Immutable

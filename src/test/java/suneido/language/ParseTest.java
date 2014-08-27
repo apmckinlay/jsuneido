@@ -8,9 +8,9 @@ import org.junit.Test;
 
 public class ParseTest {
 
-    @Test
-    public void test() {
-    	code("123",
+	@Test
+	public void test() {
+		code("123",
 			"(NUMBER=123)");
 		code("foo",
 			"(IDENTIFIER=foo)");

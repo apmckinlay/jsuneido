@@ -20,7 +20,7 @@ public class Digest extends SuValue {
 		try {
 			cksum = MessageDigest.getInstance(which);
 		} catch (NoSuchAlgorithmException e) {
-			throw new SuException("Can't access " + which, e);
+			throw new SuException("can't access " + which, e);
 		}
 	}
 

@@ -7,6 +7,69 @@ User-friendly stack trace project
 JAR size before refactor, 20140622: 1692778 (1.61 MB)
 JAR size after Phase 2, 20140622: 1462413 (1.39 MB) (13.61% reduction in size)
 
+========
+20140826
+========
+
+1) line numbers ASM
+2) source/debug info ASM
+    => debug info should be useful for knowing which frames to look at?
+3) repackage
+    => suneido.runtime | suneido.language.runtime
+    => suneido.compiler | suneido.language.compiler
+    => suneido.compiled | suneido.code
+4) locals extraction
+5) stack frame extraction
+
+
+    ParseExpression
+        -- block() calls statementList() calls new ParseFunction...parse()
+        -- statementList()
+
+        +- expression
+        |
+        +--> conditionalExpression
+        |        orExpression() [ ? expression() : expression() ]
+        |
+        +--> orExpression
+        |        andExpression() [ or andExpression() ]
+        |
+        +--> andExpression
+        |        inExpression() [ and inExpression() ]
+        |
+        +--> inExpression
+        |        bitorExpression() [ in ( expression()+ ) ]
+        |
+        +--> bitorExpression()
+        |        bitxorExpression() [ or bitxorExpression() ]
+        |
+        +--> bitxorExpression()
+        |        bitandExpression() [ xor bitandExpression() ]
+        |
+        +--> bitandExpression()
+        |        isExpression() [ and isExpression() ]
+        |
+        +--> isExpression
+        |        compareExpression() [ is|isnt|=~|!~ isExpresson compareExpression() ]
+        |
+        +--> compareExpression
+        |        shiftExpression() [ <|>|<=|>= shiftExpression() ]
+        |
+        +--> shiftExpression
+        |        addExpression() [ <<|>> addExpression() ]
+        |
+        +--> addExpression
+        |        mulExpression() [ +|-|$ mulExpression() ]
+        |
+        +--> mulExpression
+        |
+        |
+        
+        
+    ParseFunction
+        -- 
+
+
 ======
 ISSUES
 ======

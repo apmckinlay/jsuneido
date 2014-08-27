@@ -4,8 +4,9 @@
 
 package suneido.jsdi.marshall;
 
+import suneido.SuInternalError;
+import suneido.boot.Platform;
 import suneido.jsdi.DllInterface;
-import suneido.jsdi.Platform;
 import suneido.jsdi.type.BasicType;
 
 /**
@@ -21,7 +22,7 @@ public final class PrimitiveSize {
 	 * result as the value reported by a C compiler for {@code sizeof(void *)}
 	 * on the native platform. 
 	 */
-	public static final int POINTER = Platform.getPlatform().getPointerSize();
+	public static final int POINTER = getPlatformPointerSize();
 	/**
 	 * Size of the native word size, in bytes.
 	 */
@@ -114,5 +115,18 @@ public final class PrimitiveSize {
 
 	// Don't instantiate!
 	private PrimitiveSize() {
+	}
+
+	private static final int getPlatformPointerSize() {
+		switch (Platform.getPlatform()) {
+		case WIN32_AMD64:
+			return 8;
+		case WIN32_X86:
+			return 4;
+		case UNKNOWN_PLATFORM:
+			return 0;
+		default:
+			throw SuInternalError.unhandledEnum(Platform.getPlatform());
+		}
 	}
 }

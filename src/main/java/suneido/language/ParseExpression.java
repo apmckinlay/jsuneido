@@ -210,9 +210,10 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 				return term;
 			if (token == DOT) {
 				matchSkipNewlines(DOT);
+				int lineNumber = lexer.getLineNumber();
 				String id = lexer.getValue();
 				match(IDENTIFIER);
-				term = generator.memberRef(term, id);
+				term = generator.memberRef(term, id, lineNumber);
 				if (!expectingCompound && token == NEWLINE && lookAhead() == L_CURLY)
 					match();
 			} else if (matchIf(L_BRACKET)) {
@@ -249,8 +250,10 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		switch (token) {
 		case STRING:
 			// don't call constant because it allows concatenation
-			return matchReturn(STRING,
-					generator.constant(generator.string(lexer.getValue())));
+			return matchReturn(
+					STRING,
+					generator.constant(generator.string(lexer.getValue(),
+							lexer.getLineNumber())));
 		case NUMBER:
 		case HASH:
 			return generator.constant(constant());
@@ -288,7 +291,8 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			return constant();
 		case TRUE:
 		case FALSE:
-			return matchReturn(generator.constant(generator.bool(lexer.getKeyword() == TRUE)));
+			return matchReturn(generator.constant(generator.bool(
+					lexer.getKeyword() == TRUE, lexer.getLineNumber())));
 		case SUPER:
 			match(SUPER);
 			return superCall();
@@ -297,12 +301,13 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			if (isGlobal(identifier) && lookAhead(! expectingCompound) == L_CURLY)
 				return generator.constant(constant());
 			else {
+				int lineNumber = lexer.getLineNumber();
 				match(IDENTIFIER);
 				if (matchIf(AT)) {
 					identifier = identifier + "@" + lexer.getValue();
 					match(IDENTIFIER);
 				}
-				return generator.identifier(identifier);
+				return generator.identifier(identifier, lineNumber);
 			}
 		}
 	}
@@ -371,7 +376,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 					(token == COMMA || token == closing || ahead == COLON));
 
 			args = generator.argumentList(args, keyword,
-					trueDefault ? generator.bool(true) : expression());
+					trueDefault ? generator.boolTrue() : expression());
 			matchIf(COMMA);
 		}
 		match(closing);
@@ -391,11 +396,12 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 
 	private T block() {
+		int lineNumber = lexer.getLineNumber();
 		match(L_CURLY);
 		T params = token == BITOR ? blockParams() : null;
 		T statements = statementList(LOOP);
 		match(R_CURLY);
-		return generator.block(params, statements);
+		return generator.block(params, statements, lineNumber);
 	}
 	private T blockParams() {
 		match(BITOR);

@@ -6,7 +6,9 @@ package suneido.util.testing;
 
 import org.junit.Assume;
 
-import suneido.jsdi.Platform;
+import suneido.boot.Platform;
+import suneido.jsdi.DllInterface;
+import suneido.jsdi.JSDI;
 
 /**
  * <p>
@@ -17,6 +19,7 @@ import suneido.jsdi.Platform;
  * <p>
  * See: <a href="">Conditionally ignoring tests in JUnit 4</a>
  * </p>
+ * 
  * @author Victor Schappert
  * @since 20130711
  */
@@ -47,7 +50,7 @@ public final class Assumption {
 	}
 
 	/**
-	/**
+	 * /**
 	 * <p>
 	 * States the assumption that the executing JVM is a 64-bit executable
 	 * running on Windows.
@@ -79,7 +82,20 @@ public final class Assumption {
 			Assume.assumeTrue(true);
 			break;
 		default:
-			Assume.assumeTrue(false);;
+			Assume.assumeTrue(false);
 		}
+	}
+
+	/**
+	 * <p>
+	 * States the assumption that the JSDI component of Suneido is available.
+	 * </p>
+	 *
+	 * @author Victor Schappert
+	 * @since 20140827
+	 */
+	@DllInterface
+	public static void jsdiIsAvailable() {
+		Assume.assumeTrue(JSDI.isInitialized());
 	}
 }

@@ -100,7 +100,7 @@ public class NameTest {
 	@Test
 	@DllInterface
 	public void testJSDILocal() {
-		Assumption.jvmIs32BitOnWindows();
+		Assumption.jvmIsOnWindows();
 		test("Name(Buffer(1, ''))", "");
 		test("Name(x = Buffer(1, ''))", "");
 //		test("Name(struct { char x })", "");      FIXME: This test case should work, as it does on CSuneido
@@ -114,7 +114,7 @@ public class NameTest {
 	@Test
 	@DllInterface
 	public void testJSDIInContext() {
-		Assumption.jvmIs32BitOnWindows();
+		Assumption.jvmIsOnWindows();
 
 		define("A", "struct { char x }");
 		test("Name(A)", "A");

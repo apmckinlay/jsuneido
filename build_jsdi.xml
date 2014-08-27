@@ -9,12 +9,11 @@
 	<property name="jsdi-vs-sln" value="vs12_nov2013_ctp.sln"/>
 	<property name="jsdi-package" value="suneido.jsdi"/>
 	<property name="jsdi-tools-package" value="suneido.jsdi.tools"/>
-    <property name="jsdi-make-config" value="amd64"/>
 	<property name="jsdi-msbuild-config" value="Release-dll"/>
 	<property name="java-lib-dir" value="lib"/>
 	<property name="java-target-dir" value="target/classes"/>
-	<property name="dll-src-dir-amd64" value="${jsdi-vs-path}/x64/${jsdi-msbuild-config}"/>
-	<property name="dll-src-dir-x86" value="${jsdi-vs-path}/${jsdi-msbuild-config}"/>
+	<property name="dll-src-dir-win32-amd64" value="${jsdi-vs-path}/x64/${jsdi-msbuild-config}"/>
+	<property name="dll-src-dir-win32-x86" value="${jsdi-vs-path}/${jsdi-msbuild-config}"/>
 	<property name="dll-dst-dir" value="lib"/>
 
 	<path id="javah-classpath">
@@ -24,14 +23,14 @@
 		</fileset>
 	</path>
 	
-	<target name="all" depends="build-amd64,build-x86"/>
+	<target name="all" depends="build-win32-amd64,build-win32-x86"/>
 
-	<target name="rebuild" depends="rebuild-amd64,rebuild-x86"/>
+	<target name="rebuild" depends="rebuild-win32-amd64,rebuild-win32-x86"/>
 
-	<target name="clean" depends="clean-amd64,clean-x86"/>
+	<target name="clean" depends="clean-win32-amd64,clean-win32-x86"/>
 
-	<target name="build-amd64" depends="gen_jni,gen_global_refs,gen_enums"
-	        description="Use visual studio to make the AMD64 version of the dll"
+	<target name="build-win32-amd64" depends="gen_jni,gen_global_refs,gen_enums"
+	        description="Use Visual Studio to make the Windows AMD64 version of the dll"
 	>
 		<exec executable="msbuild" dir="${jsdi-vs-path}" failonerror="true">
 			<arg value="${jsdi-vs-sln}"/>
@@ -39,12 +38,12 @@
 			<arg value="/p:Configuration=${jsdi-msbuild-config};Platform=x64"/>
 			<arg value="/m"/>
 		</exec>
-		<copy file="${dll-src-dir-amd64}/jsdi.dll" todir="${dll-dst-dir}/amd64"
+		<copy file="${dll-src-dir-win32-amd64}/jsdi.dll" todir="${dll-dst-dir}/win32-amd64"
 		      overwrite="true" failonerror="true"
 		/>
 	</target>
 
-	<target name="clean-amd64">
+	<target name="clean-win32-amd64">
 		<exec executable="msbuild" dir="${jsdi-vs-path}" failonerror="true">
 			<arg value="${jsdi-vs-sln}"/>
 			<arg value="/t:Clean"/>
@@ -52,10 +51,10 @@
 		</exec>
 	</target>
 
-	<target name="rebuild-amd64" depends="clean-amd64,build-amd64"/>
+	<target name="rebuild-win32-amd64" depends="clean-win32-amd64,build-win32-amd64"/>
 
-	<target name="build-x86" depends="gen_jni,gen_global_refs,gen_enums"
-	        description="Use visual studio to make the AMD64 version of the dll"
+	<target name="build-win32-x86" depends="gen_jni,gen_global_refs,gen_enums"
+	        description="Use Visual Studio to make the Windows x86 version of the dll"
 	>
 		<exec executable="msbuild" dir="${jsdi-vs-path}" failonerror="true">
 			<arg value="${jsdi-vs-sln}"/>
@@ -63,12 +62,12 @@
 			<arg value="/p:Configuration=${jsdi-msbuild-config};Platform=Win32"/>
 			<arg value="/m"/>
 		</exec>
-		<copy file="${dll-src-dir-x86}/jsdi.dll" todir="${dll-dst-dir}/x86"
+		<copy file="${dll-src-dir-win32-x86}/jsdi.dll" todir="${dll-dst-dir}/win32-x86"
 			  overwrite="true" failonerror="true"
 		/>
 	</target>
 
-	<target name="clean-x86">
+	<target name="clean-win32-x86">
 		<exec executable="msbuild" dir="${jsdi-vs-path}" failonerror="true">
 			<arg value="${jsdi-vs-sln}"/>
 			<arg value="/t:Clean"/>
@@ -76,7 +75,7 @@
 		</exec>
 	</target>
 
-	<target name="rebuild-x86" depends="clean-x86,build-x86"/>
+	<target name="rebuild-win32-x86" depends="clean-win32-x86,build-win32-x86"/>
 
 	<target name="gen_global_refs"
 	        description="Generate C++ code for global references to JNI objects"
