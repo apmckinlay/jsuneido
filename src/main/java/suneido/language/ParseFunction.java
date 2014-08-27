@@ -282,8 +282,8 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 			cases = switchCaseBody(cases, null, context);
 		else {
 			T statements = generator.statementList(null, generator
-					.throwStatement(generator.constant(generator
-							.string("unhandled switch case")), lineNumber));
+					.throwStatement(generator.constant(generator.string(
+							"unhandled switch case", lineNumber)), lineNumber));
 			cases = generator.switchCases(cases, null, statements);
 		}
 		match(R_CURLY);
