@@ -29,7 +29,8 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String function(String parameters, String statementList, boolean isMethod) {
+	public String function(String parameters, String statementList,
+			boolean isMethod, int lineNumber) {
 		return "function (" + str(parameters) + ") { "
 				+ str("", statementList, " ") + "}";
 	}
@@ -46,7 +47,8 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String returnStatement(String expression, Object context) {
+	public String returnStatement(String expression, Object context,
+			int lineNumber) {
 		return "return" + str(" ", expression, "") + ";";
 	}
 
@@ -86,17 +88,17 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String date(String value) {
+	public String date(String value, int lineNumber) {
 		return "d(" + value + ")";
 	}
 
 	@Override
-	public String symbol(String value) {
+	public String symbol(String value, int lineNumber) {
 		return "sym(" + value + ")";
 	}
 
 	@Override
-	public String bool(boolean value) {
+	public String bool(boolean value, int lineNumber) {
 		return "b(" + value + ")";
 	}
 
@@ -106,17 +108,17 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String breakStatement() {
+	public String breakStatement(int lineNumber) {
 		return "break;";
 	}
 
 	@Override
-	public String continueStatement() {
+	public String continueStatement(int lineNumber) {
 		return "continue;";
 	}
 
 	@Override
-	public String throwStatement(String expression) {
+	public String throwStatement(String expression, int lineNumber) {
 		return "throw " + expression + ";";
 	}
 
@@ -176,7 +178,7 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String memberRef(String term, String identifier) {
+	public String memberRef(String term, String identifier, int lineNumber) {
 		return term + " ." + identifier;
 	}
 
@@ -211,7 +213,7 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String block(String params, String statements) {
+	public String block(String params, String statements, int lineNumber) {
 		return "{" + str("|", params, "|") + " " + str("", statements, " ")
 				+ "}";
 	}
@@ -231,7 +233,7 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String clazz(String base, String members) {
+	public String clazz(String base, String members, int lineNumber) {
 		if ("Object".equals(base))
 			base = null;
 		return "class" + str(" : ", base, "") + " { " + str("", members, " ")
@@ -249,7 +251,7 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String object(MType which, String members) {
+	public String object(MType which, String members, int lineNumber) {
 		return "#" + (which == OBJECT ? "(" : "{") + str(members)
 				+ (which == OBJECT ? ")" : "}");
 	}

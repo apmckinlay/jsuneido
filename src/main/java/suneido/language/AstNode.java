@@ -15,30 +15,58 @@ public class AstNode {
 	public final Token token;
 	public final String value;
 	public final List<AstNode> children;
+	public int lineNumber;
 
+	public static final int UNKNOWN_LINE_NUMBER = -1;
 	public static final List<AstNode> emptyList = Collections.emptyList();
-	public static final AstNode nullNode = new AstNode(null, null, emptyList);
+	public static final AstNode nullNode = new AstNode(null, null, UNKNOWN_LINE_NUMBER,
+			emptyList);
 
-	public AstNode(Token token, String value, List<AstNode> children) {
+	public AstNode(Token token, String value, int lineNumber, List<AstNode> children) {
 		this.token = token;
 		this.value = value;
 		this.children = children;
+		this.lineNumber = lineNumber;
 	}
 
-	public AstNode(Token token, String value) {
-		this(token, value, emptyList);
+	public AstNode(Token token, String value, List<AstNode> children) {
+		this(token, value, getLineNumber(children), children);
 	}
 
-	public AstNode(Token token, AstNode... children) {
-		this(token, null, Arrays.asList(children));
+	public AstNode(Token token, String value, int lineNumber, AstNode... children) {
+		this(token, value, lineNumber, Arrays.asList(children));
 	}
 
 	public AstNode(Token token, String value, AstNode... children) {
 		this(token, value, Arrays.asList(children));
 	}
 
+	public AstNode(Token token, int lineNumber, AstNode... children) {
+		this(token, null, lineNumber, Arrays.asList(children));
+	}
+
+	public AstNode(Token token, AstNode... children) {
+		this(token, null, Arrays.asList(children));
+	}
+
 	public AstNode(Token token, List<AstNode> children) {
 		this(token, null, children);
+	}
+
+	public AstNode(Token token, String value, int lineNumber) {
+		this(token, value, lineNumber, emptyList);
+	}
+
+	public AstNode(Token token, String value) {
+		this(token, value, UNKNOWN_LINE_NUMBER, emptyList);
+	}
+
+	public AstNode(Token token, int lineNumber) {
+		this(token, null, lineNumber, emptyList);
+	}
+
+	public AstNode(Token token) {
+		this(token, null, UNKNOWN_LINE_NUMBER, emptyList);
 	}
 
 	public AstNode first() {
@@ -52,6 +80,17 @@ public class AstNode {
 	}
 	public AstNode fourth() {
 		return children.get(3);
+	}
+
+	private static int getLineNumber(List<AstNode> nodes) {
+		int k = nodes.size();
+		while (0 < k) {
+			AstNode node = nodes.get(--k);
+			if (null != node && UNKNOWN_LINE_NUMBER < node.lineNumber) {
+				return node.lineNumber;
+			}
+		}
+		return UNKNOWN_LINE_NUMBER;
 	}
 
 	public boolean equals(AstNode other) {
@@ -89,7 +128,7 @@ public class AstNode {
 		sb.append(Strings.repeat(" ", indent));
 		sb.append('(').append(token);
 		if (value != null)
-			sb.append("=").append(value);
+			sb.append('=').append(value);
 		if (children != null)
 			for (AstNode x : children)
 				sb.append(sep).append(x == null

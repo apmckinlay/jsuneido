@@ -21,6 +21,55 @@ JAR size after Phase 2, 20140622: 1462413 (1.39 MB) (13.61% reduction in size)
 4) locals extraction
 5) stack frame extraction
 
+
+    ParseExpression
+        -- block() calls statementList() calls new ParseFunction...parse()
+        -- statementList()
+
+        +- expression
+        |
+        +--> conditionalExpression
+        |        orExpression() [ ? expression() : expression() ]
+        |
+        +--> orExpression
+        |        andExpression() [ or andExpression() ]
+        |
+        +--> andExpression
+        |        inExpression() [ and inExpression() ]
+        |
+        +--> inExpression
+        |        bitorExpression() [ in ( expression()+ ) ]
+        |
+        +--> bitorExpression()
+        |        bitxorExpression() [ or bitxorExpression() ]
+        |
+        +--> bitxorExpression()
+        |        bitandExpression() [ xor bitandExpression() ]
+        |
+        +--> bitandExpression()
+        |        isExpression() [ and isExpression() ]
+        |
+        +--> isExpression
+        |        compareExpression() [ is|isnt|=~|!~ isExpresson compareExpression() ]
+        |
+        +--> compareExpression
+        |        shiftExpression() [ <|>|<=|>= shiftExpression() ]
+        |
+        +--> shiftExpression
+        |        addExpression() [ <<|>> addExpression() ]
+        |
+        +--> addExpression
+        |        mulExpression() [ +|-|$ mulExpression() ]
+        |
+        +--> mulExpression
+        |
+        |
+        
+        
+    ParseFunction
+        -- 
+
+
 ======
 ISSUES
 ======

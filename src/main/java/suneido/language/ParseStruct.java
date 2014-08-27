@@ -43,9 +43,10 @@ public final class ParseStruct<T, G extends Generator<T>> extends ParseDllEntity
 	}
 
 	public T struct() {
+		int lineNumber = lexer.getLineNumber();
 		matchSkipNewlines(STRUCT);
 		match(L_CURLY);
 		T members = typeList(STRUCT);
-		return generator.struct(members);
+		return generator.struct(members, lineNumber);
 	}
 }
