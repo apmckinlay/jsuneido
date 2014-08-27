@@ -56,8 +56,7 @@ public class Lexer {
 				break;
 			}
 		}
-		final int lineStart = prevLineEnd + 1;
-		return prev - lineStart;
+		return prev - prevLineEnd;
 	}
 
 	public Token nextSkipNewlines() {
