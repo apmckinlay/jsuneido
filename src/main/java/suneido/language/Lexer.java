@@ -48,6 +48,18 @@ public class Lexer {
 		return lineNumber;
 	}
 
+	public int getColumnNumber() {
+		int prevLineEnd = prev - 1;
+		for (; 0 <= prevLineEnd; --prevLineEnd) {
+			final char c = source.charAt(prevLineEnd);
+			if ('\n' == c || '\r' == c) {
+				break;
+			}
+		}
+		final int lineStart = prevLineEnd + 1;
+		return prev - lineStart;
+	}
+
 	public Token nextSkipNewlines() {
 		Token token;
 		do
