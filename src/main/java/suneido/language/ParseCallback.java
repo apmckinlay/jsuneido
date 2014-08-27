@@ -46,10 +46,11 @@ public final class ParseCallback<T, G extends Generator<T>> extends ParseDllEnti
 	}
 
 	public T callback() {
+		int lineNumber = lexer.getLineNumber();
 		matchSkipNewlines(CALLBACK);
 		match(L_PAREN);
 		T params = typeList(CALLBACK);
-		return generator.callback(params);
+		return generator.callback(params, lineNumber);
 	}
 
 }
