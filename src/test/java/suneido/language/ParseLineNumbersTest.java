@@ -138,6 +138,20 @@ public class ParseLineNumbersTest {
 				"\t\t\t\t\tLIST@2\n" +
 				"\t\t\t\t\t\tDATE=20140827@2",
 
+		"function() { switch(x) { } }",
+		"FUNCTION@1\n" +
+				"\tLIST@?\n" +
+				"\tLIST@1\n" +
+				"\t\tSWITCH@1\n" +
+				"\t\t\tRVALUE@1\n" +
+				"\t\t\t\tIDENTIFIER=x@1\n" +
+				"\t\t\tLIST@1\n" +
+				"\t\t\t\tCASE@1\n" +
+				"\t\t\t\t\tLIST@?\n" +
+				"\t\t\t\t\tLIST@1\n" +
+				"\t\t\t\t\t\tTHROW@1\n" +
+				"\t\t\t\t\t\t\tSTRING=unhandled switch case@1",
+
 		"class { method() { .x } }",
 		"CLASS@1\n\tLIST@1\n\t\tMEMBER@1\n\t\t\tSTRING=method@1\n\t\t\tMETHOD@1\n\t\t\t\tLIST@?\n\t\t\t\tLIST@1\n\t\t\t\t\tMEMBER=x@1\n\t\t\t\t\t\tSELFREF@?",
 
