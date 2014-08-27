@@ -155,7 +155,7 @@ public final class BasicValue extends Type {
 				marshaller.putPointerSizedInt(NumberConversions.toLong(value));
 				break;
 			default:
-				throw unhandledEnum(BasicType.class);
+				throw unhandledEnum(basicType);
 			}
 		}
 	}
@@ -184,7 +184,7 @@ public final class BasicValue extends Type {
 		case OPAQUE_POINTER:
 			return marshaller.getPointerSizedInt();
 		default:
-			throw unhandledEnum(BasicType.class);
+			throw unhandledEnum(basicType);
 		}
 	}
 
@@ -226,7 +226,7 @@ public final class BasicValue extends Type {
 		case DOUBLE:
 			return Numbers.toBigDecimal(Double.longBitsToDouble(returnValue));
 		default:
-			throw unhandledEnum(BasicType.class);
+			throw unhandledEnum(basicType);
 		}
 	}
 
@@ -255,7 +255,7 @@ public final class BasicValue extends Type {
 		case DOUBLE:
 			return Double.doubleToRawLongBits(NumberConversions.toDouble(value));
 		default:
-			throw unhandledEnum(BasicType.class);
+			throw unhandledEnum(basicType);
 		}
 	}
 
@@ -283,7 +283,7 @@ public final class BasicValue extends Type {
 		case DOUBLE:
 			return Numbers.toBigDecimal(Double.longBitsToDouble(marshalledData));
 		default:
-			throw unhandledEnum(BasicType.class);
+			throw unhandledEnum(basicType);
 		}
 	}
 }

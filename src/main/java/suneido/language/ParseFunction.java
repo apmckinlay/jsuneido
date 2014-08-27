@@ -25,9 +25,13 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		return functionWithoutKeyword(false);
 	}
 	protected T functionWithoutKeyword(boolean inClass) {
+		int lineNumber = lexer.getLineNumber();
+		// NOTE: lineNumber is starting at arg list LPAREN, which is not ideal.
+		//       Better would be starting on the "function" keyword or member
+		//       name, as the case may be.
 		T params = parameters();
 		T body = compound(NORMAL);
-		return generator.function(params, body, inClass);
+		return generator.function(params, body, inClass, lineNumber);
 	}
 
 	private T parameters() {
@@ -127,19 +131,21 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 
 	private T breakStatement(Context context) {
+		int lineNumber = lexer.getLineNumber();
 		match(BREAK);
 		matchIf(SEMICOLON);
 		if (! context.breakAllowed)
-			syntaxError("break can only be used within a loop");
-		return generator.breakStatement();
+			syntaxError("break can only be used in a loop, switch case, or block");
+		return generator.breakStatement(lineNumber);
 	}
 
 	private T continueStatement(Context context) {
+		int lineNumber = lexer.getLineNumber();
 		match(CONTINUE);
 		matchIf(SEMICOLON);
 		if (! context.continueAllowed)
-			syntaxError("continue can only be used in a loop or switch case");
-		return generator.continueStatement();
+			syntaxError("continue can only be used in a loop or block");
+		return generator.continueStatement(lineNumber);
 	}
 
 	private T dowhileStatement() {
@@ -255,16 +261,18 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 
 	private T returnStatement(Object context) {
+		int lineNumber = lexer.getLineNumber();
 		matchKeepNewline(RETURN);
 		T expr = endOfStatement() ? null : expressionStatement();
-		return generator.returnStatement(expr, context);
+		return generator.returnStatement(expr, context, lineNumber);
 		}
 
 	private T switchStatement(Context context) {
 		context = new Context(true, context.continueAllowed);
+		int lineNumber = lexer.getLineNumber();
 		match(SWITCH);
 		T expr = (token == L_CURLY)
-			? generator.constant(generator.bool(true))
+			? generator.constant(generator.boolTrue())
 			: generator.rvalue(optionalParensExpression());
 		T cases = null;
 		match(L_CURLY);
@@ -273,10 +281,9 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		if (matchIf(DEFAULT))
 			cases = switchCaseBody(cases, null, context);
 		else {
-			T statements = generator.statementList(null,
-					generator.throwStatement(
-							generator.constant(
-									generator.string("unhandled switch case"))));
+			T statements = generator.statementList(null, generator
+					.throwStatement(generator.constant(generator.string(
+							"unhandled switch case", lineNumber)), lineNumber));
 			cases = generator.switchCases(cases, null, statements);
 		}
 		match(R_CURLY);
@@ -303,8 +310,9 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 
 	private T throwStatement() {
+		int lineNumber = lexer.getLineNumber();
 		match(THROW);
-		return generator.throwStatement(expressionStatement());
+		return generator.throwStatement(expressionStatement(), lineNumber);
 	}
 
 	private T tryStatement(Context context) {

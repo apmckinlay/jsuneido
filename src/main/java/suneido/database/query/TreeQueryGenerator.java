@@ -16,6 +16,7 @@ import suneido.SuException;
 import suneido.SuRecord;
 import suneido.database.query.expr.*;
 import suneido.intfc.database.Transaction;
+import suneido.language.AstNode;
 import suneido.language.Numbers;
 import suneido.language.Token;
 
@@ -204,7 +205,7 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	}
 
 	@Override
-	public Object bool(boolean value) {
+	public Object bool(boolean value, int lineNumber) {
 		return value;
 	}
 
@@ -219,7 +220,7 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	}
 
 	@Override
-	public Object date(String value) {
+	public Object date(String value, int lineNumber) {
 		return SuDate.fromLiteral(value);
 	}
 
@@ -264,7 +265,7 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	}
 	@Override
 	public Object memberList(MType which, Object members, Object member) {
-		SuContainer rec = object(which, members);
+		SuContainer rec = object(which, members, AstNode.UNKNOWN_LINE_NUMBER);
 		MemDef m = (MemDef) member;
 		if (m.name == null)
 			rec.add(m.value);
@@ -279,7 +280,7 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	}
 
 	@Override
-	public SuContainer object(MType which, Object members) {
+	public SuContainer object(MType which, Object members, int lineNumber) {
 		return members == null
 				? which == MType.RECORD ? new SuRecord() : new SuContainer()
 				: (SuContainer) members;
@@ -291,7 +292,7 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	}
 
 	@Override
-	public Object symbol(String identifier) {
+	public Object symbol(String identifier, int lineNumber) {
 		return identifier;
 	}
 
@@ -333,7 +334,7 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	}
 
 	@Override
-	public Object memberRef(Object term, String identifier) {
+	public Object memberRef(Object term, String identifier, int lineNumber) {
 	        return new Member(term, identifier);
 	}
 

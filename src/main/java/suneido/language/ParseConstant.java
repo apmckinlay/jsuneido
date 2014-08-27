@@ -49,7 +49,10 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		switch (token) {
 		case SUB:
 			match();
-			return matchReturn(NUMBER, generator.number("-" + lexer.getValue()));
+			return matchReturn(
+					NUMBER,
+					generator.number("-" + lexer.getValue(),
+							lexer.getLineNumber()));
 		case ADD:
 			match();
 			return number();
@@ -66,15 +69,17 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		default:
 		}
 		if (anyName())
-			return matchReturn(generator.string(lexer.getValue()));
+			return matchReturn(generator.string(lexer.getValue(),
+					lexer.getLineNumber()));
 		syntaxError();
 		return null;
 	}
 
 	private T classConstant() {
+		int lineNumber = lexer.getLineNumber();
 		String base = classBase();
 		T members = memberList(L_CURLY, true);
-		return generator.clazz(base == "" ? null : base, members);
+		return generator.clazz(base == "" ? null : base, members, lineNumber);
 	}
 	private String classBase() {
 		if (lexer.getKeyword() == CLASS) {
@@ -147,18 +152,20 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 			else
 				value = constant();
 		} else if (name != null)
-			value = generator.bool(true);
+			value = generator.boolTrue();
 		else
 			syntaxError();
 		return value;
 	}
 
 	private T bool() {
-		return matchReturn(generator.bool(lexer.getKeyword() == TRUE));
+		return matchReturn(generator.bool(lexer.getKeyword() == TRUE,
+				lexer.getLineNumber()));
 	}
 
 	private T number() {
-		return matchReturn(NUMBER, generator.number(lexer.getValue()));
+		return matchReturn(NUMBER,
+				generator.number(lexer.getValue(), lexer.getLineNumber()));
 	}
 
 	private T string() {
@@ -170,11 +177,11 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 				break;
 			matchSkipNewlines(CAT);
 		}
-		return generator.string(s);
+		return generator.string(s, lexer.getLineNumber());
 	}
 
 	private T date() {
-		T date = generator.date(lexer.getValue());
+		T date = generator.date(lexer.getValue(), lexer.getLineNumber());
 		if (date == null)
 			syntaxError("invalid date literal: " + lexer.getValue());
 		return matchReturn(NUMBER, date);
@@ -198,13 +205,15 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 
 	private T symbol() {
-		return matchReturn(generator.symbol(lexer.getValue()));
+		return matchReturn(generator.symbol(lexer.getValue(),
+				lexer.getLineNumber()));
 	}
 
 	public T object() {
+		int lineNumber = lexer.getLineNumber();
 		MType which = (token == L_PAREN ? MType.OBJECT : MType.RECORD);
 		T members = memberList(token, false);
-		return generator.object(which, members);
+		return generator.object(which, members, lineNumber);
 	}
 
 	private T function() {

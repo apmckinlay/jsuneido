@@ -9,12 +9,14 @@ import static suneido.SuInternalError.unhandledEnum;
 import java.util.Map;
 
 import suneido.SuContainer;
+import suneido.SuInternalError;
 import suneido.SuValue;
 import suneido.jsdi.Buffer;
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.JSDIException;
 import suneido.jsdi.marshall.ByteCopier;
 import suneido.jsdi.marshall.MarshallPlan;
+import suneido.jsdi.marshall.MarshallPlan.StorageCategory;
 import suneido.jsdi.marshall.MarshallPlanBuilder;
 import suneido.jsdi.marshall.Marshaller;
 import suneido.jsdi.marshall.NumberConversions;
@@ -74,7 +76,8 @@ public final class Structure extends ComplexType {
 		final MarshallPlan p = getMarshallPlan();
 		final Marshaller m = p.makeMarshaller();
 		putMarshallOutInstruction(m);
-		switch (p.getStorageCategory()) {
+		final StorageCategory storageCategory = p.getStorageCategory();
+		switch (storageCategory) {
 		case DIRECT: // intentional fall through
 			copyOutDirect(structAddr, m.getData(), p.getSizeDirect());
 			break;
@@ -87,7 +90,7 @@ public final class Structure extends ComplexType {
 					m.getPtrArray(), m.getViArray(), m.getViInstArray());
 			break;
 		default:
-			throw unhandledEnum(MarshallPlan.StorageCategory.class);
+			throw unhandledEnum(storageCategory);
 		}
 		m.rewind();
 		return typeList.marshallOutMembers(m, null);
@@ -303,7 +306,7 @@ public final class Structure extends ComplexType {
 		//       and this method should probably be removed (check with APM).
 		// TODO: This hasn't been acted on as of 20140719: what's the status?
 		//       Can it be removed?
-		throw new JSDIException("not implemented");
+		throw new SuInternalError("not implemented");
 	}
 
 	//

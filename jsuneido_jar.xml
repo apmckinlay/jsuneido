@@ -53,7 +53,7 @@
 	>
 		<jar destfile="${jar.name.prefix}${jar.name.suffix-raw}" filesetmanifest="mergewithoutmain">
 			<manifest>
-				<attribute name="Main-Class" value="suneido.Suneido"/>
+				<attribute name="Main-Class" value="suneido.boot.Bootstrap"/>
 				<attribute name="Class-Path" value="${jar.manifest.classpath}"/>
 			</manifest>
 			<fileset dir="${main.destdir}">

@@ -103,7 +103,7 @@ enum NativeCallX86 {
 					marshaller.getViArray(), marshaller.getViInstArray());
 			return 0L;
 		default:
-			throw unhandledEnum(NativeCallX86.class);
+			throw unhandledEnum(this);
 		}
 	}
 

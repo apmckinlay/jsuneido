@@ -4,9 +4,9 @@
 
 package suneido.jsdi;
 
-import static suneido.jsdi.Platform.WIN32_X86;
+import static suneido.boot.Platform.WIN32_X86;
 import static suneido.jsdi.marshall.VariableIndirectInstruction.NO_ACTION;
-import suneido.jsdi.Platform;
+import suneido.boot.Platform;
 import suneido.jsdi.abi.x86.MarshallTestUtilX86;
 import suneido.jsdi.abi.x86.Mask;
 import suneido.jsdi.marshall.MarshallPlan;

@@ -4,6 +4,8 @@
 
 package suneido;
 
+import suneido.debug.DebugModel;
+
 public class CommandLineOptions {
 	private static final int DEFAULT_PORT = 3147;
 	private final String[] args;
@@ -15,6 +17,7 @@ public class CommandLineOptions {
 	public Action action;
 	public String actionArg = null;
 	public int serverPort = -1;
+	public DebugModel debugModel = DebugModel.ALL;
 	public String remainder = "";
 	public String impersonate = WhenBuilt.when();
 	private static final int DEFAULT_TIMEOUT = 4 * 60; // 4 hours
@@ -98,6 +101,8 @@ public class CommandLineOptions {
 				max_update_tran_sec = getIntArg();
 			else if (arg.equals("-mw"))
 				max_writes_per_tran = getIntArg();
+			else if (arg.equals("-debug"))
+				debugModel = getDebugModelArg();
 			else
 				error("unknown option: " + arg);
 			if (action == Action.ERROR)
@@ -117,6 +122,16 @@ public class CommandLineOptions {
 			return Integer.parseInt(arg);
 		} catch (NumberFormatException e) {
 			return -1;
+		}
+	}
+
+	private DebugModel getDebugModelArg() {
+		try {
+			String arg = getArg();
+			return DebugModel.fromCommandLineOption(arg);
+		} catch (IllegalArgumentException e) {
+			error(e.getMessage());
+			return null;
 		}
 	}
 

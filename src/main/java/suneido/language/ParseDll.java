@@ -9,13 +9,16 @@ import suneido.jsdi.DllInterface;
 
 /**
  * Parser for Suneido <code>dll</code> entity (part of the DLL interface).
+ * 
  * @author Victor Schappert
  * @since 20130705
  * @see ParseStruct
  * @see ParseCallback
  *
- * @param <T> Parse result type (<em>ie</em> {@link AstNode}).
- * @param <G> Result type generator class (<em>ie</em> {@link AstGenerator}).
+ * @param <T>
+ *            Parse result type (<em>ie</em> {@link AstNode}).
+ * @param <G>
+ *            Result type generator class (<em>ie</em> {@link AstGenerator}).
  */
 @DllInterface
 public final class ParseDll<T, G extends Generator<T>> extends ParseDllEntity<T, G> {
@@ -41,6 +44,7 @@ public final class ParseDll<T, G extends Generator<T>> extends ParseDllEntity<T,
 	}
 
 	public T dll() {
+		int lineNumber = lexer.getLineNumber();
 		matchSkipNewlines(DLL);
 		// Return Type
 		final String returnType = lexer.getValue();
@@ -67,6 +71,6 @@ public final class ParseDll<T, G extends Generator<T>> extends ParseDllEntity<T,
 		match(L_PAREN);
 		T params = typeList(DLL);
 		return generator.dll(libraryName, userFunctionName.toString(),
-				returnType, params);
+				returnType, params, lineNumber);
 	}
 }

@@ -15,28 +15,28 @@ public class AstGenerator extends Generator<AstNode> {
 		new AstNode(Token.LIST, NIL_STATEMENT);
 
 	@Override
-	public AstNode clazz(String base, AstNode members) {
+	public AstNode clazz(String base, AstNode members, int lineNumber) {
 		AstNode baseAst = base == null ? null : new AstNode(Token.STRING, base);
 		if (members == null)
 			members = EMPTY_LIST;
-		return new AstNode(Token.CLASS, baseAst, members);
+		return new AstNode(Token.CLASS, lineNumber, baseAst, members);
 	}
 
 	@Override
-	public AstNode function(AstNode params, AstNode body, boolean isMethod) {
+	public AstNode function(AstNode params, AstNode body, boolean isMethod, int lineNumber) {
 		if (params == null)
 			params = EMPTY_LIST;
 		if (body == null)
 			body = EMPTY_COMPOUND;
 		return new AstNode(isMethod ? Token.METHOD : Token.FUNCTION,
-				params, body);
+				lineNumber, params, body);
 	}
 
 	private static final AstNode itParams = new AstNode(Token.LIST,
 			new AstNode(Token.IDENTIFIER, "it", (AstNode) null));
 
 	@Override
-	public AstNode block(AstNode params, AstNode body) {
+	public AstNode block(AstNode params, AstNode body, int lineNumber) {
 		if (params == null)
 			params = EMPTY_LIST;
 		if (body == null)
@@ -44,7 +44,7 @@ public class AstGenerator extends Generator<AstNode> {
 		if (params.children.isEmpty() && AstBlockIt.check(body))
 			params = itParams;
 		// extra child is used by AstSharesVars to mark closures
-		return new AstNode(Token.BLOCK, params, body, null);
+		return new AstNode(Token.BLOCK, lineNumber, params, body, null);
 	}
 
 	@Override
@@ -63,10 +63,11 @@ public class AstGenerator extends Generator<AstNode> {
 	}
 
 	@Override
-	public AstNode object(MType which, AstNode members) {
+	public AstNode object(MType which, AstNode members, int lineNumber) {
 		if (members == null)
 			members = EMPTY_LIST;
-		return new AstNode(Token.valueOf(which.toString()), members.children);
+		return new AstNode(Token.valueOf(which.toString()), null, lineNumber,
+				members.children);
 	}
 
 	@Override
@@ -106,23 +107,23 @@ public class AstGenerator extends Generator<AstNode> {
 	}
 
 	@Override
-	public AstNode returnStatement(AstNode expr, Object context) {
-		return new AstNode(Token.RETURN, expr);
+	public AstNode returnStatement(AstNode expr, Object context, int lineNumber) {
+		return new AstNode(Token.RETURN, lineNumber, expr);
 	}
 
 	@Override
-	public AstNode breakStatement() {
-		return new AstNode(Token.BREAK);
+	public AstNode breakStatement(int lineNumber) {
+		return new AstNode(Token.BREAK, lineNumber);
 	}
 
 	@Override
-	public AstNode continueStatement() {
-		return new AstNode(Token.CONTINUE);
+	public AstNode continueStatement(int lineNumber) {
+		return new AstNode(Token.CONTINUE, lineNumber);
 	}
 
 	@Override
-	public AstNode throwStatement(AstNode expr) {
-		return new AstNode(Token.THROW, expr);
+	public AstNode throwStatement(AstNode expr, int lineNumber) {
+		return new AstNode(Token.THROW, lineNumber, expr);
 	}
 
 	@Override
@@ -188,8 +189,14 @@ public class AstGenerator extends Generator<AstNode> {
 	}
 
 	@Override
+	public AstNode identifier(String text, int lineNumber) {
+		return new AstNode(Token.IDENTIFIER, "_".equals(text) ? "it" : text,
+				lineNumber);
+	}
+
+	@Override
 	public AstNode identifier(String text) {
-		return new AstNode(Token.IDENTIFIER, "_".equals(text) ? "it" : text);
+		return identifier(text, AstNode.UNKNOWN_LINE_NUMBER);
 	}
 
 	@Override
@@ -203,8 +210,18 @@ public class AstGenerator extends Generator<AstNode> {
 	}
 
 	@Override
+	public AstNode number(String value, int lineNumber) {
+		return new AstNode(Token.NUMBER, value, lineNumber);
+	}
+
+	@Override
 	public AstNode number(String value) {
 		return new AstNode(Token.NUMBER, value);
+	}
+
+	@Override
+	public AstNode string(String value, int lineNumber) {
+		return new AstNode(Token.STRING, value, lineNumber);
 	}
 
 	@Override
@@ -213,21 +230,25 @@ public class AstGenerator extends Generator<AstNode> {
 	}
 
 	@Override
-	public AstNode date(String value) {
-		return new AstNode(Token.DATE, value);
+	public AstNode date(String value, int lineNumber) {
+		return new AstNode(Token.DATE, value, lineNumber);
 	}
 
 	@Override
-	public AstNode symbol(String identifier) {
-		return new AstNode(Token.SYMBOL, identifier);
+	public AstNode symbol(String identifier, int lineNumber) {
+		return new AstNode(Token.SYMBOL, identifier, lineNumber);
 	}
 
 	@Override
-	public AstNode bool(boolean value) {
-		return value ? TRUE : FALSE;
+	public AstNode bool(boolean value, int lineNumber) {
+		return new AstNode(value ? Token.TRUE : Token.FALSE, lineNumber);
+	}
+
+	@Override
+	public AstNode boolTrue() {
+		return TRUE;
 	}
 	private static final AstNode TRUE = new AstNode(Token.TRUE);
-	private static final AstNode FALSE = new AstNode(Token.FALSE);
 
 	@Override
 	public AstNode superCallTarget(String method) {
@@ -293,8 +314,8 @@ public class AstGenerator extends Generator<AstNode> {
 	}
 
 	@Override
-	public AstNode memberRef(AstNode term, String identifier) {
-		return new AstNode(Token.MEMBER, identifier, term);
+	public AstNode memberRef(AstNode term, String identifier, int lineNumber) {
+		return new AstNode(Token.MEMBER, identifier, lineNumber, term);
 	}
 
 	@Override
@@ -308,30 +329,27 @@ public class AstGenerator extends Generator<AstNode> {
 	}
 
 	@Override @DllInterface
-	public AstNode struct(AstNode structMembers) {
+	public AstNode struct(AstNode structMembers, int lineNumber) {
 		if (null == structMembers)
 			structMembers = EMPTY_LIST;
-		return new AstNode(Token.STRUCT, structMembers);
+		return new AstNode(Token.STRUCT, lineNumber, structMembers);
 	}
 
 	@Override @DllInterface
 	public AstNode dll(String libraryName, String userFunctionName,
-			String returnType, AstNode dllParams) {
+			String returnType, AstNode dllParams, int lineNumber) {
 		if (null == dllParams)
 			dllParams = EMPTY_LIST;
-		return new AstNode(Token.DLL,
-			new AstNode(Token.IDENTIFIER, libraryName),
-			new AstNode(Token.STRING, userFunctionName),
-			new AstNode(Token.IDENTIFIER, returnType),
-			dllParams
-		);
+		return new AstNode(Token.DLL, lineNumber, new AstNode(Token.IDENTIFIER,
+				libraryName), new AstNode(Token.STRING, userFunctionName),
+				new AstNode(Token.IDENTIFIER, returnType), dllParams);
 	}
 
 	@Override @DllInterface
-	public AstNode callback(AstNode callbackParams) {
+	public AstNode callback(AstNode callbackParams, int lineNumber) {
 		if (null == callbackParams)
 			callbackParams = EMPTY_LIST;
-		return new AstNode(Token.CALLBACK, callbackParams);
+		return new AstNode(Token.CALLBACK, lineNumber, callbackParams);
 	}
 
 	@Override @DllInterface
@@ -347,6 +365,9 @@ public class AstGenerator extends Generator<AstNode> {
 		if (list == null)
 			list = new AstNode(Token.LIST, new ArrayList<AstNode>());
 		list.children.add(next);
+		if (null != next) {
+			list.lineNumber = next.lineNumber;
+		}
 		return list;
 	}
 

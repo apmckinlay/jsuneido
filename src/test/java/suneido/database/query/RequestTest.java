@@ -11,9 +11,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
+import static suneido.util.testing.Throwing.assertThrew;
 
 import org.junit.Test;
 
+import suneido.SuException;
 import suneido.intfc.database.Transaction;
 
 public class RequestTest extends TestBase {
@@ -103,13 +105,10 @@ public class RequestTest extends TestBase {
 	public void test_parse_eof() {
 		Request.execute(db, "create tmp (aField) key(aField)");
 		assertNotNull(db.getSchema("tmp"));
-		try {
+		assertThrew(() -> {
 			Request.execute(db, serverData, "drop tmp extra");
-			fail("should have got an exception");
-		} catch (Exception e) {
-			assertEquals("syntax error at line 1: expected: EOF got: IDENTIFIER",
-					e.toString());
-		}
+		}, SuException.class,
+				"syntax error at line 1.*: expected: EOF got: IDENTIFIER");
 		assertNotNull(db.getSchema("tmp"));
 	}
 
