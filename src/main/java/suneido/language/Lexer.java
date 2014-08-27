@@ -157,7 +157,7 @@ public class Lexer {
 		case '\t':
 		case '\n':
 		case '\r':
-			return whitespace();
+			return whitespace(c);
 		case '_':
 			return identifier();
 		default:
@@ -166,7 +166,7 @@ public class Lexer {
 			else if (Character.isDigit(c))
 				return number();
 			else if (Character.isWhitespace(c))
-				return whitespace();
+				return whitespace(c);
 			else
 				return ERROR;
 		}
@@ -282,15 +282,19 @@ public class Lexer {
 			si = save;
 	}
 
-	private Token whitespace() {
-		char c;
+	private Token whitespace(char c) {
 		boolean eol = false;
-		for (; Character.isWhitespace(c = charAt(si)); ++si)
+		do {
 			if (c == '\n') {
 				eol = true;
 				++lineNumber;
 			} else if (c == '\r')
 				eol = true;
+			c = charAt(si);
+			if (! Character.isWhitespace(c))
+				break;
+			++si;
+		} while (true);
 		return eol ? NEWLINE : WHITE;
 	}
 
