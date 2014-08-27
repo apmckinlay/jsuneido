@@ -115,7 +115,7 @@ public class Parse<T, G> {
 
 	protected void syntaxError(String s) {
 		throw new SuException("syntax error at line " + lexer.getLineNumber()
-				+ ": " + s);
+				+ ", column " + lexer.getColumnNumber() + ": " + s);
 	}
 
 	protected Token lookAhead() {
