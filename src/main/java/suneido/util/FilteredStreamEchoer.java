@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.function.Predicate;
 
 /**
  * <p>
@@ -25,7 +26,7 @@ public final class FilteredStreamEchoer implements Runnable {
 
 	private final BufferedReader in;
 	private final OutputStreamWriter out;
-	private final Filter<String> filter;
+	private final Predicate<String> filter;
 
 	//
 	// CONSTRUCTORS
@@ -38,7 +39,7 @@ public final class FilteredStreamEchoer implements Runnable {
 	 * @param filter Filter that decides which lines to echo
 	 * @param out Output stream to write lines that match the filter to
 	 */
-	public FilteredStreamEchoer(InputStream in, Filter<String> filter,
+	public FilteredStreamEchoer(InputStream in, Predicate<String> filter,
 			OutputStream out) {
 		if (null == in) {
 			throw new IllegalArgumentException("input stream cannot be null");
@@ -63,7 +64,7 @@ public final class FilteredStreamEchoer implements Runnable {
 		try {
 		String line;
 		while (null != (line = in.readLine())) {
-			if (filter.include(line)) {
+			if (filter.test(line)) {
 				out.write(line);
 				out.write(System.lineSeparator());
 				out.flush();
