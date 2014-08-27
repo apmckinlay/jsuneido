@@ -121,7 +121,6 @@ public final class Bootstrap {
 		final ProcessBuilder builder = runSuneidoInNewJVMBuilder(args,
 				isFullDebugging);
 		final ArrayList<Thread> echoThreads = new ArrayList<Thread>(2);
-		builder.redirectOutput(Redirect.INHERIT);
 		builder.redirectInput(Redirect.INHERIT);
 		if (null == stderrFilter) {
 			builder.redirectError(Redirect.INHERIT);
@@ -130,6 +129,7 @@ public final class Bootstrap {
 			Process process = builder.start();
 			startEchoThread(echoThreads, process.getErrorStream(),
 					stderrFilter, System.err); // Only if not inheriting stderr
+			synchronouslyEcho(process.getInputStream());
 			for (final Thread thread : echoThreads) {
 				thread.join();
 			}
@@ -233,6 +233,29 @@ public final class Bootstrap {
 					out));
 			echoThreads.add(t);
 			t.start();
+		}
+	}
+
+	private static void synchronouslyEcho(InputStream inputStream) throws IOException {
+		final byte[] buffer = new byte[1024];
+		while (true) {
+			final int available = inputStream.available();
+			if (available < 2) {
+				int b = inputStream.read();
+				if (b < 0) {
+					return; // EOF
+				} else {
+					System.out.write(b);
+				}
+			} else {
+				final int read = inputStream.read(buffer, 0,
+						Math.max(available, buffer.length));
+				if (read < 0) {
+					return; // EOF
+				} else {
+					System.out.write(buffer, 0, read);
+				}
+			}
 		}
 	}
 
