@@ -10,6 +10,8 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuContainer;
 import suneido.Suneido;
+import suneido.debug.DebugManager;
+import suneido.debug.DebugModel;
 
 /**
  * The components of the compiler are:
@@ -28,27 +30,36 @@ import suneido.Suneido;
 public class Compiler {
 
 	public static Object compile(String name, String src) {
-		return compile(name, src, null, Suneido.context, null);
+		return compile(name, src, null, Suneido.context, null,
+				wantLineNumbers());
 	}
 
 	public static Object compile(String name, String src, SuContainer warnings) {
-		return compile(name, src, null, Suneido.context, warnings);
-	}
-
-	public static Object compile(String name, String src, PrintWriter pw) {
-		return compile(name, src, pw, Suneido.context, null);
+		return compile(name, src, null, Suneido.context, warnings,
+				wantLineNumbers());
 	}
 
 	public static Object compile(String name, String src, ContextLayered context) {
-		return compile(name, src, null, context, null);
+		return compile(name, src, null, context, null, wantLineNumbers());
 	}
 
-	public static Object compile(String name, String src, PrintWriter pw,
-			ContextLayered context, SuContainer warnings) {
+	static Object compile(String name, String src, PrintWriter pw,
+			boolean wantLineNumbers) {
+		return compile(name, src, pw, Suneido.context, null, wantLineNumbers);
+	} // testing only
+
+	private static Object compile(String name, String src, PrintWriter pw,
+			ContextLayered context, SuContainer warnings,
+			boolean wantLineNumbers) {
 		AstNode ast = parse(src);
 		if (pw != null)
 			pw.append(ast.toString() + "\n\n");
-		return AstCompile.fold(name, pw, context, warnings, ast);
+		return AstCompile.fold(name, pw, context, warnings, wantLineNumbers,
+				ast);
+	}
+
+	private static boolean wantLineNumbers() {
+		return DebugModel.NONE != DebugManager.getInstance().getDebugModel();
 	}
 
 	public static AstNode parse(String src) {
