@@ -26,6 +26,10 @@ public class CommandLineOptions {
 	public int max_update_tran_sec = 0;
 	public int max_writes_per_tran = 0;
 
+	public static CommandLineOptions parse(String... args) {
+		return parse(DebugModel.STACK, args);
+	}
+
 	public static CommandLineOptions parse(DebugModel defaultDebugModel, String... args) {
 		return new CommandLineOptions(defaultDebugModel, args).parse();
 	}
@@ -211,6 +215,6 @@ public class CommandLineOptions {
 	}
 
 	public static void main(String[] args) {
-		System.out.println(parse(DebugModel.STACK, args));
+		System.out.println(parse(args));
 	}
 }

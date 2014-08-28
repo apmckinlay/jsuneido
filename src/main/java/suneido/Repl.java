@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 
-import suneido.debug.DebugModel;
 import suneido.jsdi.JSDI;
 import suneido.language.Compiler;
 import suneido.language.Ops;
@@ -65,8 +64,7 @@ public class Repl {
 
 	public static void main(String[] args) throws Exception {
 		Suneido.openDbms();
-		Suneido.cmdlineoptions = CommandLineOptions.parse(DebugModel.STACK,
-				"eta.go");
+		Suneido.cmdlineoptions = CommandLineOptions.parse("eta.go");
 		repl();
 	}
 
