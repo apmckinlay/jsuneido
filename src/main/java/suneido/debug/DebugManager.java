@@ -1,7 +1,8 @@
 package suneido.debug;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 import suneido.SuException;
-import suneido.SuInternalError;
 import suneido.Suneido;
 
 /**
@@ -21,27 +22,21 @@ import suneido.Suneido;
  * @author Victor Schappert
  * @since 20140828
  */
+@ThreadSafe
 public final class DebugManager {
 
 	//
 	// DATA
 	//
 
-	private final DebugModel model;
+	private DebugModel actualModel;
 
 	//
 	// CONSTRUCTORS
 	//
 
-	private DebugManager(DebugModel model) {
-		if (null == model) {
-			throw new NullPointerException();
-		}
-		if (DebugModel.ALL == model) {
-			this.model = tryToInitFullDebugging();
-		} else {
-			this.model = model;
-		}
+	private DebugManager() {
+		actualModel = DebugModel.STACK;
 	}
 
 	//
@@ -68,7 +63,8 @@ public final class DebugManager {
 
 	private static boolean testIfLocalsAvailable() {
 		final SuException test = new SuException("test");
-		if (true) return false;
+		if (true)
+			return false;
 		throw new Error("not implemented yet"); // FIXME: TODO: implement me!
 	}
 
@@ -80,54 +76,45 @@ public final class DebugManager {
 	 * Returns the actual debug model in use.
 	 *
 	 * @return Debug model
+	 * @see #setDebugModel(DebugModel)
 	 */
 	public DebugModel getDebugModel() {
-		return model;
+		return actualModel;
+	}
+
+	/**
+	 * Changes the debug model.
+	 *
+	 * @param requestedModel Debug model requested
+	 * @return Debug model actually set
+	 * @see #getDebugModel()
+	 */
+	public synchronized DebugModel setDebugModel(DebugModel requestedModel) {
+		if (null == requestedModel) {
+			throw new NullPointerException();
+		}
+		if (DebugModel.ALL == requestedModel) {
+			this.actualModel = tryToInitFullDebugging();
+		} else {
+			this.actualModel = requestedModel;
+		}
+		return this.actualModel;
 	}
 
 	//
 	// SINGLETON
 	//
 
-	private static DebugManager instance = null;
-
-	/**
-	 * Initializes the debug manager.
-	 *
-	 * @param requestedModel
-	 *            Requested debug model (the actual model that ends up being
-	 *            used may be different)
-	 * @see #getInstance()
-	 * @see #getDebugModel()
-	 */
-	public static synchronized void init(DebugModel requestedModel) {
-		if (null != instance) {
-			throw new SuInternalError("init() already called");
-		}
-		instance = new DebugManager(requestedModel);
-	}
+	private static DebugManager instance = new DebugManager();
 
 	/**
 	 * <p>
 	 * Returns the singleton instance.
 	 * </p>
 	 *
-	 * <p>
-	 * This method should not be called before {@link #init(DebugModel)}.
-	 * </p>
-	 *
 	 * @return Singleton instance
-	 * @see #init(DebugModel)
 	 */
 	public static DebugManager getInstance() {
-		if (null == instance) {
-			synchronized (DebugManager.class) {
-				if (null == instance) {
-					Suneido.errlog("init() not called; defaulting to stack debugging");
-					init(DebugModel.STACK);
-				}
-			}
-		}
 		return instance;
 	}
 }

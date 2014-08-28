@@ -44,7 +44,7 @@ public class Suneido {
 	public static void main(String[] args) {
 		ClassLoader.getSystemClassLoader().setPackageAssertionStatus("suneido", true);
 		cmdlineoptions = CommandLineOptions.parse(DebugModel.ALL, args);
-		DebugManager.init(cmdlineoptions.debugModel);
+		DebugManager.getInstance().setDebugModel(cmdlineoptions.debugModel);
 		if (cmdlineoptions.max_update_tran_sec != 0)
 			dbpkg.setOption("max_update_tran_sec", cmdlineoptions.max_update_tran_sec);
 		if (cmdlineoptions.max_writes_per_tran != 0)
