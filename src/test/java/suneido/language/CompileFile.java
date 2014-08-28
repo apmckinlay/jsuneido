@@ -16,7 +16,7 @@ public class CompileFile {
 //		Repl.setup();
 		String src = Files.toString(new File("compilefile.src"), Charsets.US_ASCII);
 		Object result = Compiler.compile("Test", src,
-				new PrintWriter(System.out));
+				new PrintWriter(System.out), true);
 		System.out.println(result);
 	}
 
