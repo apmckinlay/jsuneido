@@ -37,7 +37,7 @@ public class Suneido {
 	private static final ScheduledExecutorService scheduler
 			= Executors.newSingleThreadScheduledExecutor(threadFactory);
 	public static CommandLineOptions cmdlineoptions =
-			CommandLineOptions.parse(DebugModel.STACK); // for tests
+			CommandLineOptions.parse(); // for tests
 	public static Contexts contexts = new Contexts();
 	public static ContextLayered context = new ContextLayered(contexts);
 
