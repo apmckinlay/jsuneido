@@ -52,7 +52,7 @@ public final class DebugManager {
 		if (!testIfLocalsAvailable()) {
 			String jdwpClientPort = DebugUtil.getJDWPAgentClientPort();
 			if (null != jdwpClientPort) {
-				if (true)
+				if (false)
 					throw new Error("not implemented yet: try to start JDI"); // FIXME:
 				// TODO:
 				// implement
@@ -68,6 +68,7 @@ public final class DebugManager {
 
 	private static boolean testIfLocalsAvailable() {
 		final SuException test = new SuException("test");
+		if (true) return false;
 		throw new Error("not implemented yet"); // FIXME: TODO: implement me!
 	}
 
@@ -119,9 +120,9 @@ public final class DebugManager {
 	 * @see #init(DebugModel)
 	 */
 	public static DebugManager getInstance() {
-		if (null != instance) {
+		if (null == instance) {
 			synchronized (DebugManager.class) {
-				if (null != instance) {
+				if (null == instance) {
 					Suneido.errlog("init() not called; defaulting to stack debugging");
 					init(DebugModel.STACK);
 				}
