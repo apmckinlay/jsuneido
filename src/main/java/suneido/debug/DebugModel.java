@@ -68,24 +68,4 @@ public enum DebugModel {
 		}
 		throw new IllegalArgumentException(error.toString());
 	}
-
-	private static DebugModel currentModel = null;
-
-	/**
-	 * <p>
-	 * Returns the global debug model in effect.
-	 * </p>
-	 *
-	 * @return
-	 */
-	public static DebugModel getCurrentModel() {
-		return currentModel;
-	}
-
-	public static void setCurrentModel(DebugModel model) {
-		if (null == model) {
-			throw new NullPointerException();
-		}
-		currentModel = model;
-	}
 }

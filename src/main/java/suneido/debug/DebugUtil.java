@@ -14,7 +14,7 @@ import suneido.boot.Platform;
  * @author Victor Schappert
  * @since 20140813
  */
-public final class Debug {
+public final class DebugUtil {
 
 	/**
 	 * Returns the path to the {@link suneido.boot.Platform platform}
@@ -35,14 +35,30 @@ public final class Debug {
 	/**
 	 * Returns a command-line argument suitable for starting the JVM with the
 	 * {@code jdwp} JVMTI agent running in server mode on IP port
-	 * {@value #JDWP_PORT} of the local machine.
+	 * {@code jdwpServerPort} of the local machine.
 	 *
+	 * @param jdwpServerPort
+	 *            Port returned by {@link #getFreeJDWPAgentServerPort()}
 	 * @return JVM command-line argument to start {@code jdwp}
-	 * @SEE {@link #getJDWPAgentServerPort()}
+	 * @see #getJDWPPortPropertyArg(String)
 	 */
-	public static String getJDWPAgentArg() {
+	public static String getJDWPAgentArg(String jdwpServerPort) {
 		return "-agentlib:jdwp=server=y,suspend=n,transport=dt_socket,address=localhost:"
-				+ getJDWPAgentServerPort();
+				+ jdwpServerPort;
+	}
+
+	/**
+	 * Returns a command-line argument suitable for starting a JVM with the
+	 * {@value #JDWP_PORT_PROP_NAME} defined and set to the value given in
+	 * {@code jdwpServerPort}. This is useful to communicate to a child JVM
+	 * process the port on which a JDI client should listen.
+	 *
+	 * @param jdwpServerPort Port returned by {@link #getFreeJDWPAgentServerPort()
+	 * @return JVM command-line argument to define {@value #JDWP_PORT_PROP_NAME}
+	 * @see #getJDWPAgentArg(String)
+	 */
+	public static String getJDWPPortPropertyArg(String jdwpServerPort) {
+		return "-D" + JDWP_PORT_PROP_NAME + "=" + jdwpServerPort;
 	}
 
 	/**
@@ -52,10 +68,10 @@ public final class Debug {
 	 * </p>
 	 *
 	 * <p>
-	 * The port number returned is one that <em>appeared to be</em> available
-	 * at the time this method ran its availability checks. However, since this
-	 * method does not cause the process to bind to the port number returned,
-	 * it is conceivable the port may no longer be available either by the time
+	 * The port number returned is one that <em>appeared to be</em> available at
+	 * the time this method ran its availability checks. However, since this
+	 * method does not cause the process to bind to the port number returned, it
+	 * is conceivable the port may no longer be available either by the time
 	 * this method returns or at some future time after the return of the method
 	 * but before the method caller is able to cause an attempted bind to the
 	 * port. Therefore, the caller's use of the port number <strong>must be
@@ -64,10 +80,10 @@ public final class Debug {
 	 *
 	 * @return Port number in string form
 	 * @throw SuInternalError If it is not possible to locate any open port
-	 * @see #getJDWPAgentClientPort() 
+	 * @see #getJDWPAgentClientPort()
 	 * @see #getJDWPAgentArg()
 	 */
-	public static String getJDWPAgentServerPort() {
+	public static String getFreeJDWPAgentServerPort() {
 		// First attempt: use the default port
 		try (ServerSocket test = new ServerSocket(JDWP_DEFAULT_PORT)) {
 			return Integer.toString(JDWP_DEFAULT_PORT);
@@ -94,11 +110,11 @@ public final class Debug {
 	 * </p>
 	 * 
 	 * @return Port number in string form, or {@code null}
-	 * @see #DEBUG_PORT_PROP_NAME
-	 * @see #getJDWPAgentServerPort()
+	 * @see #JDWP_PORT_PROP_NAME
+	 * @see #getFreeJDWPAgentServerPort()
 	 */
 	public static String getJDWPAgentClientPort() {
-		return System.getProperty(DEBUG_PORT_PROP_NAME);
+		return System.getProperty(JDWP_PORT_PROP_NAME);
 	}
 
 	//
@@ -114,7 +130,7 @@ public final class Debug {
 	 *
 	 * @see #getJDWPAgentClientPort()
 	 */
-	public static final String DEBUG_PORT_PROP_NAME = "suneido.debug.port";
+	public static final String JDWP_PORT_PROP_NAME = "suneido.debug.port";
 
 	//
 	// INTERNALS
@@ -126,8 +142,8 @@ public final class Debug {
 
 	private static String getLibraryName() {
 		switch (Platform.getPlatform()) {
-		case WIN32_AMD64:	// intentional fall-through
-		case WIN32_X86:		// intentional fall-through
+		case WIN32_AMD64: // intentional fall-through
+		case WIN32_X86: // intentional fall-through
 		case LINUX_AMD64:
 			return LIBRARY_NAME_ROOT;
 		case UNKNOWN_PLATFORM:

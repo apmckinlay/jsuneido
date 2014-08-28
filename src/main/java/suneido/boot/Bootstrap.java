@@ -13,7 +13,7 @@ import java.util.function.ObjIntConsumer;
 
 import suneido.SuInternalError;
 import suneido.Suneido;
-import suneido.debug.Debug;
+import suneido.debug.DebugUtil;
 import suneido.util.LineBufferingByteConsumer;
 
 import com.google.common.base.Joiner;
@@ -229,9 +229,12 @@ public final class Bootstrap {
 		// reason if that if you are trying to debug the parent process in, say,
 		// Eclipse, you don't want to deal with the child process erroring out
 		// due to a duplicate port. Another reason is there's no point loading
-		// agents unless needed.
+		// agents unless needed. Also strip out any attempt to set the JDWP
+		// debug port property.
 		for (final String jvmArgument : jvmArguments) {
-			if (!jvmArgument.startsWith("-agent")) {
+			if (!jvmArgument.startsWith("-agent")
+					&& !jvmArgument.startsWith("-D"
+							+ DebugUtil.JDWP_PORT_PROP_NAME)) {
 				result.add(jvmArgument);
 			}
 		}
@@ -272,14 +275,14 @@ public final class Bootstrap {
 		// Start the JVM with the appropriate agent if full debugging support is
 		// required.
 		if (isFullDebugging) {
-			final File jvmtiAgentPath = Debug.getJVMTIAgentPath();
-			String jvmAgentArg = null;
+			final File jvmtiAgentPath = DebugUtil.getJVMTIAgentPath();
 			if (null == jvmtiAgentPath) {
-				jvmAgentArg = Debug.getJDWPAgentArg();
+				String jdwpServerPort = DebugUtil.getFreeJDWPAgentServerPort();
+				jvmArgs.add(DebugUtil.getJDWPAgentArg(jdwpServerPort));
+				jvmArgs.add(DebugUtil.getJDWPPortPropertyArg(jdwpServerPort));
 			} else {
-				jvmAgentArg = "-agentpath:" + jvmtiAgentPath.getAbsolutePath();
+				jvmArgs.add("-agentpath:" + jvmtiAgentPath.getAbsolutePath());
 			}
-			jvmArgs.add(jvmAgentArg);
 		}
 		// Create the full process builder argument list.
 		String[] allArgs = makeJavaArgs(makeJavaCmd(), jvmArgs, args);
