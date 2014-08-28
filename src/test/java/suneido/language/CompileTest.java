@@ -490,7 +490,7 @@ public class CompileTest {
 				&& !s.startsWith("#("))
 			s = "function (a,b,c,d,e) { " + s + " }";
 		StringWriter sw = new StringWriter();
-		Compiler.compile("Test", s, new PrintWriter(sw));
+		Compiler.compile("Test", s, new PrintWriter(sw), true);
 		return after(sw.toString(), "\n\n");
 	}
 
