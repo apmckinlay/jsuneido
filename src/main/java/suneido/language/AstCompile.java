@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.objectweb.asm.Label;
+
 import suneido.SuContainer;
 import suneido.SuDate;
 import suneido.SuException;
@@ -50,18 +52,23 @@ public class AstCompile {
 	private final ContextLayered context;
 	@SuppressWarnings("unused")
 	private final SuContainer warnings;
+	private final boolean wantLineNumbers;
 
 	public static Object fold(String globalName, PrintWriter pw,
-			ContextLayered context, SuContainer warnings, AstNode ast) {
-		return new AstCompile(globalName, pw, context, warnings).fold(ast);
+			ContextLayered context, SuContainer warnings,
+			boolean wantLineNumbers, AstNode ast) {
+		return new AstCompile(globalName, pw, context, warnings,
+				wantLineNumbers).fold(ast);
 	}
 
-	private AstCompile(String globalName, PrintWriter pw, ContextLayered context,
-			SuContainer warnings) {
+	private AstCompile(String globalName, PrintWriter pw,
+			ContextLayered context, SuContainer warnings,
+			boolean wantLineNumbers) {
 		this.globalName = globalName;
 		this.pw = pw;
 		this.context = context;
 		this.warnings = warnings;
+		this.wantLineNumbers = wantLineNumbers;
 	}
 
 	private Object fold(AstNode ast) {
@@ -582,10 +589,10 @@ public class AstCompile {
 		Labels labels = new Labels(cg);
 		if (init != null)
 			compound(cg, init, labels);
-		Object start = null;
+		Label start = null;
 		if (cond != null)
 			start = cg.jump();
-		Object loop = cg.placeLabel();
+		Label loop = cg.placeLabel();
 		compound(cg, body, labels); // body
 		cg.placeLabel(labels.cont);
 		if (incr != null)
@@ -622,11 +629,11 @@ public class AstCompile {
 	}
 
 	private void ifStatement(ClassGen cg, AstNode ast, Labels labels) {
-		Object ifFalse = cg.label();
+		Label ifFalse = cg.label();
 		ifExpr(cg, ifFalse, ast.first());
 		compound(cg, ast.second(), labels);
 		if (ast.third() != null) {
-			Object skip = cg.jump();
+			Label skip = cg.jump();
 			cg.placeLabel(ifFalse);
 			compound(cg, ast.third(), labels);
 			cg.placeLabel(skip);
@@ -641,7 +648,7 @@ public class AstCompile {
 				cg.ifFalse(ifFalse);
 			}
 		} else if (expr.token == Token.OR) {
-			Object ifTrue = cg.label();
+			Label ifTrue = cg.label();
 			int n = expr.children.size();
 			for (int i = 0; i < n; ++i) {
 				AstNode e = expr.children.get(i);
@@ -677,8 +684,8 @@ public class AstCompile {
 		for (int i = 0; i < cases.size(); ++i) {
 			AstNode c = cases.get(i);
 			assert c.token == Token.CASE;
-			Object caseBody = cg.label();
-			Object nextCase = cg.label();
+			Label caseBody = cg.label();
+			Label nextCase = cg.label();
 			List<AstNode> values = c.first().children;
 			for (int j = 0; j < values.size(); ++j) {
 				AstNode value = values.get(j);
@@ -739,7 +746,7 @@ public class AstCompile {
 				cg.ifTrue(ifTrue);
 			}
 		} else if (expr.token == Token.AND) {
-			Object ifFalse = cg.label();
+			Label ifFalse = cg.label();
 			int n = expr.children.size();
 			for (int i = 0; i < n; ++i) {
 				AstNode e = expr.children.get(i);
@@ -951,10 +958,10 @@ public class AstCompile {
 	}
 
 	private void trinaryExpression(ClassGen cg, AstNode ast) {
-		Object ifFalse = cg.label();
+		Label ifFalse = cg.label();
 		ifExpr(cg, ifFalse, ast.first());
 		expression(cg, ast.second());
-		Object end = cg.jump();
+		Label end = cg.jump();
 		cg.placeLabel(ifFalse);
 		expression(cg, ast.third());
 		cg.placeLabel(end);
@@ -967,7 +974,7 @@ public class AstCompile {
 		}
 		expression(cg, ast.first());
 		int temp = cg.storeTemp();
-		Object t = cg.label();
+		Label t = cg.label();
 		for (AstNode value : ast.second().children) {
 			expression(cg, value);
 			cg.loadTemp(temp);
@@ -975,33 +982,33 @@ public class AstCompile {
 			cg.ifTrue(t);
 		}
 		cg.bool(false, intBool);
-		Object end = cg.jump();
+		Label end = cg.jump();
 		cg.placeLabel(t);
 		cg.bool(true, intBool);
 		cg.placeLabel(end);
 	}
 
 	private void andExpression(ClassGen cg, AstNode ast, boolean intBool) {
-		Object f = cg.label();
+		Label f = cg.label();
 		for (AstNode expr : ast.children) {
 			boolIntExpression(cg, expr);
 			cg.ifFalse(f);
 		}
 		cg.bool(true, intBool);
-		Object end = cg.jump();
+		Label end = cg.jump();
 		cg.placeLabel(f);
 		cg.bool(false, intBool);
 		cg.placeLabel(end);
 	}
 
 	private void orExpression(ClassGen cg, AstNode ast, boolean intBool) {
-		Object t = cg.label();
+		Label t = cg.label();
 		for (AstNode expr : ast.children) {
 			boolIntExpression(cg, expr);
 			cg.ifTrue(t);
 		}
 		cg.bool(false, intBool);
-		Object end = cg.jump();
+		Label end = cg.jump();
 		cg.placeLabel(t);
 		cg.bool(true, intBool);
 		cg.placeLabel(end);
@@ -1340,8 +1347,8 @@ public class AstCompile {
 	}
 
 	private static class Labels {
-		Object brk;
-		Object cont;
+		Label brk;
+		Label cont;
 
 		Labels(ClassGen cg) {
 			brk = cg.label();

@@ -4,13 +4,52 @@
 
 package suneido.language;
 
-import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.AALOAD;
+import static org.objectweb.asm.Opcodes.AASTORE;
+import static org.objectweb.asm.Opcodes.ACC_FINAL;
+import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
+import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.objectweb.asm.Opcodes.ACC_STATIC;
+import static org.objectweb.asm.Opcodes.ACC_SUPER;
+import static org.objectweb.asm.Opcodes.ACONST_NULL;
+import static org.objectweb.asm.Opcodes.ALOAD;
+import static org.objectweb.asm.Opcodes.ANEWARRAY;
+import static org.objectweb.asm.Opcodes.ARETURN;
+import static org.objectweb.asm.Opcodes.ASTORE;
+import static org.objectweb.asm.Opcodes.ATHROW;
+import static org.objectweb.asm.Opcodes.BIPUSH;
+import static org.objectweb.asm.Opcodes.CHECKCAST;
+import static org.objectweb.asm.Opcodes.DUP;
+import static org.objectweb.asm.Opcodes.DUP2;
+import static org.objectweb.asm.Opcodes.DUP_X1;
+import static org.objectweb.asm.Opcodes.DUP_X2;
+import static org.objectweb.asm.Opcodes.GETSTATIC;
+import static org.objectweb.asm.Opcodes.GOTO;
+import static org.objectweb.asm.Opcodes.ICONST_0;
+import static org.objectweb.asm.Opcodes.IFEQ;
+import static org.objectweb.asm.Opcodes.IFNE;
+import static org.objectweb.asm.Opcodes.IFNONNULL;
+import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
+import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
+import static org.objectweb.asm.Opcodes.INVOKESTATIC;
+import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
+import static org.objectweb.asm.Opcodes.NEW;
+import static org.objectweb.asm.Opcodes.POP;
+import static org.objectweb.asm.Opcodes.PUTSTATIC;
+import static org.objectweb.asm.Opcodes.RETURN;
+import static org.objectweb.asm.Opcodes.SIPUSH;
+import static org.objectweb.asm.Opcodes.SWAP;
+import static org.objectweb.asm.Opcodes.V1_5;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.objectweb.asm.*;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.commons.TryCatchBlockSorter;
 import org.objectweb.asm.util.CheckClassAdapter;
 import org.objectweb.asm.util.TraceClassVisitor;
@@ -37,7 +76,7 @@ public class ClassGen {
 	private final ClassWriter cw;
 	private final ClassVisitor cv;
 	private final MethodVisitor mv;
-	private final Label startLabel = new Label();
+	private final Label startLabel;
 	private final int firstParam;
 	private int nParams;
 	private int nDefaults = 0;
@@ -99,7 +138,7 @@ public class ClassGen {
 		}
 		firstParam = nextJavaLocal;
 		mv.visitCode();
-		mv.visitLabel(startLabel);
+		startLabel = placeLabel();
 		if (! closure && useArgsArray)
 			massage();
 	}
@@ -397,12 +436,12 @@ public class ClassGen {
 	}
 
 	void addNullCheck(String error) {
-		Label label = new Label();
+		Label label = label();
 		mv.visitInsn(DUP);
 		mv.visitJumpInsn(IFNONNULL, label);
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops",
 				"throw" + error, "()V", false);
-		mv.visitLabel(label);
+		placeLabel(label);
 	}
 
 	void callFunction() {
@@ -518,15 +557,15 @@ public class ClassGen {
 	private TryCatch startTryCatch(String exception) {
 		TryCatch tc = new TryCatch();
 		mv.visitTryCatchBlock(tc.label0, tc.label1, tc.label2, exception);
-		mv.visitLabel(tc.label0);
+		placeLabel(tc.label0);
 		return tc;
 	}
 
 	void startCatch(String var, String pattern, Object trycatch) {
 		TryCatch tc = (TryCatch) trycatch;
-		mv.visitLabel(tc.label1);
+		placeLabel(tc.label1);
 		mv.visitJumpInsn(GOTO, tc.label3);
-		mv.visitLabel(tc.label2);
+		placeLabel(tc.label2);
 
 		// exception is on stack
 		if (pattern != null) {
@@ -545,11 +584,11 @@ public class ClassGen {
 
 	void endCatch(Object trycatch) {
 		TryCatch tc = (TryCatch) trycatch;
-		mv.visitLabel(tc.label3);
+		placeLabel(tc.label3);
 	}
 
 	Object ifFalse() {
-		Label label = new Label();
+		Label label = label();
 		mv.visitJumpInsn(IFEQ, label);
 		return label;
 	}
@@ -562,22 +601,22 @@ public class ClassGen {
 		mv.visitJumpInsn(IFNE, (Label) label);
 	}
 
-	Object label() {
+	Label label() {
 		return new Label();
 	}
 
-	Object placeLabel() {
-		Label label = new Label();
+	Label placeLabel() {
+		Label label = label();
 		mv.visitLabel(label);
 		return label;
 	}
 
-	void placeLabel(Object label) {
-		mv.visitLabel((Label) label);
+	void placeLabel(Label label) {
+		mv.visitLabel(label);
 	}
 
-	Object jump() {
-		Label label = new Label();
+	Label jump() {
+		Label label = label();
 		mv.visitJumpInsn(GOTO, label);
 		return label;
 	}
@@ -658,8 +697,8 @@ public class ClassGen {
 	}
 
 	private void finishBlockReturnCatcher() {
-		mv.visitLabel(blockReturnCatcher.label1);
-		mv.visitLabel(blockReturnCatcher.label2);
+		placeLabel(blockReturnCatcher.label1);
+		placeLabel(blockReturnCatcher.label2);
 		iconst(parentId);
 		mv.visitMethodInsn(INVOKESTATIC, "suneido/language/Ops", "blockReturnHandler",
 				"(Lsuneido/language/BlockReturnException;I)Ljava/lang/Object;",
@@ -679,8 +718,8 @@ public class ClassGen {
 
 	/** catcher that just pops and rethrows */
 	private void finishDynamicPushPop() {
-		mv.visitLabel(dynamicFinally.label1);
-		mv.visitLabel(dynamicFinally.label2);
+		placeLabel(dynamicFinally.label1);
+		placeLabel(dynamicFinally.label2);
 		dynamicPop();
 		mv.visitInsn(ATHROW);
 	}
@@ -696,8 +735,7 @@ public class ClassGen {
 		if (dynamicFinally != null)
 			finishDynamicPushPop();
 
-		Label endLabel = new Label();
-		mv.visitLabel(endLabel);
+		Label endLabel = placeLabel();
 		BiMap<Integer, String> bm = javaLocals.inverse();
 		for (int i = 0; i < nextJavaLocal; ++i)
 			if (bm.containsKey(i))
@@ -805,9 +843,9 @@ public class ClassGen {
 		}
 		Label l1 = new Label();
 		mv.visitLabel(l1);
-		mv.visitInsn(RETURN);
 		mv.visitLocalVariable("constants", "Ljava/util/List;",
 				"Ljava/util/List<Ljava/lang/Object;>;", l0, l1, 0);
+		mv.visitInsn(RETURN);
 		mv.visitMaxs(2, 1);
 		mv.visitEnd();
 	}
@@ -820,11 +858,11 @@ public class ClassGen {
 		mv.visitLabel(l0);
 		mv.visitVarInsn(ALOAD, 0);
 		mv.visitMethodInsn(INVOKESPECIAL, base, "<init>", "()V", false);
-		mv.visitInsn(RETURN);
 		Label l1 = new Label();
 		mv.visitLabel(l1);
 		mv.visitLocalVariable("this", "L" + className + ";",
 				null, l0, l1, 0);
+		mv.visitInsn(RETURN);
 		mv.visitMaxs(1, 1);
 		mv.visitEnd();
 	}
