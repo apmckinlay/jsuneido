@@ -394,7 +394,9 @@ public class AstCompile {
 		try {
 			return cg.end(suClass);
 		} catch (Error e) {
-			throw new SuInternalError("error compiling " + curName, e);
+			throw new SuException("error compiling " + curName, e);
+// TODO: should be an SuInternalError but getting less descriptive info that way 
+//			throw new SuInternalError("error compiling " + curName, e);
 		}
 	}
 
@@ -556,15 +558,17 @@ public class AstCompile {
 		return null;
 	}
 
-	private static void breakStatement(ClassGen cg, AstNode ast, Labels labels) {
+	private void breakStatement(ClassGen cg, AstNode ast, Labels labels) {
+		putLineNumber(cg, ast);
 		if (labels != null)
 			cg.jump(labels.brk);
 		else
 			cg.blockThrow("BREAK_EXCEPTION");
 	}
 
-	private static void continueStatement(ClassGen cg, AstNode ast,
+	private void continueStatement(ClassGen cg, AstNode ast,
 			Labels labels) {
+		putLineNumber(cg, ast);
 		if (labels != null)
 			cg.jump(labels.cont);
 		else
@@ -709,6 +713,7 @@ public class AstCompile {
 
 	private void throwStatement(ClassGen cg, AstNode ast) {
 		expression(cg, ast.first());
+		putLineNumber(cg, ast);
 		cg.thrower();
 	}
 
@@ -766,11 +771,13 @@ public class AstCompile {
 
 	private void returnStatement(ClassGen cg, AstNode ast) {
 		if (ast.first() == null) {
+			putLineNumber(cg, ast);
 			cg.aconst_null();
 			cg.returnValue();
 		} else {
 			expression(cg, ast.first());
 			// special case - returning call does not do null check
+			putLineNumber(cg, ast);
 			if (ast.first().token != Token.CALL)
 				addNullCheck(cg, ast.first());
 			cg.returnValue();
@@ -798,8 +805,10 @@ public class AstCompile {
 	private ExprType expression(ClassGen cg, AstNode ast, ExprOption option) {
 		Object folded = fold(ast);
 		if (folded != null) {
-			if (option != ExprOption.POP)
+			if (option != ExprOption.POP) {
+				putLineNumber(cg, ast);
 				cg.constant(folded);
+			}
 			return ExprType.VALUE;
 		}
 		int ref;
@@ -809,6 +818,7 @@ public class AstCompile {
 			identifier(cg, ast, option);
 			break;
 		case SELFREF:
+			putLineNumber(cg, ast);
 			cg.localLoad("this");
 			break;
 		case MEMBER:
@@ -931,6 +941,7 @@ public class AstCompile {
 	}
 
 	private void identifier(ClassGen cg, AstNode ast, ExprOption option) {
+		putLineNumber(cg, ast);
 		String name = ast.value;
 		if (isOverload(name))
 			cg.constant(context.get(context.slotForName(name.substring(1))));
@@ -954,6 +965,7 @@ public class AstCompile {
 
 	private void member(ClassGen cg, AstNode ast) {
 		expression(cg, ast.first());
+		putLineNumber(cg, ast);
 		cg.constant(privatize(ast.first(), ast.value));
 	}
 
@@ -1023,9 +1035,11 @@ public class AstCompile {
 					&& args.children.size() <= MAX_DIRECT_ARGS
 					&& !hasNamed(args)) {
 				directArguments(cg, args);
+				putLineNumber(cg, ast);
 				cg.invokeMethod(args.children.size());
 			} else {
 				callArguments(cg, args);
+				putLineNumber(cg, ast);
 				cg.invokeMethod();
 			}
 		} else if (fn.token == Token.SUBSCRIPT) {
@@ -1036,19 +1050,23 @@ public class AstCompile {
 					&& args.children.size() <= MAX_DIRECT_ARGS
 					&& !hasNamed(args)) {
 				directArguments(cg, args);
+				putLineNumber(cg, ast);
 				cg.invokeMethod(args.children.size());
 			} else {
 				callArguments(cg, args);
+				putLineNumber(cg, ast);
 				cg.invokeMethod();
 			}
 		} else if (fn.token == Token.SUPER) {
 			cg.superCallTarget(fn.value);
 			callArguments(cg, args);
+			putLineNumber(cg, ast);
 			cg.invokeSuper();
 		} else if (isDirect(fn)) {
 			// PERF if args are all constant e.g. [a: 1, b: 'fred']
 			// then call a copy function (or better copy-on-write)
 			callArguments(cg, args);
+			putLineNumber(cg, ast);
 			cg.invokeDirect(fn.value);
 		} else if (isGlobal(fn)) {
 			cg.pushThis();
@@ -1057,9 +1075,11 @@ public class AstCompile {
 					&& args.children.size() <= MAX_DIRECT_ARGS
 					&& !hasNamed(args)) {
 				directArguments(cg, args);
+				putLineNumber(cg, ast);
 				cg.invokeGlobal(args.children.size());
 			} else {
 				callArguments(cg, args);
+				putLineNumber(cg, ast);
 				cg.invokeGlobal();
 			}
 		} else {
@@ -1068,9 +1088,11 @@ public class AstCompile {
 					&& args.children.size() <= MAX_DIRECT_ARGS
 					&& !hasNamed(args)) {
 				directArguments(cg, args);
+				putLineNumber(cg, ast);
 				cg.callFunction(args.children.size());
 			} else {
 				callArguments(cg, args);
+				putLineNumber(cg, ast);
 				cg.callFunction();
 			}
 		}
@@ -1134,6 +1156,7 @@ public class AstCompile {
 		expression(cg, ast.first());
 		cg.constant("<new>");
 		callArguments(cg, ast.second());
+		putLineNumber(cg, ast);
 		cg.invokeMethod();
 	}
 
@@ -1301,6 +1324,7 @@ public class AstCompile {
 	private int lvalue(ClassGen cg, AstNode ast) {
 		switch (ast.token) {
 		case IDENTIFIER:
+			putLineNumber(cg, ast);
 			String name = ast.value;
 			if (isGlobal(name))
 				throw new SuException("globals are read-only");
@@ -1318,7 +1342,7 @@ public class AstCompile {
 			expression(cg, ast.second());
 			return ClassGen.MEMBER_REF;
 		default:
-			throw new SuException("lvalue: unhandled: " + ast.token);
+			throw SuInternalError.unhandledEnum(ast.token);
 		}
 	}
 
@@ -1356,4 +1380,9 @@ public class AstCompile {
 		}
 	}
 
+	private void putLineNumber(ClassGen cg, AstNode ast) {
+		if (wantLineNumbers) {
+			cg.putLineNumber(ast.lineNumber);
+		}
+	}
 }
