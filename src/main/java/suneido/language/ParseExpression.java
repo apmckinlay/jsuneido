@@ -261,7 +261,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			return block();
 		case DOT:
 			// note: DOT not matched
-			return generator.selfRef();
+			return generator.selfRef(lexer.getLineNumber());
 		case L_PAREN:
 			match(L_PAREN);
 			return matchReturn(R_PAREN, generator.rvalue(expression()));

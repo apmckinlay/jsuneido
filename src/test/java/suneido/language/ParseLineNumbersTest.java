@@ -152,8 +152,11 @@ public class ParseLineNumbersTest {
 				"\t\t\t\t\t\tTHROW@1\n" +
 				"\t\t\t\t\t\t\tSTRING=unhandled switch case@1",
 
+		"function () { .a }",
+		"FUNCTION@1\n\tLIST@?\n\tLIST@1\n\t\tMEMBER=a@1\n\t\t\tSELFREF@1",
+
 		"class { method() { .x } }",
-		"CLASS@1\n\tLIST@1\n\t\tMEMBER@1\n\t\t\tSTRING=method@1\n\t\t\tMETHOD@1\n\t\t\t\tLIST@?\n\t\t\t\tLIST@1\n\t\t\t\t\tMEMBER=x@1\n\t\t\t\t\t\tSELFREF@?",
+		"CLASS@1\n\tLIST@1\n\t\tMEMBER@1\n\t\t\tSTRING=method@1\n\t\t\tMETHOD@1\n\t\t\t\tLIST@?\n\t\t\t\tLIST@1\n\t\t\t\t\tMEMBER=x@1\n\t\t\t\t\t\tSELFREF@1",
 
 		"class { Method() { .X() } }",
 		"CLASS@1\n" +
@@ -165,7 +168,7 @@ public class ParseLineNumbersTest {
 				"\t\t\t\tLIST@1\n" +
 				"\t\t\t\t\tCALL@1\n" +
 				"\t\t\t\t\t\tMEMBER=X@1\n" +
-				"\t\t\t\t\t\t\tSELFREF@?\n" +
+				"\t\t\t\t\t\t\tSELFREF@1\n" +
 				"\t\t\t\t\t\tLIST@?",
 
 		"class { method() {\n\n4\n $\n#20140828} }",

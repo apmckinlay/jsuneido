@@ -209,7 +209,7 @@ public class TestGenerator extends Generator<Object> {
 	}
 
 	@Override
-	public Object selfRef() {
+	public Object selfRef(int lineNumber) {
 		print("selfRef");
 		return "selfRef-result";
 	}
