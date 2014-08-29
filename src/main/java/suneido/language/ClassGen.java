@@ -93,6 +93,8 @@ public class ClassGen {
 	final boolean closure;
 	final int parentId;
 	private final List<String> dynParams = Lists.newArrayList();
+	private int lastLineNumber;
+	private Label lastLabelNotUsedForLineNumber;
 
 	ClassGen(ContextLayered context, String base, String name, String method,
 			List<String> locals, boolean useArgsArray, boolean isBlock,
@@ -139,6 +141,8 @@ public class ClassGen {
 		firstParam = nextJavaLocal;
 		mv.visitCode();
 		startLabel = placeLabel();
+		lastLineNumber = -1;
+		lastLabelNotUsedForLineNumber = startLabel;
 		if (! closure && useArgsArray)
 			massage();
 	}
@@ -607,12 +611,13 @@ public class ClassGen {
 
 	Label placeLabel() {
 		Label label = label();
-		mv.visitLabel(label);
+		placeLabel(label);
 		return label;
 	}
 
 	void placeLabel(Label label) {
 		mv.visitLabel(label);
+		lastLabelNotUsedForLineNumber = label;
 	}
 
 	Label jump() {
@@ -817,6 +822,38 @@ public class ClassGen {
 
 	public static ThreadLocal<List<Object>> shareConstants =
 			new ThreadLocal<>();
+
+	void putLineNumber(int lineNumber) {
+		// This method tries to re-use existing labels where possible rather
+		// than creating redundant new ones. For example, if you have code that
+		// looks like this:
+		//     n:  if (expr)
+		//     n+1:    {
+		//     n+2:    x = 0
+		//     n+3:    y = 0
+		//     n+4:    }
+		// Then the "if" statement will generate an "ifTrue" label that jumps to
+		// the first instruction of "x = 0". In this case, the "ifTrue" label
+		// will be reused for marking line n+2. However, line n+3 will produce a
+		// new label that is only used for marking line n+3.
+		if (lineNumber != lastLineNumber) {
+			assert 0 < lineNumber;
+			Label lineNumberLabel = lastLabelNotUsedForLineNumber;
+			if (null == lineNumberLabel) {
+				lineNumberLabel = new Label();
+				mv.visitLabel(lineNumberLabel);
+			} else {
+				lastLabelNotUsedForLineNumber = null;
+			}
+			mv.visitLineNumber(lineNumber, lineNumberLabel);
+			lastLineNumber = lineNumber;
+		} else {
+			// The last label placed before this method was called is only
+			// useful as a line number marker if we haven't seen any
+			// instructions from a new line number after placing it. 
+			lastLabelNotUsedForLineNumber = null;
+		}
+	}
 
 	/**
 	 * generator a constructor that sets const0, const1, etc.
