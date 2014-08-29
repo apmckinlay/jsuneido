@@ -198,7 +198,7 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String selfRef() {
+	public String selfRef(int lineNumber) {
 		return "<this>";
 	}
 

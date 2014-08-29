@@ -303,8 +303,8 @@ public class AstGenerator extends Generator<AstNode> {
 	}
 
 	@Override
-	public AstNode selfRef() {
-		return new AstNode(Token.SELFREF);
+	public AstNode selfRef(int lineNumber) {
+		return new AstNode(Token.SELFREF, lineNumber);
 	}
 
 	@Override

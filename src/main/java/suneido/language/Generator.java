@@ -195,7 +195,7 @@ public abstract class Generator<T> {
 		return null;
 	}
 
-	public T selfRef() {
+	public T selfRef(int lineNumber) {
 		return null;
 	}
 
