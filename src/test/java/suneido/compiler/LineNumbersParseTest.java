@@ -23,7 +23,7 @@ import suneido.util.testing.Assumption;
  * @author Victor Schappert
  * @since 20140827
  */
-public class ParseLineNumbersTest {
+public class LineNumbersParseTest {
 
 	@Test
 	public void testBasicCases() {
