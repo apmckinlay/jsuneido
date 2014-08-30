@@ -245,10 +245,9 @@ public class AstGenerator extends Generator<AstNode> {
 	}
 
 	@Override
-	public AstNode boolTrue() {
-		return TRUE;
+	public AstNode boolTrue(int lineNumber) {
+		return new AstNode(Token.TRUE, lineNumber);
 	}
-	private static final AstNode TRUE = new AstNode(Token.TRUE);
 
 	@Override
 	public AstNode superCallTarget(String method, int lineNumber) {

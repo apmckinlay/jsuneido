@@ -386,8 +386,12 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			boolean trueDefault = (keyword != null &&
 					(token == COMMA || token == closing || ahead == COLON));
 
-			args = generator.argumentList(args, keyword,
-					trueDefault ? generator.boolTrue() : expression());
+			if (trueDefault) {
+				args = generator.argumentList(args, keyword,
+						generator.boolTrue(lexer.getLineNumber()));
+			} else {
+				args = generator.argumentList(args, keyword, expression());
+			}
 			matchIf(COMMA);
 		}
 		match(closing);

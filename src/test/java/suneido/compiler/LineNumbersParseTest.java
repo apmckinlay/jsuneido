@@ -175,6 +175,12 @@ public class LineNumbersParseTest {
 		"function() { super.Destroy() }",
 		"FUNCTION@1\n\tLIST@?\n\tLIST@1\n\t\tCALL@1\n\t\t\tSUPER=Destroy@1\n\t\t\tLIST@?",
 
+		"function() { x(y:1) }",
+		"FUNCTION@1\n\tLIST@?\n\tLIST@1\n\t\tCALL@1\n\t\t\tIDENTIFIER=x@1\n\t\t\tLIST@1\n\t\t\t\tARG@1\n\t\t\t\t\tSTRING=y@?\n\t\t\t\t\tNUMBER=1@1",
+
+		"function() { x(y:) }",
+		"FUNCTION@1\n\tLIST@?\n\tLIST@1\n\t\tCALL@1\n\t\t\tIDENTIFIER=x@1\n\t\t\tLIST@1\n\t\t\t\tARG@1\n\t\t\t\t\tSTRING=y@?\n\t\t\t\t\tTRUE@1",
+
 //		"function() { new X }",
 //		"",
 //
