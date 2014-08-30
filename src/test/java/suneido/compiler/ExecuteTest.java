@@ -18,7 +18,7 @@ import suneido.compiler.Compiler;
 import suneido.runtime.BlockReturnException;
 import suneido.runtime.Ops;
 import suneido.runtime.SuBoundMethod;
-
+import static suneido.util.testing.Throwing.assertThrew;
 public class ExecuteTest {
 
 	@Before
@@ -325,12 +325,8 @@ public class ExecuteTest {
 	}
 
 	private static void needsThis(String expr) {
-		try {
-			eval(expr);
-			fail();
-		} catch (SuException e) {
-			assertEquals("string call requires 'this' argument", e.getMessage());
-		}
+		assertThrew(() -> eval(expr), SuException.class,
+				"string call requires 'this' argument");
 	}
 
 	private static void def(String name, String source) {

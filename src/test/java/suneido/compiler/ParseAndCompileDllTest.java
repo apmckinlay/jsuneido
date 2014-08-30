@@ -223,13 +223,8 @@ public class ParseAndCompileDllTest {
 			"dll x y:z(long[1.1] a)",
 			"dll x y:z(long ** a)",
 		};
-		int n = 0;
 		for (String s : bad)
-			try
-				{ parse(s); }
-			catch (SuException e)
-				{ ++n; }
-		assertEquals(bad.length, n);
+			assertThrew(() -> compile(s), SuException.class);
 	}
 
 	@Test(expected=SuException.class)
@@ -322,17 +317,11 @@ public class ParseAndCompileDllTest {
 		typeNames.add("FAKEType19820207");
 		typeNames.add("FAKEType19820207*");
 		typeNames.add("FAKEType19820207[207]");
-		int N = 0;
 		for (String typeName : typeNames) {
-			try {
-				final String code = "dll void jsdi:TestVoid([in] " + typeName
+			final String code = "dll void jsdi:TestVoid([in] " + typeName
 						+ " x)";
-				compile(code);
-			} catch (SuException e) {
-				++N;
-			}
+			assertThrew(() -> compile(code));
 		}
-		assertEquals(typeNames.size(), N);
 	}
 
 	@Test
