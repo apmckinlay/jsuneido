@@ -303,7 +303,6 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			return matchReturn(generator.constant(generator.bool(
 					lexer.getKeyword() == TRUE, lexer.getLineNumber())));
 		case SUPER:
-			match(SUPER);
 			return superCall();
 		default:
 			String identifier = lexer.getValue();
@@ -322,18 +321,21 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 
 	private T superCall() {
+		int lineNumber = lexer.getLineNumber();
+		match(SUPER);
 		if (token == L_PAREN)
-			return generator.superCallTarget("New");
+			return generator.superCallTarget("New", lineNumber);
 		if (token != DOT)
 			syntaxError("invalid use of super");
 		match();
 		if (token != IDENTIFIER)
 			syntaxError("invalid use of super");
+		lineNumber = lexer.getLineNumber();
 		String method = lexer.getValue();
 		match();
 		if (token != L_PAREN)
 			syntaxError("invalid use of super");
-		return generator.superCallTarget(method);
+		return generator.superCallTarget(method, lineNumber);
 	}
 
 

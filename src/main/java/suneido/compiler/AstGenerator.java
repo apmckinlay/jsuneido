@@ -251,8 +251,8 @@ public class AstGenerator extends Generator<AstNode> {
 	private static final AstNode TRUE = new AstNode(Token.TRUE);
 
 	@Override
-	public AstNode superCallTarget(String method) {
-		return new AstNode(Token.SUPER, method);
+	public AstNode superCallTarget(String method, int lineNumber) {
+		return new AstNode(Token.SUPER, method, lineNumber);
 	}
 
 	@Override

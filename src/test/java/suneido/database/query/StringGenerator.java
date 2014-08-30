@@ -193,7 +193,7 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String superCallTarget(String method) {
+	public String superCallTarget(String method, int lineNumber) {
 		return "super" + (method.equals("New") ? "" : "." + method);
 	}
 
