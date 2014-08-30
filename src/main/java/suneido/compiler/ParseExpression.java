@@ -217,13 +217,21 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 				if (!expectingCompound && token == NEWLINE && lookAhead() == L_CURLY)
 					match();
 			} else if (matchIf(L_BRACKET)) {
-				T expr = (token == RANGETO || token == RANGELEN)
-						? generator.number("0") : expression();
+				T expr;
+				if (token == RANGETO || token == RANGELEN) {
+					expr = generator.number("0", lexer.getLineNumber());
+				} else {
+					expr = expression();
+				}
 				if (token == RANGETO || token == RANGELEN) {
 					Token type = token;
 					match();
-					T expr2 = (token == R_BRACKET)
-							? generator.number(INT_MAX_STR) : expression();
+					T expr2;
+					if (R_BRACKET == token) {
+						expr2 = generator.number(INT_MAX_STR, lexer.getLineNumber());
+					} else {
+						expr2 = expression();
+					}
 					expr = generator.range(type, expr, expr2);
 				}
 				term = generator.subscript(term, expr);
