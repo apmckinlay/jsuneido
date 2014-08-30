@@ -356,7 +356,7 @@ public final class Bootstrap {
 	}
 
 	//
-	// Constants
+	// CONSTANTS
 	//
 
 	/**
