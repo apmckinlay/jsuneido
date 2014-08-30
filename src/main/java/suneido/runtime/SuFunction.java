@@ -5,9 +5,18 @@
 package suneido.runtime;
 
 /**
- * Standalone functions derive from SuFunction and define eval<p>
- * Functions that reference "this" derive from {@link SuMethod} and define eval<p>
- * For simple args {@link SuFunction0} ... {@link SuFunction4} are used
+ * <p>
+ * Standalone functions derive from SuFunction and define {@code eval}.
+ * </p>
+ *
+ * <p>
+ * Functions that reference "this" derive from {@link SuMethod} and define
+ * {@code eval}.
+ * </p>
+ * 
+ * <p>
+ * For simple args {@link SuFunction0} ... {@link SuFunction4} are used.
+ * </p>
  */
 public abstract class SuFunction extends SuCallable {
 
