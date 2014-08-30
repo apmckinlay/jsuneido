@@ -592,8 +592,6 @@ public class CompileTest {
 			{ "DUP, IFNONNULL L2, throwUninitializedVariable ()V, L2", "null?" },
 			{ "DUP, IFNONNULL L3, throwUninitializedVariable ()V, L3", "null?" },
 			{ "DUP, IFNONNULL L3, throwNoValue ()V, L3", "null?" },
-			{ "LDC 'Test', INVOKESTATIC suneido/language/Constants"
-					+ ".get (LString;)[LSuValue;, DUP, ASTORE 2", "const" } /* FIXME: String "Constants" isn't anywhere else in the code base */,
 			{ "GETSTATIC " + ClassGen.makeInternalName(TEST_OBJECT_NAME) + ".const0 : Object;", "const0" },
 			{ "toIntBool (Object;)I", "bool" },
 			{ "IFEQ", "IFFALSE" },
@@ -616,8 +614,6 @@ public class CompileTest {
 			{ "INVOKESPECIAL " + Type.getInternalName(SuCallable.class) + ".superInvoke", "superInvoke" },
 			{ "GETSTATIC java/lang/Boolean.TRUE : Boolean;", "true" },
 			{ "GETSTATIC java/lang/Boolean.FALSE : Boolean;", "false" },
-			{ "INVOKESTATIC suneido/language/ArgArray.buildN ()[Object;, ", "" } /* FIXME: String "ArgArray" isn't anywhere else in the code base */,
-			{ "INVOKESTATIC suneido/language/ArgArray.buildN (Object;Object;)[Object;, ", "" } /* FIXME: String "ArgArray" isn't anywhere else in the code base */,
 			{ "INVOKESTATIC " + Type.getInternalName(ObjectClass.class) + ".create ([Object;)Object;", "Object" },
 			{ "INVOKESTATIC " + Type.getInternalName(RecordClass.class) + ".create ([Object;)Object;", "Record" },
 			{ "blockReturnException (Object;I)" + Type.getDescriptor(BlockReturnException.class) + ", ATHROW", "blockReturn" },
