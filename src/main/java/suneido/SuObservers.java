@@ -8,8 +8,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import suneido.language.Args;
-import suneido.language.SuBoundMethod;
+import suneido.runtime.Args;
+import suneido.runtime.SuBoundMethod;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;

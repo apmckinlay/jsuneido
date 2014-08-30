@@ -25,7 +25,7 @@ import suneido.SuInternalError;
 import suneido.SuContainer;
 import suneido.SuException;
 import suneido.intfc.database.Record;
-import suneido.language.Ops;
+import suneido.runtime.Ops;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;

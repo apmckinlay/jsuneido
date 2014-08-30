@@ -18,7 +18,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import suneido.language.Ops;
+import suneido.runtime.Ops;
 import suneido.util.Util.Range;
 
 public class UtilTest {

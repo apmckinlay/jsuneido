@@ -21,13 +21,13 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import suneido.SuValue;
+import suneido.compiler.Compiler;
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.JSDI;
 import suneido.jsdi.SimpleContext;
 import suneido.jsdi.com.COMException;
 import suneido.jsdi.com.COMobject;
-import suneido.language.Compiler;
-import suneido.language.ContextLayered;
+import suneido.runtime.ContextLayered;
 import suneido.util.testing.Assumption;
 
 /**

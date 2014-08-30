@@ -4,7 +4,7 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import suneido.language.Compiler;
+import suneido.compiler.Compiler;
 
 /**
  * Test for {@link ThunkManager}.

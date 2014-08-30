@@ -12,9 +12,9 @@ import suneido.jsdi.type.BindException;
 import suneido.jsdi.type.Type;
 import suneido.jsdi.type.TypeId;
 import suneido.jsdi.type.TypeList;
-import suneido.language.BuiltinMethods;
-import suneido.language.FunctionSpec;
-import suneido.language.SuCallable;
+import suneido.runtime.BuiltinMethods;
+import suneido.runtime.FunctionSpec;
+import suneido.runtime.SuCallable;
 
 /**
  * Represents a Suneido {@code dll} callable.

@@ -6,8 +6,8 @@ package suneido;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static suneido.language.Numbers.MC;
-import static suneido.language.Ops.*;
+import static suneido.runtime.Numbers.MC;
+import static suneido.runtime.Ops.*;
 
 import java.math.BigDecimal;
 

@@ -8,7 +8,7 @@ import suneido.jsdi.Dll;
 import suneido.jsdi.DllFactory;
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.type.Type;
-import suneido.language.Args;
+import suneido.runtime.Args;
 
 /**
  * Dll with no parameters, corresponds to {@link NativeCall64#J0_RETURN_INT64}.

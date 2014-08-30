@@ -9,7 +9,7 @@ import java.util.List;
 
 import suneido.database.query.Header;
 import suneido.database.query.Row;
-import suneido.language.Ops;
+import suneido.runtime.Ops;
 
 public class Or extends Multi {
 

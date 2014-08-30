@@ -8,7 +8,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import suneido.language.Lexer;
+import suneido.compiler.Lexer;
 
 public class ParseQueryTest {
 	@Test

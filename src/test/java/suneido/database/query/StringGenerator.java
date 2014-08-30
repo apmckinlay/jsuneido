@@ -4,13 +4,13 @@
 
 package suneido.database.query;
 
-import static suneido.language.Generator.MType.OBJECT;
-import static suneido.language.Token.ADD;
-import static suneido.language.Token.AND;
-import static suneido.language.Token.OR;
-import static suneido.language.Token.SUB;
+import static suneido.compiler.Generator.MType.OBJECT;
+import static suneido.compiler.Token.ADD;
+import static suneido.compiler.Token.AND;
+import static suneido.compiler.Token.OR;
+import static suneido.compiler.Token.SUB;
 import suneido.SuValue;
-import suneido.language.Token;
+import suneido.compiler.Token;
 
 public class StringGenerator extends QueryGenerator<String> {
 

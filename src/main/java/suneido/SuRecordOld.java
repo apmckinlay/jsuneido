@@ -18,9 +18,9 @@ import suneido.database.query.Row;
 import suneido.database.server.DbmsTran;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.RecordBuilder;
-import suneido.language.*;
-import suneido.language.builtin.RecordMethods;
-import suneido.language.builtin.SuTransaction;
+import suneido.runtime.*;
+import suneido.runtime.builtin.RecordMethods;
+import suneido.runtime.builtin.SuTransaction;
 import suneido.util.CommaStringBuilder;
 import suneido.util.Util;
 

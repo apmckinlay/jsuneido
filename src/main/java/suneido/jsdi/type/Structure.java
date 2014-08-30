@@ -21,10 +21,10 @@ import suneido.jsdi.marshall.MarshallPlanBuilder;
 import suneido.jsdi.marshall.Marshaller;
 import suneido.jsdi.marshall.NumberConversions;
 import suneido.jsdi.marshall.ObjectConversions;
-import suneido.language.BuiltinMethods;
-import suneido.language.Ops;
-import suneido.language.Params;
-import suneido.language.SuCallable;
+import suneido.runtime.BuiltinMethods;
+import suneido.runtime.Ops;
+import suneido.runtime.Params;
+import suneido.runtime.SuCallable;
 
 /**
  * <p>
@@ -275,10 +275,10 @@ public final class Structure extends ComplexType {
 	/**
 	 * Built-in size method. <em>eg</em>: <code>(struct { }).Size()</code>. The
 	 * requirements for built-in methods are documented in
-	 * {@link suneido.language.BuiltinMethods}.
+	 * {@link suneido.runtime.BuiltinMethods}.
 	 * @param self The structure
 	 * @return Integer size of the structure in bytes
-	 * @see suneido.language.BuiltinMethods
+	 * @see suneido.runtime.BuiltinMethods
 	 */
 	public static Object Size(Object self) {
 		Structure struct = (Structure)self;
@@ -290,7 +290,7 @@ public final class Structure extends ComplexType {
 	 * Built-in member modification method. <em>eg</em>:
 	 * <code>(struct { long x }).Replace(ptr, "x", 13))</code>. The
 	 * requirements for built-in methods are documented in
-	 * {@link suneido.language.BuiltinMethods}.
+	 * {@link suneido.runtime.BuiltinMethods}.
 	 * @param self The structure
 	 * @param address Integer that is a valid pointer returned from some
 	 * {@code dll} function and known to point to a valid structure of this

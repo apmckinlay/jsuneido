@@ -7,8 +7,8 @@ package suneido;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static suneido.language.Pack.pack;
-import static suneido.language.Pack.unpack;
+import static suneido.runtime.Pack.pack;
+import static suneido.runtime.Pack.unpack;
 
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
@@ -17,7 +17,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import suneido.language.Ops;
+import suneido.runtime.Ops;
 import suneido.util.ByteBuffers;
 
 public class SuContainerTest {

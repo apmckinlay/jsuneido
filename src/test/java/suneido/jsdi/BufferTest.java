@@ -11,10 +11,10 @@ import java.nio.ByteBuffer;
 
 import org.junit.Test;
 
+import suneido.compiler.Compiler;
 import suneido.jsdi.Buffer;
 import suneido.jsdi.JSDIException;
-import suneido.language.Compiler;
-import suneido.language.Pack;
+import suneido.runtime.Pack;
 
 /**
  * Test for {@link Buffer}.

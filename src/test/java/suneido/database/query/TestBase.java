@@ -17,7 +17,7 @@ import suneido.Suneido;
 import suneido.database.server.ServerData;
 import suneido.intfc.database.*;
 import suneido.intfc.database.Table;
-import suneido.language.Ops;
+import suneido.runtime.Ops;
 
 public class TestBase {
 	protected final Database db;

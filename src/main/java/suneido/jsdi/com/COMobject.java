@@ -13,7 +13,7 @@ import suneido.SuValue;
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.JSDIValue;
 import suneido.jsdi.marshall.NumberConversions;
-import suneido.language.*;
+import suneido.runtime.*;
 
 /**
  * <p>
@@ -229,10 +229,10 @@ public final class COMobject extends JSDIValue {
 	/**
 	 * Built-in release method. <em>eg</em>: <code>comobject.Release()</code>.
 	 * The requirements for built-in methods are documented in
-	 * {@link suneido.language.BuiltinMethods}.
+	 * {@link suneido.runtime.BuiltinMethods}.
 	 * @param self The structure
 	 * @return Zero (to be compatible with cSuneido)
-	 * @see suneido.language.BuiltinMethods
+	 * @see suneido.runtime.BuiltinMethods
 	 * @see #DispatchQ(Object)
 	 */
 	public static Object Release(Object self) {
@@ -245,9 +245,9 @@ public final class COMobject extends JSDIValue {
 	 * Built-in test for IDispatch method.
 	 * <em>eg</em>: <code>comobject.Dispatch?()</code>.
 	 * The requirements for built-in methods are documented in
-	 * {@link suneido.language.BuiltinMethods}.
+	 * {@link suneido.runtime.BuiltinMethods}.
 	 * @param self The structure
-	 * @see suneido.language.BuiltinMethods
+	 * @see suneido.runtime.BuiltinMethods
 	 * @see #Release(Object)
 	 */
 	public static Boolean DispatchQ(Object self) {
@@ -263,7 +263,7 @@ public final class COMobject extends JSDIValue {
 	/**
 	 * Reference to a {@link BuiltinClass} that describes how to expose this
 	 * class to the Suneido programmer.
-	 * @see suneido.language.Builtins
+	 * @see suneido.runtime.Builtins
 	 */
 	public static final SuValue clazz = new BuiltinClass() {
 

@@ -4,7 +4,7 @@
 
 package suneido;
 
-import suneido.language.Ops;
+import suneido.runtime.Ops;
 
 public class SuException extends RuntimeException {
 	private static final long serialVersionUID = 1L;

@@ -11,7 +11,7 @@ import javax.annotation.concurrent.Immutable;
 import suneido.jsdi.*;
 import suneido.jsdi.marshall.MarshallPlanBuilder;
 import suneido.jsdi.marshall.Marshaller;
-import suneido.language.Ops;
+import suneido.runtime.Ops;
 
 /**
  * <p>

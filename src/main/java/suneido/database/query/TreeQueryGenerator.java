@@ -4,7 +4,7 @@
 
 package suneido.database.query;
 
-import static suneido.language.Token.COUNT;
+import static suneido.compiler.Token.COUNT;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,11 +14,11 @@ import suneido.SuContainer;
 import suneido.SuDate;
 import suneido.SuException;
 import suneido.SuRecord;
+import suneido.compiler.AstNode;
+import suneido.compiler.Token;
 import suneido.database.query.expr.*;
 import suneido.intfc.database.Transaction;
-import suneido.language.AstNode;
-import suneido.language.Numbers;
-import suneido.language.Token;
+import suneido.runtime.Numbers;
 
 @SuppressWarnings("unchecked")
 public class TreeQueryGenerator extends QueryGenerator<Object> {

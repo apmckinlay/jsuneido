@@ -12,8 +12,8 @@ import java.util.Calendar;
 
 import javax.annotation.concurrent.Immutable;
 
-import suneido.language.Pack;
-import suneido.language.builtin.DateMethods;
+import suneido.runtime.Pack;
+import suneido.runtime.builtin.DateMethods;
 import suneido.util.FAQCalendar;
 
 import com.google.common.primitives.Ints;

@@ -4,8 +4,8 @@
 
 package suneido.database.query;
 
-import suneido.language.Generator;
-import suneido.language.Token;
+import suneido.compiler.Generator;
+import suneido.compiler.Token;
 
 public abstract class QueryGenerator<T> extends Generator<T> {
 

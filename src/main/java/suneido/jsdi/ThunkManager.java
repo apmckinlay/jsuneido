@@ -15,7 +15,7 @@ import suneido.SuContainer;
 import suneido.SuInternalError;
 import suneido.SuValue;
 import suneido.jsdi.type.Callback;
-import suneido.language.Params;
+import suneido.runtime.Params;
 
 /**
  * Maps a set of {@link SuValue} objects to the Java-side {@link Callback}
@@ -206,11 +206,11 @@ public abstract class ThunkManager {
 	//
 
 	/**
-	 * Class which {@link suneido.language.BuiltinMethods} can translate into
+	 * Class which {@link suneido.runtime.BuiltinMethods} can translate into
 	 * the Suneido built-in function {@code Callbacks()}.
 	 * 
 	 * @see ClearCallback
-	 * @see suneido.language.Builtins
+	 * @see suneido.runtime.Builtins
 	 */
 	public static final class Callbacks {
 		public static final SuContainer Callbacks() {
@@ -219,11 +219,11 @@ public abstract class ThunkManager {
 	}
 
 	/**
-	 * Class which {@link suneido.language.BuiltinMethods} can translate into
+	 * Class which {@link suneido.runtime.BuiltinMethods} can translate into
 	 * the Suneido built-in function {@code ClearCallback()}.
 	 * 
 	 * @see Callbacks
-	 * @see suneido.language.Builtins
+	 * @see suneido.runtime.Builtins
 	 */
 	public static final class ClearCallback {
 		@Params("value")

@@ -30,8 +30,8 @@ import suneido.jsdi.JSDI;
 import suneido.jsdi.SimpleContext;
 import suneido.jsdi.StorageType;
 import suneido.jsdi.marshall.Marshaller;
-import suneido.language.ContextLayered;
-import suneido.language.Numbers;
+import suneido.runtime.ContextLayered;
+import suneido.runtime.Numbers;
 import suneido.util.testing.Assumption;
 
 /**

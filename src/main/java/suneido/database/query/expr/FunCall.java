@@ -13,7 +13,7 @@ import suneido.SuException;
 import suneido.Suneido;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
-import suneido.language.Ops;
+import suneido.runtime.Ops;
 
 public class FunCall extends Multi {
 	private final Expr ob;

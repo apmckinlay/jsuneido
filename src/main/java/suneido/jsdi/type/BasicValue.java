@@ -15,8 +15,8 @@ import suneido.jsdi.StorageType;
 import suneido.jsdi.marshall.Marshaller;
 import suneido.jsdi.marshall.NumberConversions;
 import suneido.jsdi.marshall.PrimitiveSize;
-import suneido.language.Numbers;
-import suneido.language.Ops;
+import suneido.runtime.Numbers;
+import suneido.runtime.Ops;
 
 /**
  * Represents a value type based on an underlying basic type, for example

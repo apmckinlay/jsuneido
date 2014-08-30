@@ -8,9 +8,9 @@ import static suneido.SuException.methodNotFound;
 
 import java.nio.ByteBuffer;
 
-import suneido.language.Ops;
-import suneido.language.SuCallable;
-import suneido.language.SuClass;
+import suneido.runtime.Ops;
+import suneido.runtime.SuCallable;
+import suneido.runtime.SuClass;
 
 /**
  * Base class for Suneido data types.
@@ -51,16 +51,20 @@ public abstract class SuValue implements Packable {
 
 	public String typeName() {
 		String s = getClass().getName();
-		if (s.startsWith("suneido.language.")) {
-			s = s.substring(17);
-			if (s.startsWith("builtin."))
-				s = s.substring(8);
-			if (s.endsWith("Instance"))
-				s = s.substring(0, s.length() - 8);
-			if (s.endsWith("$"))
-				s = s.substring(0, s.length() - 1);
+		assert(s.startsWith("suneido."));
+		if (s.startsWith("code.", 8)) {
+			// Compiled code is in the package suneido.code
+			return s.endsWith("$") ? s.substring(13, s.length() - 1) : s.substring(13);
+		} else if (s.startsWith("runtime.", 8)) {
+			// Runtime support classes are in suneido.runtime or sub-packages
+			if (s.startsWith("builtin.", 16)) {
+				// Package suneido.runtime.builtin has the built-in classes
+				// and functions
+				return s.endsWith("Instance") ? s.substring(24,
+						s.length() - 8) : s.substring(24);
+			}
 		}
-		return s;
+		throw new SuInternalError("unrecognized package: " + s);
 	}
 
 	/**

@@ -12,7 +12,7 @@ import suneido.database.query.Header;
 import suneido.database.query.Row;
 import suneido.database.server.DbmsTran;
 import suneido.intfc.database.Record;
-import suneido.language.builtin.SuTransaction;
+import suneido.runtime.builtin.SuTransaction;
 
 @NotThreadSafe
 public class SuRecord extends SuRecordOld {

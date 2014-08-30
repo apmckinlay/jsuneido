@@ -23,7 +23,7 @@ import suneido.database.query.Header;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Row;
 import suneido.intfc.database.Record;
-import suneido.language.Pack;
+import suneido.runtime.Pack;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;

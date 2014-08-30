@@ -12,16 +12,16 @@ import java.util.Map;
 
 import suneido.SuInternalError;
 import suneido.SuValue;
-import suneido.language.Args;
-import suneido.language.BuiltinClass;
-import suneido.language.BuiltinMethods;
-import suneido.language.Concats;
-import suneido.language.FunctionSpec;
-import suneido.language.Ops;
-import suneido.language.Pack;
-import suneido.language.Range;
-import suneido.language.SuCallable;
-import suneido.language.builtin.StringMethods;
+import suneido.runtime.Args;
+import suneido.runtime.BuiltinClass;
+import suneido.runtime.BuiltinMethods;
+import suneido.runtime.Concats;
+import suneido.runtime.FunctionSpec;
+import suneido.runtime.Ops;
+import suneido.runtime.Pack;
+import suneido.runtime.Range;
+import suneido.runtime.SuCallable;
+import suneido.runtime.builtin.StringMethods;
 
 /**
  * <p>
@@ -475,10 +475,10 @@ public final class Buffer extends JSDIValue implements CharSequence {
 	/**
 	 * Built-in size method. <em>eg</em>: {@code Buffer(10, "abc").Size()}. The
 	 * requirements for built-in methods are documented in
-	 * {@link suneido.language.BuiltinMethods}.
+	 * {@link suneido.runtime.BuiltinMethods}.
 	 * @param self The buffer
 	 * @return Integer size of the buffer in bytes
-	 * @see suneido.language.BuiltinMethods
+	 * @see suneido.runtime.BuiltinMethods
 	 */
 	public static Integer Size(Object self) {
 		Buffer buffer = (Buffer)self;
@@ -500,7 +500,7 @@ public final class Buffer extends JSDIValue implements CharSequence {
 	 * @return A new buffer containing the wide-character equivalent of the
 	 * buffer's contents
 	 * @see #Size(Object)
-	 * @see suneido.language.BuiltinMethods
+	 * @see suneido.runtime.BuiltinMethods
 	 */
 	public static Buffer Mbstowcs(Object self) {
 		Buffer buffer = (Buffer)self;
@@ -520,7 +520,7 @@ public final class Buffer extends JSDIValue implements CharSequence {
 	/**
 	 * Reference to a {@link BuiltinClass} that describes how to expose this
 	 * class to the Suneido programmer.
-	 * @see suneido.language.Builtins
+	 * @see suneido.runtime.Builtins
 	 */
 	public static final SuValue clazz = new BuiltinClass() {
 

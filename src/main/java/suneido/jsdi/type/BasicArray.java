@@ -15,8 +15,8 @@ import suneido.jsdi.marshall.MarshallPlanBuilder;
 import suneido.jsdi.marshall.Marshaller;
 import suneido.jsdi.marshall.NumberConversions;
 import suneido.jsdi.marshall.ObjectConversions;
-import suneido.language.Numbers;
-import suneido.language.Ops;
+import suneido.runtime.Numbers;
+import suneido.runtime.Ops;
 
 /**
  * Represents an array of an underlying basic type, such as

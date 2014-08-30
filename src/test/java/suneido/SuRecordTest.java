@@ -8,7 +8,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import suneido.language.Pack;
+import suneido.runtime.Pack;
 
 
 public class SuRecordTest {
