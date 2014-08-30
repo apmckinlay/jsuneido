@@ -20,7 +20,7 @@ import suneido.jsdi.marshall.MarshallPlan;
 import suneido.jsdi.marshall.MarshallPlanBuilder;
 import suneido.jsdi.marshall.Marshaller;
 import suneido.jsdi.marshall.ObjectConversions;
-import suneido.language.FunctionSpec;
+import suneido.runtime.FunctionSpec;
 
 /**
  * <p>

@@ -4,11 +4,11 @@
 
 package suneido.database.query;
 
-import static suneido.language.Token.*;
+import static suneido.compiler.Token.*;
+import suneido.compiler.Lexer;
+import suneido.compiler.Parse;
+import suneido.compiler.Token;
 import suneido.intfc.database.Fkmode;
-import suneido.language.Lexer;
-import suneido.language.Parse;
-import suneido.language.Token;
 
 public class ParseRequest<T> extends Parse<T, RequestGenerator<T>> {
 	public ParseRequest(Lexer lexer, RequestGenerator<T> generator) {

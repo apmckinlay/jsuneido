@@ -9,7 +9,7 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
 
-import suneido.language.Ops;
+import suneido.runtime.Ops;
 
 /** for debugging - prints info about file contents */
 class Dump {

@@ -13,7 +13,7 @@ import suneido.jsdi.DllInterface;
 import suneido.jsdi.SimpleContext;
 import suneido.jsdi.StorageType;
 import suneido.jsdi.marshall.PrimitiveSize;
-import suneido.language.ContextLayered;
+import suneido.runtime.ContextLayered;
 import suneido.util.testing.Assumption;
 
 /**

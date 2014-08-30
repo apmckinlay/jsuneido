@@ -19,8 +19,8 @@ import suneido.jsdi.Buffer;
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.JSDIException;
 import suneido.jsdi.marshall.NumberConversions;
-import suneido.language.Concats;
-import suneido.language.Numbers;
+import suneido.runtime.Concats;
+import suneido.runtime.Numbers;
 
 /**
  * Test for {@link NumberConversions}.

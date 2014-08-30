@@ -13,7 +13,7 @@ import suneido.jsdi.marshall.ReturnTypeGroup;
 import suneido.jsdi.type.InOutString;
 import suneido.jsdi.type.Type;
 import suneido.jsdi.type.TypeList;
-import suneido.language.Args;
+import suneido.runtime.Args;
 
 /**
  * Concrete implementation of {@link Dll} for the Windows x86 platform.

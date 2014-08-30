@@ -15,7 +15,7 @@ import suneido.database.query.Header;
 import suneido.database.query.Row;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.RecordBuilder;
-import suneido.language.Ops;
+import suneido.runtime.Ops;
 
 public class In extends Expr {
 	public final Expr expr;

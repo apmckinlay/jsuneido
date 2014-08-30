@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Set;
 
 import suneido.intfc.database.Record;
-import suneido.language.Ops;
+import suneido.runtime.Ops;
 
 public class Union extends Compatible {
 	Strategy strategy;

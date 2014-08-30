@@ -4,7 +4,7 @@
 
 package suneido.jsdi;
 
-import suneido.language.Token;
+import suneido.compiler.Token;
 
 /**
  * Enumerates the storage types supported by the DLL interface.

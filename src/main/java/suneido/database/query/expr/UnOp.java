@@ -8,10 +8,10 @@ import static suneido.SuInternalError.unreachable;
 
 import java.util.List;
 
+import suneido.compiler.Token;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
-import suneido.language.Ops;
-import suneido.language.Token;
+import suneido.runtime.Ops;
 
 public class UnOp extends Expr {
 	private final Token op;

@@ -5,38 +5,38 @@
 package suneido.database.query.expr;
 
 import static suneido.SuInternalError.unreachable;
-import static suneido.language.Ops.add;
-import static suneido.language.Ops.bitand;
-import static suneido.language.Ops.bitor;
-import static suneido.language.Ops.bitxor;
-import static suneido.language.Ops.cat;
-import static suneido.language.Ops.div;
-import static suneido.language.Ops.gt;
-import static suneido.language.Ops.gte;
-import static suneido.language.Ops.is;
-import static suneido.language.Ops.isnt;
-import static suneido.language.Ops.lshift;
-import static suneido.language.Ops.lt;
-import static suneido.language.Ops.lte;
-import static suneido.language.Ops.match;
-import static suneido.language.Ops.matchnot;
-import static suneido.language.Ops.mod;
-import static suneido.language.Ops.mul;
-import static suneido.language.Ops.rshift;
-import static suneido.language.Ops.sub;
-import static suneido.language.Token.GT;
-import static suneido.language.Token.GTE;
-import static suneido.language.Token.LT;
-import static suneido.language.Token.LTE;
+import static suneido.compiler.Token.GT;
+import static suneido.compiler.Token.GTE;
+import static suneido.compiler.Token.LT;
+import static suneido.compiler.Token.LTE;
+import static suneido.runtime.Ops.add;
+import static suneido.runtime.Ops.bitand;
+import static suneido.runtime.Ops.bitor;
+import static suneido.runtime.Ops.bitxor;
+import static suneido.runtime.Ops.cat;
+import static suneido.runtime.Ops.div;
+import static suneido.runtime.Ops.gt;
+import static suneido.runtime.Ops.gte;
+import static suneido.runtime.Ops.is;
+import static suneido.runtime.Ops.isnt;
+import static suneido.runtime.Ops.lshift;
+import static suneido.runtime.Ops.lt;
+import static suneido.runtime.Ops.lte;
+import static suneido.runtime.Ops.match;
+import static suneido.runtime.Ops.matchnot;
+import static suneido.runtime.Ops.mod;
+import static suneido.runtime.Ops.mul;
+import static suneido.runtime.Ops.rshift;
+import static suneido.runtime.Ops.sub;
 import static suneido.util.ByteBuffers.bufferUcompare;
 import static suneido.util.Util.union;
 
 import java.nio.ByteBuffer;
 import java.util.List;
 
+import suneido.compiler.Token;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
-import suneido.language.Token;
 
 public class BinOp extends Expr {
 	public Token op;

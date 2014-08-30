@@ -9,9 +9,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 
+import suneido.compiler.Compiler;
 import suneido.jsdi.JSDI;
-import suneido.language.Compiler;
-import suneido.language.Ops;
+import suneido.runtime.Ops;
 
 /*
  -agentlib:hprof=cpu=samples,interval=1,depth=6,cutoff=.01

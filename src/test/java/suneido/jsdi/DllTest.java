@@ -19,9 +19,9 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import suneido.SuException;
-import suneido.language.Compiler;
-import suneido.language.ContextLayered;
-import suneido.language.Numbers;
+import suneido.compiler.Compiler;
+import suneido.runtime.ContextLayered;
+import suneido.runtime.Numbers;
 import suneido.util.testing.Assumption;
 
 /**
@@ -29,7 +29,7 @@ import suneido.util.testing.Assumption;
  *
  * @author Victor Schappert
  * @since 20130808
- * @see suneido.language.ParseAndCompileDllTeste
+ * @see suneido.compiler.ParseAndCompileDllTest
  */
 @DllInterface
 @RunWith(Parameterized.class)
