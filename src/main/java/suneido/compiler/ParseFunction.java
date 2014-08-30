@@ -272,7 +272,7 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		int lineNumber = lexer.getLineNumber();
 		match(SWITCH);
 		T expr = (token == L_CURLY)
-			? generator.constant(generator.boolTrue())
+			? generator.constant(generator.boolTrue(lineNumber))
 			: generator.rvalue(optionalParensExpression());
 		T cases = null;
 		match(L_CURLY);

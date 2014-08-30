@@ -152,7 +152,7 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 			else
 				value = constant();
 		} else if (name != null)
-			value = generator.boolTrue();
+			value = generator.boolTrue(lexer.getLineNumber());
 		else
 			syntaxError();
 		return value;

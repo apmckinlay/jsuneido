@@ -84,8 +84,8 @@ public abstract class Generator<T> {
 
 	public abstract T bool(boolean value, int lineNumber); // Actual boolean literal in source
 
-	public T boolTrue() { // Synthetic true literal inserted by the compiler
-		return bool(true, -1);
+	public T boolTrue(int lineNumber) { // Synthetic true literal inserted by the compiler
+		return bool(true, lineNumber);
 	}
 
 	public T breakStatement(int lineNumber) {
