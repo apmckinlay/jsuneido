@@ -176,18 +176,13 @@ public class ParseAndCompileCallbackTest {
 			"callback ( A a , B b , )",
 			"callback (a, b)",
 			"callback ( , )",
-			"callback ( [in] string a )" /* consistent with CSuneido */,
-			"callback ( string a, [in] string b )" /* consistent with CSuneido */,
+			"callback ( [in] string a )" /* consistent with cSuneido */,
+			"callback ( string a, [in] string b )" /* consistent with cSuneido */,
 			"callback ( [in] buffer a )",
 			"callback ( [in] char a )",
 		};
-		int n = 0;
 		for (String s : bad)
-			try
-				{ parse(s); }
-			catch (SuException e)
-				{ ++n; }
-		assertEquals(bad.length, n);
+			assertThrew(() -> compile(s), SuException.class);
 	}
 
 	@Test(expected=SuException.class)
@@ -241,13 +236,8 @@ public class ParseAndCompileCallbackTest {
 			"callback(resource * ptrToRes)",
 			"callback(resource[2] resArr)"
 		};
-		int n = 0;
 		for (String s : bad)
-			try
-				{ compile(s); }
-			catch (SuException e)
-				{ ++n; }
-		assertEquals(n, bad.length);
+			assertThrew(() -> compile(s), JSDIException.class);
 	}
 
 	@Test
