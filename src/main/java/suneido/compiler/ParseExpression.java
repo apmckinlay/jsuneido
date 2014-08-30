@@ -269,8 +269,9 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			if (inQuery)
 				return generator.constant(constant());
 			else {
+				int lineNumber = lexer.getLineNumber();
 				match(L_BRACKET);
-				T func = generator.identifier("Record");
+				T func = generator.identifier("Record", lineNumber);
 				return generator.functionCall(func, argumentList(R_BRACKET));
 			}
 		case IDENTIFIER:
