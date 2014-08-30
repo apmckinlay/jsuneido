@@ -1,3 +1,7 @@
+/* Copyright 2014 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 /**
  * <p>
  * Contains classes that make up the Suneido compiler. The compiler places

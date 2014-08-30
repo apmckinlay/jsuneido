@@ -1,3 +1,7 @@
+/* Copyright 2014 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 /**
  * <p>
  * This package is intended to contain the minimum set of classes to start an
