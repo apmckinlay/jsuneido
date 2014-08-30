@@ -191,7 +191,7 @@ public abstract class Generator<T> {
 		return expr;
 	}
 
-	public T superCallTarget(String method) {
+	public T superCallTarget(String method, int lineNumber) {
 		return null;
 	}
 
