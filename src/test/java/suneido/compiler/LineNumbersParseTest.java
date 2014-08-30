@@ -166,6 +166,12 @@ public class LineNumbersParseTest {
 		"function() { return [] } ",
 		"FUNCTION@1\n\tLIST@?\n\tLIST@1\n\t\tRETURN@1\n\t\t\tCALL@1\n\t\t\t\tIDENTIFIER=Record@1\n\t\t\t\tLIST@?",
 
+		"function() { return x[..1] }",
+		"FUNCTION@1\n\tLIST@?\n\tLIST@1\n\t\tRETURN@1\n\t\t\tSUBSCRIPT@1\n\t\t\t\tIDENTIFIER=x@1\n\t\t\t\tRANGETO@1\n\t\t\t\t\tNUMBER=0@1\n\t\t\t\t\tNUMBER=1@1",
+
+		"function() { return x[1..] }",
+		"FUNCTION@1\n\tLIST@?\n\tLIST@1\n\t\tRETURN@1\n\t\t\tSUBSCRIPT@1\n\t\t\t\tIDENTIFIER=x@1\n\t\t\t\tRANGETO@1\n\t\t\t\t\tNUMBER=1@1\n\t\t\t\t\tNUMBER=2147483647@1",
+
 		"class { method() { .x } }",
 		"CLASS@1\n\tLIST@1\n\t\tMEMBER@1\n\t\t\tSTRING=method@1\n\t\t\tMETHOD@1\n\t\t\t\tLIST@?\n\t\t\t\tLIST@1\n\t\t\t\t\tMEMBER=x@1\n\t\t\t\t\t\tSELFREF@1",
 
