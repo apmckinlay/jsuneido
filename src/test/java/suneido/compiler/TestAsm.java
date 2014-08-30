@@ -4,12 +4,35 @@
 
 package suneido.compiler;
 
+import java.util.List;
+
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.CheckClassAdapter;
 
+import suneido.runtime.BlockReturnException;
+import suneido.runtime.Ops;
 import suneido.runtime.SuFunction;
 
 public class TestAsm implements Opcodes {
+
+	private static class SampleFunction extends SuFunction {
+		private static final Object c;
+
+		static {
+			List<Object> constants = ClassGen.shareConstants.get();
+			c = constants.get(0);
+		}
+
+		@Override
+		public Object call(Object... args) {
+			try {
+				throw Ops.blockReturnException(c, 123);
+			} catch (BlockReturnException e) {
+				return Ops.blockReturnHandler(e, 123);
+			}
+		}
+
+	}
 
 	public static void main(String[] args) throws Exception {
 
