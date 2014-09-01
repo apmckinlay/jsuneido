@@ -13,7 +13,7 @@ import suneido.immudb.DbHashTrie.IntEntry;
 import suneido.immudb.DbHashTrie.StoredIntEntry;
 import suneido.immudb.DbHashTrie.Translator;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.primitives.Ints;
 
 /**
@@ -108,7 +108,7 @@ class Tran implements Translator {
 
 		@Override
 		public String toString() {
-			return Objects.toStringHelper(this)
+			return MoreObjects.toStringHelper(this)
 					.add("adr", adr)
 					.add("cksum", Integer.toHexString(cksum))
 					.toString();

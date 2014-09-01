@@ -9,7 +9,7 @@ import java.util.Date;
 
 import javax.annotation.concurrent.Immutable;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 /**
  * Check database integrity.<p>
@@ -109,7 +109,7 @@ class Check {
 		}
 		@Override
 		public String toString() {
-			return Objects.toStringHelper(this)
+			return MoreObjects.toStringHelper(this)
 					.add("dbinfoadr", Storage.adrToOffset(dbinfoadr))
 					.add("maxtblnum", maxtblnum)
 					.add("lastadr", Storage.adrToOffset(lastadr))

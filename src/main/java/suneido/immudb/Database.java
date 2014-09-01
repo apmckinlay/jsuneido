@@ -15,7 +15,7 @@ import suneido.intfc.database.DatabasePackage.Status;
 import suneido.language.Triggers;
 import suneido.util.FileUtils;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 @ThreadSafe
 class Database implements suneido.intfc.database.Database {
@@ -340,7 +340,7 @@ class Database implements suneido.intfc.database.Database {
 
 		@Override
 		public String toString() {
-			return Objects.toStringHelper(this)
+			return MoreObjects.toStringHelper(this)
 					.add("dbinfoadr", dbinfoadr)
 					.add("lastadr", lastadr)
 					.add("lastcksum", lastcksum)

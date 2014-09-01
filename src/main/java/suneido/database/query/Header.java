@@ -12,7 +12,7 @@ import static suneido.util.Verify.verify;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 public class Header {
 	List<List<String>> flds;
@@ -160,7 +160,7 @@ public class Header {
 
 	@Override
 	public String toString() {
-		return Objects.toStringHelper(this)
+		return MoreObjects.toStringHelper(this)
 				.add("flds", flds)
 				.add("cols", cols)
 				.toString();

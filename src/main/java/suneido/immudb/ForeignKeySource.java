@@ -8,7 +8,7 @@ import javax.annotation.concurrent.Immutable;
 
 import suneido.intfc.database.Fkmode;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 /**
  * Used by {@link Index}
@@ -26,7 +26,7 @@ class ForeignKeySource extends ForeignKey {
 
 	@Override
 	public String toString() {
-		return Objects.toStringHelper(this)
+		return MoreObjects.toStringHelper(this)
 				.addValue(tablename)
 				.addValue(columns)
 				.addValue(Fkmode.toString(mode))

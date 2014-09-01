@@ -10,7 +10,7 @@ import java.util.Arrays;
 
 import javax.annotation.concurrent.Immutable;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.Iterables;
 import com.google.common.primitives.Ints;
 
@@ -70,7 +70,7 @@ class IndexInfo extends BtreeInfo {
 
 	@Override
 	public String toString() {
-		return Objects.toStringHelper(this)
+		return MoreObjects.toStringHelper(this)
 			.add("columns", Arrays.toString(columns))
 			.add("root", root)
 			.add("rootNode", rootNode)

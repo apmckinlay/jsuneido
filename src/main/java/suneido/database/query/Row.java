@@ -20,7 +20,7 @@ import suneido.intfc.database.RecordBuilder;
 import suneido.intfc.database.Transaction;
 import suneido.language.Pack;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 // might be simpler to attach header to row
 // rather than passing it in all the time
@@ -153,7 +153,7 @@ public class Row {
 		}
 		@Override
 		public String toString() {
-			return Objects.toStringHelper(this)
+			return MoreObjects.toStringHelper(this)
 					.addValue(di)
 					.addValue(ri)
 					.toString();

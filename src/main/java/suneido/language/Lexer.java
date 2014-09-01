@@ -6,6 +6,8 @@ package suneido.language;
 
 import static suneido.language.Token.*;
 
+import com.google.common.base.CharMatcher;
+
 public class Lexer {
 	private final String source;
 	private int si = 0;
@@ -14,7 +16,6 @@ public class Lexer {
 	private boolean valueIsSubstr;
 	private Token keyword;
 	private boolean ignoreCase = false;
-	private int lineNumber = 1;
 
 	public Lexer(String source) {
 		this.source = source;
@@ -35,7 +36,7 @@ public class Lexer {
 	}
 
 	public String getValue() {
-		// use copy constructor if value is substr of source 
+		// use copy constructor if value is substr of source
 		// to avoid reference to source
 		return valueIsSubstr ? new String(value) : value;
 	}
@@ -44,8 +45,11 @@ public class Lexer {
 		return keyword == null ? NIL : keyword;
 	}
 
+	private static CharMatcher cm_nl = CharMatcher.is('\n');
+
+	// Simpler to calculate on demand rather than track during lexing
 	public int getLineNumber() {
-		return lineNumber;
+		return 1 + cm_nl.countIn(source);
 	}
 
 	public int getColumnNumber() {
@@ -285,10 +289,9 @@ public class Lexer {
 	private Token whitespace(char c) {
 		Token kind = WHITE;
 		do {
-			if (c == '\n') {
+			if (c == '\n')
 				kind = NEWLINE;
-				++lineNumber;
-			} else if (c == '\r')
+			else if (c == '\r')
 				kind = NEWLINE;
 			c = charAt(si);
 			if (! Character.isWhitespace(c))

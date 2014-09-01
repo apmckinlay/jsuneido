@@ -16,34 +16,15 @@ import static suneido.intfc.database.Record.MIN_FIELD;
 import static suneido.language.Token.IS;
 import static suneido.language.Token.ISNT;
 import static suneido.util.ByteBuffers.bufferUcompare;
-import static suneido.util.Util.addAllUnique;
-import static suneido.util.Util.concat;
-import static suneido.util.Util.difference;
-import static suneido.util.Util.intersect;
-import static suneido.util.Util.listToCommas;
-import static suneido.util.Util.listToParens;
-import static suneido.util.Util.nil;
-import static suneido.util.Util.setUnion;
-import static suneido.util.Util.startsWith;
+import static suneido.util.Util.*;
 import static suneido.util.Verify.verify;
 import gnu.trove.set.hash.TIntHashSet;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import suneido.SuException;
-import suneido.database.query.expr.And;
-import suneido.database.query.expr.BinOp;
-import suneido.database.query.expr.Constant;
-import suneido.database.query.expr.Expr;
-import suneido.database.query.expr.Identifier;
-import suneido.database.query.expr.In;
-import suneido.database.query.expr.Multi;
+import suneido.database.query.expr.*;
 import suneido.database.server.DbmsTranLocal;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.RecordBuilder;
@@ -54,6 +35,7 @@ import suneido.language.Token;
 import suneido.util.ByteBuffers;
 import suneido.util.CommaStringBuilder;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 
@@ -940,7 +922,7 @@ public class Select extends Query1 {
 
 		@Override
 		public String toString() {
-			return Objects.toStringHelper(this)
+			return MoreObjects.toStringHelper(this)
 					.addValue(ident)
 					.addValue(op == null ? "in" : op.string)
 					.addValue(valueToString(value))
@@ -1017,7 +999,7 @@ public class Select extends Query1 {
 
 		@Override
 		public String toString() {
-			return Objects.toStringHelper(this)
+			return MoreObjects.toStringHelper(this)
 					.addValue(type)
 					.addValue(org + ".." + end)
 					.addValue(valuesToString(values))
@@ -1051,7 +1033,7 @@ public class Select extends Query1 {
 
 		@Override
 		public String toString() {
-			return Objects.toStringHelper(this)
+			return MoreObjects.toStringHelper(this)
 					.addValue(x == null ? "null" : valueToString(x))
 					.addValue(d)
 					.toString();
