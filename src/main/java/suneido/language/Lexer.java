@@ -49,7 +49,7 @@ public class Lexer {
 
 	// Simpler to calculate on demand rather than track during lexing
 	public int getLineNumber() {
-		return 1 + cm_nl.countIn(source);
+		return 1 + cm_nl.countIn(source.substring(0, prev));
 	}
 
 	public int getColumnNumber() {
