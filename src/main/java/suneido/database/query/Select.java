@@ -16,25 +16,12 @@ import static suneido.compiler.Token.ISNT;
 import static suneido.intfc.database.Record.MAX_FIELD;
 import static suneido.intfc.database.Record.MIN_FIELD;
 import static suneido.util.ByteBuffers.bufferUcompare;
-import static suneido.util.Util.addAllUnique;
-import static suneido.util.Util.concat;
-import static suneido.util.Util.difference;
-import static suneido.util.Util.intersect;
-import static suneido.util.Util.listToCommas;
-import static suneido.util.Util.listToParens;
-import static suneido.util.Util.nil;
-import static suneido.util.Util.setUnion;
-import static suneido.util.Util.startsWith;
+import static suneido.util.Util.*;
 import static suneido.util.Verify.verify;
 import gnu.trove.set.hash.TIntHashSet;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import suneido.SuException;
 import suneido.compiler.Token;
@@ -54,6 +41,7 @@ import suneido.runtime.Pack;
 import suneido.util.ByteBuffers;
 import suneido.util.CommaStringBuilder;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 
@@ -940,7 +928,7 @@ public class Select extends Query1 {
 
 		@Override
 		public String toString() {
-			return Objects.toStringHelper(this)
+			return MoreObjects.toStringHelper(this)
 					.addValue(ident)
 					.addValue(op == null ? "in" : op.string)
 					.addValue(valueToString(value))
@@ -1017,7 +1005,7 @@ public class Select extends Query1 {
 
 		@Override
 		public String toString() {
-			return Objects.toStringHelper(this)
+			return MoreObjects.toStringHelper(this)
 					.addValue(type)
 					.addValue(org + ".." + end)
 					.addValue(valuesToString(values))
@@ -1051,7 +1039,7 @@ public class Select extends Query1 {
 
 		@Override
 		public String toString() {
-			return Objects.toStringHelper(this)
+			return MoreObjects.toStringHelper(this)
 					.addValue(x == null ? "null" : valueToString(x))
 					.addValue(d)
 					.toString();

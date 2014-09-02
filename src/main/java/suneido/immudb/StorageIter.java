@@ -7,7 +7,7 @@ package suneido.immudb;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 /**
  * Iterate through data commits or index persists.
@@ -137,7 +137,7 @@ class StorageIter {
 
 	@Override
 	public String toString() {
-		return Objects.toStringHelper(this)
+		return MoreObjects.toStringHelper(this)
 				.add("adr", adr)
 				.add("eof", eof())
 				.toString();

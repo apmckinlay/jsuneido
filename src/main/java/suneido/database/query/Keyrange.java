@@ -7,6 +7,7 @@ package suneido.database.query;
 import static suneido.Suneido.dbpkg;
 import suneido.intfc.database.Record;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 public class Keyrange {
@@ -23,7 +24,7 @@ public class Keyrange {
 
 	@Override
 	public String toString() {
-		return Objects.toStringHelper(this)
+		return MoreObjects.toStringHelper(this)
 			.add("org", org)
 			.add("end", end)
 			.toString();

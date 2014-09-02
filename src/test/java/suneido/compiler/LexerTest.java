@@ -43,10 +43,48 @@ public class LexerTest {
 	}
 
 	@Test
+	public void numberEnding() {
+		check("100.Times", NUMBER, DOT, IDENTIFIER);
+		check("#20090216.EndOfMonth", HASH, NUMBER, DOT, IDENTIFIER);
+	}
+
+	@Test
+	public void rangeTo() {
+		check("s[1 .. 2]", IDENTIFIER, L_BRACKET, NUMBER, RANGETO, NUMBER, R_BRACKET);
+		check("x..y", IDENTIFIER, RANGETO, IDENTIFIER);
+		check("x[1..]", IDENTIFIER, L_BRACKET, NUMBER, RANGETO, R_BRACKET);
+		check("x[1 ..]", IDENTIFIER, L_BRACKET, NUMBER, RANGETO, R_BRACKET);
+	}
+
+	@Test
+	public void operators() {
+		check("= == != =~ !~ ! ++ -- < <= > >= << >> <<= >>= | |= & &= ^ ^=" +
+				"+ += - -= $ $= * *= / /= % %= && || and or xor not is isnt",
+				EQ, IS, ISNT, MATCH, MATCHNOT, NOT, INC, DEC,
+				LT, LTE, GT, GTE, LSHIFT, RSHIFT, LSHIFTEQ, RSHIFTEQ,
+				BITOR, BITOREQ, BITAND, BITANDEQ, BITXOR, BITXOREQ,
+				ADD, ADDEQ, SUB, SUBEQ, CAT, CATEQ,
+				MUL, MULEQ, DIV, DIVEQ, MOD, MODEQ, AND, OR,
+				AND, OR, ISNT, NOT, IS, ISNT);
+	}
+
+	private static void check(String source, Token... results) {
+		Lexer lexer = new Lexer(source);
+		List<Token> tokens = Lists.newArrayList();
+		while (true) {
+			Token token = lexer.next();
+			if (token == EOF)
+				break;
+			tokens.add(token);
+		}
+		assertThat(tokens.toArray(new Token[0]), is(results));
+	}
+
+	@Test
 	public void spanComment() {
 		checkAll("@/* stuff \n */@", AT, COMMENT, AT);
-		checkAll("if 1<2\n/**/Print(12)", 
-				IDENTIFIER, WHITE, NUMBER, LT, NUMBER, NEWLINE, COMMENT, 
+		checkAll("if 1<2\n/**/Print(12)",
+				IDENTIFIER, WHITE, NUMBER, LT, NUMBER, NEWLINE, COMMENT,
 				IDENTIFIER, L_PAREN, NUMBER, R_PAREN);
 	}
 
@@ -66,16 +104,11 @@ public class LexerTest {
 		checkAll("\n ", NEWLINE);
 	}
 
-	@Test
-	public void operators() {
-		check("= == != =~ !~ ! ++ -- < <= > >= << >> <<= >>= | |= & &= ^ ^=" +
-				"+ += - -= $ $= * *= / /= % %= && || and or xor not is isnt",
-				EQ, IS, ISNT, MATCH, MATCHNOT, NOT, INC, DEC,
-				LT, LTE, GT, GTE, LSHIFT, RSHIFT, LSHIFTEQ, RSHIFTEQ,
-				BITOR, BITOREQ, BITAND, BITANDEQ, BITXOR, BITXOREQ,
-				ADD, ADDEQ, SUB, SUBEQ, CAT, CATEQ,
-				MUL, MULEQ, DIV, DIVEQ, MOD, MODEQ, AND, OR,
-				AND, OR, ISNT, NOT, IS, ISNT);
+	private static void checkAll(String source, Token... results) {
+		Lexer lexer = new Lexer(source);
+		for (Token result : results)
+			assertEquals(source, result, lexer.nextAll());
+		assertEquals(source, EOF, lexer.nextAll());
 	}
 
 	@Test
@@ -109,6 +142,14 @@ public class LexerTest {
 			for (String[] s : cases)
 				checkValue(s, STRING);
 	}
+	private static void checkValue(String[] source, Token... results) {
+		Lexer lexer = new Lexer(source[0]);
+		for (Token result : results) {
+			assertEquals(source[0], result, lexer.next());
+			assertEquals(source[0], source[1], lexer.getValue());
+		}
+		assertEquals(source[0], EOF, lexer.next());
+	}
 
 	@Test
 	public void identifier() {
@@ -118,39 +159,6 @@ public class LexerTest {
 			for (String s : cases)
 				checkValue(s, IDENTIFIER);
 	}
-
-	@Test
-	public void keywords() {
-		checkKeywords("break case catch continue class callback default " +
-			"dll do else for forever function if new " +
-			"switch struct super return throw try while true false");
-	}
-
-	@Test
-	public void numberEnding() {
-		check("100.Times", NUMBER, DOT, IDENTIFIER);
-		check("#20090216.EndOfMonth", HASH, NUMBER, DOT, IDENTIFIER);
-	}
-
-	@Test
-	public void rangeTo() {
-		check("s[1 .. 2]", IDENTIFIER, L_BRACKET, NUMBER, RANGETO, NUMBER, R_BRACKET);
-		check("x..y", IDENTIFIER, RANGETO, IDENTIFIER);
-		check("x[1..]", IDENTIFIER, L_BRACKET, NUMBER, RANGETO, R_BRACKET);
-		check("x[1 ..]", IDENTIFIER, L_BRACKET, NUMBER, RANGETO, R_BRACKET);
-	}
-
-	private static void check(String source, Token... results) {
-		Lexer lexer = new Lexer(source);
-		List<Token> tokens = Lists.newArrayList();
-		while (true) {
-			Token token = lexer.next();
-			if (token == EOF)
-				break;
-			tokens.add(token);
-		}
-		assertThat(tokens.toArray(new Token[0]), is(results));
-	}
 	private static void checkValue(String source, Token... results) {
 		Lexer lexer = new Lexer(source);
 		for (Token result : results) {
@@ -158,6 +166,13 @@ public class LexerTest {
 			assertEquals(source, lexer.getValue());
 		}
 		assertEquals(source, EOF, lexer.next());
+	}
+
+	@Test
+	public void keywords() {
+		checkKeywords("break case catch continue class callback default " +
+			"dll do else for forever function if new " +
+			"switch struct super return throw try while true false");
 	}
 	private static void checkKeywords(String source) {
 		Lexer lexer = new Lexer(source);
@@ -170,18 +185,25 @@ public class LexerTest {
 		}
 		assertEquals(source, EOF, lexer.next());
 	}
-	private static void checkValue(String[] source, Token... results) {
-		Lexer lexer = new Lexer(source[0]);
-		for (Token result : results) {
-			assertEquals(source[0], result, lexer.next());
-			assertEquals(source[0], source[1], lexer.getValue());
-		}
-		assertEquals(source[0], EOF, lexer.next());
+
+	@Test
+	public void lineNumber() {
+		checkLine("one two three", 1);
+		checkLine("one\ntwo\nthree", 3);
+		checkLine("one '\n' two '\n' three", 3);
+		checkLine("one /*\n*/ two /*\n*/ three", 3);
 	}
-	private static void checkAll(String source, Token... results) {
+
+	private static void checkLine(String source, int i) {
 		Lexer lexer = new Lexer(source);
-		for (Token result : results)
-			assertEquals(source, result, lexer.nextAll());
-		assertEquals(source, EOF, lexer.nextAll());
+		int line = 0;
+		while (true) {
+			line = lexer.getLineNumber();
+			Token token = lexer.next();
+			if (token == EOF)
+				break;
+		}
+		assertEquals(i, line);
 	}
+
 }

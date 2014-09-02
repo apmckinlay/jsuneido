@@ -13,7 +13,7 @@ import javax.annotation.concurrent.Immutable;
 
 import suneido.immudb.Bootstrap.TN;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
@@ -174,7 +174,7 @@ class Table implements suneido.intfc.database.Table {
 
 	@Override
 	public String toString() {
-		return Objects.toStringHelper(this)
+		return MoreObjects.toStringHelper(this)
 				.add("name", name)
 				.add("num", num)
 				.add("columns", columns)

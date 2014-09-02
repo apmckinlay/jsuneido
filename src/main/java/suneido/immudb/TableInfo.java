@@ -8,7 +8,7 @@ import java.util.Arrays;
 
 import suneido.immudb.Bootstrap.TN;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
@@ -127,7 +127,7 @@ class TableInfo extends DbHashTrie.Entry {
 
 	@Override
 	public String toString() {
-		return Objects.toStringHelper(this)
+		return MoreObjects.toStringHelper(this)
 			.add("tblnum", tblnum)
 			.add("nextfield", nextfield)
 			.add("nrows", nrows)

@@ -10,7 +10,7 @@ import javax.annotation.concurrent.Immutable;
 
 import suneido.util.ByteBuffers;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 /**
  * A record stored in a ByteBuffer in the same format as cSuneido.
@@ -105,7 +105,7 @@ class BufRecord extends Record {
 	}
 
 	String toDebugString() {
-		Objects.ToStringHelper tsh = Objects.toStringHelper(this);
+		MoreObjects.ToStringHelper tsh = MoreObjects.toStringHelper(this);
 		tsh.add("type", mode())
 			.add("size", size())
 			.add("length", packSize());

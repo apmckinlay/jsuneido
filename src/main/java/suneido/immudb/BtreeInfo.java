@@ -8,7 +8,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import javax.annotation.concurrent.Immutable;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 /**
  * Holds root, treeLevels, nnodes, totalsize
@@ -48,7 +48,7 @@ class BtreeInfo {
 
 	@Override
 	public String toString() {
-		return Objects.toStringHelper(this)
+		return MoreObjects.toStringHelper(this)
 			.add("root", root)
 			.add("treeLevels", treeLevels)
 			.add("nnodes", nnodes)
