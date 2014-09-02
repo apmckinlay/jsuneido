@@ -155,6 +155,8 @@ public final class NativeLibrary {
 			return LIB_RELPATH + "win32-amd64";
 		case WIN32_X86:
 			return LIB_RELPATH + "win32-x86";
+		case LINUX_AMD64:
+			return LIB_RELPATH + "linux-amd64";
 		default:
 			throw SuInternalError.unhandledEnum(Platform.getPlatform());
 		}
