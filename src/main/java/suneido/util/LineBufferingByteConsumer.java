@@ -72,7 +72,7 @@ public final class LineBufferingByteConsumer implements ObjIntConsumer<byte[]>,
 	//
 
 	private void finishedLine(int start, int end) {
-		lineBuilder.append(buffer, start, end);
+		lineBuilder.append(buffer, start, end - start);
 		lineConsumer.accept(lineBuilder);
 		lineBuilder.delete(0, lineBuilder.length());
 	}
@@ -100,7 +100,7 @@ public final class LineBufferingByteConsumer implements ObjIntConsumer<byte[]>,
 				prevCR = false;
 			}
 		}
-		lineBuilder.append(buffer, start, numChars);
+		lineBuilder.append(buffer, start, numChars - start);
 	}
 
 	//
