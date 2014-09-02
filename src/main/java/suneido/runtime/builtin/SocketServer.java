@@ -43,7 +43,7 @@ public class SocketServer extends SuClass {
 	public static final SocketServer singleton = new SocketServer();
 
 	private SocketServer() {
-		super("SocketServer", null,
+		super("builtin", "SocketServer", null,
 				ImmutableMap.of("CallClass", new CallClass()));
 	}
 

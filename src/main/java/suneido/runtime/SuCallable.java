@@ -8,17 +8,19 @@ import suneido.SuValue;
 import suneido.compiler.AstCompile;
 
 /**
- * Abstract base class for {@link SuBlock}, {@link SuFunction}, 
+ * Abstract base class for {@link SuBlock}, {@link SuFunction},
  * {@link SuMethod}, and {@link SuBoundMethod}
  */
 public abstract class SuCallable extends SuValue {
+	private String library;
+	private String name;
 	protected SuClass myClass;
 	protected FunctionSpec params;
 	protected ContextLayered context;
 	protected boolean isBlock = false;
 
 	/**
-	 * Called by the compiler to complete construction of a newly compiled 
+	 * Called by the compiler to complete construction of a newly compiled
 	 * SuCallable (<i>eg</i> a class method).
 	 *
 	 * @since 20140829
@@ -34,6 +36,16 @@ public abstract class SuCallable extends SuValue {
 		this.params = params;
 		this.context = context;
 		this.isBlock = isBlock;
+		return this;
+	}
+
+	/**
+	 * Called by AstCompile to set the library and name
+	 * that the source code came from.
+	 */
+	public final SuCallable setSource(String library, String name) {
+		this.library = library;
+		this.name = name;
 		return this;
 	}
 
@@ -113,7 +125,12 @@ public abstract class SuCallable extends SuValue {
 
 	@Override
 	public String toString() {
-		return super.typeName().replace(AstCompile.METHOD_SEPARATOR, '.');
+		if (library != null && ! library.isEmpty())
+			return new StringBuilder().append(name)
+					.append(" /* ").append(library).append(" ")
+					.append(typeName().toLowerCase()).append(" */").toString();
+		else
+			return super.typeName().replace(AstCompile.METHOD_SEPARATOR, '.');
 	}
 
 }

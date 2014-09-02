@@ -8,9 +8,6 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import suneido.runtime.SuClass;
-import suneido.runtime.SuInstance;
-
 /**
  * Test for {@link SuInstance}.
  *
@@ -21,7 +18,7 @@ public class SuInstanceTest {
 
 	@Test
 	public void testHashCode() {
-		final SuClass a = new SuClass("a", "a", null);
+		final SuClass a = new SuClass("", "a", "a", null);
 		SuInstance a1 = new SuInstance(a);
 		SuInstance a2 = new SuInstance(a);
 		assertEquals(a1.hashCode(), a2.hashCode());

@@ -100,28 +100,32 @@ public final class JSDI {
 
 	private static native void init();
 
+	public static boolean enabled = true;
+
 	static {
 		Throwable initError_ = null;
 		JSDI instance_ = null;
 		try {
-			Platform platform = Platform.getPlatform();
-			// Load the factory and thunk manager Java classes before trying to
-			// load the native library. This is because if these classes aren't
-			// present at all (e.g. in the JAR), we will error out and simply
-			// end up in a state where the JSDI Java class is properly
-			// initialized at a Java level, but getInstance() throws an
-			// exception because actual initialization is impossible. Whereas,
-			// if you try to load the native library first, it will cause
-			// difficult-to-explain NoClassDefFound errors because init() asks
-			// for global references to various classes that don't exist.
-			Class<? extends Factory> factoryClass = loadFactoryClass(platform);
-			Class<? extends ThunkManager> thunkManagerClass = loadThunkManagerClass(platform);
-			// Now load and initialize the DLL
-			File path = findLibrary(); // throws if can't find
-			System.load(path.getAbsolutePath());
-			init();
-			// Finally instantiate the JSDI instance
-			instance_ = new JSDI(path, factoryClass, thunkManagerClass);
+			if (enabled) {
+				Platform platform = Platform.getPlatform();
+				// Load the factory and thunk manager Java classes before trying to
+				// load the native library. This is because if these classes aren't
+				// present at all (e.g. in the JAR), we will error out and simply
+				// end up in a state where the JSDI Java class is properly
+				// initialized at a Java level, but getInstance() throws an
+				// exception because actual initialization is impossible. Whereas,
+				// if you try to load the native library first, it will cause
+				// difficult-to-explain NoClassDefFound errors because init() asks
+				// for global references to various classes that don't exist.
+				Class<? extends Factory> factoryClass = loadFactoryClass(platform);
+				Class<? extends ThunkManager> thunkManagerClass = loadThunkManagerClass(platform);
+				// Now load and initialize the DLL
+				File path = findLibrary(); // throws if can't find
+				System.load(path.getAbsolutePath());
+				init();
+				// Finally instantiate the JSDI instance
+				instance_ = new JSDI(path, factoryClass, thunkManagerClass);
+			}
 		} catch (Throwable t) {
 			initError_ = t; /* squelch, but it is available if needed */
 		} finally {
