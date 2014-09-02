@@ -11,6 +11,7 @@ import static suneido.util.testing.Throwing.assertThrew;
 import java.util.Arrays;
 import java.util.Collection;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -41,6 +42,11 @@ import suneido.util.testing.Assumption;
 @RunWith(Parameterized.class)
 public class ParseAndCompileCallbackTest {
 	
+	@BeforeClass
+	public static void setupBeforeClass() {
+		Assumption.jsdiIsAvailable(); // Prevent failure on Mac OS, Linux, etc.
+	}
+
 	@Parameters
 	public static Collection<Object[]> isFast() {
 		return Arrays.asList(new Object[][] { { Boolean.FALSE }, { Boolean.TRUE } }); 
