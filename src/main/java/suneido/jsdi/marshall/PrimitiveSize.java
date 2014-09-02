@@ -123,6 +123,9 @@ public final class PrimitiveSize {
 			return 8;
 		case WIN32_X86:
 			return 4;
+		case LINUX_AMD64:
+			// For known platforms which simply don't support JSDI, fall through
+			// to "unknown platform".
 		case UNKNOWN_PLATFORM:
 			return 0;
 		default:
