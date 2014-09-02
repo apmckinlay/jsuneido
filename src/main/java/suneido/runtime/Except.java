@@ -68,7 +68,7 @@ public final class Except extends String2 {
 //      the addition of line numbers to compiled Suneido bytecode [suneido.code
 //      package] seems to breaking reliance on StackTraceElement.equals().
 //          e.g. It seems that before adding line numbers, any two calls in
-//               suneido.code.eval$c£Outer.eval0() would be "equal" but after
+//               suneido.code.eval$cLOuter.eval0() would be "equal" but after
 //               adding line numbers, suneido.code.eval$cLOuter.eval0(:20) is
 //               not equal to suneido.code.eval$cLOuter.eval0(:22).
 		if (e.getCause() != null)
