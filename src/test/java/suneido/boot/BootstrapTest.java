@@ -1,3 +1,7 @@
+/* Copyright 2014 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.boot;
 
 import static org.junit.Assert.assertTrue;
@@ -18,6 +22,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import suneido.util.LineBufferingByteConsumer;
+
 /**
  * Test to ensure that bootstrap process works under JUnit.
  *
@@ -30,10 +36,12 @@ public class BootstrapTest {
 	private static final class LineCollector extends OutputStream {
 
 		public final ArrayList<String> lines = new ArrayList<String>();
-		private final char[] buffer = new char[4096];
-		private static final char[] eolSeq = System.lineSeparator()
-				.toCharArray();
-		private int pos = 0;
+		private final LineBufferingByteConsumer lbbc = new LineBufferingByteConsumer(
+				(CharSequence cs) -> {
+					if (null != cs) {
+						lines.add(cs.toString());
+					}
+				});
 
 		public boolean has(String pattern) {
 			final Pattern pattern_ = Pattern.compile(pattern);
@@ -46,42 +54,16 @@ public class BootstrapTest {
 		}
 
 		@Override
-		public void flush() {
-			int eolPos = 0;
-			int lineStart = 0;
-			for (int k = 0; k < pos; ++k) {
-				if (buffer[k] == eolSeq[eolPos]) {
-					++eolPos;
-					if (eolSeq.length == eolPos) {
-						lines.add(new String(buffer, lineStart, k - lineStart
-								- eolPos + 1));
-						lineStart = k + 1;
-					}
-				} else {
-					eolPos = 0;
-				}
-			}
-			if (lineStart < pos) {
-				System.arraycopy(buffer, lineStart, buffer, 0, pos - lineStart);
-			}
-			pos = 0;
-		}
-
-		@Override
 		public void close() throws IOException {
 			super.close(); // Will flush
-			if (0 < pos) {
-				lines.add(new String(buffer, 0, pos));
-			}
-			pos = -1;
+			lbbc.close();
 		}
 
 		@Override
 		public void write(int arg0) throws IOException {
-			buffer[pos++] = (char) arg0;
-			if (buffer.length == pos) {
-				flush();
-			}
+			byte[] b = new byte[1];
+			b[0] = (byte) arg0;
+			lbbc.accept(b, 1);
 		}
 
 	}
@@ -128,7 +110,8 @@ public class BootstrapTest {
 		if (null == initialSkipBoot) {
 			System.clearProperty(Bootstrap.SKIP_BOOT_PROPERTY_NAME);
 		} else {
-			System.setProperty(Bootstrap.SKIP_BOOT_PROPERTY_NAME, initialSkipBoot);
+			System.setProperty(Bootstrap.SKIP_BOOT_PROPERTY_NAME,
+					initialSkipBoot);
 		}
 		collector.close();
 	}
@@ -152,7 +135,7 @@ public class BootstrapTest {
 	@Test
 	public void testHelp() throws IOException {
 		ArrayList<String> args = new ArrayList<String>();
-		if (! "".equals(debugOption)) {
+		if (!"".equals(debugOption)) {
 			args.add(Bootstrap.DEBUG_OPTION);
 			args.add(debugOption);
 		}

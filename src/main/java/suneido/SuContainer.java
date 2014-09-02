@@ -5,7 +5,7 @@
 package suneido;
 
 import static suneido.Suneido.dbpkg;
-import static suneido.language.Numbers.toBigDecimal;
+import static suneido.runtime.Numbers.toBigDecimal;
 import static suneido.util.Verify.verify;
 
 import java.math.BigDecimal;
@@ -18,11 +18,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 import suneido.database.query.Header;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.RecordBuilder;
-import suneido.language.Ops;
-import suneido.language.Pack;
-import suneido.language.Range;
-import suneido.language.SuInstance;
-import suneido.language.builtin.ContainerMethods;
+import suneido.runtime.Ops;
+import suneido.runtime.Pack;
+import suneido.runtime.Range;
+import suneido.runtime.SuInstance;
+import suneido.runtime.builtin.ContainerMethods;
 import suneido.util.NullIterator;
 import suneido.util.PairStack;
 import suneido.util.Util;

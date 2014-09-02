@@ -16,9 +16,9 @@ import suneido.database.query.Row;
 import suneido.database.server.DbmsTran;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.RecordBuilder;
-import suneido.language.Pack;
-import suneido.language.builtin.RecordMethods;
-import suneido.language.builtin.SuTransaction;
+import suneido.runtime.Pack;
+import suneido.runtime.builtin.RecordMethods;
+import suneido.runtime.builtin.SuTransaction;
 
 /**
  * Implements a new version of SuRecord

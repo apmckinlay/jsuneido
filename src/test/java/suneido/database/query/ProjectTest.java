@@ -17,10 +17,10 @@ import java.util.List;
 import org.junit.Test;
 
 import suneido.Suneido;
+import suneido.compiler.Compiler;
 import suneido.database.server.ServerData;
 import suneido.intfc.database.Database;
 import suneido.intfc.database.Transaction;
-import suneido.language.Compiler;
 
 public class ProjectTest {
 	private final ServerData serverData = new ServerData();

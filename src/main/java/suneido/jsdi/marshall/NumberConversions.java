@@ -8,13 +8,13 @@ import java.math.BigDecimal;
 
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.JSDIException;
-import suneido.language.Numbers;
-import suneido.language.Ops;
+import suneido.runtime.Numbers;
+import suneido.runtime.Ops;
 
 /**
  * <p>
  * Supplementary number conversions not provided by {@link Ops}
- * and {@link suneido.language.Numbers}.
+ * and {@link suneido.runtime.Numbers}.
  * </p>
  * <p>
  * <strong>NOTE</strong>: The methods in this class make no attempt to respect

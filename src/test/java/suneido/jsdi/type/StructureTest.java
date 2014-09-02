@@ -17,14 +17,14 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import suneido.compiler.Compiler;
 import suneido.jsdi.Buffer;
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.JSDI;
 import suneido.jsdi.JSDIException;
 import suneido.jsdi.SimpleContext;
-import suneido.language.Compiler;
-import suneido.language.ContextLayered;
-import suneido.language.Numbers;
+import suneido.runtime.ContextLayered;
+import suneido.runtime.Numbers;
 import suneido.util.testing.Assumption;
 
 /**
@@ -32,7 +32,7 @@ import suneido.util.testing.Assumption;
  *
  * @author Victor Schappert
  * @since 20130703
- * @see suneido.language.ParseAndCompileStructTest
+ * @see suneido.compiler.ParseAndCompileStructTest
  * @see suneido.jsdi.abi.x86.StructureTestX86
  * @see suneido.jsdi.abi.amd64.StructureTest64
  */

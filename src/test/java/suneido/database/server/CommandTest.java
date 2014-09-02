@@ -29,8 +29,8 @@ import suneido.database.query.Header;
 import suneido.database.query.Row;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.RecordBuilder;
-import suneido.language.Ops;
-import suneido.language.Pack;
+import suneido.runtime.Ops;
+import suneido.runtime.Pack;
 import suneido.util.NetworkOutput;
 
 public class CommandTest {

@@ -9,7 +9,7 @@ import gnu.trove.list.array.TIntArrayList;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
-import suneido.language.Pack;
+import suneido.runtime.Pack;
 
 class RecordBuilder implements suneido.intfc.database.RecordBuilder {
 	private final ArrayList<ByteBuffer> bufs = new ArrayList<>();

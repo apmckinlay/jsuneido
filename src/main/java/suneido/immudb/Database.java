@@ -12,7 +12,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import suneido.immudb.DbHashTrie.Entry;
 import suneido.immudb.DbHashTrie.IntEntry;
 import suneido.intfc.database.DatabasePackage.Status;
-import suneido.language.Triggers;
+import suneido.runtime.Triggers;
 import suneido.util.FileUtils;
 
 import com.google.common.base.MoreObjects;

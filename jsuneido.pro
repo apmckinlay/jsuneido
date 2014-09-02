@@ -17,7 +17,7 @@
 }
 
 -keep class suneido.immudb.BtreeKey
--keep class suneido.language.ParseFunction$Context
+-keep class suneido.compiler.ParseFunction$Context
 
 -keep class org.objectweb.asm.MethodVisitor
 

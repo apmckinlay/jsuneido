@@ -13,8 +13,8 @@ import suneido.jsdi.marshall.MarshallPlanBuilder;
 import suneido.jsdi.marshall.Marshaller;
 import suneido.jsdi.marshall.ObjectConversions;
 import suneido.jsdi.marshall.PrimitiveSize;
-import suneido.language.Context;
-import suneido.language.Ops;
+import suneido.runtime.Context;
+import suneido.runtime.Ops;
 
 /**
  * <p>

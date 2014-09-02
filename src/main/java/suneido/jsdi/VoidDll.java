@@ -7,7 +7,7 @@ package suneido.jsdi;
 import suneido.jsdi.type.Type;
 import suneido.jsdi.type.TypeList;
 import suneido.jsdi.type.VoidType;
-import suneido.language.Args;
+import suneido.runtime.Args;
 
 /**
  * <p>

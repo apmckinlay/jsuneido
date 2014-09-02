@@ -1,20 +1,24 @@
+/* Copyright 2014 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.boot;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintStream;
 import java.lang.ProcessBuilder.Redirect;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Predicate;
+import java.util.function.Consumer;
+import java.util.function.ObjIntConsumer;
 
 import suneido.SuInternalError;
 import suneido.Suneido;
-import suneido.debug.Debug;
-import suneido.util.FilteredStreamEchoer;
+import suneido.debug.DebugUtil;
+import suneido.util.LineBufferingByteConsumer;
 
 import com.google.common.base.Joiner;
 
@@ -66,8 +70,9 @@ public final class Bootstrap {
 			}
 			// Process the debug option
 			if (DEBUG_OPTION_ALL.equals(debugOption)) {
-				try {
-					ArrayList<String> fatals = new ArrayList<String>();
+				final StderrEchoer stderrEchoer = new StderrEchoer();
+				try (LineBufferingByteConsumer stderrConsumer = new LineBufferingByteConsumer(
+						stderrEchoer)) {
 					// Start a new JVM, collecting the exit code. Echo the new
 					// process's stdout to our stdout, but filter out phrases
 					// relating to the bootstrapping process itself. Echo the
@@ -75,15 +80,13 @@ public final class Bootstrap {
 					// whether error messages printed to stderr indicate a fatal
 					// for the new JVM startup that we can recover from by
 					// falling back to running Suneido from this JVM.
-					int exitCode = runSuneidoInNewJVM(args, true,
-							(String x) -> {
-								if (isFatalErrorPreventingNewJVMStartup(x))
-									fatals.add(x);
-								return true; // Always echo stderr
-						});
-					if (0 != exitCode) { 
-						if (! fatals.isEmpty()) {
-							for (String fatal : fatals) {
+					int exitCode = runSuneidoInNewJVM(args, true, (byte[] b,
+							int n) -> {
+						System.out.write(b, 0, n);
+					}, stderrConsumer);
+					if (0 != exitCode) {
+						if (!stderrEchoer.fatalErrors.isEmpty()) {
+							for (String fatal : stderrEchoer.fatalErrors) {
 								Suneido.errlog("bootstrapper can't start new JVM: "
 										+ fatal);
 							}
@@ -105,33 +108,95 @@ public final class Bootstrap {
 	/**
 	 * <p>
 	 * Synchronously runs Suneido as a child process in its own JVM and returns
-	 * the process exit code.
+	 * the process exit code. This method therefore blocks until the child
+	 * process completes.
 	 * </p>
-	 * TODO !! FINISH DOCUMENTING
-	 * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! TODO !! NEED
-	 * TO TAKE FULL DEBUGGING OPTIONS *OUT* OF SUB-JVM... !!!! TODO !! VERIFY
-	 * THAT ExePath BUILTIN WORKS ...
+	 *
+	 * <p>
+	 * The child process standard I/O streams are handled in the following way:
+	 * <dt>
+	 * <code>stdin</code></dt>
+	 * <dd>
+	 * The child process {@link Redirect#INHERIT inherits} this process'
+	 * standard input stream at an operating system level. In most conceivable
+	 * situations, this means the child process will simply receive and process
+	 * all the input on the parent process' <code>stdin</code>.</dd>
+	 * <dt>
+	 * <code>stdout</code></dt>
+	 * <dd>
+	 * The child process inherits this process' standard output stream iff
+	 * {@code stdoutConsumer} is {@code null}. If {@code stdoutConsumer} is not
+	 * {@code null}, a thread in this process reads the child process' standard
+	 * output stream and passes the bytes to {@code stdoutConsumer}. This
+	 * behaviour is useful if this JVM needs to examine the child process
+	 * output.
+	 * <dt>
+	 * <code>stderr</code></dt>
+	 * <dd>
+	 * The child process' standard error stream is treated the same as
+	 * {@code stdout} , except that the relevant consumer is
+	 * {@code stderrConsumer}.
+	 * </p>
 	 * 
 	 * @param args
+	 *            Command-line arguments for {@link Suneido#main(String[])
+	 *            Suneido.main(...)} in the child JVM
 	 * @param isFullDebugging
-	 * @return
+	 *            Whether full debugging is required in the child process (this
+	 *            may result in the child process being started with an
+	 *            appropriate JVMTI agent)
+	 * @param stdoutConsumer
+	 *            Should be {@code null} if the child process should inherit
+	 *            this process' standard error stream, or a non-{@code null}
+	 *            value if this process should simply read the child's
+	 *            {@code stdout} stream and pass the bytes to
+	 *            {@code stdoutConsumer}
+	 * @param stderrConsumer
+	 *            Should be {@code null} if the child process should inherit
+	 *            this process' standard error stream, or a non-{@code null}
+	 *            value if this process should simply read the child's
+	 *            {@code stderr} stream and pass the bytes to
+	 *            {@code stderrConsumer}
+	 * @return Exit code of the child JVM
+	 * @throws SuInternalError
+	 *             If starting the child JVM or reading one of its streams
+	 *             causes an input/output exception or if the current thread is
+	 *             interrupted while waiting for the child process to start or
+	 *             while waiting for a stream reading thread to finish
 	 */
 	public static int runSuneidoInNewJVM(String[] args,
-			boolean isFullDebugging, Predicate<String> stderrFilter) {
+			boolean isFullDebugging, ObjIntConsumer<byte[]> stdoutConsumer,
+			ObjIntConsumer<byte[]> stderrConsumer) {
 		final ProcessBuilder builder = runSuneidoInNewJVMBuilder(args,
 				isFullDebugging);
-		final ArrayList<Thread> echoThreads = new ArrayList<Thread>(2);
 		builder.redirectInput(Redirect.INHERIT);
-		if (null == stderrFilter) {
+		if (null == stdoutConsumer) {
+			builder.redirectOutput(Redirect.INHERIT);
+		}
+		if (null == stderrConsumer) {
 			builder.redirectError(Redirect.INHERIT);
 		}
 		try {
 			Process process = builder.start();
-			startEchoThread(echoThreads, process.getErrorStream(),
-					stderrFilter, System.err); // Only if not inheriting stderr
-			synchronouslyEcho(process.getInputStream());
-			for (final Thread thread : echoThreads) {
-				thread.join();
+			ObjIntConsumer<byte[]> syncConsumer = null;
+			InputStream syncConsumerStream = null;
+			Thread asyncConsumer = null;
+			if (null != stdoutConsumer) {
+				syncConsumer = stdoutConsumer;
+				syncConsumerStream = process.getInputStream();
+				if (null != stderrConsumer) {
+					asyncConsumer = asynchronouslyConsume(stderrConsumer,
+							process.getErrorStream());
+				}
+			} else if (null != stderrConsumer) {
+				syncConsumer = stderrConsumer;
+				syncConsumerStream = process.getErrorStream();
+			}
+			if (null != syncConsumer) {
+				synchronouslyConsume(syncConsumer, syncConsumerStream);
+			}
+			if (null != asyncConsumer) {
+				asyncConsumer.join();
 			}
 			return process.waitFor();
 		} catch (IOException e) {
@@ -168,9 +233,12 @@ public final class Bootstrap {
 		// reason if that if you are trying to debug the parent process in, say,
 		// Eclipse, you don't want to deal with the child process erroring out
 		// due to a duplicate port. Another reason is there's no point loading
-		// agents unless needed.
+		// agents unless needed. Also strip out any attempt to set the JDWP
+		// debug port property.
 		for (final String jvmArgument : jvmArguments) {
-			if (!jvmArgument.startsWith("-agent")) {
+			if (!jvmArgument.startsWith("-agent")
+					&& !jvmArgument.startsWith("-D"
+							+ DebugUtil.JDWP_PORT_PROP_NAME)) {
 				result.add(jvmArgument);
 			}
 		}
@@ -211,14 +279,14 @@ public final class Bootstrap {
 		// Start the JVM with the appropriate agent if full debugging support is
 		// required.
 		if (isFullDebugging) {
-			final File jvmtiAgentPath = Debug.getJVMTIAgentPath();
-			String jvmAgentArg = null;
+			final File jvmtiAgentPath = DebugUtil.getJVMTIAgentPath();
 			if (null == jvmtiAgentPath) {
-				jvmAgentArg = Debug.getJDWPAgentArg();
+				String jdwpServerPort = DebugUtil.getFreeJDWPAgentServerPort();
+				jvmArgs.add(DebugUtil.getJDWPAgentArg(jdwpServerPort));
+				jvmArgs.add(DebugUtil.getJDWPPortPropertyArg(jdwpServerPort));
 			} else {
-				jvmAgentArg = "-agentpath:" + jvmtiAgentPath.getAbsolutePath();
+				jvmArgs.add("-agentpath:" + jvmtiAgentPath.getAbsolutePath());
 			}
-			jvmArgs.add(jvmAgentArg);
 		}
 		// Create the full process builder argument list.
 		String[] allArgs = makeJavaArgs(makeJavaCmd(), jvmArgs, args);
@@ -226,49 +294,73 @@ public final class Bootstrap {
 		return new ProcessBuilder(allArgs);
 	}
 
-	private static void startEchoThread(ArrayList<Thread> echoThreads,
-			InputStream in, Predicate<String> filter, PrintStream out) {
-		if (null != filter) {
-			final Thread t = new Thread(new FilteredStreamEchoer(in, filter,
-					out));
-			echoThreads.add(t);
-			t.start();
-		}
+	private static Thread asynchronouslyConsume(
+			ObjIntConsumer<byte[]> consumer, InputStream inputStream) {
+		Thread thread = new Thread(
+				() -> {
+					try {
+						synchronouslyConsume(consumer, inputStream);
+					} catch (IOException e) {
+						Suneido.errlog(
+								"caught IOException in asynchronous stream consumer thread",
+								e);
+					}
+				});
+		thread.start();
+		return thread;
 	}
 
-	private static void synchronouslyEcho(InputStream inputStream) throws IOException {
+	private static void synchronouslyConsume(ObjIntConsumer<byte[]> consumer,
+			InputStream inputStream) throws IOException {
 		final byte[] buffer = new byte[1024];
 		while (true) {
 			final int available = inputStream.available();
 			if (available < 2) {
 				int b = inputStream.read();
 				if (b < 0) {
+					consumer.accept(buffer, 0);
 					return; // EOF
 				} else {
-					System.out.write(b);
+					buffer[0] = (byte) b;
+					consumer.accept(buffer, 1);
 				}
 			} else {
 				final int read = inputStream.read(buffer, 0,
-						Math.max(available, buffer.length));
+						Math.min(available, buffer.length));
 				if (read < 0) {
+					consumer.accept(buffer, 0);
 					return; // EOF
 				} else {
-					System.out.write(buffer, 0, read);
+					assert 0 < read;
+					consumer.accept(buffer, read);
 				}
 			}
 		}
 	}
 
-	private static boolean isFatalErrorPreventingNewJVMStartup(String message) {
-		if (message.startsWith("FATAL")) {
-			if (message.startsWith("FATAL ERROR in native method: JDWP"))
-				return true;
+	private static final class StderrEchoer implements Consumer<CharSequence> {
+		public boolean printedAtLeastOneLine = false;
+		public final ArrayList<String> fatalErrors = new ArrayList<String>();
+
+		public void accept(CharSequence message) {
+			if (null != message) {
+				final String strMessage = message.toString();
+				if (printedAtLeastOneLine) {
+					System.err.println();
+				} else {
+					printedAtLeastOneLine = true;
+				}
+				System.err.print(strMessage);
+				System.err.flush();
+				if (strMessage.startsWith("FATAL")) {
+					fatalErrors.add(strMessage);
+				}
+			}
 		}
-		return false;
 	}
 
 	//
-	// Constants
+	// CONSTANTS
 	//
 
 	/**

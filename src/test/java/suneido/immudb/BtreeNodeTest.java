@@ -19,7 +19,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import suneido.language.Ops;
+import suneido.runtime.Ops;
 
 import com.google.common.collect.Lists;
 

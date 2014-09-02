@@ -11,7 +11,7 @@ import suneido.jsdi.marshall.MarshallPlan;
 import suneido.jsdi.marshall.Marshaller;
 import suneido.jsdi.marshall.ReturnTypeGroup;
 import suneido.jsdi.type.Type;
-import suneido.language.Args;
+import suneido.runtime.Args;
 
 /**
  * Generic implementation of {@code dll}.

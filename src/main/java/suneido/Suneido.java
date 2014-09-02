@@ -14,13 +14,15 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
+import suneido.compiler.Compiler;
 import suneido.database.server.DbmsServer;
+import suneido.debug.DebugManager;
+import suneido.debug.DebugModel;
 import suneido.intfc.database.Database;
 import suneido.intfc.database.DatabasePackage;
 import suneido.jsdi.JSDI;
-import suneido.language.Compiler;
-import suneido.language.ContextLayered;
-import suneido.language.Contexts;
+import suneido.runtime.ContextLayered;
+import suneido.runtime.Contexts;
 import suneido.util.Print;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -41,7 +43,8 @@ public class Suneido {
 
 	public static void main(String[] args) {
 		ClassLoader.getSystemClassLoader().setPackageAssertionStatus("suneido", true);
-		cmdlineoptions = CommandLineOptions.parse(args);
+		cmdlineoptions = CommandLineOptions.parse(DebugModel.ALL, args);
+		DebugManager.getInstance().setDebugModel(cmdlineoptions.debugModel);
 		if (cmdlineoptions.max_update_tran_sec != 0)
 			dbpkg.setOption("max_update_tran_sec", cmdlineoptions.max_update_tran_sec);
 		if (cmdlineoptions.max_writes_per_tran != 0)

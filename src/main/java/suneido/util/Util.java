@@ -9,7 +9,7 @@ import java.util.*;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import suneido.language.Ops;
+import suneido.runtime.Ops;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;

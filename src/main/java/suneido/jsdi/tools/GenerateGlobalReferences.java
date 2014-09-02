@@ -23,7 +23,7 @@ import suneido.jsdi.com.COMException;
 import suneido.jsdi.com.COMobject;
 import suneido.jsdi.suneido_protocol.InternetProtocol;
 import suneido.jsdi.type.Callback;
-import suneido.language.Numbers;
+import suneido.runtime.Numbers;
 
 /**
  * Automatic C++ code generator for the JSDI {@code global_refs} translation

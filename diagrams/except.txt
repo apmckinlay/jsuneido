@@ -7,6 +7,12 @@ User-friendly stack trace project
 JAR size before refactor, 20140622: 1692778 (1.61 MB)
 JAR size after Phase 2, 20140622: 1462413 (1.39 MB) (13.61% reduction in size)
 
+===================
+TO DO BEFORE DEPLOY
+===================
+Re-enable RethrowCallstackTest() in jSuneido (with BuiltDate() guard)
+
+
 ========
 20140826
 ========

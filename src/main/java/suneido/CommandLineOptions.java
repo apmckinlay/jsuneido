@@ -17,7 +17,7 @@ public class CommandLineOptions {
 	public Action action;
 	public String actionArg = null;
 	public int serverPort = -1;
-	public DebugModel debugModel = DebugModel.ALL;
+	public DebugModel debugModel;
 	public String remainder = "";
 	public String impersonate = WhenBuilt.when();
 	private static final int DEFAULT_TIMEOUT = 4 * 60; // 4 hours
@@ -27,10 +27,15 @@ public class CommandLineOptions {
 	public int max_writes_per_tran = 0;
 
 	public static CommandLineOptions parse(String... args) {
-		return new CommandLineOptions(args).parse();
+		return parse(DebugModel.STACK, args);
 	}
 
-	public CommandLineOptions(String[] args) {
+	public static CommandLineOptions parse(DebugModel defaultDebugModel, String... args) {
+		return new CommandLineOptions(defaultDebugModel, args).parse();
+	}
+
+	public CommandLineOptions(DebugModel defaultDebugModel, String[] args) {
+		this.debugModel = defaultDebugModel;
 		this.args = args;
 	}
 

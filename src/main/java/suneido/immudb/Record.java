@@ -9,8 +9,8 @@ import static suneido.SuInternalError.unreachable;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 
-import suneido.language.Ops;
-import suneido.language.Pack;
+import suneido.runtime.Ops;
+import suneido.runtime.Pack;
 import suneido.util.ByteBuffers;
 import suneido.util.CommaStringBuilder;
 

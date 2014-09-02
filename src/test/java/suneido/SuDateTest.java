@@ -13,7 +13,7 @@ import java.nio.ByteBuffer;
 import org.junit.Test;
 
 import suneido.SuDate.SuDateBad;
-import suneido.language.Pack;
+import suneido.runtime.Pack;
 
 public class SuDateTest {
 

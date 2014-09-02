@@ -17,7 +17,7 @@ import org.junit.Test;
 
 import suneido.database.query.Query.Dir;
 import suneido.intfc.database.Transaction;
-import suneido.language.Ops;
+import suneido.runtime.Ops;
 
 import com.google.common.collect.Lists;
 

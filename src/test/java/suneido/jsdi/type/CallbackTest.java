@@ -20,14 +20,14 @@ import org.junit.runners.Parameterized.Parameters;
 
 import suneido.SuContainer;
 import suneido.SuException;
+import suneido.compiler.Compiler;
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.JSDI;
 import suneido.jsdi.JSDIException;
 import suneido.jsdi.SimpleContext;
 import suneido.jsdi.ThunkManager;
 import suneido.jsdi.type.Callback;
-import suneido.language.Compiler;
-import suneido.language.ContextLayered;
+import suneido.runtime.ContextLayered;
 import suneido.util.testing.Assumption;
 
 /**
@@ -35,7 +35,7 @@ import suneido.util.testing.Assumption;
  *
  * @author Victor Schappert
  * @since 20130807
- * @see suneido.language.ParseAndCompileCallbackTest
+ * @see suneido.compiler.ParseAndCompileCallbackTest
  */
 @DllInterface
 @RunWith(Parameterized.class)

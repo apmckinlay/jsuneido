@@ -7,10 +7,10 @@ package suneido.jsdi;
 import java.util.HashMap;
 
 import suneido.SuException;
-import suneido.language.Builtins;
-import suneido.language.Compiler;
-import suneido.language.ContextLayered;
-import suneido.language.Contexts;
+import suneido.compiler.Compiler;
+import suneido.runtime.Builtins;
+import suneido.runtime.ContextLayered;
+import suneido.runtime.Contexts;
 
 /**
  * Trivial implementation of Context for testing purposes.

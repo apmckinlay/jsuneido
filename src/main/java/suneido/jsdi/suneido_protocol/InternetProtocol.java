@@ -15,8 +15,8 @@ import suneido.SuException;
 import suneido.Suneido;
 import suneido.jsdi.Buffer;
 import suneido.jsdi.DllInterface;
-import suneido.language.Except;
-import suneido.language.Ops;
+import suneido.runtime.Except;
+import suneido.runtime.Ops;
 
 /**
  * <p>

@@ -18,7 +18,7 @@ import suneido.database.server.DbmsTran;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.RecordBuilder;
 import suneido.intfc.database.Transaction;
-import suneido.language.Pack;
+import suneido.runtime.Pack;
 
 import com.google.common.base.MoreObjects;
 

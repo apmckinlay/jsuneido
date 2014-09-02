@@ -23,9 +23,9 @@ import suneido.database.server.Dbms.HeaderAndRow;
 import suneido.database.server.Dbms.LibGet;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.RecordBuilder;
-import suneido.language.Ops;
-import suneido.language.Pack;
-import suneido.language.builtin.ServerEval;
+import suneido.runtime.Ops;
+import suneido.runtime.Pack;
+import suneido.runtime.builtin.ServerEval;
 import suneido.util.NetworkOutput;
 
 /**
