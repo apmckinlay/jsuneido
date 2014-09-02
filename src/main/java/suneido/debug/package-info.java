@@ -22,8 +22,8 @@
  * a platform-appropriate {@code jsdebug} library.
  * </li>
  * <li>
- * Receive local variables from JVMTI agent via {@link suneido.debug.Locals}
- * class.
+ * Receive stack information, including local variable information, from JVMTI
+ * agent via {@link suneido.debug.StackInfo} class.
  * </li>
  * <li>
  * Convert stack traces from Java to Suneido.

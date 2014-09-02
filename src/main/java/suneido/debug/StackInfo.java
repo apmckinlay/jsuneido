@@ -26,7 +26,7 @@ package suneido.debug;
  * @author Victor Schappert
  * @since 20140813
  */
-public final class Locals {
+public final class StackInfo {
 
 	//
 	// DATA
@@ -40,7 +40,7 @@ public final class Locals {
 	// CONSTRUCTORS
 	//
 
-	public Locals() {
+	public StackInfo() {
 		fetchLocals();
 	}
 
