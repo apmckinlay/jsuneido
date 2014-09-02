@@ -62,6 +62,8 @@ public abstract class SuValue implements Packable {
 				// and functions
 				return s.endsWith("Instance") ? s.substring(24,
 						s.length() - 8) : s.substring(24);
+			} else {
+				return s.substring(16);
 			}
 		}
 		throw new SuInternalError("unrecognized package: " + s);
