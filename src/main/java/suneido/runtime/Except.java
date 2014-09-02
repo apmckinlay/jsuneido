@@ -63,6 +63,14 @@ public final class Except extends String2 {
 	}
 
 	private static void getStack(Throwable e, ArrayList<StackTraceElement> dest) {
+// FIXME [VCS 20140901 debug project]: I'm not sure what this code is expected
+//      to do yet but I'm not sure if it ever worked as designed. Definitely
+//      the addition of line numbers to compiled Suneido bytecode [suneido.code
+//      package] seems to breaking reliance on StackTraceElement.equals().
+//          e.g. It seems that before adding line numbers, any two calls in
+//               suneido.code.eval$c£Outer.eval0() would be "equal" but after
+//               adding line numbers, suneido.code.eval$c£Outer.eval0(:20) is
+//               not equal to suneido.code.eval$c£Outer.eval0(:22).
 		if (e.getCause() != null)
 			getStack(e.getCause(), dest); // bottom up
 		StackTraceElement[] stackTrace = e.getStackTrace();
