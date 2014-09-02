@@ -40,7 +40,7 @@ public class ContextLayered extends Context {
 		for (LibGet libget : TheDbms.dbms().libget(name)) {
 			String src = (String) Pack.unpack(libget.text);
 			try {
-				result = Compiler.compile(name, src, this);
+				result = Compiler.compile(libget.library, name, src, this);
 				// needed inside loop for overloading references
 				set(name, result);
 			} catch (Exception e) {

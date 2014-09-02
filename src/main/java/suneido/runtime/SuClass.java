@@ -23,6 +23,7 @@ import suneido.runtime.builtin.ContainerMethods;
  * Suneido instances are instances of {@link SuInstance}
  */
 public class SuClass extends SuValue {
+	private final String library;
 	private final String name;
 	private final String baseGlobal; // TODO could be int slot
 	private final Map<String, Object> members; // must be synchronized
@@ -34,7 +35,8 @@ public class SuClass extends SuValue {
 	protected Context context = Suneido.context; // TODO pass it in
 
 	@SuppressWarnings("unchecked")
-	public SuClass(String className, String baseGlobal, Object members) {
+	public SuClass(String library, String className, String baseGlobal, Object members) {
+		this.library = library;
 		this.name = className.replace(AstCompile.METHOD_SEPARATOR, '.');
 		this.baseGlobal = baseGlobal;
 		this.members = (Map<String, Object>) (members == null ? Collections.emptyMap() : members);
@@ -285,11 +287,11 @@ public class SuClass extends SuValue {
 		Object x = c.get2(method);
 		return x instanceof SuCallable;
 	}
-	
+
 	public static Object Size(Object self) {
 		return ((SuClass) self).members.size();
 	}
-	
+
 	//==========================================================================
 
 	private static SuClass toClass(Object x) {
@@ -312,7 +314,11 @@ public class SuClass extends SuValue {
 
 	@Override
 	public String toString() {
-		return name;
+		if (library != null && ! library.isEmpty())
+			return new StringBuilder().append(name).append(" /* ")
+					.append(library).append(" class */").toString();
+		else
+			return name;
 	}
 
 	public String toDebugString() {

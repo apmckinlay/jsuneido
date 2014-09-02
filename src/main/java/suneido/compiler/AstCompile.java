@@ -15,35 +15,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.objectweb.asm.Label;
 
-import suneido.SuContainer;
-import suneido.SuDate;
-import suneido.SuException;
-import suneido.SuInternalError;
-import suneido.SuRecord;
-import suneido.jsdi.Dll;
-import suneido.jsdi.DllInterface;
-import suneido.jsdi.Factory;
-import suneido.jsdi.JSDI;
-import suneido.jsdi.StorageType;
-import suneido.jsdi.type.BasicType;
-import suneido.jsdi.type.Callback;
-import suneido.jsdi.type.InOutString;
-import suneido.jsdi.type.InString;
-import suneido.jsdi.type.LateBinding;
-import suneido.jsdi.type.ResourceType;
-import suneido.jsdi.type.StringType;
-import suneido.jsdi.type.Structure;
-import suneido.jsdi.type.Type;
-import suneido.jsdi.type.TypeList;
-import suneido.jsdi.type.VoidType;
-import suneido.runtime.ContextLayered;
-import suneido.runtime.Numbers;
-import suneido.runtime.Ops;
-import suneido.runtime.SuCallable;
-import suneido.runtime.SuClass;
+import suneido.*;
+import suneido.jsdi.*;
+import suneido.jsdi.type.*;
+import suneido.runtime.*;
 
 public class AstCompile {
 	private final PrintWriter pw;
+	private final String library;
 	private final String globalName;
 	/* british pound sign - needs to be valid in identifiers */
 	public static final char METHOD_SEPARATOR = '\u00A3';
@@ -59,16 +38,17 @@ public class AstCompile {
 	private final SuContainer warnings;
 	private final boolean wantLineNumbers;
 
-	public static Object fold(String globalName, PrintWriter pw,
+	public static Object fold(String library, String globalName, PrintWriter pw,
 			ContextLayered context, SuContainer warnings,
 			boolean wantLineNumbers, AstNode ast) {
-		return new AstCompile(globalName, pw, context, warnings,
+		return new AstCompile(library, globalName, pw, context, warnings,
 				wantLineNumbers).fold(ast);
 	}
 
-	private AstCompile(String globalName, PrintWriter pw,
+	private AstCompile(String library, String globalName, PrintWriter pw,
 			ContextLayered context, SuContainer warnings,
 			boolean wantLineNumbers) {
+		this.library = library;
 		this.globalName = globalName;
 		this.pw = pw;
 		this.context = context;
@@ -179,7 +159,7 @@ public class AstCompile {
 			base = context.overload(base);
 		Map<String, Object> members = new HashMap<>();
 		SuClass prevSuClass = suClass;
-		SuClass c = suClass = new SuClass(curName, base, members);
+		SuClass c = suClass = new SuClass(library, curName, base, members);
 		String prevSuClassName = suClassName;
 		suClassName = curName;
 		for (AstNode member : ast.second().children) {
@@ -398,10 +378,10 @@ public class AstCompile {
 			statement(cg, stat, null, i == statements.size() - 1);
 		}
 		try {
-			return cg.end(suClass);
+			return cg.end(suClass).setSource(library, globalName);
 		} catch (Error e) {
 			throw new SuException("error compiling " + curName, e);
-// TODO: should be an SuInternalError but getting less descriptive info that way 
+// TODO: should be an SuInternalError but getting less descriptive info that way
 //			throw new SuInternalError("error compiling " + curName, e);
 		}
 	}

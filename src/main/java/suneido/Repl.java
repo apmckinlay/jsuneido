@@ -63,6 +63,7 @@ public class Repl {
 	}
 
 	public static void main(String[] args) throws Exception {
+		JSDI.enabled = false;
 		Suneido.openDbms();
 		Suneido.cmdlineoptions = CommandLineOptions.parse("eta.go");
 		repl();

@@ -32,31 +32,31 @@ import suneido.runtime.Ops;
 public class Compiler {
 
 	public static Object compile(String name, String src) {
-		return compile(name, src, null, Suneido.context, null,
+		return compile("", name, src, null, Suneido.context, null,
 				wantLineNumbers());
 	}
 
 	public static Object compile(String name, String src, SuContainer warnings) {
-		return compile(name, src, null, Suneido.context, warnings,
+		return compile("", name, src, null, Suneido.context, warnings,
 				wantLineNumbers());
 	}
 
-	public static Object compile(String name, String src, ContextLayered context) {
-		return compile(name, src, null, context, null, wantLineNumbers());
+	public static Object compile(String library, String name, String src, ContextLayered context) {
+		return compile(library, name, src, null, context, null, wantLineNumbers());
 	}
 
 	static Object compile(String name, String src, PrintWriter pw,
 			boolean wantLineNumbers) {
-		return compile(name, src, pw, Suneido.context, null, wantLineNumbers);
+		return compile("", name, src, pw, Suneido.context, null, wantLineNumbers);
 	} // testing only
 
-	private static Object compile(String name, String src, PrintWriter pw,
-			ContextLayered context, SuContainer warnings,
+	private static Object compile(String library, String name, String src,
+			PrintWriter pw, ContextLayered context, SuContainer warnings,
 			boolean wantLineNumbers) {
 		AstNode ast = parse(src);
 		if (pw != null)
 			pw.append(ast.toString() + "\n\n");
-		return AstCompile.fold(name, pw, context, warnings, wantLineNumbers,
+		return AstCompile.fold(library, name, pw, context, warnings, wantLineNumbers,
 				ast);
 	}
 
@@ -77,7 +77,7 @@ public class Compiler {
 	}
 
 	public static Object eval(String s, ContextLayered context) {
-		return Ops.call0(compile("eval", "function () { " + s + "\n}", context));
+		return Ops.call0(compile("", "eval", "function () { " + s + "\n}", context));
 	}
 
 //	public static void main(String[] args) throws IOException {
