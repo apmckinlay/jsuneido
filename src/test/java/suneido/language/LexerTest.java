@@ -185,8 +185,11 @@ public class LexerTest {
 
 	@Test
 	public void lineNumber() {
+		checkLine("", 1);
 		checkLine("one two three", 1);
+		checkLine(". one two three", 1);
 		checkLine("one\ntwo\nthree", 3);
+		checkLine("one\ntwo\nthree.\nfour", 3);
 		checkLine("one '\n' two '\n' three", 3);
 		checkLine("one /*\n*/ two /*\n*/ three", 3);
 	}
@@ -197,7 +200,7 @@ public class LexerTest {
 		while (true) {
 			line = lexer.getLineNumber();
 			Token token = lexer.next();
-			if (token == EOF)
+			if (token == DOT || token == EOF)
 				break;
 		}
 		assertEquals(i, line);

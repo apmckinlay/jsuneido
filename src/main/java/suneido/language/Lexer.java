@@ -16,6 +16,9 @@ public class Lexer {
 	private boolean valueIsSubstr;
 	private Token keyword;
 	private boolean ignoreCase = false;
+	/** lineNum is the line number at lineNumPos */
+	private int lineNum = 1;
+	private int lineNumPos = 0;
 
 	public Lexer(String source) {
 		this.source = source;
@@ -47,9 +50,11 @@ public class Lexer {
 
 	private static CharMatcher cm_nl = CharMatcher.is('\n');
 
-	// Simpler to calculate on demand rather than track during lexing
+	// Simpler to update on demand rather than track during lexing
 	public int getLineNumber() {
-		return 1 + cm_nl.countIn(source.substring(0, prev));
+		lineNum += cm_nl.countIn(source.substring(lineNumPos, prev));
+		lineNumPos = prev;
+		return lineNum;
 	}
 
 	public int getColumnNumber() {
