@@ -26,6 +26,7 @@ import suneido.jsdi.DllInterface;
 import suneido.jsdi.JSDIException;
 import suneido.jsdi.marshall.PrimitiveSize;
 import suneido.runtime.Numbers;
+import suneido.util.testing.Assumption;
 
 /**
  * Test for {@link BasicValue}.
@@ -119,6 +120,7 @@ public class BasicValueTest {
 
 	@Test
 	public void testMarshallOutReturnValuePointer() {
+		Assumption.jsdiIsAvailable(); // Prevent failure on Mac OS, Linux, etc.
 		if (Integer.BYTES == PrimitiveSize.POINTER) {
 			for (BasicType type : PTR_TYPES) {
 				assertEquals(0, bv(type).marshallOutReturnValue(0L, null));
@@ -321,6 +323,7 @@ public class BasicValueTest {
 
 	@Test
 	public void marshallToLong_Boolean_InOpaquePointerType() {
+		Assumption.jsdiIsAvailable(); // Prevent failure on Mac OS, Linux, etc. 
 		for (BasicType ptr_type : PTR_TYPES) {
 			LongMarshallHelper[] arr = { lmh(ptr_type, Boolean.FALSE, 0L),
 					lmh(ptr_type, Boolean.TRUE, 1L) };

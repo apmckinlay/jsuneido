@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -42,6 +43,11 @@ import suneido.util.testing.Assumption;
 @DllInterface
 @RunWith(Parameterized.class)
 public class ParseAndCompileDllTest {
+
+	@BeforeClass
+	public static void setupBeforeClass() {
+		Assumption.jsdiIsAvailable(); // Prevent failure on Mac OS, Linux, etc.
+	}
 
 	@Parameters
 	public static Collection<Object[]> isFast() {
@@ -140,7 +146,7 @@ public class ParseAndCompileDllTest {
 
 	@Test(expected=SuException.class)
 	public void parseNoCommaParams() {
-		parse("dll x y:z(a a_ b b_)"); // weirdly, allowed in CSuneido
+		parse("dll x y:z(a a_ b b_)"); // weirdly, allowed in cSuneido
 	}
 
 	@Test(expected=SuException.class)
