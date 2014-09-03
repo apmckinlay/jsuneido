@@ -102,7 +102,6 @@ public class Suneido {
 		String dbFilename = dbpkg.dbFilename();
 		switch (cmdlineoptions.action) {
 		case REPL:
-			Suneido.openDbms();
 			Repl.repl();
 			break;
 		case SERVER:
@@ -115,7 +114,7 @@ public class Suneido {
 			TheDbms.remote(cmdlineoptions.actionArg, cmdlineoptions.serverPort);
 			scheduleAtFixedRate(TheDbms.closer, 30, TimeUnit.SECONDS);
 			if ("".equals(cmdlineoptions.remainder))
-				Repl.repl();
+				Repl.repl2();
 			else
 				Compiler.eval("Init()");
 			break;
