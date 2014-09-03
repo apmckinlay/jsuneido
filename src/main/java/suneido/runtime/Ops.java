@@ -525,7 +525,7 @@ public final class Ops {
 
 	public static Throwable exception(Object e) {
 		return e instanceof Except
-				? new SuException(((Except) e).getThrowable(), e.toString())
+				? new SuException(e.toString(), ((Except) e).getThrowable(), true)
 				: new SuException(toStr(e));
 	}
 	public static void throwUninitializedVariable() {
