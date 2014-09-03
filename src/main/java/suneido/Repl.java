@@ -37,13 +37,13 @@ import suneido.runtime.Ops;
 public class Repl {
 
 	public static void repl() throws IOException {
-		Compiler.eval("Init()");
+		Compiler.eval("Init()"); // will not return if JSDI
 		PrintWriter out = new PrintWriter(System.out);
 		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 		out.println("Built: " + WhenBuilt.when());
-		if (JSDI.isInitialized()) {
+		if (JSDI.isInitialized())
 			out.println("JSDI: " + JSDI.getInstance().whenBuilt());
-		}
+		out.flush();
 		while (true) {
 			out.print("> ");
 			out.flush();
@@ -63,9 +63,8 @@ public class Repl {
 	}
 
 	public static void main(String[] args) throws Exception {
-		JSDI.enabled = false;
 		Suneido.openDbms();
-		Suneido.cmdlineoptions = CommandLineOptions.parse("eta.go");
+		Suneido.cmdlineoptions = CommandLineOptions.parse("-nojsdi",  "eta.go");
 		repl();
 	}
 

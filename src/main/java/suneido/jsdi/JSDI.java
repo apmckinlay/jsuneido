@@ -12,6 +12,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import suneido.SuInternalError;
+import suneido.Suneido;
 import suneido.boot.NativeLibrary;
 import suneido.boot.Platform;
 import suneido.util.FileFinder.SearchResult;
@@ -100,13 +101,11 @@ public final class JSDI {
 
 	private static native void init();
 
-	public static boolean enabled = true;
-
 	static {
 		Throwable initError_ = null;
 		JSDI instance_ = null;
 		try {
-			if (enabled) {
+			if (Suneido.cmdlineoptions.jsdi) {
 				Platform platform = Platform.getPlatform();
 				// Load the factory and thunk manager Java classes before trying to
 				// load the native library. This is because if these classes aren't
