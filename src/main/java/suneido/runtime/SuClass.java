@@ -313,7 +313,9 @@ public class SuClass extends SuValue {
 	}
 
 	@Override
-	public String toString() {
+	public String display() {
+		if (name.endsWith("$c"))
+			return "/* class */";
 		if (library != null && ! library.isEmpty())
 			return new StringBuilder().append(name).append(" /* ")
 					.append(library).append(" class */").toString();

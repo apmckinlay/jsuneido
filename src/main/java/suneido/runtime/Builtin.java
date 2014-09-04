@@ -300,10 +300,15 @@ class Builtin {
 		public String typeName() {
 			return "Builtin";
 		}
-	
+
 		@Override
 		public String valueName() {
 			return valueName;
+		}
+
+		@Override
+		public String display() {
+			return valueName + " /* builtin function */";
 		}
 
 		@Override

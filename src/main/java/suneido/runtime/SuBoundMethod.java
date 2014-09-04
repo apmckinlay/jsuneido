@@ -59,4 +59,9 @@ public class SuBoundMethod extends SuCallable {
 		return "Method";
 	}
 
+	@Override
+	public String display() {
+		return method.display();
+	}
+
 }

@@ -41,8 +41,8 @@ public class SuBlock extends SuCallable {
 	}
 
 	@Override
-	public String toString() {
-		return "aBlock";
+	public String display() {
+		return "/* block */";
 	}
 
 	@Override

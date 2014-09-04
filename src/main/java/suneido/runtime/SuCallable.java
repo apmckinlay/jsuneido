@@ -13,7 +13,7 @@ import suneido.compiler.AstCompile;
  */
 public abstract class SuCallable extends SuValue {
 	private String library;
-	private String name;
+	protected String name;
 	protected SuClass myClass;
 	protected FunctionSpec params;
 	protected ContextLayered context;
@@ -124,13 +124,18 @@ public abstract class SuCallable extends SuValue {
 	//--------------------------------------------------------------------------
 
 	@Override
-	public String toString() {
+	public String display() {
+		if (isBlock)
+			return "/* block */";
+		String type = super.typeName();
+		if (type.endsWith("$f"))
+			return "/* function */";
+		StringBuilder sb = new StringBuilder();
+		sb.append(type.replace(AstCompile.METHOD_SEPARATOR, '.'));
 		if (library != null && ! library.isEmpty())
-			return new StringBuilder().append(name)
-					.append(" /* ").append(library).append(" ")
-					.append(typeName().toLowerCase()).append(" */").toString();
-		else
-			return super.typeName().replace(AstCompile.METHOD_SEPARATOR, '.');
+			sb.append(" /* ").append(library).append(" ")
+					.append(typeName().toLowerCase()).append(" */");
+		return sb.toString();
 	}
 
 }
