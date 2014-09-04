@@ -8,6 +8,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static suneido.compiler.Compiler.compile;
 import static suneido.compiler.Compiler.eval;
+import static suneido.compiler.ExecuteTest.def;
 import static suneido.compiler.ExecuteTest.test;
 import static suneido.compiler.ExecuteTest.testDisp;
 
@@ -15,7 +16,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import suneido.Suneido;
 import suneido.runtime.Ops;
 
 public class ClassTest {
@@ -32,58 +32,58 @@ public class ClassTest {
 
 	@Test
 	public void test1() {
-		define("A", "class { }");
+		def("A", "class { }");
 		test("new A", "A()");
 
-		define("A", "class { N: 123 }");
+		def("A", "class { N: 123 }");
 		test("A.N", "123");
 		notFound("A.M");
 
-		define("A", "class { F() { 123 } }");
+		def("A", "class { F() { 123 } }");
 		test("A.F()", "123");
 		test("A().F()", "123");
 
-		define("A", "class { F?() { 123 } G!() { 456 } }");
+		def("A", "class { F?() { 123 } G!() { 456 } }");
 		test("A.F?()", "123");
 		test("A.G!()", "456");
 
-		define("A", "class { F() { .G() } G() { 123 } }");
+		def("A", "class { F() { .G() } G() { 123 } }");
 		test("A().F()", "123");
 
-		define("A", "class { F() { .g() } g() { 123 } }");
+		def("A", "class { F() { .g() } g() { 123 } }");
 		test("A().F()", "123");
 
-		define("A", "class { F() { .x } x: 123 }");
+		def("A", "class { F() { .x } x: 123 }");
 		test("A().F()", "123");
 
-		define("A", "class { New(x) { .X = x } }");
+		def("A", "class { New(x) { .X = x } }");
 		test("A(456).X", "456");
 
-		define("A", "class { Default(method) { 'missing: ' $ method } }");
+		def("A", "class { Default(method) { 'missing: ' $ method } }");
 		test("A().F()", "'missing: F'");
 
-		define("A", "class { F(n) { n * 2 } }");
-		define("B", "A { }");
+		def("A", "class { F(n) { n * 2 } }");
+		def("B", "A { }");
 		test("B().F(123)", "246");
 
-		define("A", "class { G() { .x = 456 } }");
-		define("B", "A { F() { .x = 123; .G(); .x } }");
+		def("A", "class { G() { .x = 456 } }");
+		def("B", "A { F() { .x = 123; .G(); .x } }");
 		test("B().F()", "123");
 
-		define("A", "class { G() { .X = 123 } }");
-		define("B", "A { F() { .G(); .X } }");
+		def("A", "class { G() { .X = 123 } }");
+		def("B", "A { F() { .G(); .X } }");
 		test("B().F()", "123");
 
-		define("A", "class { Call() { 123 } CallClass() { 456 } }");
+		def("A", "class { Call() { 123 } CallClass() { 456 } }");
 		test("A()", "456");
 		test("a = new A; a()", "123");
 
-		define("A", "class { N: 123 F() { .N } }");
+		def("A", "class { N: 123 F() { .N } }");
 		test("A.N", "123");
 		test("A.F()", "123");
 		test("A().N", "123");
 		test("A().F()", "123");
-		define("B", "A { G() { .N } }");
+		def("B", "A { G() { .N } }");
 		test("B.N", "123");
 		test("B.F()", "123");
 		test("B.G()", "123");
@@ -91,129 +91,129 @@ public class ClassTest {
 		test("B().F()", "123");
 		test("B().G()", "123");
 
-		define("A", "class { New() { .A = 123 } }");
-		define("B", "A { New() { .B = 456 } }");
+		def("A", "class { New() { .A = 123 } }");
+		def("B", "A { New() { .B = 456 } }");
 		test("b = B(); b.A + b.B", "579");
 
-		define("A", "class { New(n) { .A = n } }");
-		define("B", "A { New() { super(123) } }");
+		def("A", "class { New(n) { .A = n } }");
+		def("B", "A { New() { super(123) } }");
 		test("B().A", "123");
 
-		define("A", "class { New(n) { .A = n } }");
-		define("B", "A { }"); // New args pass through
-		define("C", "B { New(n) { super(123) } }");
+		def("A", "class { New(n) { .A = n } }");
+		def("B", "A { }"); // New args pass through
+		def("C", "B { New(n) { super(123) } }");
 		test("C(123).A", "123");
 
-		define("A", "class { F() { 123 } }");
-		define("B", "A { F() { 456 } G() { super.F() } }");
+		def("A", "class { F() { 123 } }");
+		def("B", "A { F() { 456 } G() { super.F() } }");
 		test("B.G()", "123");
 		test("B().G()", "123");
 
 		// super call in a block
-		define("A", "class { F() { 123 } }");
-		define("B", "A { F() { 456 } G() { b = { super.F() }; b() } }");
+		def("A", "class { F() { 123 } }");
+		def("B", "A { F() { 456 } G() { b = { super.F() }; b() } }");
 		test("B.G()", "123");
 		test("B().G()", "123");
 
-		define("A", "class { B: class { F() { 123 } } }");
+		def("A", "class { B: class { F() { 123 } } }");
 		test("(new A.B).F()", "123");
 		testDisp("new A.B", "A.B()");
 
-		define("A", "class { F() { 123 } N: 123 }");
-		define("B", "A { }");
+		def("A", "class { F() { 123 } N: 123 }");
+		def("B", "A { }");
 		testDisp("A.F", "A.F");
 		testDisp("B.F", "A.F");
 		testDisp("B.N", "123");
 		notFound("B.M");
 
-		define("A", "class { New(args) { super(@args) } }");
+		def("A", "class { New(args) { super(@args) } }");
 
-		define("A", "class { ToString() { 'an A' } }");
+		def("A", "class { ToString() { 'an A' } }");
 		testDisp("A()", "an A");
-		define("A", "class { New(n) { .n = n } ToString() { 'A' $ .n } }");
+		def("A", "class { New(n) { .n = n } ToString() { 'A' $ .n } }");
 		testDisp("A(123)", "A123");
 
-		define("A", "class { CallClass() { 123 } }");
-		define("B", "A { }");
+		def("A", "class { CallClass() { 123 } }");
+		def("B", "A { }");
 		test("A()", "123");
 		test("B()", "123");
 
-		define("A", "class { F() { } }");
-		define("B", "A { G() { } }");
+		def("A", "class { F() { } }");
+		def("B", "A { G() { } }");
 		test("B.Members()", "#('G')");
 
-		define("A", "class { F() { b = { .G() }; b() } }");
-		define("B", "A { G() { 123 } }");
+		def("A", "class { F() { b = { .G() }; b() } }");
+		def("B", "A { G() { 123 } }");
 		test("B.F()", "123");
 
-		define("C", "class { X: function () { 123 } }");
+		def("C", "class { X: function () { 123 } }");
 		test("C.X()", "123");
 
-		define("C", "#( X: (function () {}) )");
+		def("C", "#( X: (function () {}) )");
 		test("Type(C.X[0])", "'Function'");
 
-		define("C", "class { X: (function () {}) }");
+		def("C", "class { X: (function () {}) }");
 		test("Type(C.X[0])", "'Function'");
 
-		define("X", "#(function () { 123 })");
+		def("X", "#(function () { 123 })");
 		test("(X[0])()", "123");
 
-		define("X", "#(func: function () { 123 })");
+		def("X", "#(func: function () { 123 })");
 		test("(X.func)()", "123");
 
-		define("A", "class { CallClass() { new this() } }");
+		def("A", "class { CallClass() { new this() } }");
 		test("A()", "A()");
 
-		define("A", "class { New() { .a = 123; } }");
+		def("A", "class { New() { .a = 123; } }");
 		test("A().Members()", "#('A_a')");
 
-		define("A", "class { New() { this.a = 123; } }");
+		def("A", "class { New() { this.a = 123; } }");
 		test("A().Members()", "#('a')");
 
-		define("A", "class { New() { this['a'] = 123; } }");
+		def("A", "class { New() { this['a'] = 123; } }");
 		test("A().Members()", "#('a')");
 
 		// method should be bound to starting point, not where found
-		define("A", "class { F() { .G() } }");
-		define("B", "class : A { G() { 123 } }");
+		def("A", "class { F() { .G() } }");
+		def("B", "class : A { G() { 123 } }");
 		test("f = B.F; f()", "123");
 	}
 	@Test public void test_static_getter() {
-		define("A", "class { " +
+		def("A", "class { " +
 				"Get_N() { 'getter' }" +
 				" }");
 		test("A.N", "'getter'");
 		notFound("A.X");
 
-		define("B", "A { }");
+		def("B", "A { }");
 		test("B.N", "'getter'");
 		notFound("B.X");
 
-		define("A", "class { " +
+		def("A", "class { " +
 				"Get_N() { 'getter' }" + // will never be used
 				"Get_(m) { 'get ' $ m }" +
 				" }");
 		test("A.N", "'get N'");
 		test("A.X", "'get X'");
 
-		define("B", "A { }");
+		def("B", "A { }");
 		test("B.N", "'get N'");
 		test("B.X", "'get X'");
 
 	}
 	@Test public void test_instance_getter() {
-		define("A", "class { "
+		def("A", "class { "
 				+ "New(x) { .X = x } "
 				+ "Get_N() { .X $ ' getter' } "
 				+ "}");
 		test("A(1).N", "'1 getter'");
 		notFound("A(1).Z");
 
-		define("B", "A { }");
+		def("B", "A { }");
 		test("B(2).N", "'2 getter'");
 		notFound("B(2).Z");
 
-		define("A", "class { "
+		def("A", "class { "
 				+ "New(x) { .X = x } "
 				+ "Get_N() { .X $ ' getter' } " // will never be used
 				+ "Get_(m) { .X $ ' get ' $ m } "
@@ -221,13 +221,13 @@ public class ClassTest {
 		test("A(1).N", "'1 get N'");
 		test("A(1).Z", "'1 get Z'");
 
-		define("B", "A { }");
+		def("B", "A { }");
 		test("B(2).N", "'2 get N'");
 		test("B(2).Z", "'2 get Z'");
 
 	}
 	@Test public void test_private_instance_getter() {
-		define("A", "class { "
+		def("A", "class { "
 				+ "New(x) { .x = x } "
 				+ "get_n() { .x $ ' getter' } "
 				+ "N() { .n }"
@@ -238,22 +238,22 @@ public class ClassTest {
 
 	@Test
 	public void test_eval() {
-		define("F", "function () { this }");
+		def("F", "function () { this }");
 		test("#(1).Eval(F)", "#(1)");
 
-		define("C", "class { CallClass() { this } }");
+		def("C", "class { CallClass() { this } }");
 		test("#(1).Eval(C)", "#(1)");
 
 		testDisp("C.Eval(F)", "C");
 		testDisp("(new C).Eval(F)", "C()");
 
-		define("B", "C { }");
+		def("B", "C { }");
 		testDisp("B.Eval(F)", "B");
 	}
 
 	@Test
 	public void test_privatize() {
-		define("C", "class { F() { .p() }; Default(@a) { a } }");
+		def("C", "class { F() { .p() }; Default(@a) { a } }");
 		test("C.F()", "#('C_p')");
 	}
 
@@ -279,8 +279,8 @@ public class ClassTest {
 
 	@Test
 	public void test_super_Default() {
-		define("A", "class { }");
-		define("B", "class : A { Default(@args) { super.Default(@args) } }");
+		def("A", "class { }");
+		def("B", "class : A { Default(@args) { super.Default(@args) } }");
 		try {
 			test("B.Fn()", "");
 			fail();
@@ -291,16 +291,16 @@ public class ClassTest {
 
 	@Test
 	public void test_getdefault() {
-		define("C", "class { X: 123 }");
+		def("C", "class { X: 123 }");
 		test("C.GetDefault('X', 456)", "123");
 		test("C.GetDefault('Y', 456)", "456");
 		test("C.GetDefault('Y', { 456 })", "456");
-		testDisp("C.GetDefault('Y', function () { 456 })", "eval$f");
+		testDisp("C.GetDefault('Y', function () { 456 })", "/* function */");
 		test("x = C(); x.GetDefault('X', 456)", "123");
 		test("x = C(); x.GetDefault('Y', 456)", "456");
 		test("x = C(); x.GetDefault('Y', { 456 })", "456");
 		test("x = C(); x.GetDefault('Y', { x; 456 })", "456"); // closure
-		testDisp("x = C(); x.GetDefault('Y', function () { 456 })", "eval$f");
+		testDisp("x = C(); x.GetDefault('Y', function () { 456 })", "/* function */");
 		test("x = C(); x.X = 999; x.GetDefault('X', 456)", "999");
 	}
 
@@ -313,7 +313,4 @@ public class ClassTest {
 		}
 	}
 
-	void define(String name, String definition) {
-		Suneido.context.set(name, compile(name, definition));
-	}
 }
