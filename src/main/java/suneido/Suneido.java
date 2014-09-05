@@ -102,7 +102,6 @@ public class Suneido {
 		String dbFilename = dbpkg.dbFilename();
 		switch (cmdlineoptions.action) {
 		case REPL:
-			Suneido.openDbms();
 			Repl.repl();
 			break;
 		case SERVER:
@@ -115,7 +114,7 @@ public class Suneido {
 			TheDbms.remote(cmdlineoptions.actionArg, cmdlineoptions.serverPort);
 			scheduleAtFixedRate(TheDbms.closer, 30, TimeUnit.SECONDS);
 			if ("".equals(cmdlineoptions.remainder))
-				Repl.repl();
+				Repl.repl2();
 			else
 				Compiler.eval("Init()");
 			break;
@@ -216,6 +215,7 @@ public class Suneido {
 		System.out.println("-c[lient]                 run as client");
 		System.out.println("-p[ort] #                 the TCP/IP port for server or client (default 3147)");
 		System.out.println("-repl                     (default) interactive read-eval-print-loop command line");
+		System.out.println("-nojsdi                   disable JSDI dll interface");
 		System.out.println("-debug all|stack|none     debug model (default is 'all': most information, may be slower)");
 		System.out.println("-d[ump] [table]           dump to database.su or <table> to <table>.su");
 		System.out.println("-l[oad] [table]           load from database.su or <table> from <table>.su");

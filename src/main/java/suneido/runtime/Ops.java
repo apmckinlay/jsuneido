@@ -452,6 +452,8 @@ public final class Ops {
 	public static String display(Object x) {
 		if (x == null)
 			return "null";
+		if (x instanceof SuValue)
+			return ((SuValue) x).display();
 		if (isString(x))
 			return displayString(x);
 		String s = toStr2(x);

@@ -4,6 +4,8 @@
 
 package suneido.runtime;
 
+import suneido.compiler.AstCompile;
+
 
 /**
  * Class methods (and stand-alone functions that reference "this")
@@ -17,6 +19,18 @@ public abstract class SuMethod extends SuCallable {
 	@Override
 	public String typeName() {
 		return "Method";
+	}
+
+	@Override
+	public String display() {
+		if (name.equals("eval")) {
+			String type = super.typeName();
+			int i = type.indexOf(AstCompile.METHOD_SEPARATOR);
+			if (i != -1)
+				return "/* method " + type.substring(i + 1) + " */";
+			return "/* method */";
+		}
+		return super.display();
 	}
 
 	@Override

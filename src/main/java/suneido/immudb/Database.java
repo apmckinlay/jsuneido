@@ -4,11 +4,13 @@
 
 package suneido.immudb;
 
+import java.io.File;
 import java.util.List;
 
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 
+import suneido.SuException;
 import suneido.immudb.DbHashTrie.Entry;
 import suneido.immudb.DbHashTrie.IntEntry;
 import suneido.intfc.database.DatabasePackage.Status;
@@ -54,16 +56,29 @@ class Database implements suneido.intfc.database.Database {
 
 	/** @return null if fast check fails */
 	static Database open(String filename) {
-		return open(new MmapFile(filename + "d", "rw"),
-				new MmapFile(filename + "i", "rw"));
+		return open(filename, "rw");
 	}
 
 	static Database openReadonly(String filename) {
-		return open(new MmapFile(filename + "d", "r"),
-				new MmapFile(filename + "i", "r"));
+		return open(filename, "r");
+	}
+
+	static Database open(String filename, String mode) {
+		// prevent empty files from being created
+		if (! new File(filename + "d").exists() ||
+				! new File(filename + "i").exists())
+			throw new SuException("missing database files");
+		try {
+			return open(new MmapFile(filename + "d", mode),
+					new MmapFile(filename + "i", mode));
+		} catch (Throwable e) {
+			throw new SuException(e, "error opening database");
+		}
 	}
 
 	static Database open(Storage dstor, Storage istor) {
+		if (dstor.sizeFrom(0) == 0 || istor.sizeFrom(0) == 0)
+			throw new SuException("invalid empty database file");
 		if (! new Check(dstor, istor).fastcheck()) {
 			dstor.close();
 			istor.close();

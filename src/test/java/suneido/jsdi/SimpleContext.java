@@ -59,7 +59,7 @@ public final class SimpleContext extends ContextLayered {
 		{
 			String src = objects.get(name);
 			try {
-				result = Compiler.compile(name, src, this);
+				result = Compiler.compile("", name, src, this);
 				set(name, result);
 			} catch (Exception e) {
 				throw new SuException("error loading " + name, e);

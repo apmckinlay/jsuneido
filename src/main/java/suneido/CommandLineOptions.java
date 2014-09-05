@@ -25,6 +25,7 @@ public class CommandLineOptions {
 	public boolean snapshotIsolation = false;
 	public int max_update_tran_sec = 0;
 	public int max_writes_per_tran = 0;
+	public boolean jsdi = true;
 
 	public static CommandLineOptions parse(String... args) {
 		return parse(DebugModel.STACK, args);
@@ -108,6 +109,8 @@ public class CommandLineOptions {
 				max_writes_per_tran = getIntArg();
 			else if (arg.equals("-debug"))
 				debugModel = getDebugModelArg();
+			else if (arg.equals("-nojsdi"))
+				jsdi = false;
 			else
 				error("unknown option: " + arg);
 			if (action == Action.ERROR)
