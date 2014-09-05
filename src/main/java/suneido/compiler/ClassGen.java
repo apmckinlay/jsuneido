@@ -131,7 +131,7 @@ public class ClassGen {
 	ClassGen(ContextLayered context, BaseClassSet baseClassSet,
 			String name, String method, List<String> locals,
 			boolean useArgsArray, boolean isBlock, int nParams, int parentId,
-			PrintWriter pw) {
+			String sourceFile, PrintWriter pw) {
 		this.context = context;
 		this.base = useArgsArray ? baseClassSet.getInternalName() : 
 			baseClassSet.getInternalName(nParams);
@@ -144,7 +144,7 @@ public class ClassGen {
 		closure = isBlock && baseClassSet == BaseClassSet.CALLABLE;
 		iBlockParams = this.locals.size();
 		cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-		cv = classVisitor(pw);
+		cv = classVisitor(sourceFile, pw);
 		genInit();
 		javaLocals.put("this", nextJavaLocal++);
 		if (useArgsArray) {
@@ -184,14 +184,14 @@ public class ClassGen {
 			massage();
 	}
 
-	private ClassVisitor classVisitor(PrintWriter pw) {
+	private ClassVisitor classVisitor(String sourceFile, PrintWriter pw) {
 		ClassVisitor cv = cw;
 		if (pw != null)
 			cv = new TraceClassVisitor(cw, pw);
 		cv = new CheckClassAdapter(cv, false);
 		cv.visit(V1_5, ACC_PUBLIC + ACC_SUPER, className,
 				null, base, null);
-		cv.visitSource("", null);
+		cv.visitSource(sourceFile, null);
 		return cv;
 	}
 

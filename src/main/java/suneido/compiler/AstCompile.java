@@ -24,6 +24,7 @@ public class AstCompile {
 	private final PrintWriter pw;
 	private final String library;
 	private final String globalName;
+	private final String sourceFile;
 	/* british pound sign - needs to be valid in identifiers */
 	public static final char METHOD_SEPARATOR = '\u00A3';
 	private static final int MAX_DIRECT_ARGS = 4;
@@ -50,6 +51,8 @@ public class AstCompile {
 			boolean wantLineNumbers) {
 		this.library = library;
 		this.globalName = globalName;
+		this.sourceFile = library.isEmpty() ? "<" + globalName + ">" :
+			"library[" + library + "]->" + globalName;
 		this.pw = pw;
 		this.context = context;
 		this.warnings = warnings;
@@ -360,7 +363,7 @@ public class AstCompile {
 		List<AstNode> params = ast.first().children;
 		ClassGen cg = new ClassGen(context, baseClassSet, curName, method, locals,
 				useArgsArray(ast, baseClassSet, params), ast.token == Token.BLOCK,
-				params.size(), fnId, pw);
+				params.size(), fnId, sourceFile, pw);
 
 		for (AstNode param : params)
 			cg.param(param.value, fold(param.first()), inMethod ? suClassName
