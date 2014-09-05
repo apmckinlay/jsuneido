@@ -4,6 +4,8 @@
 
 package suneido.debug;
 
+import java.io.PrintWriter;
+
 /**
  * Interface implemented by a class that can provide a Suneido stack trace
  * ({@link Callstack}).
@@ -16,8 +18,15 @@ public interface CallstackProvider {
 	/**
 	 * Returns the stack trace attached to this provider.
 	 *
-	 * @return
+	 * @return Call stack
 	 */
 	public Callstack getCallstack();
 
+	/**
+	 * Prints this call stack to the specified stream.
+	 *
+	 * @param p Stream to print the call stack too.
+	 * @see Throwable#printStackTrace(java.io.PrintWriter)
+	 */
+	public void printCallstack(PrintWriter p);
 }

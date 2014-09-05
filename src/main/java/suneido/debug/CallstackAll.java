@@ -77,6 +77,16 @@ public final class CallstackAll extends Callstack {
 		public int getLineNumber() {
 			return lineNumber;
 		}
+	
+		@Override
+		public String toString() {
+			StringBuilder builder = new StringBuilder();
+			builder.append(getFrameName());
+			if (0 < lineNumber) {
+				builder.append(':').append(lineNumber);
+			}
+			return builder.toString();
+		}
 	}
 
 	//

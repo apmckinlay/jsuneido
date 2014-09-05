@@ -4,9 +4,12 @@
 
 package suneido;
 
+import java.io.PrintWriter;
+
 import suneido.debug.Callstack;
 import suneido.debug.CallstackProvider;
 import suneido.debug.DebugManager;
+import suneido.debug.Frame;
 import suneido.runtime.Ops;
 
 /**
@@ -184,6 +187,15 @@ public class SuException extends RuntimeException implements CallstackProvider {
 	@Override
 	public Callstack getCallstack() {
 		return callstack;
+	}
+
+	@Override
+	public void printCallstack(PrintWriter p) {
+		p.println(getMessage());
+		for (Frame frame : callstack) {
+			p.print("\t at ");
+			p.println(frame);
+		}
 	}
 
 	//
