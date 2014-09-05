@@ -65,8 +65,9 @@ public abstract class SuValue implements Packable {
 			} else {
 				return s.substring(16);
 			}
+		} else {
+			return s.substring(8);
 		}
-		throw new SuInternalError("unrecognized package: " + s);
 	}
 
 	/**
