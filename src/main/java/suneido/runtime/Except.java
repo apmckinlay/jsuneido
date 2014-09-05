@@ -69,11 +69,10 @@ public final class Except extends String2 {
 	// ANCESTOR CLASS: SuValue
 	//
 
-// TODO: If built-in SuValue.typeName() works fine, delete this.
-//	@Override
-//	public String typeName() {
-//		return "Except";
-//	}
+	@Override
+	public String typeName() {
+		return "Except";
+	}
 
 	@Override
 	public SuValue lookup(String method) {
