@@ -4,9 +4,7 @@
 
 package suneido;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.Executors;
@@ -34,8 +32,8 @@ public class Suneido {
 			.setDaemon(true)
 			.setNameFormat("suneido-thread-%d")
 			.build();
-	private static final ScheduledExecutorService scheduler
-			= Executors.newSingleThreadScheduledExecutor(threadFactory);
+	private static final ScheduledExecutorService scheduler =
+			Executors.newSingleThreadScheduledExecutor(threadFactory);
 	public static CommandLineOptions cmdlineoptions =
 			CommandLineOptions.parse(); // for tests
 	public static Contexts contexts = new Contexts();
@@ -44,6 +42,14 @@ public class Suneido {
 	public static void main(String[] args) {
 		ClassLoader.getSystemClassLoader().setPackageAssertionStatus("suneido", true);
 		cmdlineoptions = CommandLineOptions.parse(DebugModel.ALL, args);
+		if (cmdlineoptions.unattended) {
+			try {
+				System.setOut(new PrintStream(new FileOutputStream("output.log", true)));
+				System.setErr(new PrintStream(new FileOutputStream("error.log", true)));
+			} catch (FileNotFoundException e) {
+				fatal("failed to redirect stdout or stderr", e);
+			}
+		}
 		DebugManager.getInstance().setDebugModel(cmdlineoptions.debugModel);
 		if (cmdlineoptions.max_update_tran_sec != 0)
 			dbpkg.setOption("max_update_tran_sec", cmdlineoptions.max_update_tran_sec);
@@ -227,6 +233,7 @@ public class Suneido {
 		System.out.println("-t[ime]o[ut] #            time out in minutes for idle clients (default is 240)");
 		System.out.println("-ut #                     set max update tran duration in seconds (default 10)");
 		System.out.println("-mw #                     set max writes per update transaction (default 10000)");
+		System.out.println("-u[nattended]             redirect stdout and stderr to output.log and error.log");
 		System.out.println("-h[elp] or -?             print this message");
 		System.out.println("--                        end the options, useful if arguments start with '-'");
 	}

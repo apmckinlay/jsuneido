@@ -26,6 +26,7 @@ public class CommandLineOptions {
 	public int max_update_tran_sec = 0;
 	public int max_writes_per_tran = 0;
 	public boolean jsdi = true;
+	public boolean unattended = false;
 
 	public static CommandLineOptions parse(String... args) {
 		return parse(DebugModel.STACK, args);
@@ -111,6 +112,8 @@ public class CommandLineOptions {
 				debugModel = getDebugModelArg();
 			else if (arg.equals("-nojsdi"))
 				jsdi = false;
+			else if (arg.equals("-unattended") || arg.equals("-u"))
+				unattended = true;
 			else
 				error("unknown option: " + arg);
 			if (action == Action.ERROR)
