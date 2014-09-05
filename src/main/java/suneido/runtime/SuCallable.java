@@ -91,6 +91,14 @@ public abstract class SuCallable extends SuValue {
 		return myClass;
 	}
 
+	protected boolean hasLibrary() {
+		return null != library && !library.isEmpty();
+	}
+
+	protected String getLibrary() {
+		return library;
+	}
+
 	// support methods for generated code  for calling globals -----------------
 
 	public final Object superInvoke(Object self, String member, Object... args) {
@@ -128,6 +136,11 @@ public abstract class SuCallable extends SuValue {
 	//--------------------------------------------------------------------------
 
 	@Override
+	public String valueName() {
+		return name;
+	}
+
+	@Override
 	public String display() {
 		if (isBlock)
 			return "/* block */";
@@ -136,8 +149,8 @@ public abstract class SuCallable extends SuValue {
 			return "/* function */";
 		StringBuilder sb = new StringBuilder();
 		sb.append(type.replace(AstCompile.METHOD_SEPARATOR, '.'));
-		if (library != null && ! library.isEmpty())
-			sb.append(" /* ").append(library).append(" ")
+		if (hasLibrary())
+			sb.append(" /* ").append(getLibrary()).append(" ")
 					.append(typeName().toLowerCase()).append(" */");
 		return sb.toString();
 	}

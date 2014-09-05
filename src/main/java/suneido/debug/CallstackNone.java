@@ -48,7 +48,7 @@ public class CallstackNone extends Callstack {
 			this.ste = ste;
 		}
 
-		public String getFrameName() {
+		public Object getFrame() {
 			return ste.getClassName() + "." + ste.getMethodName() + " ("
 			        + ste.getFileName() + ")";
 		}

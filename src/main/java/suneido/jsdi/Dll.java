@@ -33,7 +33,7 @@ public abstract class Dll extends SuCallable {
 	protected final TypeList dllParams;     // don't confuse w SuCallable.params
 	protected final Type     returnType;
 
-	private final String     valueName;
+	private final String     valueName; // FIXME: This should just use the 'name' value APM added to SuCallable
 	private final DllFactory dllFactory;    // for finalization
 	        final String     libraryName;   // package-visible for DllFactory
 	private final String     funcName;
@@ -86,6 +86,11 @@ public abstract class Dll extends SuCallable {
 			.methods(Dll.class);
 
 	@Override
+	public final String typeName() {
+		return "aDll";
+	}
+
+	@Override
 	public final String valueName() {
 		return valueName;
 	}
@@ -104,17 +109,35 @@ public abstract class Dll extends SuCallable {
 		return call(args);
 	}
 
+	@Override
+	public final String display() {
+		final StringBuilder sb = new StringBuilder(128);
+		sb.append(valueName());
+		sb.append(" /* ");
+		if (hasLibrary()) {
+			sb.append(getLibrary()).append(' ');
+		}
+		sb.append("dll ").append(libraryName).append(':').append(funcName)
+				.append(" 0x").append(Long.toHexString(funcPtr)).append(" */");
+		return sb.toString();
+	}
+
 	//
 	// ANCESTOR CLASS: Object
 	//
 
 	@Override
-	public String toString() {
+	public final String toString() {
 		final StringBuilder sb = new StringBuilder(128);
 		sb.append("dll ").append(returnType.getDisplayName()).append(' ')
 				.append(libraryName).append(':').append(funcName);
 		sb.append(dllParams.toParamsTypeString());
-		sb.append(" /* 0x").append(Long.toHexString(funcPtr)).append(" */");
+		sb.append(" /* ");
+		if (hasLibrary()) {
+			sb.append(getLibrary()).append(' ');
+		}
+		sb.append(getClass().getName()).append(" 0x")
+				.append(Long.toHexString(funcPtr)).append(" */");
 		return sb.toString();
 	}
 

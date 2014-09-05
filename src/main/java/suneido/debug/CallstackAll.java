@@ -66,12 +66,13 @@ public final class CallstackAll extends Callstack {
 			return new String[] { className, functionName };
 		}
 
-		public String getFrameName() {
-			if (null != className) {
-				return className + '.' + functionName;
-			} else {
-				return functionName;
-			}
+		public Object getFrame() {
+			return callable;
+//			if (null != className) {
+//				return className + '.' + functionName;
+//			} else {
+//				return functionName;
+//			}
 		}
 
 		public int getLineNumber() {
@@ -81,7 +82,7 @@ public final class CallstackAll extends Callstack {
 		@Override
 		public String toString() {
 			StringBuilder builder = new StringBuilder();
-			builder.append(getFrameName());
+			builder.append(getFrame());
 			if (0 < lineNumber) {
 				builder.append(':').append(lineNumber);
 			}
