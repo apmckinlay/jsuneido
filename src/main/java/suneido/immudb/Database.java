@@ -72,7 +72,7 @@ class Database implements suneido.intfc.database.Database {
 			return open(new MmapFile(filename + "d", mode),
 					new MmapFile(filename + "i", mode));
 		} catch (Throwable e) {
-			throw new SuException(e, "error opening database");
+			throw new SuException("error opening database", e);
 		}
 	}
 
