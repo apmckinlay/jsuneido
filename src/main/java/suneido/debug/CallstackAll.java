@@ -21,7 +21,6 @@ public final class CallstackAll extends Callstack {
 	//
 
 	private StackInfo stackInfo;
-	private StackTraceElement[] stackTrace;
 
 	//
 	// CONSTRUCTORS
