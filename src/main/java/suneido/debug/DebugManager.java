@@ -7,6 +7,7 @@ package suneido.debug;
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuException;
+import suneido.SuInternalError;
 import suneido.Suneido;
 
 /**
@@ -34,6 +35,7 @@ public final class DebugManager {
 	//
 
 	private DebugModel actualModel;
+	private int jsdebugAgentState;
 
 	//
 	// CONSTRUCTORS
@@ -41,14 +43,19 @@ public final class DebugManager {
 
 	private DebugManager() {
 		actualModel = DebugModel.STACK;
+		jsdebugAgentState = JSDEBUG_AGENT_NOT_CHECKED;
 	}
 
 	//
 	// INTERNALS
 	//
 
+	private static final int JSDEBUG_AGENT_NOT_CHECKED = -1;
+	private static final int JSDEBUG_AGENT_NOT_AVAILABLE = 0;
+	private static final int JSDEBUG_AGENT_AVAILABLE = 1;
+
 	private DebugModel tryToInitFullDebugging() {
-		if (!testIfLocalsAvailable()) {
+		if (!testIf_jsdebugAgent_Available()) {
 			String jdwpClientPort = DebugUtil.getJDWPAgentClientPort();
 			if (null != jdwpClientPort) {
 				if (false)
@@ -56,7 +63,7 @@ public final class DebugManager {
 				// TODO:
 				// implement
 				// me!
-				if (!testIfLocalsAvailable()) {
+				if (!testIfStackInfoAvailable()) {
 					Suneido.errlog("unable to initialize 'all' debugging - falling back to 'stack' debugging");
 					return DebugModel.STACK;
 				}
@@ -65,11 +72,23 @@ public final class DebugManager {
 		return DebugModel.ALL;
 	}
 
-	private static boolean testIfLocalsAvailable() {
-		final SuException test = new SuException("test");
-		if (true)
-			return false;
-		throw new Error("not implemented yet"); // FIXME: TODO: implement me!
+	private void tryToStopFullDebuggingByJDWP() {
+		// Stop full debugging if implemented by way of a JDWP client running in
+		// this process...
+		throw new Error(
+		        "not implemented yet: try to stop full debugging by JDWP");
+	}
+
+	private static boolean testIfStackInfoAvailable() {
+		return (new StackInfo()).isInitialized();
+	}
+
+	private boolean testIf_jsdebugAgent_Available() {
+		if (JSDEBUG_AGENT_NOT_CHECKED == jsdebugAgentState) {
+			jsdebugAgentState = testIfStackInfoAvailable() ? JSDEBUG_AGENT_AVAILABLE
+			        : JSDEBUG_AGENT_NOT_AVAILABLE;
+		}
+		return JSDEBUG_AGENT_AVAILABLE == jsdebugAgentState;
 	}
 
 	//
@@ -87,9 +106,43 @@ public final class DebugManager {
 	}
 
 	/**
+	 * Creates and returns a call stack for execution stack of the current
+	 * thread with content determined by the actual debug model in use.
+	 *
+	 * @return Call stack for the execution stack of the current thread
+	 * @see #makeCallstackFromThrowable(Throwable)
+	 */
+	public Callstack makeCallstackForCurrentThread() {
+		switch (actualModel) {
+		case ALL: return new CallstackAll();
+		case STACK:
+		case NONE:
+			throw new Error("not implemented yet " + actualModel);
+		default:
+			throw SuInternalError.unhandledEnum(actualModel);
+		}
+	}
+
+	/**
+	 * Creates and returns a call stack whose content is derived from the stack
+	 * trace of a {@link Throwable}.
+	 *
+	 * @param throwable
+	 *            Throwable object whose stack trace will provide the content
+	 *            for the return value; may not be <b>{@code null}</b> and must
+	 *            not be an instance of {@link CallstackProvider}
+	 * @return Call stack derived from {@code throwable}'s stack trace
+	 */
+	public Callstack makeCallstackFromThrowable(Throwable throwable) {
+		assert !(throwable instanceof CallstackProvider) : "Use CallstackProvider.getCallstack()";
+		throw new Error("not implemented yet: makeCallstackFromThrowable()");
+	}
+
+	/**
 	 * Changes the debug model.
 	 *
-	 * @param requestedModel Debug model requested
+	 * @param requestedModel
+	 *            Debug model requested
 	 * @return Debug model actually set
 	 * @see #getDebugModel()
 	 */
@@ -100,6 +153,9 @@ public final class DebugManager {
 		if (DebugModel.ALL == requestedModel) {
 			this.actualModel = tryToInitFullDebugging();
 		} else {
+			if (this.actualModel == DebugModel.ALL) {
+				tryToStopFullDebuggingByJDWP();
+			}
 			this.actualModel = requestedModel;
 		}
 		return this.actualModel;

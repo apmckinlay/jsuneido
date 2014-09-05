@@ -75,6 +75,10 @@ public abstract class SuCallable extends SuValue {
 		return x instanceof SuCallable && ((SuCallable) x).isBlock;
 	}
 
+	public SuClass suClass() {
+		return myClass;
+	}
+
 	// support methods for generated code  for calling globals -----------------
 
 	public final Object superInvoke(Object self, String member, Object... args) {
