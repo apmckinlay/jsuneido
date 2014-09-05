@@ -77,7 +77,7 @@ public class BuiltinMethods extends SuValue {
 					b.put(methodName, Builtin.method(mh, params(m, 1)));
 				} catch (IllegalAccessException e) {
 					throw new SuException("error getting method " +
-							c.getName() + " " + m.getName(), e);
+									c.getName() + " " + m.getName(), e);
 				}
 			}
 		}

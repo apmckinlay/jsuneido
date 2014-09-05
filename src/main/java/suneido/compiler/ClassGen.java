@@ -45,6 +45,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
@@ -57,6 +58,7 @@ import org.objectweb.asm.util.TraceClassVisitor;
 
 import suneido.SuException;
 import suneido.SuInternalError;
+import suneido.debug.Locals;
 import suneido.runtime.Args;
 import suneido.runtime.BlockReturnException;
 import suneido.runtime.BlockSpec;
@@ -94,6 +96,8 @@ public class ClassGen {
 	private static final String RECORD_BUILTIN_CLASS_INTERNAL_NAME = Type.getInternalName(RecordClass.class);
 	private static final String ARGS_SPECIAL_INTERNAL_NAME = Type.getInternalName(Args.Special.class);
 	private static final String ARGS_SPECIAL_DESCRIPTOR = Type.getDescriptor(Args.Special.class);
+	private static final String LOCALS_ANNOTATION_DESCRIPTOR = Type.getDescriptor(Locals.class);
+	private static final String LOCALS_SOURCELANGUAGE_DESCRIPTOR = Type.getDescriptor(Locals.SourceLanguage.class);
 	private static final int THIS = 0;
 	private int SELF = -1;
 	private int ARGS = -2;
@@ -148,23 +152,27 @@ public class ClassGen {
 				mv = methodVisitor(ACC_PUBLIC, method,
 						"([Ljava/lang/Object;)Ljava/lang/Object;");
 				javaLocals.put("_args_", ARGS = nextJavaLocal++);
+				annotateLocals(false);
 			} else {
 				assert method.equals("eval");
 				mv = methodVisitor(ACC_PUBLIC, method,
 						"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
 				javaLocals.put("_self_", SELF = nextJavaLocal++);
 				javaLocals.put("_args_", ARGS = nextJavaLocal++);
+				annotateLocals(true);
 			}
 		} else {
 			if (method.equals("call")) {
 				mv = methodVisitor(ACC_PUBLIC, "call" + nParams, "("
 						+ directArgs[nParams] + ")Ljava/lang/Object;");
+				annotateLocals(false);
 			} else {
 				assert method.equals("eval");
 				mv = methodVisitor(ACC_PUBLIC, "eval" + nParams,
 						"(Ljava/lang/Object;" + directArgs[nParams]
 								+ ")Ljava/lang/Object;");
 				javaLocals.put("_self_", SELF = nextJavaLocal++);
+				annotateLocals(true);
 			}
 		}
 		firstParam = nextJavaLocal;
@@ -191,6 +199,12 @@ public class ClassGen {
 		MethodVisitor mv = cv.visitMethod(access, name, desc, null, null);
 		mv = new TryCatchBlockSorter(mv, access, name, desc, null, null);
 		return mv;
+	}
+
+	private void annotateLocals(boolean isSelfCall) {
+		AnnotationVisitor av = mv.visitAnnotation(LOCALS_ANNOTATION_DESCRIPTOR, true);
+		av.visitEnum("sourceLanguage", LOCALS_SOURCELANGUAGE_DESCRIPTOR, "SUNEIDO");
+		av.visitEnd();
 	}
 
 	private void massage() {

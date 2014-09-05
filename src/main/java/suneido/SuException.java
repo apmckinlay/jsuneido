@@ -41,7 +41,7 @@ public class SuException extends RuntimeException implements CallstackProvider {
 	// DATA
 	//
 
-	private final Callstack callstack = null;
+	private final Callstack callstack;
 
 	//
 	// CONSTRUCTORS
@@ -71,8 +71,7 @@ public class SuException extends RuntimeException implements CallstackProvider {
 	 * If {@code isSuneidoRethrown} is <b>{@code false}</b>, the newly
 	 * constructed exception gets {@link Callstack} data representing the
 	 * current thread's execution stack at the time the exception was
-	 * constructed.
-	 * </li>
+	 * constructed.</li>
 	 * </ol>
 	 * </p>
 	 * 
@@ -94,22 +93,45 @@ public class SuException extends RuntimeException implements CallstackProvider {
 			if (cause instanceof CallstackProvider) {
 				callstack = ((CallstackProvider) cause).getCallstack();
 			} else {
-				callstack = Callstack.fromThrowable(cause);
+				callstack = DebugManager.getInstance().makeCallstackFromThrowable(cause);
 			}
 		} else {
+			super.fillInStackTrace();
 			callstack = DebugManager.getInstance()
 			        .makeCallstackForCurrentThread();
 		}
 	}
 
+	/**
+	 * Constructs a non-rethrown Suneido exception with the given message.
+	 *
+	 * @param message
+	 *            Message explaining exception
+	 */
 	public SuException(String message) {
 		this(message, null, false);
 	}
 
+	/**
+	 * Constructs a non-rethrown Suneido exception caused by some other
+	 * throwable.
+	 *
+	 * @param cause
+	 *            Non-<b>{@code null}</b> cause
+	 */
 	public SuException(Throwable cause) {
 		this(cause.getMessage(), cause, false);
 	}
 
+	/**
+	 * Constructs a non-rethrown Suneido exception.
+	 *
+	 * @param message
+	 *            Message explaining exception
+	 * @param cause
+	 *            Previous exception which triggered this one (may be <b>
+	 *            {@code null}</b>)
+	 */
 	public SuException(String message, Throwable cause) {
 		this(message, cause, false);
 	}
@@ -159,8 +181,18 @@ public class SuException extends RuntimeException implements CallstackProvider {
 	// INTERFACE: CallstackProvider
 	//
 
+	@Override
 	public Callstack getCallstack() {
 		return callstack;
+	}
+
+	//
+	// ANCESTOR CLASS: Throwable
+	//
+
+	@Override
+	public Throwable fillInStackTrace() {
+		return this; // We will fill it in when needed.
 	}
 
 	//

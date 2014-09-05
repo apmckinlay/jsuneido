@@ -38,7 +38,7 @@ public class SuFile extends SuValue {
 					throw new SuException("File: can't create " + filename);
 			} catch (IOException e) {
 				throw new SuException("File: can't create '" + filename
-						+ "' in mode '" + mode + "'", e);
+								+ "' in mode '" + mode + "'", e);
 			}
 		}
 		append = mode.startsWith("a");
@@ -46,7 +46,7 @@ public class SuFile extends SuValue {
 			f = new RandomAccessFile(filename, mode.equals("r") ? "r" : "rw");
 		} catch (FileNotFoundException e) {
 			throw new SuException("File: can't open '" + filename
-					+ "' in mode '" + mode + "'", e);
+							+ "' in mode '" + mode + "'", e);
 		}
 		if (append)
 			try {

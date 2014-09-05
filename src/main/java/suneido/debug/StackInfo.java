@@ -4,17 +4,18 @@
 
 package suneido.debug;
 
+
 /**
  * <p>
  * Container for local variable information.
  * </p>
  *
  * <p>
- * If full debugging support is enabled, this class receives local variables
- * for relevant stack frames from the JVMTI agent, which is either a
+ * If full debugging support is enabled, this class receives local variables for
+ * relevant stack frames from the JVMTI agent, which is either a
  * {@link suneido.boot.Platform platform}-appropriate native {@code jsdebug}
- * library, or the {@code jdwp} agent communicating with a JDI client being
- * run side-by-side with Suneido in this JVM.
+ * library, or the {@code jdwp} agent communicating with a JDI client being run
+ * side-by-side with Suneido in this JVM.
  * </p>
  *
  * <p>
@@ -26,7 +27,7 @@ package suneido.debug;
  * @author Victor Schappert
  * @since 20140813
  */
-public final class StackInfo {
+final class StackInfo {
 
 	//
 	// DATA
@@ -34,21 +35,33 @@ public final class StackInfo {
 
 	public String[][] localsNames;
 	public Object[][] localsValues;
-	public String[]   frameNames;
+	public Object[]   frameObjects;
+	public int[]      lineNumbers;
+	public boolean    isInitialized;
 
 	//
 	// CONSTRUCTORS
 	//
 
 	public StackInfo() {
-		fetchLocals();
+		isInitialized = false;
+		fetchInfo();
+	}
+
+	//
+	// ACCESSORS
+	//
+
+	public boolean isInitialized() {
+		return isInitialized && null != localsNames && null != localsValues
+		        && null != lineNumbers && null != frameObjects;
 	}
 
 	//
 	// INTERNALS
 	//
 
-	private void fetchLocals() {
+	private void fetchInfo() {
 		// Placeholder for breakpoint
 	}
 }
