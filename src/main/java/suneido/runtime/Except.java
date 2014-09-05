@@ -135,7 +135,7 @@ public final class Except extends String2 {
 			locals.put(local.getName(), local.getValue());
 		}
 		call.put("locals", locals);
-		call.put("fn", x.getFrameName());
+		call.put("fn", x.getFrame());
 		int lineNumber = x.getLineNumber();
 		call.put("src_n", 0 < lineNumber ? lineNumber : Boolean.FALSE);
 		return call;

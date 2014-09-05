@@ -12,6 +12,17 @@ TO DO BEFORE DEPLOY
 ===================
 Re-enable RethrowCallstackTest() in jSuneido (with BuiltDate() guard)
 
+========
+20140905
+========
+-- Take "valueName" out of Dll and replace with SuCallable.setSource()
+      [ This will get library into Dll display ]
+-- Need to be smarter about filtering callstack where we have call() calling
+   call3() or something.
+-- Filter locals:
+      "this", __SELF__, __ARGS__, dll calls etc.
+-- Stack-mode callstack
+-- JDWP mode for full debugging
 
 ========
 20140826

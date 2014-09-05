@@ -39,7 +39,7 @@ public abstract class Frame {
 	// ACCESSORS
 	//
 
-	public abstract String getFrameName();
+	public abstract Object getFrame();
 
 	public abstract int getLineNumber();
 
