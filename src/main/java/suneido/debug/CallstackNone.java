@@ -56,6 +56,11 @@ public class CallstackNone extends Callstack {
 		public int getLineNumber() {
 			return ste.getLineNumber();
 		}
+
+		@Override
+		public String toString() {
+			return ste.toString();
+		}
 	}
 
 	//
