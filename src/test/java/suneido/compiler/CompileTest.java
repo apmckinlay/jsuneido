@@ -5,6 +5,7 @@
 package suneido.compiler;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static suneido.util.testing.Throwing.assertThrew;
 
 import java.io.PrintWriter;
@@ -17,7 +18,6 @@ import org.objectweb.asm.Type;
 
 import suneido.SuException;
 import suneido.Suneido;
-import suneido.compiler.Compiler;
 import suneido.runtime.Args;
 import suneido.runtime.BlockReturnException;
 import suneido.runtime.Except;
@@ -527,6 +527,7 @@ public class CompileTest {
 		} else if (r.contains("public call3")) {
 		} else
 			assert false : "unknown definition type";
+		r = r.replaceAll("(?m)^\\s*@L.*$\\s?", ""); // delete annotations
 		r = after(r, after);
 		r = before(r, "    LOCALVARIABLE");
 		//System.out.println(r);
@@ -661,6 +662,7 @@ public class CompileTest {
 
 	private static String after(String r, String s) {
 		int i = r.indexOf(s);
+		assertTrue(0 <= i);
 		return r.substring(i + s.length(), r.length());
 	}
 
