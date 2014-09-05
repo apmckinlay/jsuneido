@@ -4,10 +4,7 @@
 
 package suneido;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 
 import suneido.compiler.Compiler;
 import suneido.jsdi.JSDI;
@@ -37,13 +34,28 @@ import suneido.runtime.Ops;
 public class Repl {
 
 	public static void repl() throws IOException {
-		Compiler.eval("Init()");
+		if (! new File("suneido.dbd").exists() && ! new File("suneido.dbi").exists()) {
+			System.out.println("WARNING: no database found, creating an empty one");
+			Suneido.dbpkg.create("suneido.db").close();
+		}
+		Suneido.openDbms();
+		repl2();
+	}
+
+	public static void repl2() throws IOException {
 		PrintWriter out = new PrintWriter(System.out);
+		try {
+			Compiler.eval("Init()"); // will not return if JSDI
+		} catch (SuException e) {
+			if (e.getMessage().equals("can't find Init"))
+				out.println("WARNING: can't find Init");
+			else
+				throw e;
+		}
 		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 		out.println("Built: " + WhenBuilt.when());
-		if (JSDI.isInitialized()) {
+		if (JSDI.isInitialized())
 			out.println("JSDI: " + JSDI.getInstance().whenBuilt());
-		}
 		while (true) {
 			out.print("> ");
 			out.flush();
@@ -63,8 +75,7 @@ public class Repl {
 	}
 
 	public static void main(String[] args) throws Exception {
-		Suneido.openDbms();
-		Suneido.cmdlineoptions = CommandLineOptions.parse("eta.go");
+		Suneido.cmdlineoptions = CommandLineOptions.parse("-nojsdi",  "eta.go");
 		repl();
 	}
 

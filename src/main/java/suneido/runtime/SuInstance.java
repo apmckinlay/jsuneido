@@ -151,11 +151,11 @@ public class SuInstance extends SuValue {
 	}
 
 	@Override
-	public String toString() {
+	public String display() {
 		Object toString = myclass.get2("ToString");
 		if (toString instanceof SuCallable)
 			return Ops.toStr(((SuCallable) toString).eval(this));
-		return myclass + "()";
+		return myclass.valueName() + "()";
 	}
 
 	@Override

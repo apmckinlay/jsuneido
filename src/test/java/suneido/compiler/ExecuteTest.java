@@ -7,6 +7,7 @@ package suneido.compiler;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static suneido.compiler.Compiler.eval;
+import static suneido.util.testing.Throwing.assertThrew;
 
 import org.junit.After;
 import org.junit.Before;
@@ -14,11 +15,9 @@ import org.junit.Test;
 
 import suneido.SuException;
 import suneido.Suneido;
-import suneido.compiler.Compiler;
 import suneido.runtime.BlockReturnException;
 import suneido.runtime.Ops;
 import suneido.runtime.SuBoundMethod;
-import static suneido.util.testing.Throwing.assertThrew;
 public class ExecuteTest {
 
 	@Before
@@ -227,7 +226,7 @@ public class ExecuteTest {
 	}
 
 	@Test
-	public void test_naming() {
+	public void test_display() {
 		def("F", "function () { }");
 		testDisp("F", "F");
 
@@ -237,6 +236,25 @@ public class ExecuteTest {
 
 		def("C", "class { M() { } }");
 		testDisp("C.M", "C.M");
+
+		testDisp("Pack", "Pack /* builtin function */");
+		testDisp("SocketServer", "SocketServer /* builtin class */");
+
+		libdef("G", "function () { }");
+		testDisp("G", "G /* lib function */");
+
+		libdef("C", "class { M() { } }");
+		testDisp("C", "C /* lib class */");
+		testDisp("C()", "C()");									// ???
+		testDisp("C.M", "C.M /* lib method */");
+		testDisp("C().M", "C.M /* lib method */");				// ???
+
+		testDisp("b = { }", "/* block */");
+		testDisp("x = 1; b = { x }", "/* block */");
+
+		testDisp("class { }", "/* class */");
+
+		testDisp("class { M() { } }.M", "/* method M */");		// ???
 	}
 
 	@Test
@@ -329,8 +347,13 @@ public class ExecuteTest {
 				"string call requires 'this' argument");
 	}
 
-	private static void def(String name, String source) {
+	public static void def(String name, String source) {
 		Suneido.context.set(name, Compiler.compile(name, source));
+	}
+
+	public static void libdef(String name, String source) {
+		Suneido.context.set(name,
+				Compiler.compile("lib", name, source, Suneido.context));
 	}
 
 	public static void test(String expr, String expected) {
@@ -343,10 +366,7 @@ public class ExecuteTest {
 	}
 
 	public static void testDisp(String expr, String expected) {
-		Object result = eval(expr);
-		if (result instanceof SuBoundMethod)
-			result = ((SuBoundMethod) result).method;
-		assertEquals(expected, Ops.display(result));
+		assertEquals(expected, Ops.display(eval(expr)));
 	}
 
 }

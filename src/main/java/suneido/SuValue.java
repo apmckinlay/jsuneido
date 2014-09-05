@@ -28,7 +28,7 @@ public abstract class SuValue implements Packable {
 	 * which it belongs to. Overridden by {@link SuContainer</p>
 	 * <p>The {@link #hashCode()} contract applies equally to this method. In
 	 * particular, for any two SuValue objects {@code A} and {@code B} such that
-	 * {@code A.equals(B)}, {@code A.hashCodeContrib()} must be equal to 
+	 * {@code A.equals(B)}, {@code A.hashCodeContrib()} must be equal to
 	 * {@code B.hashCodeContrib()}.</p>
 	 */
 	public int hashCodeContrib() {
@@ -176,6 +176,10 @@ public abstract class SuValue implements Packable {
 		public Object eval(Object self, Object... args) {
 			throw methodNotFound(self, method);
 		}
+	}
+
+	public String display() {
+		return toString();
 	}
 
 }
