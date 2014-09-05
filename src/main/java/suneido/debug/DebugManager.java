@@ -74,8 +74,11 @@ public final class DebugManager {
 	private void tryToStopFullDebuggingByJDWP() {
 		// Stop full debugging if implemented by way of a JDWP client running in
 		// this process...
-		throw new Error(
+		if (false)
+			throw new Error(
 		        "not implemented yet: try to stop full debugging by JDWP");
+		// TODO: implement this as part of implementing JDWP version of jsdebug
+		//       agent...
 	}
 
 	private static boolean testIfStackInfoAvailable() {
