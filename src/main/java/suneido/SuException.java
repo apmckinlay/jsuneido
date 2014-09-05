@@ -98,7 +98,7 @@ public class SuException extends RuntimeException implements CallstackProvider {
 		} else {
 			super.fillInStackTrace();
 			callstack = DebugManager.getInstance()
-			        .makeCallstackForCurrentThread();
+			        .makeCallstackForCurrentThread(this);
 		}
 	}
 

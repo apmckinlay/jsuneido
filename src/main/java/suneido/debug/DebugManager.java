@@ -109,15 +109,19 @@ public final class DebugManager {
 	 * Creates and returns a call stack for execution stack of the current
 	 * thread with content determined by the actual debug model in use.
 	 *
+	 * @param throwable
+	 *            Throwable that is associated with the returned call stack
 	 * @return Call stack for the execution stack of the current thread
 	 * @see #makeCallstackFromThrowable(Throwable)
 	 */
-	public Callstack makeCallstackForCurrentThread() {
+	public Callstack makeCallstackForCurrentThread(Throwable throwable) {
 		switch (actualModel) {
-		case ALL: return new CallstackAll();
+		case ALL:
+			return new CallstackAll();
 		case STACK:
+			return new CallstackStack(throwable);
 		case NONE:
-			throw new Error("not implemented yet " + actualModel);
+			return new CallstackNone(throwable);
 		default:
 			throw SuInternalError.unhandledEnum(actualModel);
 		}
