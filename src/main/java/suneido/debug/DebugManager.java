@@ -6,7 +6,6 @@ package suneido.debug;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import suneido.SuException;
 import suneido.SuInternalError;
 import suneido.Suneido;
 
@@ -138,8 +137,16 @@ public final class DebugManager {
 	 * @return Call stack derived from {@code throwable}'s stack trace
 	 */
 	public Callstack makeCallstackFromThrowable(Throwable throwable) {
-		assert !(throwable instanceof CallstackProvider) : "Use CallstackProvider.getCallstack()";
-		throw new Error("not implemented yet: makeCallstackFromThrowable()");
+		switch (actualModel) {
+		case ALL:
+			throw new SuInternalError("can't make 'all' Callstack from throwable");
+		case STACK:
+			return new CallstackStack(throwable);
+		case NONE:
+			return new CallstackNone(throwable);
+		default:
+			throw SuInternalError.unhandledEnum(actualModel);
+		}
 	}
 
 	/**

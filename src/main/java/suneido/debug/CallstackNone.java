@@ -37,6 +37,28 @@ public class CallstackNone extends Callstack {
 	}
 
 	//
+	// TYPES
+	//
+
+	private static final class StackTraceElementWrapper extends Frame {
+		private final StackTraceElement ste;
+
+		StackTraceElementWrapper(StackTraceElement ste) {
+			super(EMPTY_LOCAL_ARRAY);
+			this.ste = ste;
+		}
+
+		public String getFrameName() {
+			return ste.getClassName() + "." + ste.getMethodName() + " ("
+			        + ste.getFileName() + ")";
+		}
+
+		public int getLineNumber() {
+			return ste.getLineNumber();
+		}
+	}
+
+	//
 	// ANCESTOR CLASS: Callstack
 	//
 
@@ -45,10 +67,8 @@ public class CallstackNone extends Callstack {
 		final StackTraceElement[] stackTrace = throwable.getStackTrace();
 		final Frame[] frames = new Frame[stackTrace.length];
 		for (int k = 0; k < stackTrace.length; ++k) {
-			frames[k] = new Frame(null, stackTrace[k].getLineNumber(),
-			        EMPTY_LOCAL_ARRAY);
+			frames[k] = new StackTraceElementWrapper(stackTrace[k]);
 		}
 		return frames;
 	}
-
 }
