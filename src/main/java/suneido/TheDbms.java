@@ -39,6 +39,14 @@ public class TheDbms {
 		return dbms;
 	}
 
+	// used by errlog to avoid opening db just to get sessionid
+	public static String sessionid() {
+		if (ip == null)
+			return "";
+		DbmsRemote dbms = remoteDbms.get();
+		return dbms == null ? "" : dbms.sessionid();
+	}
+
 	public static void remote(String ip, int port) {
 		TheDbms.ip = ip;
 		TheDbms.port = port;

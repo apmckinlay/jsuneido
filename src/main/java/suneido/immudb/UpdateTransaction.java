@@ -14,9 +14,9 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
-import suneido.Suneido;
 import suneido.immudb.TranIndex.Iter;
 import suneido.intfc.database.IndexIter;
+import suneido.util.Errlog;
 import suneido.util.ThreadConfined;
 
 import com.google.common.base.Stopwatch;
@@ -217,12 +217,12 @@ class UpdateTransaction extends ReadWriteTransaction {
 			}
 		}
 		if (writeCount > WARN_WRITES_PER_TRANSACTION)
-			Suneido.errlog("WARNING: excessive writes (" + writeCount +
+			Errlog.errlog("WARNING: excessive writes (" + writeCount +
 					") writes (output/update/delete) in one transaction " + this);
 		long secs = stopwatch.elapsed(TimeUnit.SECONDS);
 		if (secs > WARN_UPDATE_TRAN_DURATION_SEC &&
 				! (this instanceof SchemaTransaction))
-			Suneido.errlog("WARNING: long duration transaction " + this +
+			Errlog.errlog("WARNING: long duration transaction " + this +
 					" (" + secs + " seconds)");
 	}
 

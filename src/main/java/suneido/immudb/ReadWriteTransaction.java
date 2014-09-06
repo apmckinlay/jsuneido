@@ -15,10 +15,10 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import suneido.SuException;
-import suneido.Suneido;
 import suneido.immudb.Bootstrap.TN;
 import suneido.immudb.IndexedData.Mode;
 import suneido.intfc.database.IndexIter;
+import suneido.util.Errlog;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
@@ -232,7 +232,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 
 	void abortThrow(String conflict) {
 		conflict = "aborted: " + this + " - " + conflict;
-		Suneido.errlog(conflict);
+		Errlog.errlog(conflict);
 		abort(conflict);
 		throw new SuException(conflict);
 	}

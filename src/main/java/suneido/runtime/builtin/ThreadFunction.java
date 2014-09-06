@@ -4,9 +4,9 @@
 
 package suneido.runtime.builtin;
 
-import suneido.Suneido;
 import suneido.runtime.Ops;
 import suneido.runtime.Params;
+import suneido.util.Errlog;
 
 public class ThreadFunction {
 
@@ -30,7 +30,7 @@ public class ThreadFunction {
 			try {
 				Ops.call(callable);
 			} catch (Throwable e ) {
-				Suneido.uncaught("in thread", e);
+				Errlog.uncaught("in thread", e);
 			}
 		}
 

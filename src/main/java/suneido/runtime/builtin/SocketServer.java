@@ -16,9 +16,9 @@ import java.util.concurrent.ThreadFactory;
 
 import suneido.SuException;
 import suneido.SuValue;
-import suneido.Suneido;
 import suneido.TheDbms;
 import suneido.runtime.*;
+import suneido.util.Errlog;
 import suneido.util.ServerBySocket;
 import suneido.util.ServerBySocket.HandlerFactory;
 
@@ -190,7 +190,7 @@ public class SocketServer extends SuClass {
 			try {
 				super.lookup("Run").eval0(this);
 			} catch (Exception e) {
-				Suneido.errlog("exception in SocketServer", e);
+				Errlog.errlog("exception in SocketServer", e);
 			} finally {
 				socket.close();
 				TheDbms.closeIfIdle();
