@@ -4,8 +4,6 @@
 
 package suneido.util;
 
-import static suneido.Suneido.fatal;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
@@ -45,7 +43,7 @@ public class OutputByChannel implements NetworkOutput {
 			while (!isEmpty())
 				channel.write(bufs, 0, n);
 		} catch (IOException e) {
-			fatal("network write error", e); // TODO
+			Errlog.fatal("network write error", e); // TODO
 		}
 		Arrays.fill(bufs, null);
 	}
@@ -62,7 +60,7 @@ public class OutputByChannel implements NetworkOutput {
 			while (buf.remaining() > 0)
 				channel.write(buf);
 		} catch (IOException e) {
-			fatal("network write error", e); // TODO
+			Errlog.fatal("network write error", e); // TODO
 		}
 	}
 

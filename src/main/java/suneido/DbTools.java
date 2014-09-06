@@ -4,8 +4,6 @@
 
 package suneido;
 
-import static suneido.Suneido.errlog;
-import static suneido.Suneido.fatal;
 import static suneido.intfc.database.DatabasePackage.printObserver;
 
 import java.io.File;
@@ -17,6 +15,7 @@ import java.nio.channels.WritableByteChannel;
 import suneido.intfc.database.Database;
 import suneido.intfc.database.DatabasePackage;
 import suneido.intfc.database.DatabasePackage.Status;
+import suneido.util.Errlog;
 import suneido.util.FileUtils;
 import suneido.util.Jvm;
 
@@ -85,9 +84,9 @@ public class DbTools {
 			String filename) {
 		String tempfile = FileUtils.tempfile().toString();
 		if (! Jvm.runWithNewJvm("-load:" + filename + SEPARATOR + tempfile))
-			fatal("Load FAILED");
+			Errlog.fatal("Load FAILED");
 		if (! Jvm.runWithNewJvm("-check:" + tempfile))
-			fatal("Load ABORTED - check failed after load");
+			Errlog.fatal("Load ABORTED - check failed after load");
 		dbpkg.renameDbWithBackup(tempfile, dbFilename);
 	}
 
@@ -157,12 +156,12 @@ public class DbTools {
 
 	public static void compactPrintExit(DatabasePackage dbpkg, String dbFilename) {
 		if (! Jvm.runWithNewJvm("-check:" + dbFilename))
-			fatal("Compact ABORTED - check failed before compact - database CORRUPT");
+			Errlog.fatal("Compact ABORTED - check failed before compact - database CORRUPT");
 		String tempfile = FileUtils.tempfile().toString();
 		if (! Jvm.runWithNewJvm("-compact:" + dbFilename + SEPARATOR + tempfile))
-			fatal("Compact FAILED");
+			Errlog.fatal("Compact FAILED");
 		if (! Jvm.runWithNewJvm("-check:" + tempfile))
-			fatal("Compact ABORTED - check failed after compact");
+			Errlog.fatal("Compact ABORTED - check failed after compact");
 		dbpkg.renameDbWithBackup(tempfile, dbFilename);
 	}
 
@@ -191,11 +190,11 @@ public class DbTools {
 		System.out.println("Rebuilding " + dbFilename + " ...");
 		String tempfile = FileUtils.tempfile().toString();
 		if (! Jvm.runWithNewJvm("-rebuild:" + dbFilename + SEPARATOR + tempfile))
-			fatal("Rebuild FAILED");
+			Errlog.fatal("Rebuild FAILED");
 		if (! new File(tempfile + "d").isFile())
 			return; // assume db was ok, rebuild not needed
 		if (! Jvm.runWithNewJvm("-check:" + tempfile))
-			fatal("Rebuild ABORTED - check failed after rebuild");
+			Errlog.fatal("Rebuild ABORTED - check failed after rebuild");
 		dbpkg.renameDbWithBackup(tempfile, dbFilename);
 	}
 
@@ -209,7 +208,7 @@ public class DbTools {
 		if (result == null)
 			System.exit(-1);
 		else {
-			errlog("Rebuild " + dbFilename + ": " + result);
+			Errlog.errlog("Rebuild " + dbFilename + ": " + result);
 			System.out.println("Rebuild SUCCEEDED in " + sw);
 		}
 	}
