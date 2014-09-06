@@ -5,6 +5,7 @@
 package suneido;
 
 import suneido.debug.DebugModel;
+import suneido.util.Errlog;
 
 public class CommandLineOptions {
 	private static final int DEFAULT_PORT = 3147;
@@ -103,7 +104,7 @@ public class CommandLineOptions {
 			} else if (arg.equals("-timeout") || arg.equals("-to"))
 				timeoutMin = getIntArg();
 			else if (arg.equals("-si"))
-				Suneido.errlog("WARNING: -si option is no longer used");
+				Errlog.errlog("WARNING: -si option is no longer used");
 			else if (arg.equals("-ut"))
 				max_update_tran_sec = getIntArg();
 			else if (arg.equals("-mw"))

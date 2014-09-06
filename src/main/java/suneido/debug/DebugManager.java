@@ -7,7 +7,7 @@ package suneido.debug;
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuException;
-import suneido.Suneido;
+import suneido.util.Errlog;
 
 /**
  * <p>
@@ -57,7 +57,7 @@ public final class DebugManager {
 				// implement
 				// me!
 				if (!testIfLocalsAvailable()) {
-					Suneido.errlog("unable to initialize 'all' debugging - falling back to 'stack' debugging");
+					Errlog.errlog("unable to initialize 'all' debugging - falling back to 'stack' debugging");
 					return DebugModel.STACK;
 				}
 			}

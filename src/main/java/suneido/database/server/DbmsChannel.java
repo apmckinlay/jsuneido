@@ -18,7 +18,7 @@ import java.nio.channels.SocketChannel;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.SuException;
-import suneido.Suneido;
+import suneido.util.Errlog;
 import suneido.util.Tr;
 
 /**
@@ -78,7 +78,7 @@ public class DbmsChannel {
 	private void tryRead(ByteBuffer buf) {
 		try {
 			if (-1 == channel.read(buf))
-				Suneido.fatal("lost connection");
+				Errlog.fatal("lost connection");
 		} catch (IOException e) {
 			throw new SuException("error", e);
 		}

@@ -20,8 +20,6 @@ import java.util.concurrent.ConcurrentSkipListSet;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
-import suneido.Suneido;
-
 /**
  * Socket server framework using NIO Selector and non-blocking channels.
  * Uses a supplied HandlerFactory to create a new
@@ -71,7 +69,7 @@ public class ServerBySelect {
 				handleWriters();
 				closeIdleConnections();
 			} catch (Throwable e) {
-				Suneido.errlog("error in server loop", e);
+				Errlog.errlog("error in server loop", e);
 			}
 		}
 	}
@@ -226,7 +224,7 @@ public class ServerBySelect {
 
 	private static void errorClose(SelectionKey key, Exception e) {
 		Info info = (Info) key.attachment();
-		Suneido.errlog(info.handler + " io failed so closing", e);
+		Errlog.errlog(info.handler + " io failed so closing", e);
 		close(key);
 	}
 
