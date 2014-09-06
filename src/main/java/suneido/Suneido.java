@@ -4,11 +4,9 @@
 
 package suneido;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
@@ -23,6 +21,7 @@ import suneido.intfc.database.DatabasePackage;
 import suneido.jsdi.JSDI;
 import suneido.runtime.ContextLayered;
 import suneido.runtime.Contexts;
+import suneido.util.Errlog;
 import suneido.util.Print;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -34,8 +33,8 @@ public class Suneido {
 			.setDaemon(true)
 			.setNameFormat("suneido-thread-%d")
 			.build();
-	private static final ScheduledExecutorService scheduler
-			= Executors.newSingleThreadScheduledExecutor(threadFactory);
+	private static final ScheduledExecutorService scheduler =
+			Executors.newSingleThreadScheduledExecutor(threadFactory);
 	public static CommandLineOptions cmdlineoptions =
 			CommandLineOptions.parse(); // for tests
 	public static Contexts contexts = new Contexts();
@@ -44,6 +43,14 @@ public class Suneido {
 	public static void main(String[] args) {
 		ClassLoader.getSystemClassLoader().setPackageAssertionStatus("suneido", true);
 		cmdlineoptions = CommandLineOptions.parse(DebugModel.ALL, args);
+		if (cmdlineoptions.unattended) {
+			try {
+				System.setOut(new PrintStream(new FileOutputStream("output.log", true)));
+				System.setErr(new PrintStream(new FileOutputStream("error.log", true)));
+			} catch (FileNotFoundException e) {
+				Errlog.fatal("failed to redirect stdout or stderr", e);
+			}
+		}
 		DebugManager.getInstance().setDebugModel(cmdlineoptions.debugModel);
 		if (cmdlineoptions.max_update_tran_sec != 0)
 			dbpkg.setOption("max_update_tran_sec", cmdlineoptions.max_update_tran_sec);
@@ -52,49 +59,7 @@ public class Suneido {
 		try {
 			doAction();
 		} catch (Throwable e) {
-			fatal(cmdlineoptions.action + " FAILED", e);
-		}
-	}
-
-	public static void fatal(String s) {
-		errlog("FATAL: " + s);
-		System.exit(-1);
-	}
-
-	public static void fatal(String s, Throwable e) {
-		errlog("FATAL: " + s + ": " + e, e);
-		System.exit(-1);
-	}
-
-	public static void uncaught(String s, Throwable e) {
-		errlog("UNCAUGHT: " + s + ": " + e, e);
-	}
-
-	// TODO: I think it would be useful to move the errlog methods out to a
-	//       suneido.util class. One reason is that if the bootstrap class calls
-	//       Suneido.errlog purely to report an error, a large amount of static
-	//       initialization has to be done that might not be needed, e.g. if
-	//       the current JVM is going to shut down.
-	public static synchronized void errlog(String s) {
-		errlog(s, null);
-	}
-
-	public static synchronized void errlog(String s, Throwable err) {
-		System.out.println(s);
-		try (FileWriter fw = new FileWriter("error.log", true)) {
-			fw.append(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
-			fw.append(" ");
-			if (TheDbms.dbms() != null) {
-				String sessionid = TheDbms.dbms().sessionid();
-				if (! "127.0.0.1".equals(sessionid))
-					fw.append(sessionid).append(" ");
-			}
-			fw.append(s);
-			fw.append("\n");
-			if (err != null)
-				err.printStackTrace(new PrintWriter(fw));
-		} catch (IOException e) {
-			System.out.println("can't write to error.log " + e);
+			Errlog.fatal(cmdlineoptions.action + " FAILED", e);
 		}
 	}
 
@@ -178,7 +143,7 @@ public class Suneido {
 		try {
 			Compiler.eval("Init()");
 		} catch (Throwable e) {
-			fatal("error during init", e);
+			Errlog.fatal("error during init", e);
 		}
 		DbmsServer.run(cmdlineoptions.serverPort, cmdlineoptions.timeoutMin);
 	}
@@ -188,17 +153,24 @@ public class Suneido {
 	public static void openDbms() {
 		db = dbpkg.open(dbpkg.dbFilename());
 		if (db == null) {
-			errlog("database corrupt, rebuilding");
+			Errlog.errlog("database corrupt, rebuilding");
 			tryToCloseMemoryMappings();
 			DbTools.rebuildOrExit(dbpkg, dbpkg.dbFilename());
 			db = dbpkg.open(dbpkg.dbFilename());
 			if (db == null)
-				fatal("could not open database after rebuild");
+				Errlog.fatal("could not open database after rebuild");
 		}
 		TheDbms.set(db);
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> Suneido.db.close()));
 		scheduleAtFixedRate(db::limitOutstandingTransactions, 1, TimeUnit.SECONDS);
 		scheduleAtFixedRate(db::force, 1, TimeUnit.MINUTES);
+		Errlog.setExtra(TheDbms::sessionid);
+	}
+
+	public static String sessionid() {
+		String sessionid = TheDbms.sessionid();
+		return ("".equals(sessionid) || "127.0.0.1".equals(sessionid)) ? ""
+			: sessionid + " ";
 	}
 
 	private static void tryToCloseMemoryMappings() {
@@ -227,6 +199,7 @@ public class Suneido {
 		System.out.println("-t[ime]o[ut] #            time out in minutes for idle clients (default is 240)");
 		System.out.println("-ut #                     set max update tran duration in seconds (default 10)");
 		System.out.println("-mw #                     set max writes per update transaction (default 10000)");
+		System.out.println("-u[nattended]             redirect stdout and stderr to output.log and error.log");
 		System.out.println("-h[elp] or -?             print this message");
 		System.out.println("--                        end the options, useful if arguments start with '-'");
 	}
