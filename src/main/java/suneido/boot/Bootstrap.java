@@ -18,6 +18,7 @@ import java.util.function.ObjIntConsumer;
 import suneido.SuInternalError;
 import suneido.Suneido;
 import suneido.debug.DebugUtil;
+import suneido.util.Errlog;
 import suneido.util.LineBufferingByteConsumer;
 
 import com.google.common.base.Joiner;
@@ -87,7 +88,7 @@ public final class Bootstrap {
 					if (0 != exitCode) {
 						if (!stderrEchoer.fatalErrors.isEmpty()) {
 							for (String fatal : stderrEchoer.fatalErrors) {
-								Suneido.errlog("bootstrapper can't start new JVM: "
+								Errlog.errlog("bootstrapper can't start new JVM: "
 										+ fatal);
 							}
 							runSuneidoInThisJVM(args); // Fall back
@@ -96,7 +97,7 @@ public final class Bootstrap {
 						}
 					}
 				} catch (SuInternalError e) {
-					Suneido.errlog("bootstrapper can't start new JVM", e);
+					Errlog.errlog("bootstrapper can't start new JVM", e);
 					runSuneidoInThisJVM(args); // Fall back
 				}
 			} else {
@@ -301,7 +302,7 @@ public final class Bootstrap {
 					try {
 						synchronouslyConsume(consumer, inputStream);
 					} catch (IOException e) {
-						Suneido.errlog(
+						Errlog.errlog(
 								"caught IOException in asynchronous stream consumer thread",
 								e);
 					}

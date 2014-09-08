@@ -8,11 +8,9 @@ import java.io.File;
 import java.io.IOException;
 
 import suneido.SuInternalError;
-import suneido.Suneido;
-import suneido.util.FileFinder;
+import suneido.util.*;
 import suneido.util.FileFinder.SearchResult;
 import suneido.util.FileFinder.SearchStage;
-import suneido.util.FileUtils;
 
 /**
  * Facilities for detecting native shared libraries used by Suneido.
@@ -89,7 +87,7 @@ public final class NativeLibrary {
 		try {
 			result = findLibrary(libraryName);
 		} catch (IOException e) {
-			Suneido.errlog("error while searching for " + libraryName, e);
+			Errlog.errlog("error while searching for " + libraryName, e);
 		}
 		// Failed to find it for any reason? Return null.
 		if (null == result) {
@@ -110,11 +108,11 @@ public final class NativeLibrary {
 			try {
 				libraryDir.mkdir();
 			} catch (SecurityException e) {
-				Suneido.errlog(errMsg, e);
+				Errlog.errlog(errMsg, e);
 				return null;
 			}
 			if (!libraryDir.isDirectory()) {
-				Suneido.errlog(errMsg);
+				Errlog.errlog(errMsg);
 				return null;
 			}
 		}
@@ -124,7 +122,7 @@ public final class NativeLibrary {
 		try {
 			FileUtils.copy(result.file, libraryFile);
 		} catch (IOException e) {
-			Suneido.errlog(
+			Errlog.errlog(
 					"can't persist " + libraryFile + " to " + libraryDir, e);
 			return null;
 		}

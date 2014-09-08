@@ -5,6 +5,7 @@
 package suneido;
 
 import suneido.debug.DebugModel;
+import suneido.util.Errlog;
 
 public class CommandLineOptions {
 	private static final int DEFAULT_PORT = 3147;
@@ -26,6 +27,7 @@ public class CommandLineOptions {
 	public int max_update_tran_sec = 0;
 	public int max_writes_per_tran = 0;
 	public boolean jsdi = true;
+	public boolean unattended = false;
 
 	public static CommandLineOptions parse(String... args) {
 		return parse(DebugModel.STACK, args);
@@ -102,7 +104,7 @@ public class CommandLineOptions {
 			} else if (arg.equals("-timeout") || arg.equals("-to"))
 				timeoutMin = getIntArg();
 			else if (arg.equals("-si"))
-				Suneido.errlog("WARNING: -si option is no longer used");
+				Errlog.errlog("WARNING: -si option is no longer used");
 			else if (arg.equals("-ut"))
 				max_update_tran_sec = getIntArg();
 			else if (arg.equals("-mw"))
@@ -111,6 +113,8 @@ public class CommandLineOptions {
 				debugModel = getDebugModelArg();
 			else if (arg.equals("-nojsdi"))
 				jsdi = false;
+			else if (arg.equals("-unattended") || arg.equals("-u"))
+				unattended = true;
 			else
 				error("unknown option: " + arg);
 			if (action == Action.ERROR)

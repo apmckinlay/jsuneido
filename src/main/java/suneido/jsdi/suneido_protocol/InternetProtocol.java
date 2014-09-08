@@ -17,6 +17,7 @@ import suneido.jsdi.Buffer;
 import suneido.jsdi.DllInterface;
 import suneido.runtime.Except;
 import suneido.runtime.Ops;
+import suneido.util.Errlog;
 
 /**
  * <p>
@@ -139,7 +140,7 @@ public final class InternetProtocol {
 			addLines(w, HTML_AFTER);
 			w.close();
 		} catch (Exception e2) {
-			Suneido.errlog("Can't make HTML stack trace", e2);
+			Errlog.errlog("Can't make HTML stack trace", e2);
 		}
 		return os.toByteArray();
 	}
