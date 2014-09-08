@@ -36,10 +36,9 @@ final class FastDll4 extends Dll {
 	// CONSTRUCTORS
 	//
 
-	protected FastDll4(long funcPtr, ParamsTypeList params, Type returnType,
-			String valueName, DllFactory dllFactory, String libraryName,
-			String funcName) {
-		super(funcPtr, params, returnType, valueName, dllFactory, libraryName, funcName);
+	FastDll4(long funcPtr, ParamsTypeList params, Type returnType,
+			DllFactory dllFactory, String libraryName, String funcName) {
+		super(funcPtr, params, returnType, dllFactory, libraryName, funcName);
 		p0 = params.get(0).getType();
 		p1 = params.get(1).getType();
 		p2 = params.get(2).getType();

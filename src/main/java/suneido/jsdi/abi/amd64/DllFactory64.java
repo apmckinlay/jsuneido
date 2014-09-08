@@ -40,8 +40,8 @@ final class DllFactory64 extends DllFactory {
 	//
 
 	@Override
-	protected Dll makeRealDll(String suTypeName, String libraryName,
-			String userFuncName, TypeList params, Type returnType) {
+	protected Dll makeRealDll(String libraryName, String userFuncName,
+			TypeList params, Type returnType) {
 		ParamsTypeList ptl = (ParamsTypeList)params;
 		ReturnTypeGroup rtg = ReturnTypeGroup.fromType(returnType);
 		long funcPtr = getFuncPtr(libraryName, userFuncName);
@@ -56,12 +56,12 @@ final class DllFactory64 extends DllFactory {
 					ptl.isMarshallableToLong(), ptl.needsFpRegister(),
 					isFloatReturn);
 			if (jsdi.isFastMode() && nc.isFastCallable()) {
-				return makeFastDll(nc, funcPtr, ptl, returnType, suTypeName,
-						libraryName, userFuncName);
+				return makeFastDll(nc, funcPtr, ptl, returnType, libraryName,
+						userFuncName);
 			}
 		}
 		return new GenericDll(funcPtr, ptl, returnType, rtg, isFloatReturn, nc,
-				suTypeName, this, libraryName, userFuncName, paramsPlan);
+				this, libraryName, userFuncName, paramsPlan);
 	}
 
 	//
@@ -76,24 +76,24 @@ final class DllFactory64 extends DllFactory {
 	}
 
 	private Dll makeFastDll(NativeCall64 nc, long funcPtr,
-			ParamsTypeList params, Type returnType, String suTypeName,
-			String libraryName, String userFuncName) {
+			ParamsTypeList params, Type returnType, String libraryName,
+			String userFuncName) {
 		switch (nc) {
 		case J0_RETURN_INT64:
-			return new FastDll0(funcPtr, params, returnType, suTypeName, this,
-					libraryName, userFuncName);
+			return new FastDll0(funcPtr, params, returnType, this, libraryName,
+					userFuncName);
 		case J1_RETURN_INT64:
-			return new FastDll1(funcPtr, params, returnType, suTypeName, this,
-					libraryName, userFuncName);
+			return new FastDll1(funcPtr, params, returnType, this, libraryName,
+					userFuncName);
 		case J2_RETURN_INT64:
-			return new FastDll2(funcPtr, params, returnType, suTypeName, this,
-					libraryName, userFuncName);
+			return new FastDll2(funcPtr, params, returnType, this, libraryName,
+					userFuncName);
 		case J3_RETURN_INT64:
-			return new FastDll3(funcPtr, params, returnType, suTypeName, this,
-					libraryName, userFuncName);
+			return new FastDll3(funcPtr, params, returnType, this, libraryName,
+					userFuncName);
 		case J4_RETURN_INT64:
-			return new FastDll4(funcPtr, params, returnType, suTypeName, this,
-					libraryName, userFuncName);
+			return new FastDll4(funcPtr, params, returnType, this, libraryName,
+					userFuncName);
 		default:
 			throw SuInternalError.unhandledEnum(nc);
 		}

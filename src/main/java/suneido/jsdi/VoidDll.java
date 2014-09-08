@@ -39,8 +39,8 @@ public final class VoidDll extends Dll {
 	 */
 	public VoidDll(TypeList params, Type returnType, String valueName,
 			DllFactory dllFactory, String userFuncName) {
-		super(0, params, returnType, valueName, dllFactory,
-				VoidType.IDENTIFIER, userFuncName);
+		super(0, params, returnType, dllFactory, VoidType.IDENTIFIER,
+				userFuncName);
 	}
 
 	//

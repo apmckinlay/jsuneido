@@ -38,10 +38,9 @@ final class DllX86 extends Dll {
 
 	protected DllX86(long funcPtr, TypeList params, Type returnType,
 			ReturnTypeGroup returnTypeGroup, NativeCallX86 nc,
-			String valueName, DllFactory dllFactory, String libraryName,
-			String funcName, MarshallPlanX86 plan) {
-		super(funcPtr, params, returnType, valueName, dllFactory, libraryName,
-				funcName);
+			DllFactory dllFactory, String libraryName, String funcName,
+			MarshallPlanX86 plan) {
+		super(funcPtr, params, returnType, dllFactory, libraryName, funcName);
 		assert null != returnTypeGroup;
 		this.returnTypeGroup = returnTypeGroup;
 		this.nativeCall = nc;
