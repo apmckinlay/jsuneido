@@ -60,9 +60,9 @@ final class Factory64 extends Factory {
 	}
 
 	@Override
-	public Dll makeDll(String suTypeName, String libraryName,
-			String userFuncName, TypeList params, Type returnType) {
-		return dllFactory.makeDll(suTypeName, libraryName, userFuncName,
-				params, returnType);
+	public Dll makeDll(String libraryName, String userFuncName,
+			TypeList params, Type returnType) {
+		return dllFactory.makeDll(libraryName, userFuncName, params,
+				returnType);
 	}
 }

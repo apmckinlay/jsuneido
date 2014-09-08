@@ -234,9 +234,6 @@ public abstract class Factory {
 
 	/**
 	 * Constructs a {@link Dll} capable of invoking the given library function.
-	 * 
-	 * @param suTypeName
-	 *            The Suneido (<em>ie</em> user-assigned) type name
 	 * @param libraryName
 	 *            Name of the DLL library module
 	 * @param userFuncName
@@ -248,12 +245,13 @@ public abstract class Factory {
 	 *            the {@link Dll}'s parameters.
 	 * @param returnType
 	 *            {@link Type} describing the return type of the {@link Dll}.
+	 * 
 	 * @return Constructed {@link Dll}
 	 * @since 20140718
 	 * @throws JSDIException
 	 *             If library cannot be loaded, address of function cannot be
 	 *             located, or some other error occurs
 	 */
-	public abstract Dll makeDll(String suTypeName, String libraryName,
-			String userFuncName, TypeList params, Type returnType);
+	public abstract Dll makeDll(String libraryName, String userFuncName,
+			TypeList params, Type returnType);
 }
