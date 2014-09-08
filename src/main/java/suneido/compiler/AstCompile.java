@@ -340,7 +340,7 @@ public class AstCompile {
 		Dll dll = factory.makeDll(curName, ast.first().value,
 				ast.second().value, params, returnType);
 		nameEnd();
-		return dll;
+		return dll.setSource(library, globalName);
 	}
 
 	@DllInterface

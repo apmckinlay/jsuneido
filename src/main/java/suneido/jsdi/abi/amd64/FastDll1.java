@@ -34,9 +34,8 @@ final class FastDll1 extends Dll {
 	//
 
 	FastDll1(long funcPtr, ParamsTypeList params, Type returnType,
-			String valueName, DllFactory dllFactory, String libraryName,
-			String funcName) {
-		super(funcPtr, params, returnType, valueName, dllFactory, libraryName, funcName);
+			DllFactory dllFactory, String libraryName, String funcName) {
+		super(funcPtr, params, returnType, dllFactory, libraryName, funcName);
 		p0 = params.get(0).getType();
 	}
 

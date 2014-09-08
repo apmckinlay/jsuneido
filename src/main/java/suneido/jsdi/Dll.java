@@ -29,22 +29,20 @@ public abstract class Dll extends SuCallable {
 	// DATA
 	//
 
-	protected final long     funcPtr;
-	protected final TypeList dllParams;     // don't confuse w SuCallable.params
-	protected final Type     returnType;
+	protected final long funcPtr;
+	protected final TypeList dllParams; // don't confuse w SuCallable.params
+	protected final Type returnType;
 
-	private final String     valueName; // FIXME: This should just use the 'name' value APM added to SuCallable
-	private final DllFactory dllFactory;    // for finalization
-	        final String     libraryName;   // package-visible for DllFactory
-	private final String     funcName;
+	private final DllFactory dllFactory; // for finalization
+	final String libraryName; // package-visible for DllFactory
+	private final String funcName;
 
 	//
 	// CONSTRUCTORS
 	//
 
 	protected Dll(long funcPtr, TypeList params, Type returnType,
-			String valueName, DllFactory dllFactory, String libraryName,
-			String funcName) {
+			DllFactory dllFactory, String libraryName, String funcName) {
 		assert (TypeId.VOID == returnType.getTypeId() || TypeId.BASIC == returnType
 				.getTypeId()
 				&& StorageType.VALUE == returnType.getStorageType())
@@ -55,7 +53,6 @@ public abstract class Dll extends SuCallable {
 		this.funcPtr = funcPtr;
 		this.dllParams = params;
 		this.returnType = returnType;
-		this.valueName = valueName;
 		this.dllFactory = dllFactory;
 		this.libraryName = libraryName;
 		this.funcName = funcName;
@@ -88,11 +85,6 @@ public abstract class Dll extends SuCallable {
 	@Override
 	public final String typeName() {
 		return "aDll";
-	}
-
-	@Override
-	public final String valueName() {
-		return valueName;
 	}
 
 	@Override
@@ -156,7 +148,7 @@ public abstract class Dll extends SuCallable {
 
 	// TODO: implement -- see Suneidoc for dll.Trace
 	// TODO: give it a parameter so you can turn it off!
-	public static Object Trace(Object self) { 
+	public static Object Trace(Object self) {
 		throw new RuntimeException("not yet implemented");
 	}
 }

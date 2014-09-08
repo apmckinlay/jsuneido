@@ -83,7 +83,7 @@ public abstract class DllFactory {
 			String userFuncName, TypeList params, Type returnType) {
 		return VoidType.IDENTIFIER.equals(libraryName) ? new VoidDll(params,
 				returnType, suTypeName, this, userFuncName) : makeRealDll(
-				suTypeName, libraryName, userFuncName, params, returnType);
+				libraryName, userFuncName, params, returnType);
 	}
 
 	/**
@@ -110,8 +110,8 @@ public abstract class DllFactory {
 	// INTERNALS
 	//
 
-	protected abstract Dll makeRealDll(String suTypeName, String libraryName,
-			String userFuncName, TypeList params, Type returnType);
+	protected abstract Dll makeRealDll(String libraryName, String userFuncName,
+			TypeList params, Type returnType);
 
 	protected long getFuncPtr(String libraryName, String userFuncName) {
 		final long hModule = getLibraryHandle(libraryName);

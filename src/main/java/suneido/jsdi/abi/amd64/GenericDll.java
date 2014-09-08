@@ -38,9 +38,9 @@ final class GenericDll extends Dll {
 
 	protected GenericDll(long funcPtr, ParamsTypeList params, Type returnType,
 			ReturnTypeGroup returnTypeGroup, boolean is32BitIEEEFloatReturn,
-			NativeCall64 nc, String valueName, DllFactory dllFactory,
-			String libraryName, String funcName, MarshallPlan64 plan) {
-		super(funcPtr, params, returnType, valueName, dllFactory, libraryName, funcName);
+			NativeCall64 nc, DllFactory dllFactory, String libraryName,
+			String funcName, MarshallPlan64 plan) {
+		super(funcPtr, params, returnType, dllFactory, libraryName, funcName);
 		assert null != returnTypeGroup;
 		this.params = params;
 		this.nativeCall = nc;
