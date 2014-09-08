@@ -15,14 +15,31 @@ Re-enable RethrowCallstackTest() in jSuneido (with BuiltDate() guard)
 ========
 20140905
 ========
--- Take "valueName" out of Dll and replace with SuCallable.setSource()
-      [ This will get library into Dll display ]
 -- Need to be smarter about filtering callstack where we have call() calling
    call3() or something.
 -- Filter locals:
       "this", __SELF__, __ARGS__, dll calls etc.
 -- Stack-mode callstack
 -- JDWP mode for full debugging
+
+
+HOW IT ALL WORKS:
+    locals.c : Copy annotation of annotated methods
+               Filter : public, non-static, package prefix, annotated?
+
+    Suneido : Local variable translation
+    
+              OPTION 1: Put locals translation in SuCallable 
+
+               Translate local variables:
+                   SuCallable.translateLocals() ...
+                       [Go thru the functionSpec]
+                   Dll.translateLocals() ...
+
+              OPTION 2: Drive locals translation off of the annotation and the
+                        functionSpec.
+
+                  Annotation ignoreNonParams default true.
 
 ========
 20140826
