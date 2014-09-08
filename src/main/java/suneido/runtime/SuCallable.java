@@ -137,7 +137,7 @@ public abstract class SuCallable extends SuValue {
 
 	@Override
 	public String valueName() {
-		return name;
+		return null == name ? "" : name;
 	}
 
 	@Override
