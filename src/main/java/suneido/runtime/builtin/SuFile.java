@@ -91,10 +91,24 @@ public class SuFile extends SuValue {
 		}
 	}
 
+	// NOTE: Readline should be consistent across file, socket, and runpiped
 	public static Object Readline(Object self) {
+		RandomAccessFile f = ((SuFile) self).f;
+		// our own implementation to get Suneido's behavior
 		try {
-			String s = ((SuFile) self).f.readLine();
-			return s == null ? Boolean.FALSE : s;
+			StringBuilder sb = new StringBuilder();
+			while (true) {
+				int c = f.read();
+				if (c == -1)
+					if (sb.length() == 0)
+						return Boolean.FALSE;
+					else
+						break ;
+				if (c == '\n')
+					break ;
+				sb.append((char) c);
+			}
+			return Util.toLine(sb);
 		} catch (IOException e) {
 			throw new SuException("File Readline failed", e);
 		}

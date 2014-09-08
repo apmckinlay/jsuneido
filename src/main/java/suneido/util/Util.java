@@ -34,6 +34,18 @@ public class Util {
 		return s.substring(0, 1).toLowerCase() + s.substring(1);
 	}
 
+	/***
+	 * Return the contents of a StringBuilder with any trailing returns removed.
+	 * <p>
+	 * Used by Readline in SuFile, RunPiped, and SocketClient
+	 */
+	public static String toLine(StringBuilder sb) {
+		int n = sb.length();
+		while (n > 0 && sb.charAt(n - 1) == '\r')
+			--n;
+		return sb.substring(0, n);
+	}
+
 	@SuppressWarnings("unchecked")
 	public static <T> String listToCommas(Collection<T> list) {
 		if (list == null || list.isEmpty())

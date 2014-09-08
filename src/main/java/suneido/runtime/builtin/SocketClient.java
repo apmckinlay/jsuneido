@@ -16,6 +16,9 @@ import suneido.SuValue;
 import suneido.runtime.*;
 import suneido.util.Util;
 
+/***
+ * Also used by {@link SocketServer}
+ */
 public class SocketClient extends SuValue {
 	private static final BuiltinMethods methods = new BuiltinMethods(SocketClient.class);
 	private final Socket socket;
@@ -99,26 +102,22 @@ public class SocketClient extends SuValue {
 
 	public static Object Readline(Object self) {
 		try {
-			String line = socketClient(self).readLine();
-			if (line == null)
-				throw new SuException("socket Readline lost connection or timeout");
-			return line;
+			return socketClient(self).readLine();
 		} catch (IOException e) {
 			throw new SuException("socket Readline failed", e);
 		}
 	}
 
+	// NOTE: Readline should be consistent across file, socket, and runpiped
 	private String readLine() throws IOException {
 		StringBuilder sb = new StringBuilder();
 		while (true) {
 			int c = input.read();
-			if (c == '\r')
-				c = input.read();
 			if (c == '\n' || c == -1)
 				break ;
 			sb.append((char) c);
 		}
-		return sb.toString();
+		return Util.toLine(sb);
 	}
 
 	@Params("string")

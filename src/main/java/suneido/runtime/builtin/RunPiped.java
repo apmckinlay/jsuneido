@@ -6,9 +6,9 @@ package suneido.runtime.builtin;
 
 import static suneido.util.Util.array;
 
-import java.io.BufferedReader;
+import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,12 +16,13 @@ import java.util.List;
 import suneido.SuException;
 import suneido.SuValue;
 import suneido.runtime.*;
+import suneido.util.Util;
 
 public class RunPiped extends SuValue {
 	private final String cmd;
 	private final Process proc;
 	private final PrintStream out;
-	private final BufferedReader in;
+	private final InputStream in;
 	private static final BuiltinMethods methods = new BuiltinMethods(RunPiped.class);
 
 	public RunPiped(String cmd) {
@@ -33,7 +34,7 @@ public class RunPiped extends SuValue {
 			pb.redirectErrorStream(true); // merge stderr into stdout
 			proc = pb.start();
 			out = new PrintStream(proc.getOutputStream(), true);
-			in = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+			in = new BufferedInputStream(proc.getInputStream());
 
 		} catch (IOException e) {
 			throw new SuException("RunPiped failed", e);
@@ -89,9 +90,9 @@ public class RunPiped extends SuValue {
 	public static Object Read(Object self, Object a) {
 		int n = Ops.toInt(a);
 		try {
-			char buf[] = new char[n];
+			byte buf[] = new byte[n];
 			int nr = ((RunPiped) self).in.read(buf, 0, n);
-			return nr == -1 ? false : new String(buf, 0, nr);
+			return nr == -1 ? false : Util.bytesToString(buf, nr);
 		} catch (IOException e) {
 			throw new SuException("RunPiped Read failed", e);
 		}
@@ -99,11 +100,27 @@ public class RunPiped extends SuValue {
 
 	public static Object Readline(Object self) {
 		try {
-			String s = ((RunPiped) self).in.readLine();
-			return s == null ? Boolean.FALSE : s;
+			return ((RunPiped) self).readLine();
 		} catch (IOException e) {
 			throw new SuException("RunPiped Readline failed", e);
 		}
+	}
+
+	// NOTE: Readline should be consistent across file, socket, and runpiped
+	private Object readLine() throws IOException {
+		StringBuilder sb = new StringBuilder();
+		while (true) {
+			int c = in.read();
+			if (c == -1)
+				if (sb.length() == 0)
+					return Boolean.FALSE;
+				else
+					break ;
+			if (c == '\n')
+				break ;
+			sb.append((char) c);
+		}
+		return Util.toLine(sb);
 	}
 
 	@Params("string")

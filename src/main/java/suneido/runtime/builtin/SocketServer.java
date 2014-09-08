@@ -33,7 +33,10 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
  * A "master" instance is created
  * and any arguments are passed to the New of the class.
  * The master instance is duplicated (shallow copy) for each connection
- * and Run is called.<p>
+ * and Run is called.
+ * <p>
+ * Uses {@link SocketClient} for actual IO
+ * <p>
  * WARNING: Since it is thread per connection
  * you should not use shared mutable data structures.<p>
  * Note: the name and exit parameters are not used on jSuneido.
