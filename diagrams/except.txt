@@ -23,7 +23,8 @@ Re-enable RethrowCallstackTest() in jSuneido (with BuiltDate() guard)
 -- JDWP mode for full debugging
 
 
-HOW IT ALL WORKS:
+HOW "ALL" SYSTEM WORKS:
+
     locals.c : Copy annotation of annotated methods
                Filter : public, non-static, package prefix, annotated?
 
@@ -40,6 +41,24 @@ HOW IT ALL WORKS:
                         functionSpec.
 
                   Annotation ignoreNonParams default true.
+
+HOW "STACK" SYSTEM WORKS:
+
+    For each stack frame element SFE:
+        Look up class of SFE
+            If class extends SuCallable
+                Clean up pattern:
+                    callX() call() eval?() -> callX
+                    call() eval?() -> call()
+                    evalX() eval() -> evalX
+                Determine name:
+                    If from suneido.code:
+                        Split on £ (AstCompile.METHOD_SEPARATOR)
+                        Extract library from source frame
+                    Else If from suneido.jsdi and is Dll:
+                        Replace with ??? dll ???
+                    Else If built-in
+                        Repalce with ??? built-in ???
 
 ========
 20140826
