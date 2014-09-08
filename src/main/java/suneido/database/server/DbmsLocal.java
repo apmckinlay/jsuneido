@@ -5,7 +5,6 @@
 package suneido.database.server;
 
 import static suneido.Suneido.dbpkg;
-import static suneido.Suneido.errlog;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -23,6 +22,7 @@ import suneido.intfc.database.Record;
 import suneido.intfc.database.Table;
 import suneido.intfc.database.Transaction;
 import suneido.runtime.builtin.ServerEval;
+import suneido.util.Errlog;
 
 import com.google.common.collect.Lists;
 
@@ -173,7 +173,7 @@ public class DbmsLocal extends Dbms {
 	@Override
 	public void log(String s) {
 		String sessionId = ServerData.forThread().getSessionId();
-		errlog(sessionId + ": " + s);
+		Errlog.errlog(sessionId + ": " + s);
 	}
 
 	@Override

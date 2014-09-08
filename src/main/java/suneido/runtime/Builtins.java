@@ -7,11 +7,11 @@ package suneido.runtime;
 import java.util.Map;
 
 import suneido.SuContainer;
-import suneido.Suneido;
 import suneido.jsdi.Buffer;
 import suneido.jsdi.ThunkManager;
 import suneido.jsdi.com.COMobject;
 import suneido.runtime.builtin.*;
+import suneido.util.Errlog;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -154,7 +154,7 @@ public class Builtins {
 			Class.forName("org.apache.lucene.analysis.standard.StandardAnalyzer");
 			return Lucene.singleton;
 		} catch (ClassNotFoundException e) {
-			Suneido.errlog("ERROR: lucene not found");
+			Errlog.errlog("ERROR: lucene not found");
 			return NoLucene.singleton;
 		}
 	}
