@@ -337,8 +337,8 @@ public class AstCompile {
 			throw new SuException("invalid dll return type: " + returnTypeName);
 		}
 		Factory factory = JSDI.getInstance().getFactory();
-		Dll dll = factory.makeDll(curName, ast.first().value,
-				ast.second().value, params, returnType);
+		Dll dll = factory.makeDll(ast.first().value, ast.second().value,
+				params, returnType);
 		nameEnd();
 		return dll.setSource(library, globalName);
 	}

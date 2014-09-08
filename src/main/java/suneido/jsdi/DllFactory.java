@@ -64,25 +64,30 @@ public abstract class DllFactory {
 
 	/**
 	 * Constructs a {@link Dll} capable of invoking the given library function.
-	 * @param suTypeName The Suneido (<em>ie</em> user-assigned type name)
-	 * @param libraryName Name of the DLL library module
-	 * @param userFuncName Function name to load within the library. If no
-	 * function with this name is found, the name {@code userFuncName + 'A'} is
-	 * also tried.
-	 * @param params {@link TypeList} describing the names, types, and positions
-	 * of the {@link Dll}'s parameters.
-	 * @param returnType {@link Type} describing the return type of the
-	 * {@link Dll}.
+	 * 
+	 * @param libraryName
+	 *            Name of the DLL library module
+	 * @param userFuncName
+	 *            Function name to load within the library. If no function with
+	 *            this name is found, the name {@code userFuncName + 'A'} is
+	 *            also tried.
+	 * @param params
+	 *            {@link TypeList} describing the names, types, and positions of
+	 *            the {@link Dll}'s parameters.
+	 * @param returnType
+	 *            {@link Type} describing the return type of the {@link Dll}.
 	 * @return Constructed {@link Dll}
-	 * @throws JSDIException If {@code libraryName} cannot be loaded with the
-	 * API call {@code LoadLibrary}; or if the address of the function
-	 * {@code userFuncName} (or {@code userFuncName + 'A'}) can't be located
-	 * with the API call {@code GetProcAddress}; or if some other error occurs.
+	 * @throws JSDIException
+	 *             If {@code libraryName} cannot be loaded with the API call
+	 *             {@code LoadLibrary}; or if the address of the function
+	 *             {@code userFuncName} (or {@code userFuncName + 'A'}) can't be
+	 *             located with the API call {@code GetProcAddress}; or if some
+	 *             other error occurs.
 	 */
-	public final Dll makeDll(String suTypeName, String libraryName,
-			String userFuncName, TypeList params, Type returnType) {
+	public final Dll makeDll(String libraryName, String userFuncName,
+			TypeList params, Type returnType) {
 		return VoidType.IDENTIFIER.equals(libraryName) ? new VoidDll(params,
-				returnType, suTypeName, this, userFuncName) : makeRealDll(
+				returnType, this, userFuncName) : makeRealDll(
 				libraryName, userFuncName, params, returnType);
 	}
 
