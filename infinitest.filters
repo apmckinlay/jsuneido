@@ -1,0 +1,6 @@
+suneido.intfc.database.DbRebuildTest
+suneido.intfc.database.DumpLoadTest
+suneido.immudb.MmapFileTest
+suneido.jsdi.type.StructureTest
+suneido.compiler.ParseAndCompileDllTest
+suneido.compiler.ParseAndCompileStructTest
