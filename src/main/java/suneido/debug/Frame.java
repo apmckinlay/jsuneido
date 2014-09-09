@@ -4,10 +4,7 @@
 
 package suneido.debug;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
+import suneido.SuContainer;
 import suneido.SuInternalError;
 
 /**
@@ -22,7 +19,7 @@ public abstract class Frame {
 	// DATA
 	//
 
-	private final List<LocalVariable> locals;
+	private final LocalVariable[] locals;
 
 	//
 	// CONSTRUCTORS
@@ -32,7 +29,7 @@ public abstract class Frame {
 		if (null == locals) {
 			throw new SuInternalError("locals cannot be null");
 		}
-		this.locals = Collections.unmodifiableList(Arrays.asList(locals));
+		this.locals = locals;
 	}
 
 	//
@@ -43,7 +40,11 @@ public abstract class Frame {
 
 	public abstract int getLineNumber();
 
-	public final List<LocalVariable> getLocals() {
+	public final SuContainer getLocalsContainer() {
+		SuContainer locals = new SuContainer();
+		for (LocalVariable local : this.locals) {
+			locals.put(local.getName(), local.getValue());
+		}
 		return locals;
 	}
 }
