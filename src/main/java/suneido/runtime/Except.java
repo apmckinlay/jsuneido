@@ -10,7 +10,6 @@ import suneido.debug.Callstack;
 import suneido.debug.CallstackProvider;
 import suneido.debug.DebugManager;
 import suneido.debug.Frame;
-import suneido.debug.LocalVariable;
 
 /**
  * <p>
@@ -130,11 +129,7 @@ public final class Except extends String2 {
 
 	private static SuContainer callob(Frame x) {
 		SuContainer call = new SuContainer();
-		SuContainer locals = new SuContainer();
-		for (LocalVariable local : x.getLocals()) {
-			locals.put(local.getName(), local.getValue());
-		}
-		call.put("locals", locals);
+		call.put("locals", x.getLocalsContainer());
 		call.put("fn", x.getFrame());
 		int lineNumber = x.getLineNumber();
 		call.put("src_n", 0 < lineNumber ? lineNumber : Boolean.FALSE);
