@@ -78,7 +78,7 @@
 	>
 		<jar destfile="${jar.name.prefix}-amd64${jar.name.suffix-raw}" filesetmanifest="mergewithoutmain">
 			<manifest>
-				<attribute name="Main-Class" value="suneido.Suneido"/>
+				<attribute name="Main-Class" value="suneido.boot.Bootstrap"/>
 				<attribute name="Class-Path" value="${jar.manifest.classpath}"/>
 			</manifest>
 			<fileset dir="${main.destdir}">
@@ -112,7 +112,7 @@
 	>
 		<jar destfile="${jar.name.prefix}-x86${jar.name.suffix-raw}" filesetmanifest="mergewithoutmain">
 			<manifest>
-				<attribute name="Main-Class" value="suneido.Suneido"/>
+				<attribute name="Main-Class" value="suneido.boot.Bootstrap"/>
 				<attribute name="Class-Path" value="${jar.manifest.classpath}"/>
 			</manifest>
 			<fileset dir="${main.destdir}">
