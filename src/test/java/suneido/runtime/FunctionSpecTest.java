@@ -17,8 +17,8 @@ public class FunctionSpecTest {
 		assertSame(from(""), NO_PARAMS);
 		assertSame(from("string"), STRING);
 		assertSame(from("value"), VALUE);
-		assertSame(from("value,value"), VALUE2);
-		assertSame(from("value, value"), VALUE2);
+		assertSame(from("value1,value2"), VALUE2);
+		assertSame(from("value1, value2"), VALUE2);
 		assertSame(from("block"), BLOCK);
 
 		test("a,b,c", "params: a b c, defaults:");

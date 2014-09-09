@@ -67,9 +67,13 @@ public class FunctionSpec {
 	public static final FunctionSpec VALUE =
 			new FunctionSpec("value");
 	public static final FunctionSpec VALUE2 =
-			new FunctionSpec("value", "value");
+			new FunctionSpec("value1", "value2");
 	public static final FunctionSpec STRING =
 			new FunctionSpec("string");
+	public static final FunctionSpec NUMBER =
+			new FunctionSpec("number");
+	public static final FunctionSpec NUMBER2 =
+			new FunctionSpec("number1, number2");
 	public static final FunctionSpec BLOCK =
 			new FunctionSpec(array("block"), Boolean.FALSE);
 	public static final Object NA = new Object();
@@ -231,13 +235,18 @@ public class FunctionSpec {
 		switch (spec) {
 		case "":
 			return NO_PARAMS;
-		case "string":
-			return STRING;
 		case "value":
 			return VALUE;
-		case "value,value":
-		case "value, value":
+		case "value1,value2":
+		case "value1, value2":
 			return VALUE2;
+		case "string":
+			return STRING;
+		case "number":
+			return NUMBER;
+		case "number1,number2":
+		case "number1, number2":
+			return NUMBER2;
 		case "block":
 			return BLOCK;
 		}
