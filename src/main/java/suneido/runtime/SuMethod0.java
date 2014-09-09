@@ -5,7 +5,7 @@
 package suneido.runtime;
 
 public abstract class SuMethod0 extends SuMethod {
-	{ params = FunctionSpec.noParams; }
+	{ params = FunctionSpec.NO_PARAMS; }
 
 	@Override
 	public Object eval(Object self, Object... args) {

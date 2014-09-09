@@ -212,10 +212,15 @@ public class AstCompile {
 
 	private void block(ClassGen cg, AstNode ast) {
 		if (ast.third() == null) {
+			// Third will be null where a previous call to AstSharesVares.check()
+			// by this.closure(...) did detect a closure.
 			SuCallable f = function(null, ast);
 			cg.constant(f);
 			cg.addBlockReturnCatcher();
-		} else {
+		} else /* ast.third() == Token.CLOSURE */{
+			// Third will be Token.CLOSURE where a previous call to
+			// AstSharesVars.check() by this.closure(...) found a closure and
+			// replaced the null that was originally inserted by the parser.
 			assert ast.third().token == Token.CLOSURE;
 			int iBlockDef = cg.addConstant(closure(cg, ast));
 			List<AstNode> params = ast.first().children;

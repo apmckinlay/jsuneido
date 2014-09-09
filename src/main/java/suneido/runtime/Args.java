@@ -35,11 +35,11 @@ public class Args {
 	 * @return The locals Object array initialized from args.
 	 */
 	public static Object[] massage(FunctionSpec fs, Object[] args) {
-		final int nlocals = fs.nLocals;
+		final int nlocals = fs.getAllLocalsCount();
 		final boolean args_each =
 				args.length == 2 && (args[0] == EACH || args[0] == EACH1);
 
-		if (simple(args) && !fs.atParam && args.length == fs.params.length
+		if (simple(args) && !fs.atParam && args.length == fs.paramNames.length
 				&& nlocals <= args.length)
 			// "fast" path - avoid alloc by using args as locals
 			return args;
@@ -58,12 +58,12 @@ public class Args {
 			locals[0] = c;
 			collectArgs(c, args);
 		} else {
-			assert nlocals >= fs.params.length;
+			assert nlocals >= fs.paramNames.length;
 			int li = 0;
 			for (int i = 0; i < args.length; ++i) {
 				if (args[i] == NAMED) {
-					for (int j = 0; j < fs.params.length; ++j)
-						if (fs.params[j].equals(args[i + 1]))
+					for (int j = 0; j < fs.paramNames.length; ++j)
+						if (fs.paramNames[j].equals(args[i + 1]))
 							locals[j] = args[i + 2];
 					// else ignore named arg not matching param
 					i += 2;
@@ -75,13 +75,13 @@ public class Args {
 						throw new SuException("too many arguments");
 					for (int j = start; j < c.vecSize(); ++j)
 						locals[li++] = c.vecGet(j);
-					for (int j = 0; j < fs.params.length; ++j) {
-						Object x = c.getIfPresent(fs.params[j]);
+					for (int j = 0; j < fs.paramNames.length; ++j) {
+						Object x = c.getIfPresent(fs.paramNames[j]);
 						if (x != null)
 							locals[j] = x;
 					}
 				}
-				else if (li < fs.params.length)
+				else if (li < fs.paramNames.length)
 					locals[li++] = args[i];
 				else
 					throw new SuException("too many arguments");
@@ -124,24 +124,24 @@ public class Args {
 
 	/** also done by {@link SuCallable} fillin */
 	private static void dynamicImplicits(FunctionSpec fs, Object[] locals) {
-		for (int i = 0; i < fs.params.length; ++i)
-			if (fs.isDynParam(fs.params[i]) && locals[i] == null)
-				locals[i] = Dynamic.getOrNull("_" + fs.params[i]);
+		for (int i = 0; i < fs.paramNames.length; ++i)
+			if (fs.isDynParam(fs.paramNames[i]) && locals[i] == null)
+				locals[i] = Dynamic.getOrNull("_" + fs.paramNames[i]);
 	}
 
 	/** also done by {@link SuCallable} fillin */
 	private static void applyDefaults(FunctionSpec fn, Object[] locals) {
 		if (fn.defaults.length == 0)
 			return;
-		for (int i = 0, j = fn.params.length - fn.defaults.length; i < fn.defaults.length; ++i, ++j)
+		for (int i = 0, j = fn.paramNames.length - fn.defaults.length; i < fn.defaults.length; ++i, ++j)
 			if (locals[j] == null)
 				locals[j] = fn.defaults[i];
 	}
 
 	private static void verifyAllSupplied(FunctionSpec fn, Object[] locals) {
-		for (int i = 0; i < fn.params.length; ++i)
+		for (int i = 0; i < fn.paramNames.length; ++i)
 			if (locals[i] == null)
-				throw new SuException("missing argument: " + fn.params[i]);
+				throw new SuException("missing argument: " + fn.paramNames[i]);
 	}
 
 }

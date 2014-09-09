@@ -4,6 +4,7 @@
 
 package suneido.jsdi.abi.amd64;
 
+import suneido.debug.Locals;
 import suneido.jsdi.Dll;
 import suneido.jsdi.DllFactory;
 import suneido.jsdi.DllInterface;
@@ -12,6 +13,7 @@ import suneido.jsdi.marshall.Marshaller;
 import suneido.jsdi.marshall.ReturnTypeGroup;
 import suneido.jsdi.type.Type;
 import suneido.runtime.Args;
+import suneido.runtime.ArgsArraySpec;
 
 /**
  * Generic implementation of {@code dll}.
@@ -40,7 +42,8 @@ final class GenericDll extends Dll {
 			ReturnTypeGroup returnTypeGroup, boolean is32BitIEEEFloatReturn,
 			NativeCall64 nc, DllFactory dllFactory, String libraryName,
 			String funcName, MarshallPlan64 plan) {
-		super(funcPtr, params, returnType, dllFactory, libraryName, funcName);
+		super(funcPtr, params, returnType, dllFactory, libraryName, funcName,
+				new ArgsArraySpec(params.getEntryNames()));
 		assert null != returnTypeGroup;
 		this.params = params;
 		this.nativeCall = nc;
@@ -66,6 +69,7 @@ final class GenericDll extends Dll {
 	//
 
 	@Override
+	@Locals(isSelfCall=false, argsArray="args", ignoreNonParams=true)
 	public Object call(Object... args) {
 		args = Args.massage(super.params, args);
 		final MarshallPlan plan = getMarshallPlan();

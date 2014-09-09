@@ -16,7 +16,7 @@ class Builtin {
 	static SuCallable method(MethodHandle mh, FunctionSpec params) {
 		if (params == null)
 			return new MethodN(mh, null);
-		switch (params.nParams()) {
+		switch (params.getParamCount()) {
 		case 0:
 			return new Method0(mh, params);
 		case 1:
@@ -270,7 +270,7 @@ class Builtin {
 	static SuCallable function(MethodHandle mh, String valueName, FunctionSpec params) {
 		if (params == null)
 			return new FunctionN(mh, valueName, null);
-		switch (params.nParams()) {
+		switch (params.getParamCount()) {
 		case 0:
 			return new Function0(mh, valueName, params);
 		case 1:

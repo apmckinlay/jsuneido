@@ -106,11 +106,14 @@ public class BuiltinMethods extends SuValue {
 
 	private static FunctionSpec params(Method m, int nExtra) {
 		Params p = m.getAnnotation(Params.class);
-		int nParams = m.getParameterTypes().length;
-		FunctionSpec params = (p == null)
-				? (nParams == nExtra) ? FunctionSpec.noParams : null
-				: FunctionSpec.from(p.value());
-		return params;
+		int nParams = m.getParameterCount();
+		if (null == p) {
+			return nParams == nExtra ? FunctionSpec.NO_PARAMS : null;
+		} else if (0 < nParams && Object[].class.isAssignableFrom(m.getParameterTypes()[nParams-1])) {
+			return ArgsArraySpec.from(p.value());
+		} else {
+			return FunctionSpec.from(p.value());
+		}
 	}
 
 	private static String methodName(Method m) {

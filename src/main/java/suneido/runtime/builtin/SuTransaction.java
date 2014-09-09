@@ -74,7 +74,7 @@ public class SuTransaction extends SuValue {
 	}
 
 	private static final FunctionSpec QueryParams =
-			FunctionSpec.from("query, block = false");
+			ArgsArraySpec.from("query, block = false");
 
 	public static Object Query(Object self, Object... args) {
 		String where = queryWhere(args);

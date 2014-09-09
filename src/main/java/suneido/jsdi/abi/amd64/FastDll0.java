@@ -4,11 +4,13 @@
 
 package suneido.jsdi.abi.amd64;
 
+import suneido.debug.Locals;
 import suneido.jsdi.Dll;
 import suneido.jsdi.DllFactory;
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.type.Type;
 import suneido.runtime.Args;
+import suneido.runtime.FunctionSpec;
 
 /**
  * Dll with no parameters, corresponds to {@link NativeCall64#J0_RETURN_INT64}.
@@ -29,7 +31,8 @@ final class FastDll0 extends Dll {
 
 	FastDll0(long funcPtr, ParamsTypeList params, Type returnType,
 			DllFactory dllFactory, String libraryName, String funcName) {
-		super(funcPtr, params, returnType, dllFactory, libraryName, funcName);
+		super(funcPtr, params, returnType, dllFactory, libraryName, funcName,
+				new FunctionSpec(params.getEntryNames()));
 	}
 
 	//
@@ -43,6 +46,7 @@ final class FastDll0 extends Dll {
 	}
 
 	@Override
+	@Locals(isSelfCall=false, ignoreNonParams=true)
 	public Object call0() {
 		final long r = NativeCall64.callJ0(funcPtr);
 		return returnType.marshallOutReturnValue(r, null);

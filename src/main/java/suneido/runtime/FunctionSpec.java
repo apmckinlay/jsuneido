@@ -14,43 +14,75 @@ import suneido.compiler.ClassGen;
 import com.google.common.base.Splitter;
 
 /**
- * Stores the parameters for function and methods.
+ * <p>
+ * Stores the parameters for callable entities: functions, methods, bare blocks,
+ * and blocks that are closures.
+ * </p>
+ * 
+ * <p>
  * Created by {@link ClassGen}.
- * Used by {@link Args}.
+ * </p>
+ *
+ * <p>
+ * Used by:
+ * <ul>
+ * <li>
+ * {@link Args} to convert arguments from the format used by the caller to the
+ * format required by the callee's formal parameters;
+ * </li>
+ * <li>
+ * {@link suneido.debug.CallstackAll} to decipher the local variables in a
+ * call stack frame.
+ * </li>
+ * </ul>
+ * </p> 
+ *
+ * @author Andrew McKinlay, Victor Schappert
+ * @see ArgsArraySpec
  * @see BlockSpec
  */
 @Immutable
 public class FunctionSpec {
+
+	//
+	// DATA
+	//
+
 	final String name;
 	final boolean atParam;
-	final String[] params;
+	final String[] paramNames;
 	final String[] dynParams;
 	final Object[] defaults;
-	/** used by Args to ensure room in args array for locals */
-	final int nLocals;
-	static final Object[] noDefaults = new Object[0];
 
-	public static final FunctionSpec noParams =
+	//
+	// CONSTANTS
+	//
+
+	public static final String[] NO_VARS = new String[0];
+
+	static final Object[] NO_DEFAULTS = new Object[0];
+
+	public static final FunctionSpec NO_PARAMS =
 			new FunctionSpec(new String[0]);
-	public static final FunctionSpec value =
+	public static final FunctionSpec VALUE =
 			new FunctionSpec("value");
-	public static final FunctionSpec value2 =
+	public static final FunctionSpec VALUE2 =
 			new FunctionSpec("value", "value");
-	public static final FunctionSpec string =
+	public static final FunctionSpec STRING =
 			new FunctionSpec("string");
-	public static final FunctionSpec block =
+	public static final FunctionSpec BLOCK =
 			new FunctionSpec(array("block"), Boolean.FALSE);
 	public static final Object NA = new Object();
 
+	//
+	// CONSTRUCTORS
+	// 
+
 	public FunctionSpec(String... params) {
-		this(null, params, noDefaults, false, null, params.length);
+		this(null, params, NO_DEFAULTS, false, null, params.length);
 	}
 	public FunctionSpec(String[] params, Object... defaults) {
 		this(null, params, defaults, false, null, params.length);
-	}
-	public FunctionSpec(String name, String[] params, Object[] defaults,
-			boolean atParam) {
-		this(name, params, defaults, atParam, null, params.length);
 	}
 	public FunctionSpec(String name, String[] params, Object[] defaults,
 			boolean atParam, String[] dynParams) {
@@ -59,64 +91,18 @@ public class FunctionSpec {
 	public FunctionSpec(String name, String[] params, Object[] defaults,
 			boolean atParam, String[] dynParams, int nLocals) {
 		this.name = name;
-		this.params = params;
+		this.paramNames = params;
 		this.dynParams = dynParams;
 		this.defaults = defaults;
 		this.atParam = atParam;
-		this.nLocals = nLocals;
 		assert !atParam || (params.length == 1 && defaults.length == 0);
 	}
 
-	private static final Splitter splitter = Splitter.on(',').trimResults();
+	//
+	// INTERNALS
+	//
 
-	/**
-	 * Create a FunctionSpec from the string description.
-	 * Used for @Params annotations on built-in methods.
-	 * Handles default values of:
-	 * <li>? for NA
-	 * <li>$ for Integer.MAX_VALUE
-	 * <li>true or false
-	 * <li>decimal integers
-	 * <li>unquoted or single quoted strings</li>
-	 * <p>WARNING: Doesn't handle commas in string defaults
-	 */
-	public static FunctionSpec from(String spec) {
-		switch (spec) {
-		case "":
-			return noParams;
-		case "string":
-			return string;
-		case "value":
-			return value;
-		case "value,value":
-		case "value, value":
-			return value2;
-		case "block":
-			return block;
-		}
-		Iterable<String> iter = splitter.split(spec);
-		int np = 0;
-		int nd = 0;
-		for (String s : iter) {
-			++np;
-			if (s.contains("="))
-				++nd;
-		}
-		String params[] = new String[np];
-		Object defaults[] = new Object[nd];
-		int ip = 0;
-		int id = 0;
-		for (String s : iter) {
-			int e = s.indexOf('=');
-			if (e == -1)
-				params[ip++] = s;
-			else {
-				params[ip++] = s.substring(0, e).trim();
-				defaults[id++] = valueOf(s.substring(e + 1).trim());
-			}
-		}
-		return new FunctionSpec(params, defaults);
-	}
+	private static final Splitter splitter = Splitter.on(',').trimResults();
 
 	private static Object valueOf(String s) {
 		switch (s) {
@@ -139,35 +125,47 @@ public class FunctionSpec {
 		return s;
 	}
 
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder("FunctionSpec(");
-		if (name != null)
-			sb.append(name).append(", ");
-		sb.append("params:");
-		if (atParam)
-			sb.append(" @");
-		for (String t : params)
-			sb.append(" ").append(t);
-		sb.append(", defaults:");
-		for (Object x : defaults)
-			sb.append(" ").append(x == null ? "null" : Ops.display(x));
-		sb.append(")");
-		return sb.toString();
+	protected static Object[][]paramsNamesAndDefaults(String spec) {
+		Iterable<String> iter = splitter.split(spec);
+		int np = 0;
+		int nd = 0;
+		for (String s : iter) {
+			++np;
+			if (s.contains("="))
+				++nd;
+		}
+		String paramNames[] = new String[np];
+		Object defaults[] = new Object[nd];
+		int ip = 0;
+		int id = 0;
+		for (String s : iter) {
+			int e = s.indexOf('=');
+			if (e == -1)
+				paramNames[ip++] = s;
+			else {
+				paramNames[ip++] = s.substring(0, e).trim();
+				defaults[id++] = valueOf(s.substring(e + 1).trim());
+			}
+		}
+		return new Object[][] { paramNames, defaults };
 	}
+
+	//
+	// ACCESSORS
+	//
 
 	public String params() {
 		StringBuilder sb = new StringBuilder("(");
 		if (atParam)
 			sb.append("@");
 		short j = 0;
-		for (int i = 0; i < params.length; ++i) {
+		for (int i = 0; i < paramNames.length; ++i) {
 			if (i != 0)
 				sb.append(",");
-			if (isDynParam(params[i]))
+			if (isDynParam(paramNames[i]))
 				sb.append("_");
-			sb.append(params[i]);
-			if (i >= params.length - defaults.length && i < params.length)
+			sb.append(paramNames[i]);
+			if (i >= paramNames.length - defaults.length && i < paramNames.length)
 				sb.append("=").append(defaults[j++]);
 		}
 		return sb.append(")").toString();
@@ -182,14 +180,89 @@ public class FunctionSpec {
 	}
 
 	public Object defaultFor(int i) {
-		assert i < params.length;
-		if (i < params.length - defaults.length)
+		assert i < paramNames.length;
+		if (i < paramNames.length - defaults.length)
 			throw new SuException("missing argument(s)");
-		return defaults[i - (params.length - defaults.length)];
+		return defaults[i - (paramNames.length - defaults.length)];
 	}
 
-	public int nParams() {
-		return params.length;
+	public int getParamCount() {
+		return paramNames.length;
 	}
 
+	public String getParamName(int index) {
+		return paramNames[index];
+	}
+
+	/** used by Args to ensure room in args array for locals */
+	public int getAllLocalsCount() {
+		return getParamCount();
+	}
+
+	//
+	// STATIC METHODS
+	//
+
+	/**
+	 * <p>
+	 * Create a FunctionSpec from the string description.
+	 * </p>
+	 *
+	 * <p>
+	 * Used for {@link Params @Params} annotations on built-in methods.
+	 * </p>
+	 *
+	 * <p>
+	 * Handles default values of:
+	 * <ul>
+	 * <li>? for NA</li>
+	 * <li>$ for Integer.MAX_VALUE</li>
+	 * <li>true or false</li>
+	 * <li>decimal integers</li>
+	 * <li>unquoted or single quoted strings</li>
+	 * </ul>
+	 * </p>
+	 * 
+	 * <p><strong>WARNING</strong>: Doesn't handle commas in string defaults</p>
+	 *
+	 * @param spec String description of parameters
+	 */
+	public static FunctionSpec from(String spec) {
+		switch (spec) {
+		case "":
+			return NO_PARAMS;
+		case "string":
+			return STRING;
+		case "value":
+			return VALUE;
+		case "value,value":
+		case "value, value":
+			return VALUE2;
+		case "block":
+			return BLOCK;
+		}
+		Object[][] namesAndDefs = paramsNamesAndDefaults(spec);
+		return new FunctionSpec((String[])namesAndDefs[0], namesAndDefs[1]);
+	}
+
+	//
+	// ANCESTOR CLASS: Object
+	//
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder("FunctionSpec(");
+		if (name != null)
+			sb.append(name).append(", ");
+		sb.append("params:");
+		if (atParam)
+			sb.append(" @");
+		for (String t : paramNames)
+			sb.append(" ").append(t);
+		sb.append(", defaults:");
+		for (Object x : defaults)
+			sb.append(" ").append(x == null ? "null" : Ops.display(x));
+		sb.append(")");
+		return sb.toString();
+	}
 }

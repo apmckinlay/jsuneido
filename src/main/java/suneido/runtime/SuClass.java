@@ -193,7 +193,7 @@ public class SuClass extends SuValue {
 	}
 
 	private static Object init(Object[] args) {
-		Args.massage(FunctionSpec.noParams, args);
+		Args.massage(FunctionSpec.NO_PARAMS, args);
 		return null;
 	}
 

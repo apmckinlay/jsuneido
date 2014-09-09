@@ -37,7 +37,7 @@ public final class Adler32 extends SuValue {
 
 		@Override
 		protected Object newInstance(Object... args) {
-			Args.massage(FunctionSpec.noParams, args);
+			Args.massage(FunctionSpec.NO_PARAMS, args);
 			return new Adler32();
 		}
 

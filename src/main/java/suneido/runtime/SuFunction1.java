@@ -6,7 +6,7 @@ package suneido.runtime;
 
 public abstract class SuFunction1 extends SuFunction {
 
-	{ params = FunctionSpec.value; }
+	{ params = FunctionSpec.VALUE; }
 
 	@Override
 	public Object call(Object... args) {

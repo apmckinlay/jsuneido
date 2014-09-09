@@ -17,7 +17,7 @@ public class QueryScanner extends Scanner {
 	public static final BuiltinClass clazz = new BuiltinClass() {
 		@Override
 		public QueryScanner newInstance(Object... args) {
-			args = Args.massage(FunctionSpec.string, args);
+			args = Args.massage(FunctionSpec.STRING, args);
 			return new QueryScanner(Ops.toStr(args[0]));
 		}
 	};

@@ -4,11 +4,13 @@
 
 package suneido.jsdi.abi.amd64;
 
+import suneido.debug.Locals;
 import suneido.jsdi.Dll;
 import suneido.jsdi.DllFactory;
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.type.Type;
 import suneido.runtime.Args;
+import suneido.runtime.FunctionSpec;
 
 /**
  * Dll with three parameters, corresponds to
@@ -38,7 +40,8 @@ class FastDll3 extends Dll {
 
 	FastDll3(long funcPtr, ParamsTypeList params, Type returnType,
 			DllFactory dllFactory, String libraryName, String funcName) {
-		super(funcPtr, params, returnType, dllFactory, libraryName, funcName);
+		super(funcPtr, params, returnType, dllFactory, libraryName, funcName,
+				new FunctionSpec(params.getEntryNames()));
 		p0 = params.get(0).getType();
 		p1 = params.get(1).getType();
 		p2 = params.get(2).getType();
@@ -70,6 +73,7 @@ class FastDll3 extends Dll {
 	}
 
 	@Override
+	@Locals(isSelfCall=false, ignoreNonParams=true)
 	public Object call3(Object a, Object b, Object c) {
 		final long a_ = p0.marshallInToLong(a);
 		final long b_ = p1.marshallInToLong(b);

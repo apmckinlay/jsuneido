@@ -152,7 +152,7 @@ public class RunPiped extends SuValue {
 	public static final BuiltinClass clazz = new BuiltinClass() {
 		@Override
 		public RunPiped newInstance(Object... args) {
-			args = Args.massage(FunctionSpec.string, args);
+			args = Args.massage(FunctionSpec.STRING, args);
 			return new RunPiped(Ops.toStr(args[0]));
 		}
 
