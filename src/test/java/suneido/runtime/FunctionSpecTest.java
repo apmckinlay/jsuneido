@@ -14,12 +14,12 @@ public class FunctionSpecTest {
 
 	@Test
 	public void test_from() {
-		assertSame(from(""), noParams);
-		assertSame(from("string"), string);
-		assertSame(from("value"), value);
-		assertSame(from("value,value"), value2);
-		assertSame(from("value, value"), value2);
-		assertSame(from("block"), block);
+		assertSame(from(""), NO_PARAMS);
+		assertSame(from("string"), STRING);
+		assertSame(from("value"), VALUE);
+		assertSame(from("value,value"), VALUE2);
+		assertSame(from("value, value"), VALUE2);
+		assertSame(from("block"), BLOCK);
 
 		test("a,b,c", "params: a b c, defaults:");
 		test("a, b, c", "params: a b c, defaults:");

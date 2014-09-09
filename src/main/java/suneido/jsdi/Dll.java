@@ -42,7 +42,7 @@ public abstract class Dll extends SuCallable {
 	//
 
 	protected Dll(long funcPtr, TypeList params, Type returnType,
-			DllFactory dllFactory, String libraryName, String funcName) {
+			DllFactory dllFactory, String libraryName, String funcName, FunctionSpec funcSpec) {
 		assert (TypeId.VOID == returnType.getTypeId() || TypeId.BASIC == returnType
 				.getTypeId()
 				&& StorageType.VALUE == returnType.getStorageType())
@@ -59,7 +59,7 @@ public abstract class Dll extends SuCallable {
 		//
 		// Initialize SuCallable fields
 		//
-		super.params = new FunctionSpec(params.getEntryNames());
+		super.params = funcSpec;
 	}
 
 	//

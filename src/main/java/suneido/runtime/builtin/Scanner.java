@@ -135,7 +135,7 @@ public class Scanner extends SuValue implements Iterable<String>, Iterator<Strin
 	public static final BuiltinClass clazz = new BuiltinClass() {
 		@Override
 		public Scanner newInstance(Object... args) {
-			args = Args.massage(FunctionSpec.string, args);
+			args = Args.massage(FunctionSpec.STRING, args);
 			return new Scanner(Ops.toStr(args[0]));
 		}
 	};

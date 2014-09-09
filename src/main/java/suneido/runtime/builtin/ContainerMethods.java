@@ -97,7 +97,7 @@ public final class ContainerMethods {
 	}
 
 	public static Object Assocs(Object self, Object... args) {
-		Args.massage(FunctionSpec.noParams, args);
+		Args.massage(FunctionSpec.NO_PARAMS, args);
 		return new SuSequence(((SuContainer) self).iterable(iterWhich(args), IterResult.ASSOC));
 	}
 
@@ -281,7 +281,7 @@ public final class ContainerMethods {
 		if (args.length == 0)
 			return new SuSequence(((SuContainer) self)
 					.iterable(IterWhich.ALL, IterResult.KEY));
-		Args.massage(FunctionSpec.noParams, args); // args must be named
+		Args.massage(FunctionSpec.NO_PARAMS, args); // args must be named
 		return new SuSequence(((SuContainer) self)
 				.iterable(iterWhich(args), IterResult.KEY));
 	}
@@ -292,7 +292,7 @@ public final class ContainerMethods {
 	}
 
 	public static Object Size(Object self, Object... args) {
-		Args.massage(FunctionSpec.noParams, args); // args must be named
+		Args.massage(FunctionSpec.NO_PARAMS, args); // args must be named
 		SuContainer c = (SuContainer) self;
 		switch (iterWhich(args)) {
 		case LIST:
@@ -365,7 +365,7 @@ public final class ContainerMethods {
 	}
 
 	public static Object Values(Object self, Object... args) {
-		Args.massage(FunctionSpec.noParams, args); // args must be named
+		Args.massage(FunctionSpec.NO_PARAMS, args); // args must be named
 		SuContainer c = (SuContainer) self;
 		return new SuSequence(c.iterable(iterWhich(args), IterResult.VALUE));
 	}

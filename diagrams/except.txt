@@ -10,7 +10,8 @@ JAR size after Phase 2, 20140622: 1462413 (1.39 MB) (13.61% reduction in size)
 ===================
 TO DO BEFORE DEPLOY
 ===================
-Re-enable RethrowCallstackTest() in jSuneido (with BuiltDate() guard)
+* Re-enable RethrowCallstackTest() in jSuneido (with BuiltDate() guard)
+* Rename SuBlock* -> SuClosure*.
 
 ========
 20140905
@@ -59,6 +60,14 @@ HOW "STACK" SYSTEM WORKS:
                         Replace with ??? dll ???
                     Else If built-in
                         Repalce with ??? built-in ???
+
+HOW DO YOU IDENTIFY PARAMETERS?
+
+    "self" -- May need to be eliminated -- ClassGen : it is always arg0 (_self_)
+    "args" -- ... -- ClassGen : it is always arg1 (_args_)
+
+SO IT may be possible to just iterate thru the FunctionSpec
+
 
 ========
 20140826

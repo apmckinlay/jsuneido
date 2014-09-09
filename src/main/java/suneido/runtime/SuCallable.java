@@ -75,8 +75,8 @@ public abstract class SuCallable extends SuValue {
 	 */
 	protected Object fillin(int i) {
 		assert params != null : "" + this + " has no params";
-		if (params.isDynParam(params.params[i])) {
-			Object value = Dynamic.getOrNull("_" + params.params[i]);
+		if (params.isDynParam(params.paramNames[i])) {
+			Object value = Dynamic.getOrNull("_" + params.paramNames[i]);
 			if (value != null)
 				return value;
 		}
@@ -97,6 +97,10 @@ public abstract class SuCallable extends SuValue {
 
 	protected String getLibrary() {
 		return library;
+	}
+
+	public FunctionSpec getParams() {
+		return params;
 	}
 
 	// support methods for generated code  for calling globals -----------------

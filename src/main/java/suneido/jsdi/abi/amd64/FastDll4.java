@@ -3,11 +3,13 @@
  */
 package suneido.jsdi.abi.amd64;
 
+import suneido.debug.Locals;
 import suneido.jsdi.Dll;
 import suneido.jsdi.DllFactory;
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.type.Type;
 import suneido.runtime.Args;
+import suneido.runtime.FunctionSpec;
 
 /**
  * Dll with four parameters, corresponds to {@link NativeCall64#J4_RETURN_INT64}
@@ -38,7 +40,8 @@ final class FastDll4 extends Dll {
 
 	FastDll4(long funcPtr, ParamsTypeList params, Type returnType,
 			DllFactory dllFactory, String libraryName, String funcName) {
-		super(funcPtr, params, returnType, dllFactory, libraryName, funcName);
+		super(funcPtr, params, returnType, dllFactory, libraryName, funcName,
+				new FunctionSpec(params.getEntryNames()));
 		p0 = params.get(0).getType();
 		p1 = params.get(1).getType();
 		p2 = params.get(2).getType();
@@ -76,6 +79,7 @@ final class FastDll4 extends Dll {
 	}
 
 	@Override
+	@Locals(isSelfCall=false, ignoreNonParams=true)
 	public Object call4(Object a, Object b, Object c, Object d) {
 		final long a_ = p0.marshallInToLong(a);
 		final long b_ = p1.marshallInToLong(b);

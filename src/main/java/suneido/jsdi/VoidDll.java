@@ -8,6 +8,7 @@ import suneido.jsdi.type.Type;
 import suneido.jsdi.type.TypeList;
 import suneido.jsdi.type.VoidType;
 import suneido.runtime.Args;
+import suneido.runtime.ArgsArraySpec;
 
 /**
  * <p>
@@ -40,7 +41,7 @@ public final class VoidDll extends Dll {
 	public VoidDll(TypeList params, Type returnType, DllFactory dllFactory,
 			String userFuncName) {
 		super(0, params, returnType, dllFactory, VoidType.IDENTIFIER,
-				userFuncName);
+				userFuncName, new ArgsArraySpec(params.getEntryNames()));
 	}
 
 	//

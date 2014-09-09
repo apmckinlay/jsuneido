@@ -60,6 +60,7 @@ import suneido.SuException;
 import suneido.SuInternalError;
 import suneido.debug.Locals;
 import suneido.runtime.Args;
+import suneido.runtime.ArgsArraySpec;
 import suneido.runtime.BlockReturnException;
 import suneido.runtime.BlockSpec;
 import suneido.runtime.ContextLayered;
@@ -101,6 +102,8 @@ public class ClassGen {
 	private static final int THIS = 0;
 	private int SELF = -1;
 	private int ARGS = -2;
+	private static final String ARGS_VAR_NAME = "_args_";
+	private static final String SELF_VAR_NAME = "_self_";
 	private final ContextLayered context;
 	private final String name;
 	private final String base;
@@ -151,14 +154,14 @@ public class ClassGen {
 			if (method.equals("call")) {
 				mv = methodVisitor(ACC_PUBLIC, method,
 						"([Ljava/lang/Object;)Ljava/lang/Object;");
-				javaLocals.put("_args_", ARGS = nextJavaLocal++);
+				javaLocals.put(ARGS_VAR_NAME, ARGS = nextJavaLocal++);
 				annotateLocals(false);
 			} else {
 				assert method.equals("eval");
 				mv = methodVisitor(ACC_PUBLIC, method,
 						"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
-				javaLocals.put("_self_", SELF = nextJavaLocal++);
-				javaLocals.put("_args_", ARGS = nextJavaLocal++);
+				javaLocals.put(SELF_VAR_NAME, SELF = nextJavaLocal++);
+				javaLocals.put(ARGS_VAR_NAME, ARGS = nextJavaLocal++);
 				annotateLocals(true);
 			}
 		} else {
@@ -171,7 +174,7 @@ public class ClassGen {
 				mv = methodVisitor(ACC_PUBLIC, "eval" + nParams,
 						"(Ljava/lang/Object;" + directArgs[nParams]
 								+ ")Ljava/lang/Object;");
-				javaLocals.put("_self_", SELF = nextJavaLocal++);
+				javaLocals.put(SELF_VAR_NAME, SELF = nextJavaLocal++);
 				annotateLocals(true);
 			}
 		}
@@ -204,6 +207,11 @@ public class ClassGen {
 	private void annotateLocals(boolean isSelfCall) {
 		AnnotationVisitor av = mv.visitAnnotation(LOCALS_ANNOTATION_DESCRIPTOR, true);
 		av.visitEnum("sourceLanguage", LOCALS_SOURCELANGUAGE_DESCRIPTOR, "SUNEIDO");
+		if (useArgsArray) {
+			av.visit("argsArray", ARGS_VAR_NAME);
+		}
+		av.visit("isSelfCall", isSelfCall);
+		av.visit("ignoreNonParams", Boolean.FALSE);
 		av.visitEnd();
 	}
 
@@ -837,24 +845,46 @@ public class ClassGen {
 
 	private FunctionSpec functionSpec(BiMap<Integer,String> bm) {
 		FunctionSpec fspec;
-		String[] params = new String[nParams];
+		String[] paramNames = new String[nParams];
 		if (closure) {
 			for (int i = 0; i < nParams; ++i)
-				params[i] = locals.get(i + iBlockParams);
-			fspec = new BlockSpec(name, params, nParams, atParam, iBlockParams);
+				paramNames[i] = locals.get(i + iBlockParams);
+			fspec = new BlockSpec(name, paramNames, atParam, localNames(), upvalueNames());
 			hideBlockParams();
 		} else if (useArgsArray) {
 			for (int i = 0; i < nParams; ++i)
-				params[i] = locals.get(i);
-			fspec = new FunctionSpec(name, params, constantsArray(), atParam,
-					dynParams.toArray(stringArray), locals.size());
+				paramNames[i] = locals.get(i);
+			fspec = new ArgsArraySpec(name, paramNames, constantsArray(),
+					atParam, dynParams.toArray(stringArray), localNames());
 		} else {
 			for (int i = 0; i < nParams; ++i)
-				params[i] = bm.get(i + firstParam);
-			fspec = new FunctionSpec(name, params, constantsArray(), atParam,
+				paramNames[i] = bm.get(i + firstParam);
+			fspec = new FunctionSpec(name, paramNames, constantsArray(), atParam,
 					dynParams.toArray(stringArray));
 		}
 		return fspec;
+	}
+
+	private String[] localNames() {
+		final int localStart = iBlockParams + nParams;
+		final int N = locals.size();
+		if (localStart < N) {
+			final String[] localNames = new String[N - localStart];
+			for (int i = localStart; i < N; ++i) {
+				localNames[i - localStart] = locals.get(i);
+			}
+			return localNames;
+		} else {
+			return FunctionSpec.NO_VARS;
+		}
+	}
+
+	private String[] upvalueNames() {
+		final String[] upvalueNames = new String[iBlockParams];
+		for (int i = 0; i < iBlockParams; ++i) {
+			upvalueNames[i] = locals.get(i);
+		}
+		return upvalueNames;
 	}
 
 	private void hideBlockParams() {

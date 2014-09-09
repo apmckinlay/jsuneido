@@ -54,7 +54,7 @@ public class Digest extends SuValue {
 
 		@Override
 		protected Object newInstance(Object... args) {
-			Args.massage(FunctionSpec.noParams, args);
+			Args.massage(FunctionSpec.NO_PARAMS, args);
 			return new Digest(which);
 		}
 

@@ -552,7 +552,7 @@ public abstract class TypeList implements Iterable<TypeList.Entry> {
 	 * 
 	 * @param marshaller
 	 *            Marshaller to extract from
-	 * @param value
+	 * @param VALUE
 	 *            Suneido {@code Object}
 	 * @since 20130718
 	 * @see #marshallInMembers(Marshaller, SuContainer)
