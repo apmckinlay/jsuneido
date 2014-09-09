@@ -13,7 +13,7 @@ import suneido.runtime.Params;
 
 public class Locals {
 
-	@Params("offset")
+	@Params("number")
 	public static Object Locals(Object a) {
 		int offset = 0;
 		try {
