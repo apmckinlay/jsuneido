@@ -92,6 +92,7 @@ public final class CallstackAll extends Callstack {
 	}
 
 	private static final String ARGS_CLASS_NAME = Args.class.getName().intern();
+
 	private boolean isArgsProblem() {
 		// Determine if the issue is too many arguments, insufficient arguments,
 		// or a problem massaging the arguments.
@@ -99,7 +100,8 @@ public final class CallstackAll extends Callstack {
 			return false;
 		}
 		StackTraceElement[] trace = throwable.getStackTrace();
-		return 0 < trace.length && ARGS_CLASS_NAME.equals(trace[0].getClassName());
+		return 0 < trace.length
+				&& ARGS_CLASS_NAME.equals(trace[0].getClassName());
 	}
 
 	private int findFirstFrame(int startIndex) {
@@ -118,8 +120,8 @@ public final class CallstackAll extends Callstack {
 		}
 	}
 
-	private SuCallable collectLocalsAndCallable(boolean isCall,
-			String[] names, Object[] values, ArrayList<LocalVariable> locals) {
+	private SuCallable collectLocalsAndCallable(boolean isCall, String[] names,
+			Object[] values, ArrayList<LocalVariable> locals) {
 		SuCallable javaThis = null;
 		FunctionSpec fs = null;
 		Object[] argsArray = null;
@@ -132,7 +134,9 @@ public final class CallstackAll extends Callstack {
 					&& values[localIndex] instanceof SuCallable) {
 				javaThis = (SuCallable) values[localIndex];
 				fs = javaThis.getParams();
-			} else if (!isCall && ClassGen.SELF_VAR_NAME.equals(names[localIndex])) {
+			} else if (!isCall
+					&& (ClassGen.SELF_VAR_NAME.equals(names[localIndex]) || "self"
+							.equals(names[localIndex]))) {
 				assert null != values[localIndex];
 				locals.add(new LocalVariable("this", values[localIndex]));
 			} else if (fs instanceof ArgsArraySpec
@@ -223,10 +227,13 @@ public final class CallstackAll extends Callstack {
 			}
 			// Extract the callable and the local variables
 			locals.clear();
-			SuCallable javaThis = collectLocalsAndCallable(stackInfo.isCall[srcFrame],
-					stackInfo.localsNames[srcFrame], stackInfo.localsValues[srcFrame], locals);
+			SuCallable javaThis = collectLocalsAndCallable(
+					stackInfo.isCall[srcFrame],
+					stackInfo.localsNames[srcFrame],
+					stackInfo.localsValues[srcFrame], locals);
 			// Add the frame
-			frames[dstFrame++] = new FrameAll(javaThis, stackInfo.lineNumbers[srcFrame],
+			frames[dstFrame++] = new FrameAll(javaThis,
+					stackInfo.lineNumbers[srcFrame],
 					locals.toArray(new LocalVariable[locals.size()]));
 		}
 		return frames;
