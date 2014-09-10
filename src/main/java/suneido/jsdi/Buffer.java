@@ -411,7 +411,7 @@ public final class Buffer extends JSDIValue implements CharSequence {
 	//
 
 	private static final Map<String, SuCallable> builtins = BuiltinMethods
-			.methods(Buffer.class);
+			.methods("buffer", Buffer.class);
 
 	@Override
 	public Object get(Object member) {

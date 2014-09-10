@@ -21,7 +21,7 @@ import suneido.util.Util.Range;
 /** Used by {@link SuContainer} */
 public final class ContainerMethods {
 	private static final BuiltinMethods methods =
-			new BuiltinMethods(ContainerMethods.class, "Objects");
+			new BuiltinMethods("object", ContainerMethods.class, "Objects");
 
 	/** no instances, all static */
 	private ContainerMethods() {
@@ -226,7 +226,7 @@ public final class ContainerMethods {
 		public static final SuValue singleton = new IterateMethods();
 
 		protected IterateMethods() {
-			super(IterateMethods.class, null);
+			super("objectiter", IterateMethods.class, null);
 		}
 
 		public static Object Next(Object self) {

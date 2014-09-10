@@ -80,7 +80,7 @@ public abstract class Dll extends SuCallable {
 	//
 
 	private static final Map<String, SuCallable> builtins = BuiltinMethods
-			.methods(Dll.class);
+			.methods("dll", Dll.class);
 
 	@Override
 	public final String typeName() {

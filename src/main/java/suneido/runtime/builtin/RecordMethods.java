@@ -16,7 +16,7 @@ import suneido.runtime.Params;
 /** {@link SuRecord} delegates invoke to here */
 public class RecordMethods {
 	public static final BuiltinMethods methods =
-			new BuiltinMethods(RecordMethods.class, "Records");
+			new BuiltinMethods("record", RecordMethods.class, "Records");
 
 	private RecordMethods() {
 	}

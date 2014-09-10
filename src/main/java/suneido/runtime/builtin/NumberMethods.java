@@ -26,7 +26,7 @@ public class NumberMethods extends BuiltinMethods {
 	public static final NumberMethods singleton = new NumberMethods();
 
 	private NumberMethods() {
-		super(NumberMethods.class, "Numbers");
+		super("number", NumberMethods.class, "Numbers");
 	}
 
 	public static Object Frac(Object self) {
