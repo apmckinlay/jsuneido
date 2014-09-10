@@ -4,7 +4,6 @@
 
 package suneido.debug;
 
-import java.lang.annotation.Annotation;
 
 /**
  * <p>
@@ -36,7 +35,7 @@ final class StackInfo {
 
 	public String[][] localsNames;
 	public Object[][] localsValues;
-	public Annotation[] annotations;
+	public boolean[] isCall; // false -> eval, true -> call (no self)
 	public int[] lineNumbers;
 	public boolean isInitialized;
 
@@ -55,7 +54,7 @@ final class StackInfo {
 
 	public boolean isInitialized() {
 		return isInitialized && null != localsNames && null != localsValues
-				&& null != annotations && null != lineNumbers;
+				&& null != isCall && null != lineNumbers;
 	}
 
 	//

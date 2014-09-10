@@ -80,7 +80,6 @@ class Builtin {
 		MethodN(MethodHandle mh, FunctionSpec params) {
 			super(mh, params);
 		}
-
 		@Override
 		public Object eval(Object self, Object... args) {
 			if (params != null)

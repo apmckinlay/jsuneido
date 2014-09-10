@@ -39,6 +39,7 @@ public class ArgsArraySpec extends FunctionSpec {
 	//
 
 	public Object getParamValueFromArgsArray(Object[] args, int index) {
+		assert 0 <= index && index < paramNames.length;
 		return args[index];
 	}
 

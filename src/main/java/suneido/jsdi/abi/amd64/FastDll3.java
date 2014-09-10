@@ -4,7 +4,6 @@
 
 package suneido.jsdi.abi.amd64;
 
-import suneido.debug.Locals;
 import suneido.jsdi.Dll;
 import suneido.jsdi.DllFactory;
 import suneido.jsdi.DllInterface;
@@ -73,7 +72,6 @@ class FastDll3 extends Dll {
 	}
 
 	@Override
-	@Locals(isSelfCall=false, ignoreNonParams=true)
 	public Object call3(Object a, Object b, Object c) {
 		final long a_ = p0.marshallInToLong(a);
 		final long b_ = p1.marshallInToLong(b);

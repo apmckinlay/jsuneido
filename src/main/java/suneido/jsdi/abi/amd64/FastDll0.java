@@ -4,7 +4,6 @@
 
 package suneido.jsdi.abi.amd64;
 
-import suneido.debug.Locals;
 import suneido.jsdi.Dll;
 import suneido.jsdi.DllFactory;
 import suneido.jsdi.DllInterface;
@@ -46,7 +45,6 @@ final class FastDll0 extends Dll {
 	}
 
 	@Override
-	@Locals(isSelfCall=false, ignoreNonParams=true)
 	public Object call0() {
 		final long r = NativeCall64.callJ0(funcPtr);
 		return returnType.marshallOutReturnValue(r, null);

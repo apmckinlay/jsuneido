@@ -119,7 +119,7 @@ public final class DebugManager {
 	public Callstack makeCallstackForCurrentThread(Throwable throwable) {
 		switch (actualModel) {
 		case ALL:
-			return new CallstackAll();
+			return new CallstackAll(throwable);
 		case STACK:
 			return new CallstackStack(throwable);
 		case NONE:
