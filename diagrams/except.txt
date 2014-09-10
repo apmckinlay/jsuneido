@@ -13,6 +13,7 @@ TO DO BEFORE DEPLOY
 * Re-enable RethrowCallstackTest() in jSuneido (with BuiltDate() guard)
 * Rename SuBlock* -> SuClosure*.
 * Try to prune the debug information in the JAR down to just -g:vars
+* Set MSVC to build -O1 (smallest code)
 
 ========
 20140905

@@ -4,7 +4,6 @@
 
 package suneido.jsdi.abi.amd64;
 
-import suneido.debug.Locals;
 import suneido.jsdi.Dll;
 import suneido.jsdi.DllFactory;
 import suneido.jsdi.DllInterface;
@@ -69,7 +68,6 @@ final class GenericDll extends Dll {
 	//
 
 	@Override
-	@Locals(isSelfCall=false, argsArray="args", ignoreNonParams=true)
 	public Object call(Object... args) {
 		args = Args.massage(super.params, args);
 		final MarshallPlan plan = getMarshallPlan();
