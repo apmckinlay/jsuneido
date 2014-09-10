@@ -23,7 +23,7 @@ public class SuFile extends SuValue {
 	private final String mode;
 	private final boolean append;
 	private RandomAccessFile f;
-	private static final BuiltinMethods methods = new BuiltinMethods(SuFile.class);
+	private static final BuiltinMethods methods = new BuiltinMethods("file", SuFile.class);
 
 	public SuFile(String filename, String mode) {
 		this.filename = filename;

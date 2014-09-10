@@ -27,7 +27,7 @@ public class SuTransaction extends SuValue {
 	private boolean update = false;
 	private String conflict = null;
 	private static final BuiltinMethods methods =
-			new BuiltinMethods(SuTransaction.class, "Transactions");
+			new BuiltinMethods("transaction", SuTransaction.class, "Transactions");
 
 	private static final FunctionSpec tranFS =
 			new FunctionSpec(array("read", "update"), NA, NA);

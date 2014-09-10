@@ -153,8 +153,8 @@ public final class COMobject extends JSDIValue {
 		return TYPENAME;
 	}
 
-	private static final Map<String, SuCallable> builtins = BuiltinMethods
-			.methods(COMobject.class);
+	private static final BuiltinMethods builtins = new BuiltinMethods(
+			COMobject.class);
 
 	@Override
 	public synchronized Object get(Object member) {
@@ -201,7 +201,7 @@ public final class COMobject extends JSDIValue {
 
 	@Override
 	public SuValue lookup(String method) {
-		SuValue result = builtins.get(method);
+		SuValue result = builtins.getMethod(method);
 		if (null == result) {
 			result = new IDispatchMethod(method);
 		}

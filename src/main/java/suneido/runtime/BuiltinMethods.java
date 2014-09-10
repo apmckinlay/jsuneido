@@ -50,21 +50,21 @@ public class BuiltinMethods extends SuValue {
 	}
 
 	public BuiltinMethods(Class<?> c) {
-		this(c, null);
+		this.methods = methods(c.getSimpleName().toLowerCase(), c);
+		this.userDefined = null;
 	}
 
-	public BuiltinMethods(Class<?> c, String userDefined) {
-		this.methods = methods(c);
+	public BuiltinMethods(String className, Class<?> c) {
+		this(className, c, null);
+	}
+
+	public BuiltinMethods(String className, Class<?> c, String userDefined) {
+		this.methods = methods(className, c);
 		this.userDefined = userDefined;
 	}
 
-	/** get methods through reflection
-	 * 
-	 * NOTE (VCS ==> APM): 20130628...I changed the visibility on this method so
-	 *                     that it can be called from JSDI packages (e.g.
-	 *                     struct).
-	 */
-	public static Map<String, SuCallable>  methods(Class<?> c) {
+	/** get methods through reflection */
+	public static Map<String, SuCallable> methods(String className, Class<?> c) {
 		ImmutableMap.Builder<String, SuCallable> b = ImmutableMap.builder();
 		MethodHandles.Lookup lookup = MethodHandles.lookup();
 		for (Method m : c.getDeclaredMethods()) {
@@ -74,7 +74,8 @@ public class BuiltinMethods extends SuValue {
 					isCapitalized(methodName)) {
 				try {
 					MethodHandle mh = lookup.unreflect(m);
-					b.put(methodName, Builtin.method(mh, params(m, 1)));
+					b.put(methodName, Builtin.method(mh, className + "."
+							+ methodName, params(m, 1)));
 				} catch (IllegalAccessException e) {
 					throw new SuException("error getting method " +
 									c.getName() + " " + m.getName(), e);

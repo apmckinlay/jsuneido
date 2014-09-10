@@ -14,6 +14,8 @@ TO DO BEFORE DEPLOY
 * Rename SuBlock* -> SuClosure*.
 * Try to prune the debug information in the JAR down to just -g:vars
 * Set MSVC to build -O1 (smallest code)
+* Make sure the Type() tests test Type(dll ...) -> "Dll" and same for
+  Structure, Callback, Buffer... [should not be garbage or aStruct etc.]
 
 ========
 20140905

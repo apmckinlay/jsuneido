@@ -13,36 +13,42 @@ class Builtin {
 	public static final String PACKAGE_NAME = Builtin.class.getPackage()
 			.getName();
 
-	static SuCallable method(MethodHandle mh, FunctionSpec params) {
+	static SuCallable method(MethodHandle mh, String valueName, FunctionSpec params) {
 		if (params == null)
-			return new MethodN(mh, null);
+			return new MethodN(mh, valueName, null);
 		switch (params.getParamCount()) {
 		case 0:
-			return new Method0(mh, params);
+			return new Method0(mh, valueName, params);
 		case 1:
-			return new Method1(mh, params);
+			return new Method1(mh, valueName, params);
 		case 2:
-			return new Method2(mh, params);
+			return new Method2(mh, valueName, params);
 		case 3:
-			return new Method3(mh, params);
+			return new Method3(mh, valueName, params);
 		case 4:
-			return new Method4(mh, params);
+			return new Method4(mh, valueName, params);
 		default:
-			return new MethodN(mh, params);
+			return new MethodN(mh, valueName, params);
 		}
 	}
 
 	private static abstract class Method extends SuCallable {
 		protected final MethodHandle mh;
 
-		Method(MethodHandle mh, FunctionSpec params) {
+		Method(MethodHandle mh, String valueName, FunctionSpec params) {
 			this.mh = mh;
+			setSource(null, valueName);
 			this.params = params;
 		}
 
 		@Override
 		public String typeName() {
 			return "Method";
+		}
+
+		@Override
+		public String display() {
+			return name + " /* builtin method */";
 		}
 
 		@Override
@@ -77,8 +83,8 @@ class Builtin {
 
 	private static class MethodN extends Method {
 
-		MethodN(MethodHandle mh, FunctionSpec params) {
-			super(mh, params);
+		MethodN(MethodHandle mh, String valueName, FunctionSpec params) {
+			super(mh, valueName, params);
 		}
 		@Override
 		public Object eval(Object self, Object... args) {
@@ -96,8 +102,8 @@ class Builtin {
 
 	private static final class Method0 extends Method {
 
-		Method0(MethodHandle mh, FunctionSpec params) {
-			super(mh, params);
+		Method0(MethodHandle mh, String valueName, FunctionSpec params) {
+			super(mh, valueName, params);
 		}
 
 		@Override
@@ -120,8 +126,8 @@ class Builtin {
 
 	private static final class Method1 extends Method {
 
-		Method1(MethodHandle mh, FunctionSpec params) {
-			super(mh, params);
+		Method1(MethodHandle mh, String valueName, FunctionSpec params) {
+			super(mh, valueName, params);
 		}
 
 		@Override
@@ -149,8 +155,8 @@ class Builtin {
 
 	private static final class Method2 extends Method {
 
-		Method2(MethodHandle mh, FunctionSpec params) {
-			super(mh, params);
+		Method2(MethodHandle mh, String valueName, FunctionSpec params) {
+			super(mh, valueName, params);
 		}
 
 		@Override
@@ -183,8 +189,8 @@ class Builtin {
 
 	private static final class Method3 extends Method {
 
-		Method3(MethodHandle mh, FunctionSpec params) {
-			super(mh, params);
+		Method3(MethodHandle mh, String valueName, FunctionSpec params) {
+			super(mh, valueName, params);
 		}
 
 		@Override
@@ -222,8 +228,8 @@ class Builtin {
 
 	private static final class Method4 extends Method {
 
-		Method4(MethodHandle mh, FunctionSpec params) {
-			super(mh, params);
+		Method4(MethodHandle mh, String valueName, FunctionSpec params) {
+			super(mh, valueName, params);
 		}
 
 		@Override
@@ -287,12 +293,11 @@ class Builtin {
 
 	private static abstract class Function extends SuCallable {
 		protected final MethodHandle mh;
-		private final String valueName;
 
 		Function(MethodHandle mh, String valueName, FunctionSpec params) {
 			this.mh = mh;
-			this.valueName = valueName;
 			this.params = params;
+			setSource(null, valueName);
 		}
 
 		@Override
@@ -301,13 +306,8 @@ class Builtin {
 		}
 
 		@Override
-		public String valueName() {
-			return valueName;
-		}
-
-		@Override
 		public String display() {
-			return valueName + " /* builtin function */";
+			return name + " /* builtin function */";
 		}
 
 		@Override

@@ -22,8 +22,8 @@ public abstract class BuiltinClass extends BuiltinMethods {
 	protected BuiltinClass(Class<?> c) {
 		super(c);
 	}
-	protected BuiltinClass(Class<?> c, String name) {
-		super(c, name);
+	protected BuiltinClass(Class<?> c, String userDefined) {
+		super(c.getSimpleName().toLowerCase(), c, userDefined);
 	}
 
 	@Override

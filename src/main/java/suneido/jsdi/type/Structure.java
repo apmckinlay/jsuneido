@@ -227,13 +227,12 @@ public final class Structure extends ComplexType {
 	// ANCESTOR CLASS: SuValue
 	//
 
-	private static final Map<String, SuCallable> builtins = BuiltinMethods
-			.methods(Structure.class);
+	private static final BuiltinMethods builtins = new BuiltinMethods(
+			Structure.class);
 
 	@Override
 	public SuValue lookup(String method) {
-		SuValue result = builtins.get(method);
-		return null != result ? result : new SuValue.NotFound(method);
+		return builtins.lookup(method);
 	}
 
 	@Override
