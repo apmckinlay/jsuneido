@@ -11,27 +11,35 @@ import com.google.common.base.Strings;
  * Decimal floating point number implementation
  * using a 64 bit long (treated as unsigned) for the coefficient.
  * <p>
- * Value is -1^sign * coef * 10^exp, zeroed value is 0.
+ * Value is sign * coef * 10^exp, zeroed value is 0.
+ * <p>
+ * Immutable as far as public methods, but mutable instances used internally.
  */
 public class Dnum implements Comparable<Dnum> {
-	private final long coef;
+	private long coef; // mostly final, only modified internally
 	private final byte sign;
-	private final byte exp;
+	private byte exp; // mostly final, only modified internally
 
-	final static byte PLUS = 0;
-	final static byte MINUS = 1;
+	final static byte PLUS = +1;
+	final static byte ZERO = 0;
+	final static byte MINUS = -1;
 	final static byte expInf = Byte.MAX_VALUE;
+	final static long expCoef = ~0L;
 
-	final static Dnum Zero = new Dnum(PLUS, 0, 0);
+	final static Dnum Zero = new Dnum(ZERO, 0, 0);
 	final static Dnum One = new Dnum(PLUS, 1, 0);
-	final static Dnum Inf = new Dnum(PLUS, 0, expInf);
-	final static Dnum MinusInf = new Dnum(MINUS, 0, expInf);
+	final static Dnum Inf = new Dnum(PLUS, expCoef, expInf);
+	final static Dnum MinusInf = new Dnum(MINUS, expCoef, expInf);
 
 	Dnum(byte sign, long coef, int exp) {
 		this.coef = coef;
 		this.sign = sign;
 		assert Byte.MIN_VALUE <= exp && exp <= Byte.MAX_VALUE;
 		this.exp = (byte) exp;
+	}
+
+	private Dnum copy() {
+		return new Dnum(sign, coef, exp);
 	}
 
 	public static Dnum parse(String s) {
@@ -123,7 +131,176 @@ public class Dnum implements Comparable<Dnum> {
 	private static final CharMatcher cm_zero_or_dot = CharMatcher.anyOf("0.");
 
 	boolean isZero() {
-		return coef == 0 && exp != expInf;
+		return sign == ZERO;
+	}
+
+	public Dnum neg() {
+		return new Dnum((byte) -sign, coef, exp);
+	}
+
+	public Dnum abs() {
+		return sign == MINUS ? new Dnum(PLUS, coef, exp) : this;
+	}
+
+	public Dnum add(Dnum y) {
+		return add(this, y);
+	}
+
+	public static Dnum add(Dnum x, Dnum y) {
+		if (x.isZero())
+			return y;
+		else if (y.isZero())
+			return x;
+		else if (x.equals(Inf))
+			if (y.equals(MinusInf))
+				return Zero;
+			else
+				return Inf;
+		else if (x.equals(MinusInf))
+			if (y.equals(Inf))
+				return Zero;
+			else
+				return MinusInf;
+		else if (y.equals(Inf))
+			return Inf;
+		else if (y.equals(MinusInf))
+			return MinusInf;
+		else if (x.sign != y.sign)
+			return usub(x, y);
+		else
+			return uadd(x, y);
+	}
+
+	public Dnum sub(Dnum y) {
+		return sub(this, y);
+	}
+
+	public static Dnum sub(Dnum x, Dnum y) {
+		if (x.isZero())
+			return y.neg();
+		else if (y.isZero())
+			return x;
+		else if (x.equals(Inf))
+			if (y.equals(Inf))
+				return Zero;
+			else
+				return Inf;
+		else if (x.equals(MinusInf))
+			if (y.equals(MinusInf))
+				return Zero;
+			else
+				return MinusInf;
+		else if (y.equals(Inf))
+			return MinusInf;
+		else if (y.equals(MinusInf))
+			return Inf;
+		else if (x.sign != y.sign)
+			return uadd(x, y);
+		else
+			return usub(x, y);
+	}
+
+	private static Dnum uadd(Dnum x, Dnum y) {
+		if (x.exp != y.exp) {
+			x = x.copy();
+			y = y.copy();
+			align(x, y);
+		}
+		// align may make coef 0 if exp is too different
+		if (x.coef == 0)
+			return new Dnum(x.sign, y.coef, y.exp);
+		else if (y.coef == 0)
+			return new Dnum(y.sign, x.coef, x.exp);
+		long coef = x.coef + y.coef;
+		if (coef < x.coef || coef < y.coef) { // overflow
+			Bool roundup = new Bool(false);
+			x.shiftRight(roundup);
+			if (roundup.value)
+				x.coef++;
+			y.shiftRight(roundup);
+			if (roundup.value)
+				y.coef++;
+			coef = x.coef + y.coef;
+		}
+		return result(coef, x.sign, x.exp);
+	}
+
+	private static Dnum usub(Dnum x, Dnum y) {
+		if (x.exp != y.exp) {
+			x = x.copy();
+			y = y.copy();
+			align(x, y);
+		}
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	// WARNING: may modify x and/or y - requires defensive copies
+	private static void align(Dnum x, Dnum y) {
+		if (x.exp > y.exp) {
+			Dnum tmp = x;
+			x = y;
+			y = tmp;
+		}
+		while (y.exp > x.exp && y.shiftLeft()) {
+		}
+		Bool roundup = new Bool(false);
+		while (y.exp > x.exp && x.shiftRight(roundup)) {
+		}
+		if (roundup.value)
+			x.coef++;
+	}
+
+	/** WARNING: may modify, requires defensive copy */
+	private boolean shiftLeft() {
+		if (! mul10safe(coef))
+			return false;
+		coef *= 10;
+		// don't decrement past min
+		if (exp > Byte.MIN_VALUE)
+			exp--;
+		return true;
+	}
+
+	private static boolean mul10safe(long n) {
+		final long HI4 = 0xf << 60;
+		return (n & HI4) == 0;
+	}
+
+	/** WARNING: may modify, requires defensive copy */
+	private boolean shiftRight(Bool roundup) {
+		roundup.value = false;
+		if (coef == 0)
+			return false;
+		roundup.value = (coef % 10) >= 5;
+		coef /= 10;
+		// don't increment past max
+		if (exp < Byte.MAX_VALUE)
+			exp++;
+		return true;
+	}
+
+	private static class Bool {
+		boolean value;
+		Bool(boolean value) {
+			this.value = value;
+		}
+	}
+
+	private static Dnum result(long coef, byte sign, int exp) {
+		if (exp >= expInf)
+			return inf(sign);
+		else if (exp < Byte.MIN_VALUE || coef == 0)
+			return Zero;
+		else
+			return new Dnum(sign, coef, exp);
+	}
+
+	// -------------------------------------------------------------------------
+
+	private static Dnum inf(byte sign2) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
@@ -152,10 +329,22 @@ public class Dnum implements Comparable<Dnum> {
 
 	@Override
 	public int compareTo(Dnum other) {
-		if (sign != other.sign)
-			return sign == PLUS ? +1 : -1;
+		if (sign > other.sign)
+			return +1;
+		else if (sign < other.sign)
+			return -1;
 		// TODO subtract and compare result to zero
 		return -1;
+	}
+
+	Dnum check() {
+		if (sign != PLUS && sign != ZERO && sign != MINUS)
+			throw new RuntimeException("Dnum invalid sign " + sign);
+		if (sign == ZERO && coef != 0)
+			throw new RuntimeException("Dnum sign is zero but coef is " + coef);
+		if (sign != ZERO && coef == 0)
+			throw new RuntimeException("Dnum coef is zero but sign is " + sign);
+		return this;
 	}
 
 }
