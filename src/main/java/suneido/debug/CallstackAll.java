@@ -147,7 +147,7 @@ public final class CallstackAll extends Callstack {
 			}
 		}
 		if (null == javaThis || null == fs) {
-			throw new SuInternalError("No \"this\" local variable found",
+			throw new SuInternalError("No Java \"this\" local variable found",
 					throwable);
 		}
 		final int NPARAMS = fs.getParamCount();
