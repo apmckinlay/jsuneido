@@ -11,7 +11,7 @@ import suneido.compiler.AstCompile;
  * Abstract base class for {@link SuBlock}, {@link SuFunction},
  * {@link SuMethod}, and {@link SuBoundMethod}
  */
-public abstract class SuCallable extends SuValue {
+public abstract /* FIXME: not actually abstract */ class SuCallable extends SuValue {
 	private String library;
 	protected String name;
 	protected SuClass myClass;
