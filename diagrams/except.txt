@@ -18,6 +18,19 @@ TO DO BEFORE DEPLOY
   Structure, Callback, Buffer... [should not be garbage or aStruct etc.]
 
 ========
+20140910
+========
+-- To finish up JDWPAgentClient, need to call the methods in the right places.
+-- This should be after we have processed all the frames so we can (A)
+   allocate the right number and (B) avoid invalidating all the StackFrame
+   objects because of un-suspending the thread.
+-- So: collect everything into List<String>, List<Value>, List<Boolean>, and
+   List<Integer> or whatever.
+-- After done all frames, allocFields() and get arrays
+-- Then for each frame, allocFrame() and store into arrays for that frame
+  
+
+========
 20140905
 ========
 -- Need to be smarter about filtering callstack where we have call() calling
