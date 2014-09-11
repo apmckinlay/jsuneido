@@ -16,7 +16,7 @@ import suneido.runtime.SuClass;
  * Base class for Suneido data types.
  * e.g. {@link SuContainer}, {@link SuRecord}, {@link SuClass}
  */
-public abstract class SuValue implements Packable {
+public abstract /* FIXME: not actually abstract */ class SuValue implements Packable {
 
 	@Override
 	public String toString() {
