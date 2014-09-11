@@ -34,7 +34,9 @@ public final class DebugManager {
 	//
 
 	private DebugModel actualModel;
+	private JDWPAgentClient jdwpAgentClient;
 	private int jsdebugAgentState;
+	private int jdwpAgentState;
 
 	//
 	// CONSTRUCTORS
@@ -42,43 +44,33 @@ public final class DebugManager {
 
 	private DebugManager() {
 		actualModel = DebugModel.STACK;
-		jsdebugAgentState = JSDEBUG_AGENT_NOT_CHECKED;
+		jdwpAgentClient = null;
+		jsdebugAgentState = AGENT_NOT_CHECKED;
+		jdwpAgentState = AGENT_NOT_CHECKED;
 	}
 
 	//
 	// INTERNALS
 	//
 
-	private static final int JSDEBUG_AGENT_NOT_CHECKED = -1;
-	private static final int JSDEBUG_AGENT_NOT_AVAILABLE = 0;
-	private static final int JSDEBUG_AGENT_AVAILABLE = 1;
+	private static final int AGENT_NOT_CHECKED = -1;
+	private static final int AGENT_NOT_AVAILABLE = 0;
+	private static final int AGENT_AVAILABLE = 1;
 
 	private DebugModel tryToInitFullDebugging() {
-		if (!testIf_jsdebugAgent_Available()) {
-			String jdwpClientPort = DebugUtil.getJDWPAgentClientPort();
-			if (null != jdwpClientPort) {
-				if (false)
-					throw new Error("not implemented yet: try to start JDI"); // FIXME:
-				// TODO:
-				// implement
-				// me!
-				if (!testIfStackInfoAvailable()) {
-					Errlog.errlog("unable to initialize 'all' debugging - falling back to 'stack' debugging");
-					return DebugModel.STACK;
-				}
-			}
+		if (testIf_jsdebugAgent_Available() || startJDWPAgent())
+			return DebugModel.ALL;
+		else {
+			Errlog.errlog("unable to initialize 'all' debugging - falling back to 'stack' debugging");
+			return DebugModel.STACK;
 		}
-		return DebugModel.ALL;
 	}
 
 	private void tryToStopFullDebuggingByJDWP() {
-		// Stop full debugging if implemented by way of a JDWP client running in
-		// this process...
-		if (false)
-			throw new Error(
-		        "not implemented yet: try to stop full debugging by JDWP");
-		// TODO: implement this as part of implementing JDWP version of jsdebug
-		//       agent...
+		if (null != jdwpAgentClient) {
+			jdwpAgentClient.stop();
+			jdwpAgentClient = null;
+		}
 	}
 
 	private static boolean testIfStackInfoAvailable() {
@@ -86,11 +78,40 @@ public final class DebugManager {
 	}
 
 	private boolean testIf_jsdebugAgent_Available() {
-		if (JSDEBUG_AGENT_NOT_CHECKED == jsdebugAgentState) {
-			jsdebugAgentState = testIfStackInfoAvailable() ? JSDEBUG_AGENT_AVAILABLE
-			        : JSDEBUG_AGENT_NOT_AVAILABLE;
+		if (AGENT_NOT_CHECKED == jsdebugAgentState) {
+			jsdebugAgentState = testIfStackInfoAvailable() ? AGENT_AVAILABLE
+			        : AGENT_NOT_AVAILABLE;
 		}
-		return JSDEBUG_AGENT_AVAILABLE == jsdebugAgentState;
+		return AGENT_AVAILABLE == jsdebugAgentState;
+	}
+
+	private boolean startJDWPAgent() {
+		if (AGENT_NOT_AVAILABLE == jdwpAgentState) {
+			return false;
+		} else {
+			String jdwpClientPort = DebugUtil.getJDWPAgentClientPort();
+			if (null == jdwpClientPort) {
+				jdwpAgentState = AGENT_NOT_AVAILABLE;
+				return false;
+			}
+			try {
+				jdwpAgentClient = new JDWPAgentClient(jdwpClientPort);
+				jdwpAgentClient.start();
+			} catch (Throwable t) {
+				Errlog.errlog("can't start JDWP client: " + t.getMessage(), t);
+				jdwpAgentState = AGENT_NOT_AVAILABLE;
+				return false;
+			}
+			assert null != jdwpAgentClient;
+			if (testIfStackInfoAvailable()) {
+				return true;
+			} else {
+				jdwpAgentClient.stop();
+				jdwpAgentClient = null;
+				jdwpAgentState = AGENT_NOT_AVAILABLE;
+				return false;
+			}
+		}
 	}
 
 	//
@@ -105,6 +126,31 @@ public final class DebugManager {
 	 */
 	public DebugModel getDebugModel() {
 		return actualModel;
+	}
+
+
+	/**
+	 * Changes the debug model.
+	 *
+	 * @param requestedModel
+	 *            Debug model requested
+	 * @return Debug model actually set
+	 * @see #getDebugModel()
+	 */
+	public synchronized DebugModel setDebugModel(DebugModel requestedModel) {
+		if (null == requestedModel) {
+			throw new NullPointerException();
+		} else if (actualModel == requestedModel) {
+			return actualModel;
+		} else if (DebugModel.ALL == requestedModel) {
+			this.actualModel = tryToInitFullDebugging();
+		} else {
+			if (this.actualModel == DebugModel.ALL) {
+				tryToStopFullDebuggingByJDWP();
+			}
+			this.actualModel = requestedModel;
+		}
+		return this.actualModel;
 	}
 
 	/**
@@ -150,29 +196,6 @@ public final class DebugManager {
 		default:
 			throw SuInternalError.unhandledEnum(actualModel);
 		}
-	}
-
-	/**
-	 * Changes the debug model.
-	 *
-	 * @param requestedModel
-	 *            Debug model requested
-	 * @return Debug model actually set
-	 * @see #getDebugModel()
-	 */
-	public synchronized DebugModel setDebugModel(DebugModel requestedModel) {
-		if (null == requestedModel) {
-			throw new NullPointerException();
-		}
-		if (DebugModel.ALL == requestedModel) {
-			this.actualModel = tryToInitFullDebugging();
-		} else {
-			if (this.actualModel == DebugModel.ALL) {
-				tryToStopFullDebuggingByJDWP();
-			}
-			this.actualModel = requestedModel;
-		}
-		return this.actualModel;
 	}
 
 	//
