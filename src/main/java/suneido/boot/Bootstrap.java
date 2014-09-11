@@ -202,11 +202,11 @@ public final class Bootstrap {
 			return process.waitFor();
 		} catch (IOException e) {
 			throw new SuInternalError("failed to run \""
-					+ Joiner.on(' ').join(builder.command(), e));
+					+ Joiner.on(' ').join(builder.command(), e) + '"');
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 			throw new SuInternalError("interrupted while running \""
-					+ Joiner.on(' ').join(builder.command(), e));
+					+ Joiner.on(' ').join(builder.command(), e) + '"');
 		}
 	}
 
@@ -239,7 +239,9 @@ public final class Bootstrap {
 		for (final String jvmArgument : jvmArguments) {
 			if (!jvmArgument.startsWith("-agent")
 					&& !jvmArgument.startsWith("-D"
-							+ DebugUtil.JDWP_PORT_PROP_NAME)) {
+							+ DebugUtil.JDWP_PORT_PROP_NAME)
+					&& !jvmArgument.startsWith("-D"
+							+ DebugUtil.JDWP_FORCE_PROP_NAME)) {
 				result.add(jvmArgument);
 			}
 		}
@@ -280,7 +282,8 @@ public final class Bootstrap {
 		// Start the JVM with the appropriate agent if full debugging support is
 		// required.
 		if (isFullDebugging) {
-			final File jvmtiAgentPath = DebugUtil.getJVMTIAgentPath();
+			final File jvmtiAgentPath = DebugUtil.isJDWPForced() ? null
+					: DebugUtil.getJVMTIAgentPath();
 			if (null == jvmtiAgentPath) {
 				String jdwpServerPort = DebugUtil.getFreeJDWPAgentServerPort();
 				jvmArgs.add(DebugUtil.getJDWPAgentArg(jdwpServerPort));

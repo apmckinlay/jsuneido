@@ -8,10 +8,10 @@ import suneido.SuValue;
 import suneido.compiler.AstCompile;
 
 /**
- * Abstract base class for {@link SuBlock}, {@link SuFunction},
+ * Base class for {@link SuBlock}, {@link SuFunction},
  * {@link SuMethod}, and {@link SuBoundMethod}
  */
-public abstract /* FIXME: not actually abstract */ class SuCallable extends SuValue {
+public class SuCallable extends SuValue {
 	private String library;
 	protected String name;
 	protected SuClass myClass;
