@@ -29,16 +29,8 @@ import suneido.runtime.Ops;
  * @since 20140903
  * @see SuInternalError
  */
+@SuppressWarnings("serial")
 public class SuException extends RuntimeException implements CallstackProvider {
-
-	//
-	// SERIALIZATION
-	//
-
-	/**
-	 * Required to silence Java compiler warning.
-	 */
-	private static final long serialVersionUID = 1L;
 
 	//
 	// DATA
@@ -89,20 +81,8 @@ public class SuException extends RuntimeException implements CallstackProvider {
 	 *            programmer
 	 */
 	public SuException(String message, Throwable cause,
-	        boolean isSuneidoRethrown) {
-		super(makeMessage(message, cause, isSuneidoRethrown), cause);
-		if (isSuneidoRethrown) {
-			assert null != cause : "Cause cannot be null if this is a rethrown exception";
-			if (cause instanceof CallstackProvider) {
-				callstack = ((CallstackProvider) cause).getCallstack();
-			} else {
-				callstack = DebugManager.getInstance().makeCallstackFromThrowable(cause);
-			}
-		} else {
-			super.fillInStackTrace();
-			callstack = DebugManager.getInstance()
-			        .makeCallstackForCurrentThread(this);
-		}
+			boolean isSuneidoRethrown) {
+		this(message, cause, isSuneidoRethrown, true);
 	}
 
 	/**
@@ -139,12 +119,33 @@ public class SuException extends RuntimeException implements CallstackProvider {
 		this(message, cause, false);
 	}
 
+	protected SuException(String message, Throwable cause,
+			boolean isSuneidoRethrown, boolean wantCallstack) {
+		super(makeMessage(message, cause, isSuneidoRethrown), cause);
+		if (isSuneidoRethrown) {
+			assert null != cause : "Cause cannot be null if this is a rethrown exception";
+			assert wantCallstack : "All rethrown exceptions must have callstacks";
+			if (cause instanceof CallstackProvider) {
+				callstack = ((CallstackProvider) cause).getCallstack();
+			} else {
+				callstack = DebugManager.getInstance()
+						.makeCallstackFromThrowable(cause);
+			}
+		} else if (wantCallstack) {
+			super.fillInStackTrace();
+			callstack = DebugManager.getInstance()
+					.makeCallstackForCurrentThread(this);
+		} else /* this branch is for block:break and block:continue */{
+			callstack = Callstack.EMPTY;
+		}
+	}
+
 	//
 	// INTERNALS
 	//
 
 	private static String makeMessage(String message, Throwable cause,
-	        boolean isSuneidoRethrown) {
+			boolean isSuneidoRethrown) {
 		if (isSuneidoRethrown || null == cause) {
 			return message;
 		} else {
@@ -177,7 +178,7 @@ public class SuException extends RuntimeException implements CallstackProvider {
 	 */
 	public static SuException methodNotFound(Object object, String method) {
 		return new SuException("method not found: " + Ops.typeName(object)
-		        + "." + method + " (" + object + ")");
+				+ "." + method + " (" + object + ")");
 	}
 
 	//
