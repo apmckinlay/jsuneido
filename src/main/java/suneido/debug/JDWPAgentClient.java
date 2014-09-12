@@ -7,6 +7,8 @@ package suneido.debug;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,12 +18,12 @@ import suneido.util.Errlog;
 
 import com.sun.jdi.AbsentInformationException;
 import com.sun.jdi.ArrayReference;
-import com.sun.jdi.ArrayType;
 import com.sun.jdi.Bootstrap;
 import com.sun.jdi.ClassNotLoadedException;
 import com.sun.jdi.ClassType;
 import com.sun.jdi.Field;
 import com.sun.jdi.IncompatibleThreadStateException;
+import com.sun.jdi.IntegerValue;
 import com.sun.jdi.InvalidTypeException;
 import com.sun.jdi.Location;
 import com.sun.jdi.Method;
@@ -75,6 +77,7 @@ final class JDWPAgentClient {
 
 	private final String port;
 	private final Client actualClient;
+	private final Object lock;
 	private volatile Thread runningThread;
 
 	//
@@ -84,6 +87,7 @@ final class JDWPAgentClient {
 	JDWPAgentClient(String port) {
 		this.port = port;
 		this.actualClient = new Client();
+		this.lock = new Object();
 		this.runningThread = null;
 	}
 
@@ -100,7 +104,7 @@ final class JDWPAgentClient {
 	 *             If the client thread is already running
 	 */
 	public void start() {
-		synchronized (actualClient) {
+		synchronized (lock) {
 			if (isRunning()) {
 				throw new SuInternalError("agent controller is already running");
 			}
@@ -119,7 +123,7 @@ final class JDWPAgentClient {
 	 *             If the client thread is not currently running
 	 */
 	public void stop() {
-		synchronized (actualClient) {
+		synchronized (lock) {
 			if (!isRunning()) {
 				throw new SuInternalError("agent controller is not running");
 			}
@@ -127,7 +131,7 @@ final class JDWPAgentClient {
 			runningThread.interrupt();
 			while (isRunning()) {
 				try {
-					actualClient.wait();
+					lock.wait();
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 					throw new SuInternalError("interrupted while waiting for "
@@ -137,8 +141,52 @@ final class JDWPAgentClient {
 		}
 	}
 
+	/**
+	 * Indicates whether the client thread is running.
+	 *
+	 * @return True iff the client thread is running
+	 */
 	public boolean isRunning() {
 		return null != runningThread;
+	}
+
+	/**
+	 * <p>
+	 * Makes this JDWP agent client aware of a new stack trace repository
+	 * object.
+	 * </p>
+	 *
+	 * <p>
+	 * The reason for doing this is get a <em>direct</em> reference to the stack
+	 * trace repository so that we don't have to modify its fields indirectly
+	 * via JDI. This enables us to avoid one of the pitfalls of using JDI/JDWP,
+	 * which is that unless all of the threads in a JVM are suspended&dagger;,
+	 * we can't be certain that any mirrored objects we create via JDI will
+	 * survive garbage collection long enough for us to do anything useful with
+	 * them. See <a href="http://stackoverflow.com/q/25793688/1911388">this
+	 * StackOverflow question</a> for more information.
+	 * </p>
+	 *
+	 * <p>
+	 * &dagger;: It is hopefully obvious why we can't allow this to occur: our
+	 * JDI client thread is itself <em>in</em> the "target" JVM (<i>ie</i> the
+	 * JVM that is running Suneido). If we suspend all the JVM threads, we
+	 * suspend the JDI client thread and the whole process will deadlock.
+	 * </p>
+	 *
+	 * @param stackInfo
+	 *            Repository that will receive stack trace information when the
+	 *            breakpoint in its {@link StackInfo#fetchInfo()} method is
+	 *            triggered
+	 */
+	public void addRepo(StackInfo stackInfo) {
+		synchronized (lock) {
+			if (actualClient.repoMap.containsKey(stackInfo.id)) {
+				throw new SuInternalError(errorMessage(
+						" detected duplicate id: " + stackInfo.id, null));
+			}
+			actualClient.repoMap.put(stackInfo.id, stackInfo);
+		}
 	}
 
 	//
@@ -170,35 +218,22 @@ final class JDWPAgentClient {
 		return connector.attach(args);
 	}
 
-	private <T extends ReferenceType> T getReferenceType(VirtualMachine vm,
-			Class<?> clazz, Class<T> destType) {
-		return destType.cast(getReferenceType(vm, clazz));
-	}
-
-	private ReferenceType getReferenceType(VirtualMachine vm, Class<?> clazz) {
+	private ReferenceType getReferenceType(
+			IdentityHashMap<Class<?>, Object> gcStopper, VirtualMachine vm,
+			Class<?> clazz) {
+		// Make an instance of the class and store it in a reachable location so
+		// we can ensure the class will remain loaded through the lifetime of
+		// this client.
+		try {
+			gcStopper.put(clazz, clazz.newInstance());
+		} catch (InstantiationException | IllegalAccessException e) {
+			throw new SuInternalError(errorMessage("failed to instantiate "
+					+ clazz + " for reachability purposes", e), e);
+		}
 		// For array types, you have to use the canonical name or
 		// classesByName(...) will fail.
 		String className = clazz.getCanonicalName();
 		List<ReferenceType> classes = vm.classesByName(className);
-		// Sometimes the VM doesn't have the class loaded. This is somewhat
-		// surprising, because the VM is really just a JDI/JDWP layer over THIS
-		// JVM in THIS process and we have a live reference to the actual class,
-		// since it is a parameter to THIS METHOD, which means it must be
-		// loaded! In any event, I have found that the workaround in this case
-		// is to create an instance of the class. Obviously this means the
-		// class must be concrete and have a nullary constructor.
-		if (classes.isEmpty()) {
-			try {
-				if (!clazz.isArray()) {
-					Object instance = clazz.newInstance();
-					classes = vm.classesByName(className);
-					instance.equals(instance);
-				}
-				// NOTE: If we ever need this workaround for arrays, try
-				// java.lang.reflect.Array.newInstance(clazz.componentType(), 0)
-			} catch (Throwable swallowed) {
-			}
-		}
 		if (1 != classes.size())
 			throw new SuInternalError(errorMessage(
 					"expects exactly 1 loaded class called '" + className
@@ -206,8 +241,9 @@ final class JDWPAgentClient {
 		return classes.get(0);
 	}
 
-	private ClassType getClassType(VirtualMachine vm, Class<?> clazz) {
-		final ReferenceType classRef = getReferenceType(vm, clazz);
+	private ClassType getClassType(IdentityHashMap<Class<?>, Object> gcStopper,
+			VirtualMachine vm, Class<?> clazz) {
+		final ReferenceType classRef = getReferenceType(gcStopper, vm, clazz);
 		if (!(classRef instanceof ClassType)) {
 			throw new SuInternalError(errorMessage(
 					"expects '" + clazz.getCanonicalName() + "' to be a class",
@@ -227,9 +263,10 @@ final class JDWPAgentClient {
 		return field;
 	}
 
-	private Location getLocationOfClassMethod(VirtualMachine vm,
+	private Location getLocationOfClassMethod(
+			IdentityHashMap<Class<?>, Object> gcStopper, VirtualMachine vm,
 			Class<?> clazz, String methodName) {
-		final ClassType classRef = getClassType(vm, clazz);
+		final ClassType classRef = getClassType(gcStopper, vm, clazz);
 		final List<Method> methods = classRef.methodsByName(methodName);
 		if (1 != methods.size())
 			throw new SuInternalError(errorMessage(
@@ -285,32 +322,50 @@ final class JDWPAgentClient {
 																// function
 	}
 
-	private void handleBreakpointEvent(BreakpointEvent breakpointEvent) {
-		final ThreadReference thread = breakpointEvent.thread();
-		List<StackFrame> frames = null;
+	private StackInfo convertRepoIndirectToDirect(ObjectReference repoIndirect) {
 		try {
-			frames = thread.frames();
+			IntegerValue idValue = (IntegerValue) repoIndirect
+					.getValue(actualClient.idField);
+			int id = idValue.intValue();
+			StackInfo repoDirect = null;
+			synchronized (lock) {
+System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+System.out.println(actualClient.repoMap);
+System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+				repoDirect = actualClient.repoMap.get(id);
+			}
+			if (null == repoDirect) {
+				throw new IllegalStateException("can't find repo with id: "
+						+ id);
+			}
+			return repoDirect;
+		} catch (Throwable t) {
+			throw new SuInternalError(errorMessage(
+					"failed to convert repo mirror to direct reference", t), t);
+		}
+	}
+
+	private void handleBreakpointEvent(BreakpointEvent breakpointEvent) {
+		final ThreadReference suspendedThread = breakpointEvent.thread();
+		// Get the frames
+		List<StackFrame> frames = null;
+		Exception cause = null;
+		try {
+			frames = suspendedThread.frames();
 		} catch (IncompatibleThreadStateException e) {
 			errlog("can't get stack trace due to incompatible thread state", e);
 			frames = Collections.emptyList();
+			cause = null;
 		}
-		assert null != frames && !frames.isEmpty();
+		if (frames.isEmpty()) {
+			throw new SuInternalError("empty stack trace", cause);
+		}
+		// Get the "this" object
+		ObjectReference repoIndirect = frames.get(0).thisObject();
+		StackInfo repoDirect = convertRepoIndirectToDirect(repoIndirect);
 		todo_deleteme_dumpFrames(frames);
-		handleStackTrace(frames);
+		handleStackTrace(repoDirect, repoIndirect, suspendedThread, frames);
 	}
-
-	private static final Class<StackInfo> REPO_CLASS = StackInfo.class;
-	private static final Class<SuCallable> STACK_FRAME_CLASS = SuCallable.class;
-
-	private static final String LOCALS_NAME_FIELD_NAME = "localsNames";
-	private static final Class<String[][]> LOCALS_NAME_FIELD_CLASS = String[][].class;
-	private static final String LOCALS_VALUE_FIELD_NAME = "localsValues";
-	private static final Class<Object[][]> LOCALS_VALUE_FIELD_CLASS = Object[][].class;
-	private static final String IS_CALL_FIELD_NAME = "isCall";
-	private static final Class<boolean[]> IS_CALL_FIELD_CLASS = boolean[].class;
-	private static final String LINE_NUMBERS_FIELD_NAME = "lineNumbers";
-	private static final Class<int[]> LINE_NUMBERS_CLASS = int[].class;
-	private static final String IS_INITIALIZED_FIELD_NAME = "isInitialized";
 
 	private static enum MethodName {
 		// ---------------------------------------------------------------------
@@ -394,8 +449,9 @@ final class JDWPAgentClient {
 		return false;
 	}
 
-	private void handleLocals(StackFrame frame, List<Value> allLocalsNames,
-			List<Value> allLocalsValues) {
+	private void handleLocals(StackInfo repoDirect,
+			ArrayReference localsValuesArrIndirect, StackFrame frame,
+			List<String> nameScratch, List<Value> valueScratch, int frameIndex) {
 		List<com.sun.jdi.LocalVariable> localVariables = null;
 		// Fetch the locals. Handle an "absent information" exception by
 		// reporting it and then using an empty list.
@@ -405,163 +461,146 @@ final class JDWPAgentClient {
 			errlog("frame has no local variable information", e);
 			localVariables = Collections.emptyList();
 		}
-		// Put the locals into list form.
-		List<Value> frameLocalsNames = new ArrayList<>(localVariables.size());
-		List<Value> frameLocalsValues = new ArrayList<>(localVariables.size());
+		// Add the "this" local variable. Unlike with pure JVMTI, the "this"
+		// local variable isn't included in the local variables list.
+		nameScratch.clear();
+		valueScratch.clear();
+		ObjectReference thisRef = frame.thisObject();
+System.out.println("***************************************************************");
+		if (null != thisRef) {
+System.out.println("this    ^^^^^^^");
+			nameScratch.add("this");
+			valueScratch.add(thisRef);
+		}
+		// Get the remaining local variables.
 		for (com.sun.jdi.LocalVariable var : localVariables) {
 			Value value = frame.getValue(var);
-			if (null != value) {
-				frameLocalsNames.add(actualClient.vm.mirrorOf(var.name()));
-				frameLocalsValues.add(value);
+			assert !"this".equals(var.name()) : "JDI doesn't include \"this\" in the local variables";
+			if (value instanceof ObjectReference) {
+System.out.println(var.name());
+				nameScratch.add(var.name());
+				valueScratch.add(value);
 			}
 		}
-		// Convert the lists into arrays
-		ArrayReference frameLocalsName$ = actualClient.stringArrayType
-				.newInstance(frameLocalsNames.size());
-		ArrayReference frameLocalsValue$ = actualClient.objectArrayType
-				.newInstance(frameLocalsValues.size());
+System.out.println("***************************************************************");
+		// Store the local variable information
+		repoDirect.localsNames[frameIndex] = nameScratch
+				.toArray(new String[nameScratch.size()]);
+		// Have to store the values indirectly through JDI because all we have
+		// are mirrors (instances of the JDI Value class).
+		repoDirect.localsValues[frameIndex] = new Object[valueScratch.size()];
+		ArrayReference localsValuesAtFrameIndex = (ArrayReference) localsValuesArrIndirect
+				.getValue(frameIndex);
 		try {
-			frameLocalsName$.setValues(frameLocalsNames);
-			frameLocalsValue$.setValues(frameLocalsValues);
+			localsValuesAtFrameIndex.setValues(valueScratch);
 		} catch (ClassNotLoadedException | InvalidTypeException e) {
 			throw new SuInternalError(errorMessage(
-					"can't store values to frame locals array", e), e);
-		}
-		// Store the arrays into our lists of arrays
-		allLocalsNames.add(frameLocalsName$);
-		allLocalsValues.add(frameLocalsValue$);
-	}
-
-	private void initializeRepo(ObjectReference repoRef,
-			List<Value> localsNames, List<Value> localsValues,
-			List<Value> isCall, List<Value> lineNumbers) {
-		final int N = localsNames.size();
-		assert N == localsNames.size();
-		assert N == localsValues.size();
-		assert N == isCall.size();
-		assert N == lineNumbers.size();
-		@SuppressWarnings("unchecked")
-		final List<Value>[] values = new List[] { localsNames, localsValues,
-				isCall, lineNumbers };
-		assert values.length == actualClient.repoArrayFieldTypes.length;
-		assert values.length == actualClient.repoArrayFields.length;
-		for (int k = 0; k < values.length; ++k) {
-			ArrayReference array = actualClient.repoArrayFieldTypes[k]
-					.newInstance(N);
-			try {
-				array.setValues(values[k]);
-			} catch (ClassNotLoadedException | InvalidTypeException e) {
-				throw new SuInternalError(errorMessage(
-						"can't store values to repo array", e), e);
-			}
-			try {
-				repoRef.setValue(actualClient.repoArrayFields[k], array);
-				// FIXME: The above is throwing an ObjectCollectedException
-				// because there aren't any strong references to the
-				// array (the only one we have is, via JDI, through an
-				// ArrayReference) so it gets garbage-collected as soon
-				// as the JVM gets a chance. I think the solution is to
-				// put methods in StackInfo to create the arrays and
-				// immediately store them into fields. That way we can
-				// just create the arrays by calling a method on the
-				// StackInfo instance, which we know can't be garbage
-				// collected since it is reachable from the suspended
-				// thread and in fact is the "this" at the top of the
-				// execution stack.
-			} catch (ClassNotLoadedException | InvalidTypeException e) {
-				throw new SuInternalError(errorMessage(
-						"can't store repo array into repo field", e), e);
-			}
-		}
-		// Mark the whole repo instance as initialized
-		try {
-			repoRef.setValue(
-					getFieldByName(actualClient.repoClassRef,
-							IS_INITIALIZED_FIELD_NAME), actualClient.vm
-							.mirrorOf(true));
-		} catch (ClassNotLoadedException | InvalidTypeException e) {
-			throw new SuInternalError(errorMessage(
-					"can't mark repo initialized", e), e);
+					"failed to store locals values indirectly", e), e);
 		}
 	}
 
-	private void handleStackTrace(List<StackFrame> frames) {
+	private void handleStackTrace(StackInfo repoDirect,
+			ObjectReference repoIndirect, ThreadReference suspendedThread,
+			List<StackFrame> frames) {
 		// ---------------------------------------------------------------------
 		// WARNING: This code MUST be kept in sync with the equivalent code in
 		// the "jsdebug" shared object/dynamic link library as well as
 		// the call stack decoding code in CallstackAll.java.
 		// ---------------------------------------------------------------------
-
-		// Construct the lists that will hold the stack data to store onto the
-		// REPO_CLASS object which is at the top of the thread that is suspended
-		// at the breakpoint.
-		final List<Value> localsNames = new ArrayList<>();
-		final List<Value> localsValues = new ArrayList<>();
-		final List<Value> isCall = new ArrayList<>();
-		final List<Value> lineNumbers = new ArrayList<>();
-		// Walk the stack looking for frames where the method's class is an
-		// instance of STACK_FRAME_CLASS.
-		MethodName methodNameAbove = null;
-		MethodName methodNameCur = MethodName.UNKNOWN;
-		ObjectReference thisRefAbove = null;
-		ObjectReference thisRefCur = null;
-		for (StackFrame frame : frames) {
-			// Keep track of the method name and "this" value in the frame we
-			// just looked at (the frame "above" the current frame in the stack
-			// trace). This information is needed to determine which Java stack
-			// frames actually constitute Suneido stack frames since it may take
-			// 3-4 Java stack frames to invoke a Suneido callable.
-			thisRefAbove = thisRefCur;
-			thisRefCur = null;
-			methodNameAbove = methodNameCur;
-			methodNameCur = MethodName.UNKNOWN;
-			// Get the frame method
-			final Location location = frame.location();
-			final Method method = location.method();
-			// Skip native methods
-			if (method.isNative())
-				continue;
-			// Skip non-public methods
-			if (!method.isPublic())
-				continue;
-			// Skip static methods
-			if (!method.isStatic())
-				continue;
-			// If the declaring class is not assignable to STACK_FRAME_CLASS,
-			// we don't want stack frame data from it.
-			if (!isAssignableFrom(method.declaringType(),
-					actualClient.stackFrameClassRef))
-				continue;
-			// Get the method name
-			methodNameCur = MethodName.getMethodName(method);
-			if (MethodName.UNKNOWN == methodNameCur)
-				continue;
-			// Get the "this" instance so we can determine if this stack frame
-			// has the same "this" as the previous stack frame.
-			thisRefCur = frame.thisObject();
-			// If the "this" instance for this Java stack frame is the same as
-			// the "this" instance of the immediately preceding Java stack
-			// frame, both frames may logically be part of the same Suneido
-			// callable invocation and we only want the top frame, which we have
-			// alreadya seen...
-			if (thisRefCur.equals(thisRefAbove)
-					&& methodNameAbove != methodNameCur) {
-				continue;
+		try {
+			// Construct some scratch space
+			final List<String> scratchLocalsNames = new ArrayList<>(16);
+			final List<Value> scratchLocalsValues = new ArrayList<>(16);
+			// Construct the arrays that will hold the stack data.
+			final int NUM_FRAMES = frames.size();
+			repoDirect.localsNames = new String[NUM_FRAMES][];
+			repoDirect.localsValues = new Object[NUM_FRAMES][];
+			repoDirect.isCall = new boolean[NUM_FRAMES];
+			repoDirect.lineNumbers = new int[NUM_FRAMES];
+			// Obtain a mirror of the repo object's localsValues array, since we can
+			// only store mirrored values into it indirectly.
+			ArrayReference localsValuesArrIndirect = (ArrayReference) repoIndirect
+					.getValue(actualClient.localsValuesField);
+			// Walk the stack looking for frames where the method's class is an
+			// instance of STACK_FRAME_CLASS.
+			MethodName methodNameAbove = null;
+			MethodName methodNameCur = MethodName.UNKNOWN;
+			ObjectReference thisRefAbove = null;
+			ObjectReference thisRefCur = null;
+			int frameIndex = 0;
+			for (StackFrame frame : frames) {
+				// Keep track of the method name and "this" value in the frame we
+				// just looked at (the frame "above" the current frame in the stack
+				// trace). This information is needed to determine which Java stack
+				// frames actually constitute Suneido stack frames since it may take
+				// 3-4 Java stack frames to invoke a Suneido callable.
+				thisRefAbove = thisRefCur;
+				thisRefCur = null;
+				methodNameAbove = methodNameCur;
+				methodNameCur = MethodName.UNKNOWN;
+				// Get the frame method
+				final Location location = frame.location();
+				final Method method = location.method();
+				// Skip native methods
+				if (method.isNative())
+					continue;
+				// Skip non-public methods
+				if (!method.isPublic())
+					continue;
+				// Skip static methods
+				if (method.isStatic())
+					continue;
+				// If the declaring class is not assignable to STACK_FRAME_CLASS,
+				// we don't want stack frame data from it.
+				if (!isAssignableFrom(method.declaringType(),
+						actualClient.stackFrameClassRef))
+					continue;
+				// Get the method name
+				methodNameCur = MethodName.getMethodName(method);
+				if (MethodName.UNKNOWN == methodNameCur)
+					continue;
+				// Get the "this" instance so we can determine if this stack frame
+				// has the same "this" as the previous stack frame.
+				thisRefCur = frame.thisObject();
+				// If the "this" instance for this Java stack frame is the same as
+				// the "this" instance of the immediately preceding Java stack
+				// frame, both frames may logically be part of the same Suneido
+				// callable invocation and we only want the top frame, which we have
+				// alreadya seen...
+				if (thisRefCur.equals(thisRefAbove)
+						&& methodNameAbove != methodNameCur) {
+					continue;
+				}
+				// Fetch the locals for this frame
+				handleLocals(repoDirect, localsValuesArrIndirect, frame,
+						scratchLocalsNames, scratchLocalsValues, frameIndex);
+				// Tag methods that are calls
+				if (methodNameCur.isCall()) {
+					repoDirect.isCall[frameIndex] = true;
+				}
+				// Add the line number
+				repoDirect.lineNumbers[frameIndex] = location.lineNumber();
+				// Next frame
+				++frameIndex;
 			}
-			// Tag methods that are calls
-			isCall.add(actualClient.vm.mirrorOf(methodNameCur.isCall()));
-			// Fetch the locals for this frame
-			handleLocals(frame, localsNames, localsValues);
-			// Add the line number
-			lineNumbers.add(actualClient.vm.mirrorOf(location.lineNumber()));
+			// Mark the stack info repository as initialized.
+			repoDirect.isInitialized = true;
+			assert repoDirect.isInitialized();
+		} finally {
+			synchronized (lock) {
+				actualClient.repoMap.remove(repoDirect.id);
+			}
 		}
-		// Retrieve the "this" reference for the frame where the breakpoint was
-		// found. This is the "this" reference of the REPO_CLASS.
-		final ObjectReference thisRef = frames.get(0).thisObject();
-		// Store the stack data into the fields of the "this" reference of the
-		// REPO_CLASS and mark the instance as initialized.
-		initializeRepo(thisRef, localsNames, localsValues, isCall, lineNumbers);
 	}
+
+	//
+	// INTERNAL CONSTANTS
+	//
+
+	private static final Class<StackInfo> REPO_CLASS = StackInfo.class;
+	private static final Class<SuCallable> STACK_FRAME_CLASS = SuCallable.class;
+	private static final String ID_FIELD_NAME = "id";
+	private static final String LOCALS_VALUE_FIELD_NAME = "localsValues";
 
 	//
 	// TYPES
@@ -573,22 +612,24 @@ final class JDWPAgentClient {
 		//
 
 		public volatile boolean mustStop;
+		private final IdentityHashMap<Class<?>, Object> gcStopper;
+		private final Map<Integer, StackInfo> repoMap;
 		private VirtualMachine vm;
 		private BreakpointRequest breakpointRequest;
-		private final Location location;
 		private final EventQueue eventQueue;
 		private final ClassType repoClassRef;
 		private final ClassType stackFrameClassRef;
-		private final ArrayType[] repoArrayFieldTypes;
-		private final Field[] repoArrayFields;
-		private final ArrayType stringArrayType;
-		private final ArrayType objectArrayType;
+		private final Field idField;
+		private final Field localsValuesField;
 
 		//
 		// CONSTRUCTORS
 		//
 
 		private Client() {
+			mustStop = false;
+			gcStopper = new IdentityHashMap<>();
+			repoMap = new HashMap<>();
 			AttachingConnector connector = getConnector();
 			try {
 				vm = connect(connector, JDWPAgentClient.this.port);
@@ -598,28 +639,15 @@ final class JDWPAgentClient {
 				throw connectError("illegal connector arguments", e);
 			}
 			try {
-				location = getLocationOfClassMethod(vm, REPO_CLASS, "fetchInfo");
 				eventQueue = vm.eventQueue();
-				repoClassRef = getClassType(vm, REPO_CLASS);
-				stackFrameClassRef = getClassType(vm, STACK_FRAME_CLASS);
-				repoArrayFieldTypes = new ArrayType[] {
-						getReferenceType(vm, LOCALS_NAME_FIELD_CLASS,
-								ArrayType.class),
-						getReferenceType(vm, LOCALS_VALUE_FIELD_CLASS,
-								ArrayType.class),
-						getReferenceType(vm, IS_CALL_FIELD_CLASS,
-								ArrayType.class),
-						getReferenceType(vm, LINE_NUMBERS_CLASS,
-								ArrayType.class) };
-				repoArrayFields = new Field[] {
-						getFieldByName(repoClassRef, LOCALS_NAME_FIELD_NAME),
-						getFieldByName(repoClassRef, LOCALS_VALUE_FIELD_NAME),
-						getFieldByName(repoClassRef, IS_CALL_FIELD_NAME),
-						getFieldByName(repoClassRef, LINE_NUMBERS_FIELD_NAME), };
-				stringArrayType = getReferenceType(vm, String[].class,
-						ArrayType.class);
-				objectArrayType = getReferenceType(vm, Object[].class,
-						ArrayType.class);
+				repoClassRef = getClassType(gcStopper, vm, REPO_CLASS);
+				stackFrameClassRef = getClassType(gcStopper, vm,
+						STACK_FRAME_CLASS);
+				idField = getFieldByName(repoClassRef, ID_FIELD_NAME);
+				localsValuesField = getFieldByName(repoClassRef,
+						LOCALS_VALUE_FIELD_NAME);
+				final Location location = getLocationOfClassMethod(gcStopper,
+						vm, REPO_CLASS, "fetchInfo");
 				breakpointRequest = setBreakpoint(vm, location);
 				breakpointRequest.setEnabled(true);
 			} catch (Throwable t) {
@@ -698,10 +726,10 @@ final class JDWPAgentClient {
 				}
 			} finally {
 				dispose();
-				synchronized (this) {
+				synchronized (lock) {
 					assert null != JDWPAgentClient.this.runningThread;
 					JDWPAgentClient.this.runningThread = null;
-					notifyAll();
+					lock.notifyAll();
 				}
 				if (interrupted) {
 					Thread.currentThread().interrupt();

@@ -4,7 +4,6 @@
 
 package suneido.debug;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -24,7 +23,7 @@ public abstract class Callstack implements Iterable<Frame> {
 	// INTERNALS
 	//
 
-	protected abstract Frame[] makeFrames();
+	protected abstract List<Frame> makeFrames();
 
 	//
 	// ACCESSORS
@@ -32,7 +31,7 @@ public abstract class Callstack implements Iterable<Frame> {
 
 	public synchronized List<Frame> frames() {
 		if (null == frames) {
-			frames = Collections.unmodifiableList(Arrays.asList(makeFrames()));
+			frames = Collections.unmodifiableList(makeFrames());
 		}
 		return frames;
 	}

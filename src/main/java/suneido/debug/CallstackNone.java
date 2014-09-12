@@ -4,6 +4,9 @@
 
 package suneido.debug;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * <p>
  * Call stack with the data required for "none" debugging. Corresponds to
@@ -68,12 +71,12 @@ public class CallstackNone extends Callstack {
 	//
 
 	@Override
-	protected Frame[] makeFrames() {
+	protected List<Frame> makeFrames() {
 		final StackTraceElement[] stackTrace = throwable.getStackTrace();
 		final Frame[] frames = new Frame[stackTrace.length];
 		for (int k = 0; k < stackTrace.length; ++k) {
 			frames[k] = new StackTraceElementWrapper(stackTrace[k]);
 		}
-		return frames;
+		return Arrays.asList(frames);
 	}
 }

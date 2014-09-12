@@ -5,6 +5,8 @@
 package suneido.debug;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import suneido.SuException;
 import suneido.SuInternalError;
@@ -12,6 +14,7 @@ import suneido.compiler.ClassGen;
 import suneido.runtime.Args;
 import suneido.runtime.ArgsArraySpec;
 import suneido.runtime.FunctionSpec;
+import suneido.runtime.SuBlock;
 import suneido.runtime.SuCallable;
 
 /**
@@ -34,8 +37,8 @@ public final class CallstackAll extends Callstack {
 	// CONSTRUCTORS
 	//
 
-	CallstackAll(Throwable throwable) {
-		this.stackInfo = new StackInfo();
+	CallstackAll(StackInfo stackInfo, Throwable throwable) {
+		this.stackInfo = stackInfo.fetchInfo();
 		this.throwable = throwable;
 	}
 
@@ -125,6 +128,12 @@ public final class CallstackAll extends Callstack {
 		SuCallable javaThis = null;
 		FunctionSpec fs = null;
 		Object[] argsArray = null;
+		System.out
+				.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+		System.out.println(Arrays.toString(names));
+		System.out.println(Arrays.toString(values));
+		System.out
+				.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
 		// Pick out the SuCallable whose method was called (Java's "this"), the
 		// "self" argument to the method (Suneido's "this"), and the args array,
 		// if any.
@@ -133,6 +142,12 @@ public final class CallstackAll extends Callstack {
 			if ("this".equals(names[localIndex])
 					&& values[localIndex] instanceof SuCallable) {
 				javaThis = (SuCallable) values[localIndex];
+				// Don't display locals for closures because a closure is really
+				// just a wrapper around the "true" block, which is already in
+				// the stack frame above.
+				if (javaThis instanceof SuBlock) {
+					return null;
+				}
 				fs = javaThis.getParams();
 			} else if (!isCall
 					&& (ClassGen.SELF_VAR_NAME.equals(names[localIndex]) || "self"
@@ -146,8 +161,14 @@ public final class CallstackAll extends Callstack {
 				break;
 			}
 		}
-		if (null == javaThis || null == fs) {
+		if (null == javaThis) {
+			System.err.println("javaThis => " + javaThis);
 			throw new SuInternalError("No Java \"this\" local variable found",
+					throwable);
+		} else if (null == fs) {
+			System.err.println("javaThis.class => " + javaThis.getClass());
+			throw new SuInternalError(
+					"No FunctionSpec found for Java \"this\": " + javaThis,
 					throwable);
 		}
 		final int NPARAMS = fs.getParamCount();
@@ -195,10 +216,11 @@ public final class CallstackAll extends Callstack {
 	//
 
 	@Override
-	protected Frame[] makeFrames() {
+	protected List<Frame> makeFrames() {
 		checkStackInfo();
 		int nFrames = 0;
-		// Count the number of frames
+		// Count the number of frames. This number is approximate because we
+		// may still need to drop certain frames (e.g. closures).
 		for (Object o : stackInfo.localsValues) {
 			if (null != o) {
 				++nFrames;
@@ -215,12 +237,11 @@ public final class CallstackAll extends Callstack {
 			--nFrames;
 			srcFrame = findFirstFrame(srcFrame + 1);
 		}
-		// Create an array to hold the frames
-		Frame[] frames = new Frame[nFrames];
+		// Create a list to hold the frames
+		List<Frame> frames = new ArrayList<>(nFrames);
 		// Create temporary storage for the local variables
 		ArrayList<LocalVariable> locals = new ArrayList<>(8);
 		// Add the frames
-		int dstFrame = 0;
 		for (; srcFrame < stackInfo.localsValues.length; ++srcFrame) {
 			if (null == stackInfo.localsValues[srcFrame]) {
 				continue;
@@ -231,10 +252,12 @@ public final class CallstackAll extends Callstack {
 					stackInfo.isCall[srcFrame],
 					stackInfo.localsNames[srcFrame],
 					stackInfo.localsValues[srcFrame], locals);
-			// Add the frame
-			frames[dstFrame++] = new FrameAll(javaThis,
-					stackInfo.lineNumbers[srcFrame],
-					locals.toArray(new LocalVariable[locals.size()]));
+			if (null != javaThis) {
+				// Add the frame
+				frames.add(new FrameAll(javaThis,
+						stackInfo.lineNumbers[srcFrame], locals
+								.toArray(new LocalVariable[locals.size()])));
+			}
 		}
 		return frames;
 	}
