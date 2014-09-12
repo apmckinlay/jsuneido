@@ -21,7 +21,7 @@ public class SuCallable extends SuValue {
 
 	/**
 	 * Called by the compiler to complete construction of a newly compiled
-	 * SuCallable (<i>eg</i> a class method).
+	 * SuCallable.
 	 *
 	 * @since 20140829
 	 * @param myClass Callable's class if applicable
