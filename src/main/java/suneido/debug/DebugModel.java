@@ -44,6 +44,19 @@ public enum DebugModel {
 	}
 
 	//
+	// ACCESSORS
+	//
+
+	/**
+	 * Returns the command line option string corresponding to this debug model.
+	 *
+	 * @return Command line option string for {@code this}
+	 */
+	public String getCommandLineOption() {
+		return commandLineOption;
+	}
+
+	//
 	// STATICS
 	//
 

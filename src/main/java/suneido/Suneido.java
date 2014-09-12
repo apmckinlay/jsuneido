@@ -15,7 +15,6 @@ import java.util.concurrent.TimeUnit;
 import suneido.compiler.Compiler;
 import suneido.database.server.DbmsServer;
 import suneido.debug.DebugManager;
-import suneido.debug.DebugModel;
 import suneido.intfc.database.Database;
 import suneido.intfc.database.DatabasePackage;
 import suneido.jsdi.JSDI;
@@ -42,7 +41,7 @@ public class Suneido {
 
 	public static void main(String[] args) {
 		ClassLoader.getSystemClassLoader().setPackageAssertionStatus("suneido", true);
-		cmdlineoptions = CommandLineOptions.parse(DebugModel.ALL, args);
+		cmdlineoptions = CommandLineOptions.parse(args);
 		if (cmdlineoptions.unattended) {
 			try {
 				System.setOut(new PrintStream(new FileOutputStream("output.log", true)));
