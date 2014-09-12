@@ -308,20 +308,6 @@ final class JDWPAgentClient {
 		Errlog.errlog(errorMessage(detail, cause), cause);
 	}
 
-	private void todo_deleteme_dumpFrames(List<StackFrame> frames) /*
-																	 * TODO:
-																	 * delete
-																	 * this
-																	 * function
-																	 */{
-		System.out.println("+++++++++++++++++++++++++++++++"); // TODO: delete
-																// function
-		frames.forEach((StackFrame s) -> System.out.println(s));// TODO: delete
-																// function
-		System.out.println("+++++++++++++++++++++++++++++++");// TODO: delete
-																// function
-	}
-
 	private StackInfo convertRepoIndirectToDirect(ObjectReference repoIndirect) {
 		try {
 			IntegerValue idValue = (IntegerValue) repoIndirect
@@ -329,9 +315,6 @@ final class JDWPAgentClient {
 			int id = idValue.intValue();
 			StackInfo repoDirect = null;
 			synchronized (lock) {
-System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-System.out.println(actualClient.repoMap);
-System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 				repoDirect = actualClient.repoMap.get(id);
 			}
 			if (null == repoDirect) {
@@ -363,7 +346,6 @@ System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 		// Get the "this" object
 		ObjectReference repoIndirect = frames.get(0).thisObject();
 		StackInfo repoDirect = convertRepoIndirectToDirect(repoIndirect);
-		todo_deleteme_dumpFrames(frames);
 		handleStackTrace(repoDirect, repoIndirect, suspendedThread, frames);
 	}
 
@@ -466,9 +448,7 @@ System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 		nameScratch.clear();
 		valueScratch.clear();
 		ObjectReference thisRef = frame.thisObject();
-System.out.println("***************************************************************");
 		if (null != thisRef) {
-System.out.println("this    ^^^^^^^");
 			nameScratch.add("this");
 			valueScratch.add(thisRef);
 		}
@@ -477,12 +457,10 @@ System.out.println("this    ^^^^^^^");
 			Value value = frame.getValue(var);
 			assert !"this".equals(var.name()) : "JDI doesn't include \"this\" in the local variables";
 			if (value instanceof ObjectReference) {
-System.out.println(var.name());
 				nameScratch.add(var.name());
 				valueScratch.add(value);
 			}
 		}
-System.out.println("***************************************************************");
 		// Store the local variable information
 		repoDirect.localsNames[frameIndex] = nameScratch
 				.toArray(new String[nameScratch.size()]);

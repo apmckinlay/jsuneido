@@ -5,7 +5,6 @@
 package suneido.debug;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import suneido.SuException;
@@ -128,12 +127,6 @@ public final class CallstackAll extends Callstack {
 		SuCallable javaThis = null;
 		FunctionSpec fs = null;
 		Object[] argsArray = null;
-		System.out
-				.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-		System.out.println(Arrays.toString(names));
-		System.out.println(Arrays.toString(values));
-		System.out
-				.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
 		// Pick out the SuCallable whose method was called (Java's "this"), the
 		// "self" argument to the method (Suneido's "this"), and the args array,
 		// if any.
@@ -162,11 +155,9 @@ public final class CallstackAll extends Callstack {
 			}
 		}
 		if (null == javaThis) {
-			System.err.println("javaThis => " + javaThis);
 			throw new SuInternalError("No Java \"this\" local variable found",
 					throwable);
 		} else if (null == fs) {
-			System.err.println("javaThis.class => " + javaThis.getClass());
 			throw new SuInternalError(
 					"No FunctionSpec found for Java \"this\": " + javaThis,
 					throwable);
