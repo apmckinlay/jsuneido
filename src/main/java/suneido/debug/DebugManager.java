@@ -37,6 +37,7 @@ public final class DebugManager {
 	private JDWPAgentClient jdwpAgentClient;
 	private int jsdebugAgentState;
 	private int jdwpAgentState;
+	private int nextStackInfoId;
 
 	//
 	// CONSTRUCTORS
@@ -47,6 +48,7 @@ public final class DebugManager {
 		jdwpAgentClient = null;
 		jsdebugAgentState = AGENT_NOT_CHECKED;
 		jdwpAgentState = AGENT_NOT_CHECKED;
+		nextStackInfoId = 0;
 	}
 
 	//
@@ -73,14 +75,14 @@ public final class DebugManager {
 		}
 	}
 
-	private static boolean testIfStackInfoAvailable() {
-		return (new StackInfo()).isInitialized();
+	private boolean testIfStackInfoAvailable() {
+		return (newStackInfo()).fetchInfo().isInitialized();
 	}
 
 	private boolean testIf_jsdebugAgent_Available() {
 		if (AGENT_NOT_CHECKED == jsdebugAgentState) {
 			jsdebugAgentState = testIfStackInfoAvailable() ? AGENT_AVAILABLE
-			        : AGENT_NOT_AVAILABLE;
+					: AGENT_NOT_AVAILABLE;
 		}
 		return AGENT_AVAILABLE == jsdebugAgentState;
 	}
@@ -114,6 +116,14 @@ public final class DebugManager {
 		}
 	}
 
+	private synchronized StackInfo newStackInfo() {
+		final StackInfo stackInfo = new StackInfo(nextStackInfoId++);
+		if (null != jdwpAgentClient) {
+			jdwpAgentClient.addRepo(stackInfo);
+		}
+		return stackInfo;
+	}
+
 	//
 	// ACCESSORS
 	//
@@ -127,7 +137,6 @@ public final class DebugManager {
 	public DebugModel getDebugModel() {
 		return actualModel;
 	}
-
 
 	/**
 	 * Changes the debug model.
@@ -162,10 +171,11 @@ public final class DebugManager {
 	 * @return Call stack for the execution stack of the current thread
 	 * @see #makeCallstackFromThrowable(Throwable)
 	 */
-	public Callstack makeCallstackForCurrentThread(Throwable throwable) {
+	public synchronized Callstack makeCallstackForCurrentThread(
+			Throwable throwable) {
 		switch (actualModel) {
 		case ALL:
-			return new CallstackAll(throwable);
+			return new CallstackAll(newStackInfo(), throwable);
 		case STACK:
 			return new CallstackStack(throwable);
 		case NONE:
@@ -188,7 +198,8 @@ public final class DebugManager {
 	public Callstack makeCallstackFromThrowable(Throwable throwable) {
 		switch (actualModel) {
 		case ALL:
-			throw new SuInternalError("can't make 'all' Callstack from throwable");
+			throw new SuInternalError(
+					"can't make 'all' Callstack from throwable");
 		case STACK:
 			return new CallstackStack(throwable);
 		case NONE:

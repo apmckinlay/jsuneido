@@ -7,11 +7,12 @@ package suneido.debug;
 
 /**
  * <p>
- * Container for local variable information.
+ * Repository for stack trace information.
  * </p>
  *
  * <p>
- * If full debugging support is enabled, this class receives local variables for
+ * If full debugging support is enabled, calling {@link #fetchInfo()} causes
+ * this class to receive local variables, line numbers, and other state for
  * relevant stack frames from the JVMTI agent, which is either a
  * {@link suneido.boot.Platform platform}-appropriate native {@code jsdebug}
  * library, or the {@code jdwp} agent communicating with a JDI client being run
@@ -20,8 +21,7 @@ package suneido.debug;
  *
  * <p>
  * If full debugging support is not enabled, this class never contains any
- * meaningful data. Any accessor function will return the equivalent of an empty
- * collection.
+ * meaningful data.
  * </p>
  *
  * @author Victor Schappert
@@ -33,6 +33,7 @@ final class StackInfo {
 	// DATA
 	//
 
+	public final int id;
 	public String[][] localsNames;
 	public Object[][] localsValues;
 	public boolean[] isCall; // false -> eval, true -> call (no self)
@@ -43,9 +44,13 @@ final class StackInfo {
 	// CONSTRUCTORS
 	//
 
-	public StackInfo() {
-		isInitialized = false;
-		fetchInfo();
+	StackInfo() {
+		this(-1);
+	}
+
+	StackInfo(int id) {
+		this.id = id;
+		this.isInitialized = false;
 	}
 
 	//
@@ -61,7 +66,8 @@ final class StackInfo {
 	// INTERNALS
 	//
 
-	private void fetchInfo() {
+	public StackInfo fetchInfo() {
 		// Placeholder for breakpoint
+		return this;
 	}
 }
