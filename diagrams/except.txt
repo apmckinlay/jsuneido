@@ -13,9 +13,37 @@ TO DO BEFORE DEPLOY
 * Re-enable RethrowCallstackTest() in jSuneido (with BuiltDate() guard)
 * Rename SuBlock* -> SuClosure*.
 * Try to prune the debug information in the JAR down to just -g:vars
-* Set MSVC to build -O1 (smallest code)
 * Make sure the Type() tests test Type(dll ...) -> "Dll" and same for
   Structure, Callback, Buffer... [should not be garbage or aStruct etc.]
+* Clean up build outputs and targets
+      [ ] jsuneido_jar.xml -> build.xml
+      [ ] NEW jsuneido_jar.xml just calls Ant on build.xml
+      [ ] raw JARs -> target/raw/
+      [ ] output JARs -> target/
+              + jsuneido.jar
+              + jsuneido-arch-win32-x86.jar
+              + jsuneido-arch-win32-amd64.jar
+              + jsuneido-arch-linux-amd64.jar
+              + jsuneido-all.jar
+              + jsuneido-all-debug.jar
+     [ ] build.xml should be:
+              + build
+              + clean
+              + rebuild
+              + [INTERNAL] : compile
+              + [INTERNAL] : when_built
+              + target-jar-jsuneido
+              + [INTERNAL] : target-jsuneido-rawjar
+              + target-jar-jsuneido-arch-win32-amd64 etc. 
+
+========
+20140911
+========
+-- Remaining TODO list:
+       [ ] Callstack debugging
+       [ ] Source loading
+       [ ] Tests
+       
 
 ========
 20140910
