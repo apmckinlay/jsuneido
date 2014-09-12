@@ -29,7 +29,7 @@ import com.google.common.primitives.UnsignedLongs;
  * <p>
  * Immutable as far as public methods, but mutable instances used internally.
  */
-public class Dnum implements Comparable<Dnum> {
+public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 	private long coef;
 	private final byte sign;
 	private byte exp;
@@ -159,6 +159,28 @@ public class Dnum implements Comparable<Dnum> {
 
 	public Dnum abs() {
 		return sign == MINUS ? new Dnum(PLUS, coef, exp) : this;
+	}
+
+	public int signum() {
+		return sign;
+	}
+
+	public int exp() {
+		return exp;
+	}
+
+	public long coef() {
+		return coef;
+	}
+
+	/** returns a new Dnum without trailing zero digits */
+	public Dnum stripTrailingZeros() {
+		Dnum x = copy();
+		while (Long.remainderUnsigned(x.coef, 10) == 0) {
+			x.coef = Long.divideUnsigned(x.coef, 10);
+			x.exp--;
+		}
+		return x;
 	}
 
 	// add and subtract --------------------------------------------------------
@@ -340,13 +362,13 @@ public class Dnum implements Comparable<Dnum> {
 		// 32 bits > 9 decimal digits
 		// so we can split x & y into two pieces
 		// and multiply separately guaranteed not to overflow
-		Split xs = split(x);
-		Split ys = split(y);
+		long[] xs = split(x);
+		long[] ys = split(y);
 		int exp = x.exp + y.exp;
-		Dnum r1 = result(xs.lo * ys.lo, sign, exp);
-		Dnum r2 = result(xs.lo * ys.hi, sign, exp + 9);
-		Dnum r3 = result(xs.hi * ys.lo, sign, exp + 9);
-		Dnum r4 = result(xs.hi * ys.hi, sign, exp + 18);
+		Dnum r1 = result(xs[0] * ys[0], sign, exp);
+		Dnum r2 = result(xs[0] * ys[1], sign, exp + 9);
+		Dnum r3 = result(xs[1] * ys[0], sign, exp + 9);
+		Dnum r4 = result(xs[1] * ys[1], sign, exp + 18);
 		return add(r1, add(r2, add(r3, r4)));
 	}
 
@@ -363,7 +385,7 @@ public class Dnum implements Comparable<Dnum> {
 		return x;
 	}
 
-	private static Split split(Dnum x) {
+	private static long[] split(Dnum x) {
 		final long HI5 = 0x1fL << 59;
 		if ((x.coef & HI5) != 0) {
 			x = x.copy();
@@ -374,18 +396,9 @@ public class Dnum implements Comparable<Dnum> {
 			if (roundup[0])
 				x.coef++;
 		}
-		final long NINE = 1000000000L;
-		return new Split(Long.divideUnsigned(x.coef, NINE),
-				Long.remainderUnsigned(x.coef, NINE));
-	}
-
-	private static class Split {
-		final long hi;
-		final long lo;
-		Split(long hi, long lo) {
-			this.hi = hi;
-			this.lo = lo;
-		}
+		final long oneE9 = 1000000000L;
+		return new long[] { Long.remainderUnsigned(x.coef, oneE9),
+				Long.divideUnsigned(x.coef, oneE9) };
 	}
 
 	// divide ------------------------------------------------------------------
