@@ -7,7 +7,7 @@
 -libraryjars lib/lucene-core-4.8.1.jar
 -libraryjars lib/lucene-analyzers-common-4.8.1.jar
 -libraryjars lib/lucene-queryparser-4.8.1.jar
--libraryjars  <java.home>/lib/rt.jar
+-libraryjars <java.home>/lib/rt.jar
 
 -dontoptimize
 -dontobfuscate
@@ -27,3 +27,19 @@
 -dontwarn com.google.common.util.concurrent.ServiceManager
 
 -keepattributes *Annotation*
+
+################################################################################
+#                                     JDI
+################################################################################
+
+# This section is only needed for JDI, which is used by the backup debug system.
+
+-injars lib/tools.jar (META-INF/services/*.Connector,META-INF/services/*.TransportService,META-INF/services/*.AttachProvider,**/jdi/**.class,**/attach/**.class,**/jvmstat/monitor/**.class)
+-dontnote com.sun.tools.jdi.SharedMemoryTransportService
+-keep,includedescriptorclasses public class **.jdi.** {
+    public protected *;
+}
+-keep,includedescriptorclasses class com.sun.tools.jdi.JDWP* {
+    *;
+}
+
