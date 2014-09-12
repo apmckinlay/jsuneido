@@ -24,16 +24,8 @@ import suneido.SuException;
  * @since 20130624
  */
 @DllInterface
+@SuppressWarnings("serial")
 public class JSDIException extends SuException {
-
-	//
-	// SERIALIZATION
-	//
-
-	/**
-	 * Required to silence Java compiler warning.
-	 */
-	private static final long serialVersionUID = 7476235241017377212L;
 
 	//
 	// CONSTRUCTORS

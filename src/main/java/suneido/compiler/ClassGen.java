@@ -59,6 +59,7 @@ import suneido.SuException;
 import suneido.SuInternalError;
 import suneido.runtime.Args;
 import suneido.runtime.ArgsArraySpec;
+import suneido.runtime.BlockFlowException;
 import suneido.runtime.BlockReturnException;
 import suneido.runtime.BlockSpec;
 import suneido.runtime.ContextLayered;
@@ -95,6 +96,8 @@ public class ClassGen {
 	private static final String RECORD_BUILTIN_CLASS_INTERNAL_NAME = Type.getInternalName(RecordClass.class);
 	private static final String ARGS_SPECIAL_INTERNAL_NAME = Type.getInternalName(Args.Special.class);
 	private static final String ARGS_SPECIAL_DESCRIPTOR = Type.getDescriptor(Args.Special.class);
+	private static final String BLOCK_FLOW_EXCEPTION_INTERNAL_NAME = Type.getInternalName(BlockFlowException.class);
+	private static final String BLOCK_FLOW_EXCEPTION_DESCRIPTOR = Type.getDescriptor(BlockFlowException.class);
 	private static final int THIS = 0;
 	private int SELF = -1;
 	private int ARGS = -2;
@@ -589,8 +592,8 @@ public class ClassGen {
 	}
 
 	void blockThrow(String which) {
-		mv.visitFieldInsn(GETSTATIC, OPS_INTERNAL_NAME,
-				which, "Lsuneido/SuException;");
+		mv.visitFieldInsn(GETSTATIC, BLOCK_FLOW_EXCEPTION_INTERNAL_NAME,
+				which, BLOCK_FLOW_EXCEPTION_DESCRIPTOR);
 		mv.visitInsn(ATHROW);
 	}
 

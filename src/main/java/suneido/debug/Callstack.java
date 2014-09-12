@@ -17,6 +17,10 @@ import java.util.List;
  */
 public abstract class Callstack implements Iterable<Frame> {
 
+	//
+	// DATA
+	//
+
 	private List<Frame> frames = null;
 
 	//
@@ -24,6 +28,22 @@ public abstract class Callstack implements Iterable<Frame> {
 	//
 
 	protected abstract List<Frame> makeFrames();
+
+	//
+	// CONSTANTS
+	//
+
+	/**
+	 * An empty callstack for use by {@CallstackProvider} instances whose stack
+	 * trace is always empty. At the moment this is used to implement the
+	 * Suneido {@code "block:continue"} and {@code "block:break"} exceptions.
+	 */
+	public static final Callstack EMPTY = new Callstack() {
+		@Override
+		protected List<Frame> makeFrames() {
+			return Collections.emptyList();
+		}
+	};
 
 	//
 	// ACCESSORS
