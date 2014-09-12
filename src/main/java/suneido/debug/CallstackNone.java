@@ -24,19 +24,17 @@ import java.util.List;
 public class CallstackNone extends Callstack {
 
 	//
-	// DATA
+	// CONSTANTS
 	//
 
-	protected final Throwable throwable;
-
-	protected static LocalVariable[] EMPTY_LOCAL_ARRAY = new LocalVariable[0];
+	static final LocalVariable[] EMPTY_LOCAL_ARRAY = new LocalVariable[0];
 
 	//
 	// CONSTRUCTORS
 	//
 
 	CallstackNone(Throwable throwable) {
-		this.throwable = throwable;
+		super(throwable);
 	}
 
 	//
@@ -47,7 +45,7 @@ public class CallstackNone extends Callstack {
 		private final StackTraceElement ste;
 
 		StackTraceElementWrapper(StackTraceElement ste) {
-			super(EMPTY_LOCAL_ARRAY);
+			super(CallstackNone.EMPTY_LOCAL_ARRAY);
 			this.ste = ste;
 		}
 

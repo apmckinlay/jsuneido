@@ -30,15 +30,14 @@ public final class CallstackAll extends Callstack {
 	//
 
 	private final StackInfo stackInfo;
-	private final Throwable throwable;
 
 	//
 	// CONSTRUCTORS
 	//
 
 	CallstackAll(StackInfo stackInfo, Throwable throwable) {
+		super(throwable);
 		this.stackInfo = stackInfo.fetchInfo();
-		this.throwable = throwable;
 	}
 
 	//

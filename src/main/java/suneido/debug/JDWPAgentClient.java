@@ -349,68 +349,6 @@ final class JDWPAgentClient {
 		handleStackTrace(repoDirect, repoIndirect, suspendedThread, frames);
 	}
 
-	private static enum MethodName {
-		// ---------------------------------------------------------------------
-		// WARNING: This code MUST be kept in sync with the equivalent code in
-		// the "jsdebug" shared object/dynamic link library as well as
-		// the call stack decoding code in CallstackAll.java.
-		// ---------------------------------------------------------------------
-		UNKNOWN(0x000), EVAL(0x100), EVAL0(EVAL.value | 10), EVAL1(
-				EVAL.value | 11), EVAL2(EVAL.value | 12), EVAL3(EVAL.value | 13), EVAL4(
-				EVAL.value | 14), CALL(0x200), CALL0(CALL.value | 10), CALL1(
-				CALL.value | 11), CALL2(CALL.value | 12), CALL3(CALL.value | 13), CALL4(
-				CALL.value | 14);
-		public final int value;
-
-		private MethodName(int value) {
-			this.value = value;
-		}
-
-		public boolean isCall() {
-			return CALL.value == (CALL.value & this.value);
-		}
-
-		public static MethodName getMethodName(Method method) {
-			final String name = method.name();
-			if (name.startsWith("eval")) {
-				if (4 == name.length()) {
-					return EVAL;
-				} else if (5 == name.length()) {
-					switch (name.charAt(4)) {
-					case '0':
-						return EVAL0;
-					case '1':
-						return EVAL1;
-					case '2':
-						return EVAL2;
-					case '3':
-						return EVAL3;
-					case '4':
-						return EVAL4;
-					}
-				}
-			} else if (name.startsWith("call")) {
-				if (4 == name.length()) {
-					return CALL;
-				} else if (5 == name.length()) {
-					switch (name.charAt(4)) {
-					case '0':
-						return CALL0;
-					case '1':
-						return CALL1;
-					case '2':
-						return CALL2;
-					case '3':
-						return CALL3;
-					case '4':
-						return CALL4;
-					}
-				}
-			} /* if (name.startsWith(...)) */
-			return UNKNOWN;
-		} /* static MethodName getMethodName(...) */
-	} /* enum MethodName */
-
 	private static boolean isAssignableFrom(ReferenceType subClass,
 			ClassType superClass) {
 		return subClass instanceof ClassType ? isAssignableFrom(
@@ -534,7 +472,7 @@ final class JDWPAgentClient {
 						actualClient.stackFrameClassRef))
 					continue;
 				// Get the method name
-				methodNameCur = MethodName.getMethodName(method);
+				methodNameCur = MethodName.getMethodName(method.name());
 				if (MethodName.UNKNOWN == methodNameCur)
 					continue;
 				// Get the "this" instance so we can determine if this stack frame

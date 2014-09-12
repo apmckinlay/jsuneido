@@ -84,7 +84,7 @@ import com.google.common.collect.Lists;
  */
 public class ClassGen {
 	private static final String COMPILED_CODE_PACKAGE_SLASHES = "suneido/code/";
-	private static final String COMPILED_CODE_PACKAGE_DOTS = COMPILED_CODE_PACKAGE_SLASHES.replace('/', '.');
+	public static final String COMPILED_CODE_PACKAGE_DOTS = COMPILED_CODE_PACKAGE_SLASHES.replace('/', '.');
 	private static final String CLASS_GEN_INTERNAL_NAME = Type.getInternalName(ClassGen.class);
 	private static final String OPS_INTERNAL_NAME = Type.getInternalName(Ops.class);
 	private static final String DYNAMIC_INTERNAL_NAME = Type.getInternalName(Dynamic.class);
