@@ -21,6 +21,7 @@
 		<pathelement location="${lib.dir}/${lib.lucene-core}"/>
 		<pathelement location="${lib.dir}/${lib.lucene-analyzers-common}"/>
 		<pathelement location="${lib.dir}/${lib.lucene-queryparser}"/>
+		<pathelement location="${lib.dir}/tools.jar"/> <!-- com.sun.jdi -->
 		<pathelement location="${lib.dir}/trove-3.0.3.jar"/>
 	</path>
 
