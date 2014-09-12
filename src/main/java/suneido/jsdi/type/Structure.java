@@ -5,9 +5,6 @@
 package suneido.jsdi.type;
 
 import static suneido.SuInternalError.unhandledEnum;
-
-import java.util.Map;
-
 import suneido.SuContainer;
 import suneido.SuInternalError;
 import suneido.SuValue;
@@ -24,7 +21,6 @@ import suneido.jsdi.marshall.ObjectConversions;
 import suneido.runtime.BuiltinMethods;
 import suneido.runtime.Ops;
 import suneido.runtime.Params;
-import suneido.runtime.SuCallable;
 
 /**
  * <p>
