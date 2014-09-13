@@ -4,7 +4,13 @@
 
 package suneido.runtime;
 
-public abstract class SuFunction1 extends SuFunction {
+/**
+ * A "call"-based callable (standalone function or block) taking one parameter.
+ *
+ * @author Andrew McKinlay
+ * @see SuEvalBase1
+ */
+public abstract class SuCallBase1 extends SuCallBase {
 
 	{ params = FunctionSpec.VALUE; }
 

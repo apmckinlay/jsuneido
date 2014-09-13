@@ -44,7 +44,7 @@ public abstract class BuiltinClass extends BuiltinMethods {
 		return super.lookup(method);
 	}
 
-	private final SuCallable newInstance = new SuMethod() {
+	private final SuCallable newInstance = new SuEvalBase() {
 		@Override
 		public Object eval(Object self, Object... args) {
 			return newInstance(args);

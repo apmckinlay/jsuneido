@@ -90,8 +90,9 @@ public class AstCompile {
 		case CLASS:
 			return foldClass(name, ast);
 		case METHOD:
+			return foldFunction(name, ast, CallableType.METHOD);
 		case FUNCTION:
-			return foldFunction(name, ast);
+			return foldFunction(name, ast, CallableType.FUNCTION);
 		case STRUCT:
 			return foldStruct(name, ast);
 		case DLL:
@@ -189,39 +190,42 @@ public class AstCompile {
 		return name;
 	}
 
-	private SuCallable foldFunction(String name, AstNode ast) {
+	private SuCallable foldFunction(String name, AstNode ast,
+			CallableType callableType) {
 		int prevFnId = fnId;
 		fnId = nextFnId.incrementAndGet();
 		boolean prevInMethod = inMethod;
-		inMethod = (ast.token == Token.METHOD);
-		SuCallable fn = function(name, ast);
+		inMethod = CallableType.METHOD == callableType;
+		SuCallable fn = function(name, ast, callableType);
 		inMethod = prevInMethod;
 		fnId = prevFnId;
 		return fn;
 	}
 
 	/** used for functions, methods, and blocks that don't need to be closures */
-	private SuCallable function(String name, AstNode ast) {
-		boolean method = ast.token == Token.METHOD || AstUsesThis.check(ast);
-		nameBegin(name, "$f");
-		SuCallable fn = javaClass(ast, method ? BaseClassSet.METHOD
-				: BaseClassSet.FUNCTION, method ? "eval" : "call", null);
+	private SuCallable function(String name, AstNode ast,
+			CallableType callableType) {
+		boolean isEval = CallableType.METHOD == callableType
+				|| AstUsesThis.check(ast);
+		nameBegin(name, callableType.compilerNameSuffix());
+		SuCallable fn = javaClass(ast, isEval ? BaseClassSet.EVALBASE
+				: BaseClassSet.CALLBASE, callableType, null);
 		nameEnd();
 		return fn;
 	}
 
 	private void block(ClassGen cg, AstNode ast) {
 		if (ast.third() == null) {
-			// Third will be null where a previous call to AstSharesVares.check()
+			// Third will be null where a previous call to AstSharesVars.check()
 			// by this.closure(...) did detect a closure.
-			SuCallable f = function(null, ast);
+			SuCallable f = function(null, ast, CallableType.BLOCK);
 			cg.constant(f);
 			cg.addBlockReturnCatcher();
-		} else /* ast.third() == Token.CLOSURE */{
+		} else {
+			assert Token.CLOSURE == ast.third().token;
 			// Third will be Token.CLOSURE where a previous call to
 			// AstSharesVars.check() by this.closure(...) found a closure and
 			// replaced the null that was originally inserted by the parser.
-			assert ast.third().token == Token.CLOSURE;
 			int iBlockDef = cg.addConstant(closure(cg, ast));
 			List<AstNode> params = ast.first().children;
 			final int nParams = params.size();
@@ -230,15 +234,16 @@ public class AstCompile {
 				useArgsArray = true;
 			else if (nParams > 0 && params.get(0).value.startsWith("@"))
 				useArgsArray = true;
-			cg.block(iBlockDef, nParams, useArgsArray);
+			cg.wrapBlockWithClosure(iBlockDef, nParams, useArgsArray);
 		}
 	}
 
 	private SuCallable closure(ClassGen cg, AstNode ast) {
 		// needed to check if child blocks share with this block
-		AstSharesVars.check(ast);
-		nameBegin(null, "$b");
-		SuCallable fn = javaClass(ast, BaseClassSet.CALLABLE, "eval", cg.locals);
+		AstSharesVars.check(ast); // Will modify "ast" if it finds a sub-closure 
+		nameBegin(null, CallableType.WRAPPED_BLOCK.compilerNameSuffix());
+		SuCallable fn = javaClass(ast, BaseClassSet.EVALBASE,
+				CallableType.WRAPPED_BLOCK, cg.locals);
 		nameEnd();
 		return fn;
 	}
@@ -326,7 +331,7 @@ public class AstCompile {
 
 	@DllInterface
 	private Object foldDll(String name, AstNode ast) {
-		nameBegin(name, "$d");
+		nameBegin(name, CallableType.DLL.compilerNameSuffix());
 		TypeList params = typeList(Token.DLL, ast.fourth().children);
 		Type returnType = null;
 		String returnTypeName = ast.third().value;
@@ -364,10 +369,10 @@ public class AstCompile {
 	 *            The outer locals for a block. Not used for functions.
 	 */
 	private SuCallable javaClass(AstNode ast, BaseClassSet baseClassSet,
-			String method, List<String> locals) {
+			CallableType callableType, List<String> locals) {
 		List<AstNode> params = ast.first().children;
-		ClassGen cg = new ClassGen(context, baseClassSet, curName, method, locals,
-				useArgsArray(ast, baseClassSet, params), ast.token == Token.BLOCK,
+		ClassGen cg = new ClassGen(context, baseClassSet, curName, locals,
+				useArgsArray(ast, callableType, params), callableType,
 				params.size(), fnId, sourceFile, pw);
 
 		for (AstNode param : params)
@@ -394,9 +399,9 @@ public class AstCompile {
 		}
 	}
 
-	private static boolean useArgsArray(AstNode ast,
-			BaseClassSet baseClassSet, List<AstNode> params) {
-		if (BaseClassSet.CALLABLE == baseClassSet) // closure block
+	private static boolean useArgsArray(AstNode ast, CallableType callableType,
+			List<AstNode> params) {
+		if (CallableType.WRAPPED_BLOCK == callableType) // closure block
 			return true;
 		// need to call this regardless to process child blocks
 		boolean shares = AstSharesVars.check(ast);

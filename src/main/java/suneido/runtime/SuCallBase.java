@@ -6,26 +6,27 @@ package suneido.runtime;
 
 /**
  * <p>
- * Standalone functions derive from SuFunction and define {@code eval}.
+ * Base class for standalone functions and blocks derive, as long as they do not
+ * refer to "{@code this}". Callable entities deriving from this class
+ * define {@code call}. 
  * </p>
  *
  * <p>
- * Functions that reference "this" derive from {@link SuMethod} and define
- * {@code eval}.
+ * Functions that reference "{@code this}" derive from {@link SuEvalBase} and
+ * define {@code eval}.
  * </p>
  * 
  * <p>
- * For simple args {@link SuFunction0} ... {@link SuFunction4} are used.
+ * For simple args {@link SuCallBase0} ... {@link SuCallBase4} are used.
  * </p>
+ *
+ * @author Andrew McKinlay, Victor Schappert
  */
-public abstract class SuFunction extends SuCallable {
+public abstract class SuCallBase extends SuCallable {
 
-	@Override
-	public String typeName() {
-		return getClass().getName().startsWith(Builtin.PACKAGE_NAME)
-			? "Builtin"
-			: isBlock ? "Block" : "Function";
-	}
+	//
+	// ANCESTOR CLASS: SuValue
+	//
 
 	@Override
 	public abstract Object call(Object... args);
@@ -34,10 +35,12 @@ public abstract class SuFunction extends SuCallable {
 	public Object eval(Object self, Object... args) {
 		return call(args);
 	}
+
 	@Override
 	public Object eval0(Object self) {
 		return call0();
 	}
+
 	@Override
 	public Object eval1(Object self, Object a) {
 		return call1(a);
@@ -54,5 +57,4 @@ public abstract class SuFunction extends SuCallable {
 	public Object eval4(Object self, Object a, Object b, Object c, Object d) {
 		return call4(a, b, c, d);
 	}
-
 }

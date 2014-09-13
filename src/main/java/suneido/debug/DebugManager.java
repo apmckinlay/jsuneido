@@ -197,11 +197,14 @@ public final class DebugManager {
 	 */
 	public Callstack makeCallstackFromThrowable(Throwable throwable) {
 		switch (actualModel) {
-		case ALL:
-			throw new SuInternalError(
-					"can't make 'all' Callstack from throwable");
 		case STACK:
 			return new CallstackStack(throwable);
+		case ALL:
+			// This is a serious problem: control should never pass to code
+			// which attempts to create a full callstack out of a throwable.
+			Errlog.errlog("can't make 'all' Callstack from throwable", throwable);
+			// Despite the problem, fall through to the "NONE" case so the
+			// Suneido programmer can get some kind of a stack trace.
 		case NONE:
 			return new CallstackNone(throwable);
 		default:

@@ -13,6 +13,7 @@ import suneido.jsdi.type.Type;
 import suneido.jsdi.type.TypeId;
 import suneido.jsdi.type.TypeList;
 import suneido.runtime.BuiltinMethods;
+import suneido.runtime.CallableType;
 import suneido.runtime.FunctionSpec;
 import suneido.runtime.SuCallable;
 
@@ -59,6 +60,7 @@ public abstract class Dll extends SuCallable {
 		//
 		// Initialize SuCallable fields
 		//
+		super.callableType = CallableType.DLL;
 		super.params = funcSpec;
 	}
 
@@ -104,13 +106,10 @@ public abstract class Dll extends SuCallable {
 	@Override
 	public final String display() {
 		final StringBuilder sb = new StringBuilder(128);
-		sb.append(valueName());
-		sb.append(" /* ");
-		if (hasLibrary()) {
-			sb.append(getLibrary()).append(' ');
-		}
-		sb.append("dll ").append(libraryName).append(':').append(funcName)
-				.append(" 0x").append(Long.toHexString(funcPtr)).append(" */");
+		appendName(sb).append(" /* ");
+		appendLibrary(sb).append(callableType.displayString()).append(' ')
+				.append(libraryName).append(':').append(funcName).append(" 0x")
+				.append(Long.toHexString(funcPtr)).append(" */");
 		return sb.toString();
 	}
 
@@ -125,10 +124,7 @@ public abstract class Dll extends SuCallable {
 				.append(libraryName).append(':').append(funcName);
 		sb.append(dllParams.toParamsTypeString());
 		sb.append(" /* ");
-		if (hasLibrary()) {
-			sb.append(getLibrary()).append(' ');
-		}
-		sb.append(getClass().getName()).append(" 0x")
+		appendLibrary(sb).append(getClass().getName()).append(" 0x")
 				.append(Long.toHexString(funcPtr)).append(" */");
 		return sb.toString();
 	}

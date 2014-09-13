@@ -4,9 +4,9 @@
 
 package suneido.runtime;
 
-public class SuBlock1 extends SuBlock {
+public final class SuClosure1 extends SuClosure {
 
-	public SuBlock1(Object block, Object self, Object[] locals) {
+	public SuClosure1(Object block, Object self, Object[] locals) {
 		super(block, self, locals);
 	}
 
