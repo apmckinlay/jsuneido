@@ -11,11 +11,11 @@ import org.objectweb.asm.util.CheckClassAdapter;
 
 import suneido.runtime.BlockReturnException;
 import suneido.runtime.Ops;
-import suneido.runtime.SuFunction;
+import suneido.runtime.SuCallBase;
 
 public class TestAsm implements Opcodes {
 
-	private static class SampleFunction extends SuFunction {
+	private static class SampleFunction extends SuCallBase {
 		private static final Object c;
 
 		static {
@@ -42,7 +42,7 @@ public class TestAsm implements Opcodes {
 
 		cv.visit(V1_6, ACC_PUBLIC + ACC_SUPER,
 				Type.getInternalName(SampleFunction.class), null,
-				Type.getInternalName(SuFunction.class), null);
+				Type.getInternalName(SuCallBase.class), null);
 		mv = cv.visitMethod(ACC_PUBLIC + ACC_VARARGS, "call",
 				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;", null, null);
 		mv.visitCode();

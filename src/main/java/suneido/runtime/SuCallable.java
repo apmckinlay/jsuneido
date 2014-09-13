@@ -5,11 +5,28 @@
 package suneido.runtime;
 
 import suneido.SuValue;
-import suneido.compiler.AstCompile;
 
 /**
- * Base class for {@link SuBlock}, {@link SuFunction},
- * {@link SuMethod}, and {@link SuBoundMethod}
+ * <p>
+ * A Suneido value that is callable by a Suneido language call expression.
+ * </p>
+ *
+ * <p>
+ * Examples:
+ * <ul>
+ * <li>a function : {@link SuCallBase} if it does not refer to {@code this}, or
+ * {@link SuEvalBase} if it does</li>
+ * <li>a method : {@link SuEvalBase} etc.</li>
+ * <li>a plain block : {@link SuCallBase} if it does not refer to {@code this},
+ * or {@link SuEvalBase} if it does</li>
+ * <li>a closure : {@link SuClosure} etc.</li>
+ * <li>a method which has been bound to an instance : {@link SuBoundMethod}</li>
+ * <li>a built-in function : see {@link Builtin}</li>
+ * <li>a built-in method : see {@link Builtin}</li>
+ * </ul>
+ * </p>
+ *
+ * @author Andrew McKinlay, Victor Schappert
  */
 public class SuCallable extends SuValue {
 	private String library;
@@ -17,25 +34,50 @@ public class SuCallable extends SuValue {
 	protected SuClass myClass;
 	protected FunctionSpec params;
 	protected ContextLayered context;
-	protected boolean isBlock = false;
+	protected CallableType callableType;
+
+	/**
+	 * Returns the broad callable category this callable belongs to
+	 *
+	 * @return Callable type
+	 * @see #isBlock()
+	 */
+	public final CallableType callableType() {
+		return callableType;
+	}
+
+	/**
+	 * Indicates whether a callable is a Suneido block
+	 *
+	 * @return True iff "this" is block
+	 * @see #callableType() 
+	 */
+	public final boolean isBlock() {
+		final CallableType c = callableType();
+		return CallableType.BLOCK == c || CallableType.CLOSURE == c;
+	}
 
 	/**
 	 * Called by the compiler to complete construction of a newly compiled
 	 * SuCallable.
 	 *
 	 * @since 20140829
-	 * @param myClass Callable's class if applicable
-	 * @param params Callable's function spec
-	 * @param context Context callable belongs to
-	 * @param isBlock Whether callable is a block
+	 * @param myClass
+	 *            Callable's class if applicable
+	 * @param params
+	 *            Callable's function spec
+	 * @param context
+	 *            Context callable belongs to
+	 * @param callableType
+	 *            What kind of callable this is, <i>eg</i> function
 	 * @return this
 	 */
 	public final SuCallable finishInit(SuClass myClass, FunctionSpec params,
-			ContextLayered context, boolean isBlock) {
+			ContextLayered context, CallableType callableType) {
 		this.myClass = myClass;
 		this.params = params;
 		this.context = context;
-		this.isBlock = isBlock;
+		this.callableType = callableType;
 		return this;
 	}
 
@@ -49,25 +91,17 @@ public class SuCallable extends SuValue {
 		return this;
 	}
 
-	@Override
-	public SuValue lookup(String methodName) {
-		if (methodName == "Params") // method names are interned so ok to use ==
-			return Params;
-		return super.lookup(methodName);
+	public SuClass suClass() {
+		return myClass;
 	}
 
-	private static SuValue Params = new SuMethod0() {
-		@Override
-		public Object eval0(Object self) {
-			FunctionSpec p = ((SuCallable) self).params;
-			return p == null ? "(...)" : p.params();
-		}
-	};
-
-	@Override
-	public boolean isCallable() {
-		return true;
+	public FunctionSpec getParams() {
+		return params;
 	}
+
+	//
+	// INTERNALS
+	//
 
 	/**
 	 * Supply missing argument from dynamic implicit or default
@@ -83,27 +117,23 @@ public class SuCallable extends SuValue {
 		return params.defaultFor(i);
 	}
 
-	public static boolean isBlock(Object x) {
-		return x instanceof SuCallable && ((SuCallable) x).isBlock;
+	protected StringBuilder appendName(StringBuilder sb) {
+		if (null != name && !name.isEmpty()) {
+			sb.append(name).append(' ');
+		}
+		return sb;
 	}
 
-	public SuClass suClass() {
-		return myClass;
+	protected StringBuilder appendLibrary(StringBuilder sb) {
+		if (null != library && !library.isEmpty()) {
+			sb.append(library).append(' ');
+		}
+		return sb;
 	}
 
-	protected boolean hasLibrary() {
-		return null != library && !library.isEmpty();
-	}
-
-	protected String getLibrary() {
-		return library;
-	}
-
-	public FunctionSpec getParams() {
-		return params;
-	}
-
+	//--------------------------------------------------------------------------
 	// support methods for generated code  for calling globals -----------------
+	//--------------------------------------------------------------------------
 
 	public final Object superInvoke(Object self, String member, Object... args) {
 		return myClass.superInvoke(self, member, args);
@@ -136,8 +166,21 @@ public class SuCallable extends SuValue {
 			Object c, Object d) {
 		return ((SuValue) contextGet(slot)).call4(a, b, c, d);
 	}
+	
+	public static boolean isBlock(Object x) {
+		return x instanceof SuCallable && ((SuCallable) x).isBlock();
+	}
 
 	//--------------------------------------------------------------------------
+	
+	//
+	// ANCESTOR CLASS: SuValue
+	//
+
+	@Override
+	public boolean isCallable() {
+		return true;
+	}
 
 	@Override
 	public String valueName() {
@@ -145,18 +188,30 @@ public class SuCallable extends SuValue {
 	}
 
 	@Override
-	public String display() {
-		if (isBlock)
-			return "/* block */";
-		String type = super.typeName();
-		if (type.endsWith("$f"))
-			return "/* function */";
-		StringBuilder sb = new StringBuilder();
-		sb.append(type.replace(AstCompile.METHOD_SEPARATOR, '.'));
-		if (hasLibrary())
-			sb.append(" /* ").append(getLibrary()).append(" ")
-					.append(typeName().toLowerCase()).append(" */");
-		return sb.toString();
+	public String typeName() {
+		return callableType().typeName();
 	}
 
+	@Override
+	public String display() {
+		StringBuilder sb = new StringBuilder(64);
+		appendName(sb).append("/* ");
+		return appendLibrary(sb).append(callableType().displayString())
+				.append(" */").toString();
+	}
+
+	@Override
+	public SuValue lookup(String methodName) {
+		if ("Params".equals(methodName))
+			return Params;
+		return super.lookup(methodName);
+	}
+
+	private static SuValue Params = new SuEvalBase0() {
+		@Override
+		public Object eval0(Object self) {
+			FunctionSpec p = ((SuCallable) self).params;
+			return p == null ? "(...)" : p.params();
+		}
+	};
 }

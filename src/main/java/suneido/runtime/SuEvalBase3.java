@@ -4,7 +4,7 @@
 
 package suneido.runtime;
 
-public abstract class SuMethod3 extends SuMethod {
+public abstract class SuEvalBase3 extends SuEvalBase {
 	{ params = new FunctionSpec("a", "b", "c"); }
 
 	@Override

@@ -17,7 +17,12 @@ public class SuBoundMethod extends SuCallable {
 		this.instance = instance;
 		this.method = method;
 		params = method.params;
+		callableType = CallableType.BOUND_METHOD;
 	}
+
+	//
+	// ANCESTOR CLASS: SuValue
+	//
 
 	@Override
 	public Object call(Object... args) {
@@ -35,9 +40,13 @@ public class SuBoundMethod extends SuCallable {
 	}
 
 	@Override
-	public boolean isCallable() {
-		return true;
+	public String display() {
+		return method.display();
 	}
+
+	//
+	// ANCESTOR CLASS: Object
+	//
 
 	@Override
 	public boolean equals(Object other) {
@@ -53,15 +62,4 @@ public class SuBoundMethod extends SuCallable {
 	public int hashCode() {
 		return 31 * System.identityHashCode(instance) + method.hashCode();
 	}
-
-	@Override
-	public String typeName() {
-		return "Method";
-	}
-
-	@Override
-	public String display() {
-		return method.display();
-	}
-
 }

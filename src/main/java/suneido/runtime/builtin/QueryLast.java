@@ -5,9 +5,9 @@
 package suneido.runtime.builtin;
 
 import suneido.database.query.Query.Dir;
-import suneido.runtime.SuFunction;
+import suneido.runtime.SuCallBase;
 
-public class QueryLast extends SuFunction {
+public class QueryLast extends SuCallBase {
 
 	@Override
 	public Object call(Object... args) {

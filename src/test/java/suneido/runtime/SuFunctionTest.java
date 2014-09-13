@@ -11,7 +11,7 @@ import org.junit.Test;
 import suneido.runtime.Args;
 import suneido.runtime.FunctionSpec;
 import suneido.runtime.Ops;
-import suneido.runtime.SuFunction;
+import suneido.runtime.SuCallBase;
 
 public class SuFunctionTest {
 
@@ -22,7 +22,7 @@ public class SuFunctionTest {
 		assertEquals(s, Ops.call(f, s));
 	}
 
-	static class MyFunc extends SuFunction {
+	static class MyFunc extends SuCallBase {
 		static final FunctionSpec params =
 				new FunctionSpec(new String[] { "value" }, 1);
 

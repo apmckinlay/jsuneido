@@ -7,25 +7,25 @@ package suneido.compiler;
 import org.objectweb.asm.Type;
 
 import suneido.SuInternalError;
-import suneido.runtime.SuBlock;
-import suneido.runtime.SuBlock0;
-import suneido.runtime.SuBlock1;
-import suneido.runtime.SuBlock2;
-import suneido.runtime.SuBlock3;
-import suneido.runtime.SuBlock4;
+import suneido.runtime.SuCallBase;
+import suneido.runtime.SuCallBase0;
+import suneido.runtime.SuCallBase1;
+import suneido.runtime.SuCallBase2;
+import suneido.runtime.SuCallBase3;
+import suneido.runtime.SuCallBase4;
 import suneido.runtime.SuCallable;
-import suneido.runtime.SuFunction;
-import suneido.runtime.SuFunction0;
-import suneido.runtime.SuFunction1;
-import suneido.runtime.SuFunction2;
-import suneido.runtime.SuFunction3;
-import suneido.runtime.SuFunction4;
-import suneido.runtime.SuMethod;
-import suneido.runtime.SuMethod0;
-import suneido.runtime.SuMethod1;
-import suneido.runtime.SuMethod2;
-import suneido.runtime.SuMethod3;
-import suneido.runtime.SuMethod4;
+import suneido.runtime.SuClosure;
+import suneido.runtime.SuClosure0;
+import suneido.runtime.SuClosure1;
+import suneido.runtime.SuClosure2;
+import suneido.runtime.SuClosure3;
+import suneido.runtime.SuClosure4;
+import suneido.runtime.SuEvalBase;
+import suneido.runtime.SuEvalBase0;
+import suneido.runtime.SuEvalBase1;
+import suneido.runtime.SuEvalBase2;
+import suneido.runtime.SuEvalBase3;
+import suneido.runtime.SuEvalBase4;
 
 /**
  * Represents a base class, and a family of specializations on that base class,
@@ -37,38 +37,77 @@ import suneido.runtime.SuMethod4;
 final class BaseClassSet {
 
 	//
+	// TYPES
+	//
+
+	/**
+	 * Represents a single base class or specialization of a base class.
+	 *
+	 * @author Victor Schappert
+	 * @since 20140913
+	 */
+	public static final class BaseClass {
+		private final String methodName;
+		private final Type type;
+
+		private BaseClass(String methodName, Class<?> clazz) {
+			this.methodName = methodName;
+			this.type = Type.getType(clazz);
+		}
+
+		/**
+		 * Returns the ASM "internal name" of the base class.
+		 *
+		 * @return Class internal name
+		 */
+		public String getInternalName() {
+			return type.getInternalName();
+		}
+
+		/**
+		 * Returns the name of the method of the base class that needs to be
+		 * overridden in the compiled subclass.
+		 *
+		 * @return Name of method to override
+		 */
+		public String getMethodName() {
+			return methodName;
+		}
+	}
+
+	//
 	// DATA
 	//
 
-	private final Type unspecialized;
-	private final Type[] specializations;
+	private final BaseClass unspecialized;
+	private final BaseClass[] specializations;
 
 	//
 	// CONSTANTS
 	//
 
-	static final BaseClassSet CALLABLE = new BaseClassSet(SuCallable.class);
-	static final BaseClassSet FUNCTION = new BaseClassSet(SuFunction.class,
-			SuFunction0.class, SuFunction1.class, SuFunction2.class,
-			SuFunction3.class, SuFunction4.class);
-	static final BaseClassSet METHOD = new BaseClassSet(SuMethod.class,
-			SuMethod0.class, SuMethod1.class, SuMethod2.class, SuMethod3.class,
-			SuMethod4.class);
-	static final BaseClassSet BLOCK = new BaseClassSet(SuBlock.class,
-			SuBlock0.class, SuBlock1.class, SuBlock2.class, SuBlock3.class,
-			SuBlock4.class);
+	static final BaseClassSet CALLBASE = new BaseClassSet("call",
+			SuCallBase.class, SuCallBase0.class, SuCallBase1.class,
+			SuCallBase2.class, SuCallBase3.class, SuCallBase4.class);
+	static final BaseClassSet EVALBASE = new BaseClassSet("eval",
+			SuEvalBase.class, SuEvalBase0.class, SuEvalBase1.class,
+			SuEvalBase2.class, SuEvalBase3.class, SuEvalBase4.class);
+	static final BaseClassSet CLOSURE = new BaseClassSet("?" /* not used */,
+			SuClosure.class, SuClosure0.class, SuClosure1.class,
+			SuClosure2.class, SuClosure3.class, SuClosure4.class);
 
 	//
 	// CONSTRUCTORS
 	//
 
 	@SafeVarargs
-	private <T extends SuCallable> BaseClassSet(Class<T> unspecialized,
-			Class<? extends T>... specializations) {
-		this.unspecialized = Type.getType(unspecialized);
-		this.specializations = new Type[specializations.length];
+	private <T extends SuCallable> BaseClassSet(String methodName,
+			Class<T> unspecialized, Class<? extends T>... specializations) {
+		this.unspecialized = new BaseClass(methodName, unspecialized);
+		this.specializations = new BaseClass[specializations.length];
 		for (int k = 0; k < specializations.length; ++k) {
-			this.specializations[k] = Type.getType(specializations[k]);
+			this.specializations[k] = new BaseClass(methodName + k,
+					specializations[k]);
 		}
 	}
 
@@ -77,29 +116,31 @@ final class BaseClassSet {
 	//
 
 	/**
-	 * Returns the ASM "internal name" of the unspecialized base class.
+	 * Returns the general version of the base class.
 	 *
-	 * @return Unspecialized class internal name
-	 * @see #getInternalName(int)
+	 * @return Unspecialized base
+	 * @see #getSpecialization(int)
 	 */
-	String getInternalName() {
-		return unspecialized.getInternalName();
+	public BaseClass getUnspecialized() {
+		return unspecialized;
 	}
 
 	/**
-	 * Returns the ASM "internal name" of a specialization of the base class.
+	 * Returns one of the available specializations of the base class.
+	 * 
 	 *
 	 * @param specializationIndex
 	 *            Valid zero-based index of a specialization
-	 * @return Specialized class internal name
+	 * @return Specialized base class
+	 * @see #getUnspecialized()
 	 */
-	String getInternalName(int specializationIndex) {
+	public BaseClass getSpecialization(int specializationIndex) {
 		assert 0 <= specializationIndex;
 		if (specializations.length < specializationIndex) {
 			throw new SuInternalError("invalid specialization of "
-					+ getInternalName() + ": " + specializationIndex);
-		} else {
-			return specializations[specializationIndex].getInternalName();
+					+ getUnspecialized().getInternalName() + ": "
+					+ specializationIndex);
 		}
+		return specializations[specializationIndex];
 	}
 }

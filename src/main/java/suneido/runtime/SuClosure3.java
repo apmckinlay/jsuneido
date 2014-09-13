@@ -4,25 +4,27 @@
 
 package suneido.runtime;
 
-public class SuBlock2 extends SuBlock {
+public final class SuClosure3 extends SuClosure {
 
-	public SuBlock2(Object block, Object self, Object[] locals) {
+	public SuClosure3(Object block, Object self, Object[] locals) {
 		super(block, self, locals);
 	}
 
 	@Override
-	public Object call2(Object a, Object b) {
+	public Object call3(Object a, Object b, Object c) {
 		int i = bspec.iparams;
 		locals[i] = a;
 		locals[++i] = b;
+		locals[++i] = c;
 		return block.eval(self, locals);
 	}
 
 	@Override
-	public Object eval2(Object newSelf, Object a, Object b) {
+	public Object eval3(Object newSelf, Object a, Object b, Object c) {
 		int i = bspec.iparams;
 		locals[i] = a;
 		locals[++i] = b;
+		locals[++i] = c;
 		return block.eval(newSelf, locals);
 	}
 

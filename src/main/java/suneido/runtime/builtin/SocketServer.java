@@ -52,7 +52,7 @@ public class SocketServer extends SuClass {
 		throw new SuException("cannot create instances of SocketServer");
 	}
 
-	public static class CallClass extends SuMethod {
+	public static class CallClass extends SuEvalBase {
 		@Override
 		public Object eval(Object self, Object... args) {
 			args = convert(args);
@@ -213,7 +213,7 @@ public class SocketServer extends SuClass {
 			return super.lookup(method);
 		}
 
-		private final SuValue RemoteUser = new SuMethod0() {
+		private final SuValue RemoteUser = new SuEvalBase0() {
 			@Override
 			public Object eval0(Object self) {
 				return socket.getInetAddress();

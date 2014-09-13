@@ -5,23 +5,30 @@
 package suneido.runtime;
 
 /**
- * A bound instance of a block.
- * Points to a generated sub-class of SuCallable
- * which defines an eval method.
+ * <p>
+ * A block in which some of the local variables are "upvalues" that belong to
+ * a higher lexical scope. Wraps an {@link SuBlockNew}.
+ * </p>
+ *
+ * @author Andrew McKinlay
  */
-public class SuBlock extends SuCallable {
+public class SuClosure extends SuCallable {
 	protected final SuCallable block;
 	protected final BlockSpec bspec;
 	protected final Object self;
 	protected final Object[] locals;
 
-	public SuBlock(Object block, Object self, Object[] locals) {
+	public SuClosure(Object block, Object self, Object[] locals) {
+		callableType = CallableType.CLOSURE;
 		this.block = (SuCallable) block;
 		bspec = (BlockSpec) this.block.params;
 		this.self = self;
 		this.locals = locals;
-		isBlock = true;
 	}
+
+	//
+	// ANCESTOR CLASS: SuValue
+	//
 
 	@Override
 	public Object call(Object... args) {
@@ -39,15 +46,4 @@ public class SuBlock extends SuCallable {
 			locals[bspec.iparams + i] = args[i];
 		return block.eval(newSelf, locals);
 	}
-
-	@Override
-	public String display() {
-		return "/* block */";
-	}
-
-	@Override
-	public String typeName() {
-		return "Block";
-	}
-
 }

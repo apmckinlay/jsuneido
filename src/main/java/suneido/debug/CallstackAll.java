@@ -13,7 +13,6 @@ import suneido.compiler.ClassGen;
 import suneido.runtime.Args;
 import suneido.runtime.ArgsArraySpec;
 import suneido.runtime.FunctionSpec;
-import suneido.runtime.SuBlock;
 import suneido.runtime.SuCallable;
 
 /**
@@ -134,10 +133,11 @@ public final class CallstackAll extends Callstack {
 			if ("this".equals(names[localIndex])
 					&& values[localIndex] instanceof SuCallable) {
 				javaThis = (SuCallable) values[localIndex];
-				// Don't display locals for closures because a closure is really
-				// just a wrapper around the "true" block, which is already in
-				// the stack frame above.
-				if (javaThis instanceof SuBlock) {
+				// Don't display locals for closures, bound methods, and any
+				// other callables that are just a wrappers around the "true"
+				// callable, which we already extracted in the stack frame
+				// above.
+				if (javaThis.callableType().isWrapper()) {
 					return null;
 				}
 				fs = javaThis.getParams();

@@ -36,19 +36,10 @@ class Builtin {
 		protected final MethodHandle mh;
 
 		Method(MethodHandle mh, String valueName, FunctionSpec params) {
+			callableType = CallableType.BUILTIN_METHOD;
 			this.mh = mh;
 			setSource(null, valueName);
 			this.params = params;
-		}
-
-		@Override
-		public String typeName() {
-			return "Method";
-		}
-
-		@Override
-		public String display() {
-			return name + " /* builtin method */";
 		}
 
 		@Override
@@ -295,19 +286,10 @@ class Builtin {
 		protected final MethodHandle mh;
 
 		Function(MethodHandle mh, String valueName, FunctionSpec params) {
+			callableType = CallableType.BUILTIN_FUNCTION;
 			this.mh = mh;
 			this.params = params;
 			setSource(null, valueName);
-		}
-
-		@Override
-		public String typeName() {
-			return "Builtin";
-		}
-
-		@Override
-		public String display() {
-			return name + " /* builtin function */";
 		}
 
 		@Override

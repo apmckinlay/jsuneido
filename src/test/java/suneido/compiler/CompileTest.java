@@ -23,8 +23,8 @@ import suneido.runtime.BlockReturnException;
 import suneido.runtime.Except;
 import suneido.runtime.FunctionSpec;
 import suneido.runtime.Ops;
-import suneido.runtime.SuBlock;
-import suneido.runtime.SuBlock0;
+import suneido.runtime.SuClosure;
+import suneido.runtime.SuClosure0;
 import suneido.runtime.SuCallable;
 import suneido.runtime.SuClass;
 import suneido.runtime.builtin.ObjectClass;
@@ -597,9 +597,9 @@ public class CompileTest {
 			{ "toIntBool (Object;)I", "bool" },
 			{ "IFEQ", "IFFALSE" },
 			{ "IFNE", "IFTRUE" },
-			{ "NEW " + Type.getInternalName(SuBlock.class) + ", DUP, const0, self, args, INVOKESPECIAL " + Type.getInternalName(SuBlock.class) + ".<init> (Object;Object;[Object;)V", "block" },
-			{ "NEW " + Type.getInternalName(SuBlock0.class) + ", DUP, const0, self, args, INVOKESPECIAL " + Type.getInternalName(SuBlock0.class) + ".<init> (Object;Object;[Object;)V", "block" },
-			{ "NEW " + Type.getInternalName(SuBlock0.class) + ", DUP, const0, null, args, INVOKESPECIAL " + Type.getInternalName(SuBlock0.class) + ".<init> (Object;Object;[Object;)V", "block" },
+			{ "NEW " + Type.getInternalName(SuClosure.class) + ", DUP, const0, self, args, INVOKESPECIAL " + Type.getInternalName(SuClosure.class) + ".<init> (Object;Object;[Object;)V", "block" },
+			{ "NEW " + Type.getInternalName(SuClosure0.class) + ", DUP, const0, self, args, INVOKESPECIAL " + Type.getInternalName(SuClosure0.class) + ".<init> (Object;Object;[Object;)V", "block" },
+			{ "NEW " + Type.getInternalName(SuClosure0.class) + ", DUP, const0, null, args, INVOKESPECIAL " + Type.getInternalName(SuClosure0.class) + ".<init> (Object;Object;[Object;)V", "block" },
 			{ " INVOKESTATIC java/lang/Integer.valueOf (I)Integer;,", "" },
 			{ "BIPUSH ", "" },
 			{ "SIPUSH ", "" },

@@ -4,7 +4,14 @@
 
 package suneido.runtime;
 
-public abstract class SuFunction4 extends SuFunction {
+/**
+ * A "call"-based callable (standalone function or block) taking four
+ * parameters.
+ *
+ * @author Andrew McKinlay
+ * @see SuEvalBase4
+ */
+public abstract class SuCallBase4 extends SuCallBase {
 
 	{ params = new FunctionSpec("a", "b", "c", "d"); }
 
