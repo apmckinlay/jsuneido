@@ -17,7 +17,7 @@ import com.google.common.primitives.UnsignedLongs;
  * Infinite is represented by the maximum exponent (expInf = Byte.MAX_VALUE = 127).
  * If exp is expInf then coef should be the maximum (coefInf = Long.MAX_VALUE).
  * <p>
- * Values are not "normalized" e.g. after parse or math operations.
+ * Values are not necessarily "normalized" e.g. after parse or math operations.
  * so "equal" values may have different representations
  * e.g. 1e3 or 10e2 or 1000
  * compareTo handles this properly and equals is defined in terms of compareTo.
@@ -40,14 +40,16 @@ public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 	final static byte expInf = Byte.MAX_VALUE;
 	final static long coefInf = UnsignedLongs.MAX_VALUE;
 
-	final static Dnum Zero = new Dnum(ZERO, 0, 0);
-	final static Dnum One = new Dnum(PLUS, 1, 0);
-	final static Dnum Inf = new Dnum(PLUS, coefInf, expInf);
-	final static Dnum MinusInf = new Dnum(MINUS, coefInf, expInf);
+	public final static Dnum Zero = new Dnum(ZERO, 0, 0);
+	public final static Dnum One = new Dnum(PLUS, 1, 0);
+	public final static Dnum Inf = new Dnum(PLUS, coefInf, expInf);
+	public final static Dnum MinusInf = new Dnum(MINUS, coefInf, expInf);
 
-	Dnum(byte sign, long coef, int exp) {
+	public Dnum(int sign, long coef, int exp) {
+		assert sign != 0 || coef == 0;
 		this.coef = coef;
-		this.sign = sign;
+		assert(sign == -1 || sign == +1 || sign == 0);
+		this.sign = (byte) sign;
 		assert Byte.MIN_VALUE <= exp && exp <= Byte.MAX_VALUE;
 		this.exp = (byte) exp;
 	}
@@ -154,7 +156,7 @@ public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 	}
 
 	public Dnum neg() {
-		return new Dnum((byte) -sign, coef, exp);
+		return new Dnum(-sign, coef, exp);
 	}
 
 	public Dnum abs() {
@@ -262,7 +264,7 @@ public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 				y.coef++;
 			coef = x.coef + y.coef;
 		}
-		return result(coef, x.sign, x.exp);
+		return result(x.sign, coef, x.exp);
 	}
 
 	/** unsigned subtract */
@@ -277,7 +279,7 @@ public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 			Dnum tmp = x; x = y; y = tmp; // swap
 			sign *= -1; // flip sign
 		}
-		return result(x.coef - y.coef, sign, x.exp);
+		return result(sign, x.coef - y.coef, x.exp);
 	}
 
 	/** WARNING: may modify x and/or y - requires defensive copies */
@@ -326,7 +328,7 @@ public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 		return true;
 	}
 
-	private static Dnum result(long coef, byte sign, int exp) {
+	private static Dnum result(int sign, long coef, int exp) {
 		if (exp >= expInf)
 			return inf(sign);
 		else if (exp < Byte.MIN_VALUE || coef == 0)
@@ -342,7 +344,7 @@ public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 	}
 
 	public static Dnum mul(Dnum x, Dnum y) {
-		byte sign = (byte) (x.sign * y.sign);
+		int sign = (x.sign * y.sign);
 		if (x == One)
 			return y;
 		else if (y == One)
@@ -350,13 +352,13 @@ public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 		else if (x == Zero || y == Zero)
 			return Zero;
 		else if (x.isInf() || y.isInf())
-			return result(0, sign, expInf);
+			return result(sign, 0, expInf);
 		x = minCoef(x);
 		y = minCoef(y);
 		if (Long.numberOfLeadingZeros(x.coef) +
 				Long.numberOfLeadingZeros(y.coef) >= 64)
 			// coef won't overflow, common fast path
-			return result(x.coef * y.coef, sign, x.exp + y.exp);
+			return result(sign, x.coef * y.coef, x.exp + y.exp);
 		// drop 5 least significant bits off x and y
 		// 59 bits < 18 decimal digits
 		// 32 bits > 9 decimal digits
@@ -365,10 +367,10 @@ public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 		long[] xs = split(x);
 		long[] ys = split(y);
 		int exp = x.exp + y.exp;
-		Dnum r1 = result(xs[0] * ys[0], sign, exp);
-		Dnum r2 = result(xs[0] * ys[1], sign, exp + 9);
-		Dnum r3 = result(xs[1] * ys[0], sign, exp + 9);
-		Dnum r4 = result(xs[1] * ys[1], sign, exp + 18);
+		Dnum r1 = result(sign, xs[0] * ys[0], exp);
+		Dnum r2 = result(sign, xs[0] * ys[1], exp + 9);
+		Dnum r3 = result(sign, xs[1] * ys[0], exp + 9);
+		Dnum r4 = result(sign, xs[1] * ys[1], exp + 18);
 		return add(r1, add(r2, add(r3, r4)));
 	}
 
@@ -413,7 +415,7 @@ public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 		else if (y.isZero())
 			return inf(x.sign);
 		else if (x.isInf()) {
-			byte sign = (byte) (x.sign * y.sign);
+			int sign = x.sign * y.sign;
 			return y.isInf() ? new Dnum(sign, 1, 0) : inf(sign);
 		} else if (y.isInf())
 			return Zero;
@@ -421,7 +423,7 @@ public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 	}
 
 	private static Dnum div2(Dnum x, Dnum y) {
-		byte sign = (byte) (x.sign * y.sign);
+		int sign = x.sign * y.sign;
 		int exp = x.exp - y.exp;
 		long xcoef = x.coef;
 		long ycoef = y.coef;
@@ -453,12 +455,12 @@ public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 			z += q;
 			xcoef = Long.remainderUnsigned(xcoef, ycoef);
 		}
-		return result(z, sign, exp);
+		return result(sign, z, exp);
 	}
 
 	// -------------------------------------------------------------------------
 
-	private static Dnum inf(byte sign) {
+	private static Dnum inf(int sign) {
 		assert sign == PLUS || sign == MINUS;
 		return sign == PLUS ? Inf : MinusInf;
 	}

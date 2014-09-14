@@ -33,7 +33,7 @@ public class DnumTest {
 		assertThat(parse(s), equalTo(expected));
 	}
 
-	private static Dnum parse(String s) {
+	public static Dnum parse(String s) {
 		switch (s) {
 		case "inf":
 			return Inf;
