@@ -90,9 +90,9 @@ public class BuiltinMethods extends SuValue {
 		MethodHandles.Lookup lookup = MethodHandles.lookup();
 		for (Method m : c.getDeclaredMethods()) {
 			int mod = m.getModifiers();
-			String name = methodName(m);
 			if (Modifier.isPublic(mod) && Modifier.isStatic(mod) &&
-					isCapitalized(name)) {
+					isCapitalized(m.getName())) {
+				String name = methodName(m);
 				try {
 					MethodHandle mh = lookup.unreflect(m);
 					b.put(name, Builtin.function(mh, name, params(m, 0)));
