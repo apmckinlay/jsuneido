@@ -520,9 +520,10 @@ public final class Buffer extends JSDIValue implements CharSequence {
 	/**
 	 * Reference to a {@link BuiltinClass} that describes how to expose this
 	 * class to the Suneido programmer.
+	 * 
 	 * @see suneido.runtime.Builtins
 	 */
-	public static final SuValue clazz = new BuiltinClass() {
+	public static final BuiltinClass clazz = new BuiltinClass() {
 
 		private final FunctionSpec newFS = new FunctionSpec(array("size",
 				"string"), "");

@@ -265,7 +265,7 @@ public final class COMobject extends JSDIValue {
 	 * class to the Suneido programmer.
 	 * @see suneido.runtime.Builtins
 	 */
-	public static final SuValue clazz = new BuiltinClass() {
+	public static final BuiltinClass clazz = new BuiltinClass() {
 
 		private final FunctionSpec newFS = new FunctionSpec(
 				array("progid-or-ptr"));
