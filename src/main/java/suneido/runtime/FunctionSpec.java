@@ -73,7 +73,7 @@ public class FunctionSpec {
 	public static final FunctionSpec NUMBER =
 			new FunctionSpec("number");
 	public static final FunctionSpec NUMBER2 =
-			new FunctionSpec("number1, number2");
+			new FunctionSpec("number1", "number2");
 	public static final FunctionSpec BLOCK =
 			new FunctionSpec(array("block"), Boolean.FALSE);
 	public static final Object NA = new Object();
