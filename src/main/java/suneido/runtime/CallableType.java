@@ -86,6 +86,7 @@ public enum CallableType {
 	private final String compilerNameSuffix;
 	private final boolean isBlock;
 	private final boolean isWrapper;
+	private final boolean isBuiltin;
 
 	//
 	// CONSTRUCTORS
@@ -98,6 +99,7 @@ public enum CallableType {
 		this.compilerNameSuffix = compilerNameSuffix;
 		this.isBlock = "Block".equals(typeName);
 		this.isWrapper = isWrapper;
+		this.isBuiltin = displayString.startsWith("builtin");
 	}
 
 	private CallableType(String typeName, String displayString,
@@ -133,7 +135,7 @@ public enum CallableType {
 
 	/**
 	 * Returns a name suffix for use by the Suneido compiler, or {@code null} if
-	 * this callable type is not compiled Suneido code. 
+	 * this callable type is not compiled Suneido code.
 	 *
 	 * @return String for use by the Suneido compiler
 	 */
@@ -146,6 +148,8 @@ public enum CallableType {
 	 * {@link #CLOSURE closures} and <b>{@code false}</b> otherwise.
 	 *
 	 * @return True iff this callable type is a block
+	 * @see #isWrapper()
+	 * @see #isBuiltin()
 	 */
 	public final boolean isBlock() {
 		return isBlock;
@@ -157,14 +161,27 @@ public enum CallableType {
 	 * </p>
 	 *
 	 * <p>
-	 * This is primarily useful for deciding an {@link SuCallable}
-	 * <b>{@code this}</b> in a given Java stack frame should be ignored in
-	 * favour of the wrapped callable when extracting Suneido stack frames.
-	 * </p> 
+	 * This is primarily useful for deciding an {@link SuCallable} <b>
+	 * {@code this}</b> in a given Java stack frame should be ignored in favour
+	 * of the wrapped callable when extracting Suneido stack frames.
+	 * </p>
 	 *
 	 * @return True iff this callable type wraps another callable
+	 * @see #isBlock()
+	 * @see #isBuiltin()
 	 */
 	public final boolean isWrapper() {
 		return isWrapper;
+	}
+
+	/**
+	 * Indicates whether this callable is a built-in.
+	 *
+	 * @return Truee iff this callable type is built in
+	 * @see #isBlock()
+	 * @see #isWrapper()
+	 */
+	public final boolean isBuiltin() {
+		return isBuiltin;
 	}
 }

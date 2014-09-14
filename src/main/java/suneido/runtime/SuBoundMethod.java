@@ -9,15 +9,22 @@ import suneido.SuValue;
 /**
  * A method bound to an instance.
  */
-public class SuBoundMethod extends SuCallable {
+public class SuBoundMethod extends SuWrappingCallable {
 	public final SuValue instance;
-	public final SuCallable method;
 
 	public SuBoundMethod(SuValue instance, SuCallable method) {
+		super(method);
 		this.instance = instance;
-		this.method = method;
 		params = method.params;
 		callableType = CallableType.BOUND_METHOD;
+	}
+
+	//
+	// ACCESSORS
+	//
+
+	public SuCallable method() {
+		return wrapped;
 	}
 
 	//
@@ -26,22 +33,17 @@ public class SuBoundMethod extends SuCallable {
 
 	@Override
 	public Object call(Object... args) {
-		return method.eval(instance, args);
+		return wrapped.eval(instance, args);
 	}
 
 	@Override
 	public Object eval(Object self, Object... args) {
-		return method.eval(self, args);
+		return wrapped.eval(self, args);
 	}
 
 	@Override
 	public SuValue lookup(String methodName) {
-		return this.method.lookup(methodName);
-	}
-
-	@Override
-	public String display() {
-		return method.display();
+		return this.wrapped.lookup(methodName);
 	}
 
 	//
@@ -55,11 +57,11 @@ public class SuBoundMethod extends SuCallable {
 		if (! (other instanceof SuBoundMethod))
 			return false;
 		SuBoundMethod that = (SuBoundMethod) other;
-		return instance == that.instance && method.equals(that.method);
+		return instance == that.instance && wrapped.equals(that.wrapped);
 	}
 
 	@Override
 	public int hashCode() {
-		return 31 * System.identityHashCode(instance) + method.hashCode();
+		return 31 * System.identityHashCode(instance) + wrapped.hashCode();
 	}
 }

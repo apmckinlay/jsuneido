@@ -10,6 +10,10 @@ import suneido.runtime.BuiltinClass;
 
 public class ObjectClass extends BuiltinClass {
 
+	public ObjectClass() {
+		super("Object", null);
+	}
+
 	@Override
 	public Object newInstance(Object... args) {
 		return create(args);

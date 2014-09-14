@@ -17,7 +17,7 @@ public final class SuClosure4 extends SuClosure {
 		locals[++i] = b;
 		locals[++i] = c;
 		locals[++i] = d;
-		return block.eval(self, locals);
+		return wrapped.eval(self, locals);
 	}
 
 	@Override
@@ -27,7 +27,7 @@ public final class SuClosure4 extends SuClosure {
 		locals[++i] = b;
 		locals[++i] = c;
 		locals[++i] = d;
-		return block.eval(newSelf, locals);
+		return wrapped.eval(newSelf, locals);
 	}
 
 }

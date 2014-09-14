@@ -15,7 +15,7 @@ public final class SuClosure2 extends SuClosure {
 		int i = bspec.iparams;
 		locals[i] = a;
 		locals[++i] = b;
-		return block.eval(self, locals);
+		return wrapped.eval(self, locals);
 	}
 
 	@Override
@@ -23,7 +23,7 @@ public final class SuClosure2 extends SuClosure {
 		int i = bspec.iparams;
 		locals[i] = a;
 		locals[++i] = b;
-		return block.eval(newSelf, locals);
+		return wrapped.eval(newSelf, locals);
 	}
 
 }

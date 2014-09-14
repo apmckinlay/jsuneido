@@ -71,6 +71,7 @@ import suneido.runtime.Ops;
 import suneido.runtime.Range;
 import suneido.runtime.SuCallable;
 import suneido.runtime.SuClass;
+import suneido.runtime.SuCompiledCallable;
 import suneido.runtime.builtin.ObjectClass;
 import suneido.runtime.builtin.RecordClass;
 
@@ -789,7 +790,7 @@ public class ClassGen {
 				false);
 	}
 
-	SuCallable end(SuClass suClass) {
+	SuCompiledCallable end(SuClass suClass) {
 		if (blockReturnCatcher != null)
 			finishBlockReturnCatcher();
 		if (dynamicFinally != null)
@@ -810,14 +811,14 @@ public class ClassGen {
 
 		cv.visitEnd();
 
-		SuCallable callable;
+		SuCompiledCallable callable;
 		shareConstants.set(constants);
 		try {
 			Loader loader = new Loader();
 			Class<?> sc = loader.defineClass(COMPILED_CODE_PACKAGE_DOTS + name,
 					cw.toByteArray());
 			try {
-				callable = (SuCallable) sc.newInstance();
+				callable = (SuCompiledCallable) sc.newInstance();
 			} catch (InstantiationException | IllegalAccessException e) {
 				throw new SuException("newInstance error: " + e);
 			}

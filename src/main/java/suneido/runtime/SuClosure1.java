@@ -13,13 +13,13 @@ public final class SuClosure1 extends SuClosure {
 	@Override
 	public Object call1(Object a) {
 		locals[bspec.iparams] = a;
-		return block.eval(self, locals);
+		return wrapped.eval(self, locals);
 	}
 
 	@Override
 	public Object eval1(Object newSelf, Object a) {
 		locals[bspec.iparams] = a;
-		return block.eval(newSelf, locals);
+		return wrapped.eval(newSelf, locals);
 	}
 
 }

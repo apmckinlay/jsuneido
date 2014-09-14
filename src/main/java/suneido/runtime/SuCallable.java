@@ -29,7 +29,6 @@ import suneido.SuValue;
  * @author Andrew McKinlay, Victor Schappert
  */
 public class SuCallable extends SuValue {
-	private String library;
 	protected String name;
 	protected SuClass myClass;
 	protected FunctionSpec params;
@@ -57,46 +56,16 @@ public class SuCallable extends SuValue {
 		return CallableType.BLOCK == c || CallableType.CLOSURE == c;
 	}
 
-	/**
-	 * Called by the compiler to complete construction of a newly compiled
-	 * SuCallable.
-	 *
-	 * @since 20140829
-	 * @param myClass
-	 *            Callable's class if applicable
-	 * @param params
-	 *            Callable's function spec
-	 * @param context
-	 *            Context callable belongs to
-	 * @param callableType
-	 *            What kind of callable this is, <i>eg</i> function
-	 * @return this
-	 */
-	public final SuCallable finishInit(SuClass myClass, FunctionSpec params,
-			ContextLayered context, CallableType callableType) {
-		this.myClass = myClass;
-		this.params = params;
-		this.context = context;
-		this.callableType = callableType;
-		return this;
-	}
-
-	/**
-	 * Called by AstCompile to set the library and name
-	 * that the source code came from.
-	 */
-	public final SuCallable setSource(String library, String name) {
-		this.library = library;
-		this.name = name;
-		return this;
-	}
-
 	public SuClass suClass() {
 		return myClass;
 	}
 
 	public FunctionSpec getParams() {
 		return params;
+	}
+
+	public String sourceCode() {
+		return null;
 	}
 
 	//
@@ -107,7 +76,7 @@ public class SuCallable extends SuValue {
 	 * Supply missing argument from dynamic implicit or default
 	 * This is also done by {@link Args} applyDefaults and dynamicImplicits
 	 */
-	protected Object fillin(int i) {
+	protected final Object fillin(int i) {
 		assert params != null : "" + this + " has no params";
 		if (params.isDynParam(params.paramNames[i])) {
 			Object value = Dynamic.getOrNull("_" + params.paramNames[i]);
@@ -117,7 +86,7 @@ public class SuCallable extends SuValue {
 		return params.defaultFor(i);
 	}
 
-	protected StringBuilder appendName(StringBuilder sb) {
+	protected final StringBuilder appendName(StringBuilder sb) {
 		if (null != name && !name.isEmpty()) {
 			sb.append(name).append(' ');
 		}
@@ -125,9 +94,6 @@ public class SuCallable extends SuValue {
 	}
 
 	protected StringBuilder appendLibrary(StringBuilder sb) {
-		if (null != library && !library.isEmpty()) {
-			sb.append(library).append(' ');
-		}
 		return sb;
 	}
 
@@ -202,16 +168,43 @@ public class SuCallable extends SuValue {
 
 	@Override
 	public SuValue lookup(String methodName) {
+		// WARNING: The reason this class is subclassing SuBuiltinMethod0 for
+		//          its built-ins instead of usign BuiltinMethods.methods() is
+		//          that I encountered JVM instability leading to random crashes
+		//          when the following conditions obtained:
+		//              1) SuCallable is loaded by a native agent on VMInit
+		//                 (the "jsdebug" agent does this when it is loaded on
+		//                 JVM startup to provide Suneido debugging support)
+		//              2) SuCallable has a private static member whose
+		//                 initializer calls BuiltinMethods.methods(SuCallable.class, ...)
+		//              3) Java 1.8.0_20 on Windows or Linux (didn't test other
+		//                 versions)
+		//          From the little I could glean from the crash logs, there is
+		//          likely a bug in the JVM where class loading, agent loading,
+		//          and method handle initialization don't play well together.
+		//          I tried to reproduce the bug using a stripped down project
+		//          but wasn't able to do so... -- VCS @ 20140914
 		if ("Params".equals(methodName))
 			return Params;
+		else if ("Source".equals(methodName))
+			return Source;
 		return super.lookup(methodName);
 	}
 
-	private static SuValue Params = new SuEvalBase0() {
+	private static final SuValue Params = new SuBuiltinMethod0(
+			"function.Params") {
 		@Override
 		public Object eval0(Object self) {
 			FunctionSpec p = ((SuCallable) self).params;
 			return p == null ? "(...)" : p.params();
+		}
+	};
+
+	private static final SuValue Source = new SuBuiltinMethod0(
+			"function.Source") {
+		@Override
+		public Object eval0(Object self) {
+			return ((SuCallable) self).sourceCode();
 		}
 	};
 }

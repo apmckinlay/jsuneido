@@ -12,12 +12,12 @@ public final class SuClosure0 extends SuClosure {
 
 	@Override
 	public Object call0() {
-		return block.eval(self, locals);
+		return wrapped.eval(self, locals);
 	}
 
 	@Override
 	public Object eval0(Object newSelf) {
-		return block.eval(newSelf, locals);
+		return wrapped.eval(newSelf, locals);
 	}
 
 }

@@ -22,7 +22,7 @@ package suneido.runtime;
  *
  * @author Andrew McKinlay, Victor Schappert
  */
-public abstract class SuCallBase extends SuCallable {
+public abstract class SuCallBase extends SuCompiledCallable {
 
 	//
 	// ANCESTOR CLASS: SuValue

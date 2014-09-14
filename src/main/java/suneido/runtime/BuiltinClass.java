@@ -16,14 +16,28 @@ import suneido.runtime.builtin.SuFile;
  */
 public abstract class BuiltinClass extends BuiltinMethods {
 
-	protected BuiltinClass() {
+	protected BuiltinClass(Class<?> clazz) {
+		this(clazz.getSimpleName(), clazz, null, FunctionSpec.NO_PARAMS);
 	}
 
-	protected BuiltinClass(Class<?> c) {
-		super(c);
+	protected BuiltinClass(String className) {
+		this(className, FunctionSpec.NO_PARAMS);
 	}
-	protected BuiltinClass(Class<?> c, String userDefined) {
-		super(c.getSimpleName().toLowerCase(), c, userDefined);
+
+	protected BuiltinClass(String className, FunctionSpec newInstanceParams) {
+		this(className, null, null, newInstanceParams);
+	}
+
+	protected BuiltinClass(String className, Class<?> c, String userDefined,
+			FunctionSpec newInstanceParams) {
+		super(className.toLowerCase(), c, userDefined);
+		newInstance = new SuBuiltinMethod(className + ".<new>",
+				newInstanceParams) {
+			@Override
+			public Object eval(Object self, Object... args) {
+				return newInstance(args);
+			}
+		};
 	}
 
 	@Override
@@ -44,12 +58,7 @@ public abstract class BuiltinClass extends BuiltinMethods {
 		return super.lookup(method);
 	}
 
-	private final SuCallable newInstance = new SuEvalBase() {
-		@Override
-		public Object eval(Object self, Object... args) {
-			return newInstance(args);
-		}
-	};
+	private final SuCallable newInstance;
 
 	protected abstract Object newInstance(Object... args);
 

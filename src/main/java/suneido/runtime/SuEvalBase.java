@@ -25,7 +25,7 @@ import suneido.compiler.AstCompile;
  * @author Andrew McKinlay, Victor Schappert
  * @see SuBoundMethod
  */
-public abstract class SuEvalBase extends SuCallable {
+public abstract class SuEvalBase extends SuCompiledCallable {
 
 	//
 	// ANCESTOR CLASS: SuValue
