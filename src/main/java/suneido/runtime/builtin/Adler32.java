@@ -11,7 +11,7 @@ import suneido.runtime.*;
 
 public final class Adler32 extends SuValue {
 	private final Checksum cksum = new java.util.zip.Adler32();
-	private static final BuiltinMethods methods = new BuiltinMethods(Adler32.class);;
+	private static final BuiltinMethods methods = new BuiltinMethods(Adler32.class);
 
 	@Override
 	public SuValue lookup(String method) {
@@ -33,7 +33,7 @@ public final class Adler32 extends SuValue {
 		return (int) (((Adler32) self).cksum.getValue());
 	}
 
-	public static final BuiltinClass clazz = new BuiltinClass() {
+	public static final BuiltinClass clazz = new BuiltinClass("Adler32") {
 
 		@Override
 		protected Object newInstance(Object... args) {

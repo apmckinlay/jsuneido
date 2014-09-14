@@ -15,6 +15,10 @@ public final class Seq extends BuiltinClass {
 	private static final FunctionSpec initFS =
 			ArgsArraySpec.from("from, to = false, by = 1");
 
+	public Seq() {
+		super("Seq", initFS);
+	}
+
 	@Override
 	public Object newInstance(Object... args) {
 		args = Args.massage(initFS, args);

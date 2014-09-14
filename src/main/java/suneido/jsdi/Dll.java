@@ -7,8 +7,8 @@ package suneido.jsdi;
 import java.util.Map;
 
 import suneido.SuValue;
-import suneido.jsdi.type.InOutString;
 import suneido.jsdi.type.BindException;
+import suneido.jsdi.type.InOutString;
 import suneido.jsdi.type.Type;
 import suneido.jsdi.type.TypeId;
 import suneido.jsdi.type.TypeList;
@@ -16,6 +16,7 @@ import suneido.runtime.BuiltinMethods;
 import suneido.runtime.CallableType;
 import suneido.runtime.FunctionSpec;
 import suneido.runtime.SuCallable;
+import suneido.runtime.SuCompiledCallable;
 
 /**
  * Represents a Suneido {@code dll} callable.
@@ -24,7 +25,7 @@ import suneido.runtime.SuCallable;
  * @since 20130708
  */
 @DllInterface
-public abstract class Dll extends SuCallable {
+public abstract class Dll extends SuCompiledCallable {
 
 	//
 	// DATA

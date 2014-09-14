@@ -32,44 +32,13 @@ class Builtin {
 		}
 	}
 
-	private static abstract class Method extends SuCallable {
+	private static abstract class Method extends SuBuiltinMethod {
 		protected final MethodHandle mh;
 
 		Method(MethodHandle mh, String valueName, FunctionSpec params) {
-			callableType = CallableType.BUILTIN_METHOD;
+			super(valueName, params);
 			this.mh = mh;
-			setSource(null, valueName);
-			this.params = params;
 		}
-
-		@Override
-		public abstract Object eval(Object self, Object... args);
-
-		@Override
-		public Object call(Object... args) {
-			return eval(this, args);
-		}
-		@Override
-		public Object call0() {
-			return eval0(this);
-		}
-		@Override
-		public Object call1(Object a) {
-			return eval1(this, a);
-		}
-		@Override
-		public Object call2(Object a, Object b) {
-			return eval2(this, a, b);
-		}
-		@Override
-		public Object call3(Object a, Object b, Object c) {
-			return eval3(this, a, b, c);
-		}
-		@Override
-		public Object call4(Object a, Object b, Object c, Object d) {
-			return eval4(this, a, b, c, d);
-		}
-
 	}
 
 	private static class MethodN extends Method {
@@ -282,19 +251,13 @@ class Builtin {
 		}
 	}
 
-	private static abstract class Function extends SuCallable {
+	private static abstract class Function extends SuBuiltinFunction {
 		protected final MethodHandle mh;
 
 		Function(MethodHandle mh, String valueName, FunctionSpec params) {
-			callableType = CallableType.BUILTIN_FUNCTION;
+			super(valueName, params);
 			this.mh = mh;
-			this.params = params;
-			setSource(null, valueName);
 		}
-
-		@Override
-		public abstract Object call(Object... args);
-
 	}
 
 	private static class FunctionN extends Function {

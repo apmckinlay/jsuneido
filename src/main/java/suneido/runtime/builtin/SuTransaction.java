@@ -111,7 +111,7 @@ public class SuTransaction extends SuValue {
 		return queryOne((SuTransaction) self, args, Dir.NEXT, true);
 	}
 
-	private static final FunctionSpec queryOneFS = new FunctionSpec("query");
+	static final FunctionSpec queryOneFS = new FunctionSpec("query");
 
 	public static Object queryOne(SuTransaction ti, Object[] args, Dir dir,
 			boolean single) {
@@ -202,7 +202,9 @@ public class SuTransaction extends SuValue {
 		return "Transaction";
 	}
 
-	public static final BuiltinClass clazz = new BuiltinClass() {
+	public static final BuiltinClass clazz = new BuiltinClass("Transaction",
+			tranFS) {
+
 		@Override
 		public SuTransaction newInstance(Object... args) {
 			return new SuTransaction(args);

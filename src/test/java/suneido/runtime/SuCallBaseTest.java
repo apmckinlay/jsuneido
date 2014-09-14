@@ -13,7 +13,7 @@ import suneido.runtime.FunctionSpec;
 import suneido.runtime.Ops;
 import suneido.runtime.SuCallBase;
 
-public class SuFunctionTest {
+public class SuCallBaseTest {
 
 	@Test
 	public void test() {

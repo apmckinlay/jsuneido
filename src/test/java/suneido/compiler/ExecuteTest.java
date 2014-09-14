@@ -359,7 +359,7 @@ public class ExecuteTest {
 	public static void test(String expr, String expected) {
 		Object result = eval(expr);
 		if (result instanceof SuBoundMethod)
-			result = ((SuBoundMethod) result).method;
+			result = ((SuBoundMethod) result).method();
 		Object exptd = eval(expected);
 		assert Ops.is_(exptd, result) : "expected: " + expected +
 				" but was " + Ops.display(result);

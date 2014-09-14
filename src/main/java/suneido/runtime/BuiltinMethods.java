@@ -58,7 +58,7 @@ public class BuiltinMethods extends SuValue {
 	}
 
 	public BuiltinMethods(String className, Class<?> c, String userDefined) {
-		this.methods = methods(className, c);
+		this.methods = null != c ? methods(className, c) : Collections.emptyMap();
 		this.userDefined = userDefined;
 	}
 

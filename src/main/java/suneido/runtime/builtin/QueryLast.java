@@ -5,13 +5,18 @@
 package suneido.runtime.builtin;
 
 import suneido.database.query.Query.Dir;
-import suneido.runtime.SuCallBase;
+import suneido.runtime.Ops;
+import suneido.runtime.SuBuiltinFunction1;
 
-public class QueryLast extends SuCallBase {
+public final class QueryLast extends SuBuiltinFunction1 {
+
+	public QueryLast() {
+		super("QueryLast", SuTransaction.queryOneFS);
+	}
 
 	@Override
-	public Object call(Object... args) {
-		return SuTransaction.queryOne(null, args, Dir.PREV, false);
+	public Object call1(Object a) {
+		return SuTransaction.queryOne(null, Ops.toStr(a), Dir.PREV, false);
 	}
 
 }

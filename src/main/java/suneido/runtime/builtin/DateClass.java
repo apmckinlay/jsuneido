@@ -17,7 +17,7 @@ public class DateClass extends BuiltinClass {
 	public static final DateClass singleton = new DateClass();
 
 	private DateClass() {
-		super(DateClass.class, "Dates");
+		super("Date", DateClass.class, "Dates", dateFS);
 	}
 
 	private static final FunctionSpec dateFS =
