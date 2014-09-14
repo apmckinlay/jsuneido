@@ -217,6 +217,11 @@ public final class ContainerMethods {
 		}
 
 		@Override
+		public String typeName() {
+			return "ObjectIter";
+		}
+
+		@Override
 		public SuValue lookup(String method) {
 			return IterateMethods.singleton.lookup(method);
 		}
@@ -243,12 +248,6 @@ public final class ContainerMethods {
 			iter.iter = iter.c.iterator();
 			return null;
 		}
-
-		@Override
-		public String typeName() {
-			return "ObjectIter";
-		}
-
 	}
 
 	@Params("value")
