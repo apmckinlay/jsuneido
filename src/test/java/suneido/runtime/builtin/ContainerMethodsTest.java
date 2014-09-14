@@ -106,4 +106,8 @@ public class ContainerMethodsTest {
 		test("#(1, 2, 3, 3).Unique!()", "#(1, 2, 3)");
 	}
 
+	@Test
+	public void test_iter() {
+		test("Type(#().Iter())", "'ObjectIter'");
+	}
 }
