@@ -38,7 +38,7 @@ public abstract class BuiltinClass extends BuiltinMethods {
 
 	@Override
 	public SuCallable lookup(String method) {
-		if (method == "<new>")
+		if ("<new>".equals(method))
 			return newInstance;
 		// TODO Base, Base?, etc.
 		return super.lookup(method);
