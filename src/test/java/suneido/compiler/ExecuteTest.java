@@ -228,14 +228,14 @@ public class ExecuteTest {
 	@Test
 	public void test_display() {
 		def("F", "function () { }");
-		testDisp("F", "F");
+		testDisp("F", "F /* function */");
 
 		def("C", "class { }");
 		testDisp("C", "C");
 		testDisp("C()", "C()");
 
 		def("C", "class { M() { } }");
-		testDisp("C.M", "C.M");
+		testDisp("C.M", "C.M /* method */");
 
 		testDisp("Pack", "Pack /* builtin function */");
 		testDisp("SocketServer", "SocketServer /* builtin class */");
