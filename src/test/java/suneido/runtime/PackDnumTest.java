@@ -4,13 +4,16 @@
 
 package suneido.runtime;
 
-import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertThat;
 
 import java.nio.ByteBuffer;
 
 import org.junit.Test;
 
+import suneido.util.ByteBuffers;
 import suneido.util.Dnum;
 import suneido.util.DnumTest;
 
@@ -20,23 +23,22 @@ public class PackDnumTest {
 
 	@Test
 	public void test_nbytes() {
-		assertThat(PackDnum.nbytes(0), equalTo(1));
-		assertThat(PackDnum.nbytes(0x1f), equalTo(1));
-		assertThat(PackDnum.nbytes(0x3f), equalTo(2));
-		assertThat(PackDnum.nbytes(0x1fff), equalTo(2));
-		assertThat(PackDnum.nbytes(0x3fff), equalTo(3));
-		assertThat(PackDnum.nbytes(UnsignedLongs.MAX_VALUE), equalTo(9));
+		assertThat(PackDnum.nbytes(1), equalTo(1));
+		assertThat(PackDnum.nbytes(0xff), equalTo(1));
+		assertThat(PackDnum.nbytes(0x100), equalTo(2));
+		assertThat(PackDnum.nbytes(0xffff), equalTo(2));
+		assertThat(PackDnum.nbytes(0x10000), equalTo(3));
+		assertThat(PackDnum.nbytes(UnsignedLongs.MAX_VALUE), equalTo(8));
 	}
 
 	@Test
 	public void test_pack() {
-		test_pack(0, 0, 0, 		3);
-		test_pack(+1, 1, 0, 	3, 128, 1);
-		test_pack(+1, 100, -2, 	3, 128, 1);
-		test_pack(+1, 123, 0, 	3, 128, 1 << 5, 123);
-		test_pack(+1, 0xfff, 0, 3, 128, (1 << 5) | 0xf, 0xff);
-		test_pack(+1, 0xfffff, 0, 3, 128, (2 << 5) | 0xf, 0xff, 0xff);
-		test_pack(-1, 1, 0, 	2, 127, 1);
+		test_pack(0, 0, 0, 			3);
+		test_pack(+1, 1, 0, 		3, 129, 1);
+		test_pack(+1, 100, -2, 		3, 129, 1);
+		test_pack(+1, 123, 0, 		3, 131, 123);
+		test_pack(+1, 0xffff, 0, 	3, 133, 0xff, 0xff);
+		test_pack(-1, 1, 0, 		2, 126, 0xfe);
 	}
 
 	private static void test_pack(int sign, int coef, int exp, int... bs) {
@@ -57,20 +59,63 @@ public class PackDnumTest {
 		pack_unpack_test("1048575"); // 0xfffff
 		pack_unpack_test("1048575e-3");
 		pack_unpack_test("-123456");
-		pack_unpack_test("12345678901234567890");
+		pack_unpack_test("12345678901234567899");
+		pack_unpack_test("1e99");
+		pack_unpack_test("-1e-99");
 	}
 
 	private static void pack_unpack_test(String s) {
 		Dnum dn = DnumTest.parse(s);
-		ByteBuffer buf = ByteBuffer.allocate(20);
-		PackDnum.pack(dn, buf);
-		buf.flip();
+		ByteBuffer buf = pack(dn);
 		buf.get(); // tag
 		Object x = PackDnum.unpack(buf);
 		if (x instanceof Integer)
 			assertThat(x.toString(), equalTo(dn.toString()));
 		else
-			assertThat(((Dnum) x), equalTo(dn));
+			assertThat(((Dnum) x).check(), equalTo(dn));
 	}
+
+	private static ByteBuffer pack(Dnum dn) {
+		ByteBuffer buf = ByteBuffer.allocate(20);
+		PackDnum.pack(dn, buf);
+		buf.flip();
+		return buf;
+	}
+
+	private static ByteBuffer pack(String s) {
+		return pack(DnumTest.parse(s));
+	}
+
+	@Test
+	public void cmp_test() {
+		String data[] = {
+				"-inf", "-12345678901234567899", "-1e9", "-123456", "-9", "-1", "-1e-9",
+				"0", "1e-9", "1", "9", "123456", "1e9", "12345678901234567899", "inf"};
+		int n = data.length;
+		for (int i = 0; i < n - 1; ++i) {
+			ByteBuffer x = pack(data[i]);
+			//System.out.println("\nx " + data[i] + " = " + ubbstr(x));
+			for (int j = i + 1; j < n; ++j) {
+				ByteBuffer y = pack(data[j]);
+				//System.out.println("y " + data[j] + " = " + ubbstr(y));
+				assertThat(data[i] + " :: " + data[j], ByteBuffers.bufferUcompare(x, y), lessThan(0));
+				assertThat(ByteBuffers.bufferUcompare(y, x), greaterThan(0));
+			}
+		}
+	}
+
+	/*private String ubbstr(ByteBuffer buf) {
+		if (buf.limit() == 0)
+			return "[]";
+		StringBuilder sb = new StringBuilder();
+		sb.append("[");
+		for (int i = 0; i < buf.limit(); ++i) {
+			if (i > 0)
+				sb.append(", ");
+			sb.append(buf.get(i) & 0xff);
+		}
+		sb.append("]");
+		return sb.toString();
+	}*/
 
 }

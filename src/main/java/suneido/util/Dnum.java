@@ -37,7 +37,7 @@ public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 	final static byte PLUS = +1;
 	final static byte ZERO = 0;
 	final static byte MINUS = -1;
-	final static byte expInf = Byte.MAX_VALUE;
+	public final static byte expInf = Byte.MAX_VALUE;
 	final static long coefInf = UnsignedLongs.MAX_VALUE;
 
 	public final static Dnum Zero = new Dnum(ZERO, 0, 0);
@@ -506,7 +506,7 @@ public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 		return sub(other).sign;
 	}
 
-	Dnum check() {
+	public Dnum check() {
 		assert sign == PLUS || sign == ZERO || sign == MINUS :
 			"Dnum invalid sign " + sign;
 		assert sign != ZERO || coef == 0 :
