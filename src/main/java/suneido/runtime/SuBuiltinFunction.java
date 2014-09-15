@@ -16,9 +16,9 @@ package suneido.runtime;
  * @author Victor Schappert
  * @since 20140914
  */
-abstract class SuBuiltinFunction extends SuBuiltinBase {
+public abstract class SuBuiltinFunction extends SuBuiltinBase {
 
-	SuBuiltinFunction(String name, FunctionSpec params) {
+	public SuBuiltinFunction(String name, FunctionSpec params) {
 		super(CallableType.BUILTIN_FUNCTION, name, params);
 	}
 
