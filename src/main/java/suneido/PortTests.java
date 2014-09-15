@@ -197,7 +197,7 @@ public class PortTests {
 		addTest("execute", PortTests::pt_execute);
 		runFile("execute.test");
 		addTest("dnum_add", DnumTest::pt_dnum_add);
-		runFile("dnum.text");
+		runFile("dnum.test");
 	}
 
 }
