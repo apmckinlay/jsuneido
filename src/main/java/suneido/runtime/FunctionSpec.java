@@ -83,17 +83,13 @@ public class FunctionSpec {
 	// 
 
 	public FunctionSpec(String... params) {
-		this(null, params, NO_DEFAULTS, false, null, params.length);
+		this(null, params, NO_DEFAULTS, false, null);
 	}
 	public FunctionSpec(String[] params, Object... defaults) {
-		this(null, params, defaults, false, null, params.length);
+		this(null, params, defaults, false, null);
 	}
 	public FunctionSpec(String name, String[] params, Object[] defaults,
 			boolean atParam, String[] dynParams) {
-		this(name, params, defaults, atParam, dynParams, params.length);
-	}
-	public FunctionSpec(String name, String[] params, Object[] defaults,
-			boolean atParam, String[] dynParams, int nLocals) {
 		this.name = name;
 		this.paramNames = params;
 		this.dynParams = dynParams;

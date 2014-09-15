@@ -93,8 +93,16 @@ public class ArgsTest {
 		boolean atParam = (params.length == 1 && params[0].startsWith("@"));
 		if (atParam)
 			params[0] = params[0].substring(1, params[0].length());
-		return new FunctionSpec("", params, defaults(params), atParam, null,
-				params.length + extra);
+		if (extra < 1) {
+			return new FunctionSpec("", params, defaults(params), atParam, null);
+		} else {
+			String[] localsNames = new String[extra];
+			for (int p = 0; p < extra; ++p) {
+				localsNames[p] = "p" + extra;
+			}
+			return new ArgsArraySpec("", params, defaults(params), atParam,
+					null, localsNames);
+		}
 	}
 
 	private static Object[] defaults(String... params) {
