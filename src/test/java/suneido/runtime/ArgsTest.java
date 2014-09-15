@@ -94,14 +94,14 @@ public class ArgsTest {
 		if (atParam)
 			params[0] = params[0].substring(1, params[0].length());
 		if (extra < 1) {
-			return new FunctionSpec("", params, defaults(params), atParam, null);
+			return new FunctionSpec(params, defaults(params), atParam, null);
 		} else {
 			String[] localsNames = new String[extra];
 			for (int p = 0; p < extra; ++p) {
 				localsNames[p] = "p" + extra;
 			}
-			return new ArgsArraySpec("", params, defaults(params), atParam,
-					null, localsNames);
+			return new ArgsArraySpec(params, defaults(params), atParam, null,
+					localsNames);
 		}
 	}
 

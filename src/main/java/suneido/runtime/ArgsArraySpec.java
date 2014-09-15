@@ -25,12 +25,12 @@ public class ArgsArraySpec extends FunctionSpec {
 	//
 
 	public ArgsArraySpec(String[] paramNames) {
-		this(null, paramNames, NO_DEFAULTS, false, null, NO_VARS);
+		this(paramNames, NO_DEFAULTS, false, null, NO_VARS);
 	}
 
-	public ArgsArraySpec(String name, String[] paramNames, Object[] defaults,
-			boolean atParam, String[] dynParams, String[] localNames) {
-		super(name, paramNames, defaults, atParam, dynParams);
+	public ArgsArraySpec(String[] paramNames, Object[] defaults, boolean atParam,
+			String[] dynParams, String[] localNames) {
+		super(paramNames, defaults, atParam, dynParams);
 		this.localNames = localNames;
 	}
 
@@ -73,8 +73,8 @@ public class ArgsArraySpec extends FunctionSpec {
 
 	public static ArgsArraySpec from(String spec) {
 		Object[][] namesAndDefs = paramsNamesAndDefaults(spec);
-		return new ArgsArraySpec(null, (String[]) namesAndDefs[0],
-				namesAndDefs[1], false, null, NO_VARS);
+		return new ArgsArraySpec((String[]) namesAndDefs[0], namesAndDefs[1],
+				false, null, NO_VARS);
 	}
 
 	//

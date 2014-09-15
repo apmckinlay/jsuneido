@@ -843,13 +843,12 @@ public class ClassGen {
 		} else if (useArgsArray) {
 			for (int i = 0; i < nParams; ++i)
 				paramNames[i] = locals.get(i);
-			fspec = new ArgsArraySpec(name, paramNames, constantsArray(),
-					atParam, dynParams.toArray(stringArray), localNames());
+			fspec = new ArgsArraySpec(paramNames, constantsArray(), atParam,
+					dynParams.toArray(stringArray), localNames());
 		} else {
 			for (int i = 0; i < nParams; ++i)
 				paramNames[i] = bm.get(i + firstParam);
-			fspec = new FunctionSpec(name, paramNames, constantsArray(), atParam,
-					dynParams.toArray(stringArray));
+			fspec = new FunctionSpec(paramNames, constantsArray(), atParam, dynParams.toArray(stringArray));
 		}
 		return fspec;
 	}
