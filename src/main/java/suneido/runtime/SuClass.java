@@ -81,7 +81,7 @@ public class SuClass extends SuValue {
 
 	@Override
 	public SuValue lookup(String method) {
-		if (method == "<new>")
+		if ("<new>".equals(method))
 			return newInstanceMethod;
 		SuCallable f = basicMethods.get(method);
 		if (f != null)
@@ -89,11 +89,11 @@ public class SuClass extends SuValue {
 		Object o = get2(method);
 		if (o instanceof SuCallable)
 			return (SuCallable) o;
-		if (method == "New")
+		if ("New".equals(method))
 			return initMethod;
-		if (method == "CallClass")
+		if ("CallClass".equals(method))
 			return newInstanceMethod;
-		if (method == "Eval")
+		if ("Eval".equals(method))
 			return eval;
 		f = userGeneralMethods.getMethod(method);
 		if (f != null)
@@ -101,14 +101,15 @@ public class SuClass extends SuValue {
 		return new NotFound(method);
 	}
 
-	private static final SuCallable initMethod = new SuCallable() {
+	private static final SuCallable initMethod = new SuBuiltinMethod(
+			"class.New", null) {
 		@Override
 		public Object eval(Object self, Object... args) {
 			return init(args);
 		}
 	};
 
-	private final SuCallable newInstanceMethod = new SuCallable() {
+	private final SuCallable newInstanceMethod = new SuBuiltinMethod("class.CallClass", null) {
 		@Override
 		public Object eval(Object self, Object... args) {
 			return newInstance(args);
