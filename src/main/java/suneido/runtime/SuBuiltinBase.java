@@ -28,9 +28,8 @@ abstract class SuBuiltinBase extends SuCallable {
 	public String sourceCode() {
 		StringBuilder sb = new StringBuilder(256);
 		return sb.append("// ").append(callableType.displayString())
-				.append('\n').append(name).append('(').append(params.params())
-				.append(')').toString();
-
+				.append("\n// ").append(name)
+				.append(null != params ? params.params() : "(...)").toString();
 	}
 
 	//
