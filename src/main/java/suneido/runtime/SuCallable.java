@@ -95,7 +95,8 @@ public class SuCallable extends SuValue {
 		case WRAPPED_BLOCK:
 			return true;
 		case FUNCTION:
-			return name.endsWith(CallableType.FUNCTION.compilerNameSuffix());
+			return "eval".equals(name)
+					|| name.endsWith(CallableType.FUNCTION.compilerNameSuffix());
 		default:
 			return false;
 		}
