@@ -6,12 +6,17 @@ package suneido.runtime.builtin;
 
 import suneido.database.query.Query.Dir;
 import suneido.runtime.Ops;
-import suneido.runtime.SuBuiltinFunction1;
+import suneido.runtime.SuBuiltinFunction;
 
-public final class Query1 extends SuBuiltinFunction1 {
+public final class Query1 extends SuBuiltinFunction {
 
 	public Query1() {
 		super("Query1", SuTransaction.queryOneFS);
+	}
+
+	@Override
+	public Object call(Object... args) {
+		return SuTransaction.queryOne(null, args, Dir.NEXT, true);
 	}
 
 	@Override
