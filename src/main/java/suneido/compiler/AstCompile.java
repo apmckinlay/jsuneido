@@ -375,7 +375,7 @@ public class AstCompile {
 		List<AstNode> params = ast.first().children;
 		ClassGen cg = new ClassGen(context, baseClassSet, curName, locals,
 				useArgsArray(ast, callableType, params), callableType,
-				params.size(), fnId, sourceFile, pw);
+				params.size(), fnId, sourceFile, ast.lineNumber, pw);
 
 		for (AstNode param : params)
 			cg.param(param.value, fold(param.first()), inMethod ? suClassName
