@@ -20,7 +20,7 @@ import suneido.runtime.SuCallable;
 
 /**
  * Call stack with all the data required for "full" debugging. Corresponds to
- * {@link DebugModel#ALL}.
+ * {@link DebugModel#ON}.
  *
  * @author Victor Schappert
  * @since 20140903

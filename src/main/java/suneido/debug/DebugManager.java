@@ -16,10 +16,10 @@ import suneido.util.Errlog;
  * current debug model to any interested callers.
  * </p>
  * <p>
- * &dagger;: <em>Initializing includes testing if {@link DebugModel#ALL}
+ * &dagger;: <em>Initializing includes testing if {@link DebugModel#ON}
  * debugging works if it is requested and falling back to
  * {@link DebugModel#STACK} if it does not; and starting a JDI client if
- * {@link DebugModel#ALL} needs to be implemented via an in-process JDI
+ * {@link DebugModel#ON} needs to be implemented via an in-process JDI
  * daemon.</em>
  * </p>
  *
@@ -44,7 +44,7 @@ public final class DebugManager {
 	//
 
 	private DebugManager() {
-		actualModel = DebugModel.STACK;
+		actualModel = DebugModel.OFF;
 		jdwpAgentClient = null;
 		jsdebugAgentState = AGENT_NOT_CHECKED;
 		jdwpAgentState = AGENT_NOT_CHECKED;
@@ -61,10 +61,10 @@ public final class DebugManager {
 
 	private DebugModel tryToInitFullDebugging() {
 		if (testIf_jsdebugAgent_Available() || startJDWPAgent())
-			return DebugModel.ALL;
+			return DebugModel.ON;
 		else {
 			Errlog.errlog("unable to initialize 'all' debugging - falling back to 'stack' debugging");
-			return DebugModel.STACK;
+			return DebugModel.OFF;
 		}
 	}
 
@@ -151,10 +151,10 @@ public final class DebugManager {
 			throw new NullPointerException();
 		} else if (actualModel == requestedModel) {
 			return actualModel;
-		} else if (DebugModel.ALL == requestedModel) {
+		} else if (DebugModel.ON == requestedModel) {
 			this.actualModel = tryToInitFullDebugging();
 		} else {
-			if (this.actualModel == DebugModel.ALL) {
+			if (this.actualModel == DebugModel.ON) {
 				tryToStopFullDebuggingByJDWP();
 			}
 			this.actualModel = requestedModel;
@@ -174,11 +174,9 @@ public final class DebugManager {
 	public synchronized Callstack makeCallstackForCurrentThread(
 			Throwable throwable) {
 		switch (actualModel) {
-		case ALL:
+		case ON:
 			return new CallstackAll(newStackInfo(), throwable);
-		case STACK:
-			return new CallstackStack(throwable);
-		case NONE:
+		case OFF:
 			return new CallstackNone(throwable);
 		default:
 			throw SuInternalError.unhandledEnum(actualModel);
@@ -197,15 +195,13 @@ public final class DebugManager {
 	 */
 	public Callstack makeCallstackFromThrowable(Throwable throwable) {
 		switch (actualModel) {
-		case STACK:
-			return new CallstackStack(throwable);
-		case ALL:
+		case ON:
 			// This is a serious problem: control should never pass to code
 			// which attempts to create a full callstack out of a throwable.
 			Errlog.errlog("can't make 'all' Callstack from throwable", throwable);
 			// Despite the problem, fall through to the "NONE" case so the
 			// Suneido programmer can get some kind of a stack trace.
-		case NONE:
+		case OFF:
 			return new CallstackNone(throwable);
 		default:
 			throw SuInternalError.unhandledEnum(actualModel);

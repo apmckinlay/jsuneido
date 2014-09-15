@@ -53,7 +53,7 @@ public final class Bootstrap {
 			runSuneidoInThisJVM(args);
 			// Otherwise, run the bootstrap process...
 		} else {
-			String debugOption = DEBUG_OPTION_ALL;
+			String debugOption = DEBUG_OPTION_ON;
 			// Determine the debug option
 			for (int k = 0; k < args.length; ++k) {
 				final String arg = args[k];
@@ -70,7 +70,7 @@ public final class Bootstrap {
 				}
 			}
 			// Process the debug option
-			if (DEBUG_OPTION_ALL.equals(debugOption)) {
+			if (DEBUG_OPTION_ON.equals(debugOption)) {
 				final StderrEchoer stderrEchoer = new StderrEchoer();
 				try (LineBufferingByteConsumer stderrConsumer = new LineBufferingByteConsumer(
 						stderrEchoer)) {
@@ -378,8 +378,7 @@ public final class Bootstrap {
 	public static final String OPTIONS_END = "--";
 	/**
 	 * On the command line, indicates that the next argument is one of
-	 * {@link #DEBUG_OPTION_LOCALS}, {@link #DEBUG_OPTION_STACK},
-	 * {@link #DEBUG_OPTION_NONE}.
+	 * {@link #DEBUG_OPTION_ON} or {@link #DEBUG_OPTION_OFF}.
 	 */
 	public static final String DEBUG_OPTION = "-debug";
 	/**
@@ -421,34 +420,9 @@ public final class Bootstrap {
 	 * </p>
 	 * 
 	 * @see #DEBUG_OPTION
-	 * @see #DEBUG_OPTION_STACK
-	 * @see #DEBUG_OPTION_NONE
+	 * @see #DEBUG_OPTION_OFF
 	 */
-	public static final String DEBUG_OPTION_ALL = "all";
-	/**
-	 * <p>
-	 * On the command line, indicates that the only debugging support should be
-	 * conversion of the stack trace to "human readable" format (in the sense
-	 * described in the documentation for {@link #DEBUG_OPTION_ALL}).
-	 * </p>
-	 *
-	 * <p>
-	 * This is an intermediate debug option between {@link #DEBUG_OPTION_ALL}
-	 * and {@link #DEBUG_OPTION_NONE}. It has negligible performance impact and
-	 * may be useful for providing some information to Suneido programmers.
-	 * However, it does involve net information loss on a systems level when
-	 * compared to {@link #DEBUG_OPTION_NONE} because internal Java stack frames
-	 * are hidden from the call stack that is available in Suneido.
-	 * </p>
-	 *
-	 * <p>
-	 * Under this option, the Suneido {@code Locals()} built-in and all related
-	 * ways of determing local variables will return {@code #()}.
-	 * </p>
-	 *
-	 * @see #DEBUG_OPTION
-	 */
-	public static final String DEBUG_OPTION_STACK = "stack";
+	public static final String DEBUG_OPTION_ON = "on";
 	/**
 	 * <p>
 	 * On the command-line, indicates that no extra debugging support should be
@@ -461,6 +435,9 @@ public final class Bootstrap {
 	 * trace presented to the Suneido programmer will be the full Java stack
 	 * trace without any modification.
 	 * </p>
+	 *
+	 * @see #DEBUG_OPTION
+	 * @see #DEBUG_OPTION_ON
 	 */
-	public static final String DEBUG_OPTION_NONE = "none";
+	public static final String DEBUG_OPTION_OFF = "off";
 }
