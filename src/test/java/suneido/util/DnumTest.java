@@ -219,4 +219,11 @@ public class DnumTest {
 		}
 	}
 
+	// PortTests
+	public static boolean pt_dnum_add(String... args) {
+		Dnum x = parse(args[0]);
+		Dnum y = parse(args[1]);
+		return add(x, y).toString().equals(args[2]);
+	}
+
 }
