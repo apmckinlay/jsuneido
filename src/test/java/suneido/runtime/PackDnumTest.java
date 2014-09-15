@@ -44,6 +44,7 @@ public class PackDnumTest {
 	private static void test_pack(int sign, int coef, int exp, int... bs) {
 		ByteBuffer buf = ByteBuffer.allocate(20);
 		PackDnum.pack(sign, coef, exp, buf);
+		assertThat(PackDnum.packSize(sign, coef, exp), equalTo(buf.position()));
 		assertThat(buf.position(), equalTo(bs.length));
 		for (int i = 0; i < bs.length; ++i)
 			assertThat(buf.get(i), equalTo((byte) bs[i]));
@@ -78,6 +79,7 @@ public class PackDnumTest {
 	private static ByteBuffer pack(Dnum dn) {
 		ByteBuffer buf = ByteBuffer.allocate(20);
 		PackDnum.pack(dn, buf);
+		assertThat(PackDnum.packSize(dn), equalTo(buf.position()));
 		buf.flip();
 		return buf;
 	}
@@ -94,28 +96,12 @@ public class PackDnumTest {
 		int n = data.length;
 		for (int i = 0; i < n - 1; ++i) {
 			ByteBuffer x = pack(data[i]);
-			//System.out.println("\nx " + data[i] + " = " + ubbstr(x));
 			for (int j = i + 1; j < n; ++j) {
 				ByteBuffer y = pack(data[j]);
-				//System.out.println("y " + data[j] + " = " + ubbstr(y));
 				assertThat(data[i] + " :: " + data[j], ByteBuffers.bufferUcompare(x, y), lessThan(0));
 				assertThat(ByteBuffers.bufferUcompare(y, x), greaterThan(0));
 			}
 		}
 	}
-
-	/*private String ubbstr(ByteBuffer buf) {
-		if (buf.limit() == 0)
-			return "[]";
-		StringBuilder sb = new StringBuilder();
-		sb.append("[");
-		for (int i = 0; i < buf.limit(); ++i) {
-			if (i > 0)
-				sb.append(", ");
-			sb.append(buf.get(i) & 0xff);
-		}
-		sb.append("]");
-		return sb.toString();
-	}*/
 
 }
