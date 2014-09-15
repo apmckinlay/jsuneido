@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * <p>
  * Call stack with the data required for "none" debugging. Corresponds to
- * {@link DebugModel#NONE}.
+ * {@link DebugModel#OFF}.
  * </p>
  *
  * <p>

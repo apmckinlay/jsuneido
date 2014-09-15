@@ -61,7 +61,7 @@ public class Compiler {
 	}
 
 	private static boolean wantLineNumbers() {
-		return DebugModel.NONE != DebugManager.getInstance().getDebugModel();
+		return DebugModel.OFF != DebugManager.getInstance().getDebugModel();
 	}
 
 	public static AstNode parse(String src) {

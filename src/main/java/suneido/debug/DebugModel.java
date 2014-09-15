@@ -17,17 +17,12 @@ public enum DebugModel {
 	/**
 	 * Full debugging, as described in {@link Bootstrap#DEBUG_OPTION_ALL}.
 	 */
-	ALL(Bootstrap.DEBUG_OPTION_ALL),
-	/**
-	 * Stack trace translation, as described in
-	 * {@link Bootstrap#DEBUG_OPTION_STACK}.
-	 */
-	STACK(Bootstrap.DEBUG_OPTION_STACK),
+	ON(Bootstrap.DEBUG_OPTION_ON),
 	/**
 	 * No extra debugging support, as described in
 	 * {@link Bootstrap#DEBUG_OPTION_NONE}.
 	 */
-	NONE(Bootstrap.DEBUG_OPTION_NONE);
+	OFF(Bootstrap.DEBUG_OPTION_OFF);
 
 	//
 	// DATA

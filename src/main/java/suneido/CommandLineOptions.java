@@ -183,8 +183,8 @@ public class CommandLineOptions {
 		if (action == null)
 			action = Action.REPL;
 		if (debugModel == null) {
-			debugModel = (Action.REPL == action || Action.CLIENT == action) ? DebugModel.ALL
-					: DebugModel.NONE;
+			debugModel = (Action.REPL == action || Action.CLIENT == action) ? DebugModel.ON
+					: DebugModel.OFF;
 		}
 		if (serverPort == -1
 				&& (action == Action.SERVER || action == Action.CLIENT))
@@ -192,7 +192,7 @@ public class CommandLineOptions {
 	}
 
 	private void validate() {
-		if (debugModel != DebugModel.NONE
+		if (debugModel != DebugModel.OFF
 				&& !(action == Action.REPL || action == Action.CLIENT || action == Action.SERVER)) {
 			error("debug model '" + debugModel.getCommandLineOption()
 					+ "' can only be used with actions that run code");

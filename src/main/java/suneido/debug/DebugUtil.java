@@ -124,10 +124,9 @@ public final class DebugUtil {
 	/**
 	 * <p>
 	 * Returns whether the user has set a system property to indicate that the
-	 * bootstrap system should implement {@link DebugModel#ALL "all"-style
-	 * debugging} using JDWP even if a {@link suneido.boot.Platform platform}-
-	 * appropriate jSuneido debug (<strong>jsdebug</strong>) support library is
-	 * available.
+	 * bootstrap system should implement {@link DebugModel#ON full debugging}
+	 * using JDWP even if a {@link suneido.boot.Platform platform}-appropriate
+	 * jSuneido debug (<strong>jsdebug</strong>) support library is available.
 	 * </p>
 	 *
 	 * <p>
@@ -135,8 +134,7 @@ public final class DebugUtil {
 	 * returned will be <strong>{@code false}</strong>.
 	 * </p>
 	 *
-	 * @return True iff the user has forced "all"-style debugging to be done
-	 *         using JDWP
+	 * @return True iff the user has forced full debugging to be done using JDWP
 	 */
 	public static boolean isJDWPForced() {
 		return null != System.getProperty(JDWP_FORCE_PROP_NAME);
@@ -159,7 +157,7 @@ public final class DebugUtil {
 
 	/**
 	 * <p>
-	 * Name of system property used to force {@link DebugModel#ALL "all"-style
+	 * Name of system property used to force {@link DebugModel#ON full
 	 * debugging} to be implemented using the JDWP approach rather than using
 	 * the {@link suneido.boot.Platform platform}-appropriate jSuneido debug
 	 * (<strong>jsdebug</strong>) support library.
