@@ -13,20 +13,43 @@ import suneido.util.Dnum;
  * Numeric pack format is:
  * <li>Tag.PLUS or Tag.MINUS
  * <li>packed format of zero is just Tag.PLUS
- * <li>exponent encoded to compare correctly as unsigned byte
+ * <li>exponent adjusted as if decimal was to left of digits,
+ * and encoded to compare correctly as unsigned byte
  * <li>bytes of coefficient, most significant first
  */
 public class PackDnum {
 
+	// pack size
+
+	public static int packSize(long n) {
+		return packSize(Long.signum(n), n, 0);
+	}
+
+	public static int packSize(Dnum num) {
+		return packSize(num.signum(), num.coef(), num.exp());
+	}
+
+	public static int packSize(int sign, long n, int e) {
+		if (n == 0)
+			return 1;
+		if (e == Dnum.expInf)
+			return 2;
+		// strip trailing zeroes to make coefficient smaller
+		if (Long.remainderUnsigned(n, 10) == 0) {
+			n = Long.divideUnsigned(n, 10);
+			e++;
+			while (n % 10 == 0) {
+				n /= 10;
+				e++;
+			}
+		}
+		return 2 + nbytes(n);
+	}
+
 	// pack --------------------------------------------------------------------
 
 	public static void pack(long n, ByteBuffer buf) {
-		int sign = n == 0 ? 0 : +1;
-		if (n < 0) {
-			sign = -1;
-			n = -n;
-		}
-		pack(sign, n, 0, buf);
+		pack(Long.signum(n), n, 0, buf);
 	}
 
 	public static void pack(Dnum num, ByteBuffer buf) {
@@ -45,9 +68,13 @@ public class PackDnum {
 		}
 
 		// strip trailing zeroes to make coefficient smaller
-		while (Long.remainderUnsigned(n, 10) == 0) {
+		if (Long.remainderUnsigned(n, 10) == 0) {
 			n = Long.divideUnsigned(n, 10);
 			e++;
+			while (n % 10 == 0) {
+				n /= 10;
+				e++;
+			}
 		}
 		// adjust exponent as if decimal was at start of digits (i.e. 0 <= coef < 1)
 		e += ndigits(n);
@@ -68,9 +95,11 @@ public class PackDnum {
 
 	/** @return the number of decimal digits in x */
 	private static int ndigits(long x) {
-		int n = 0;
+		assert x != 0;
+		x = Long.divideUnsigned(x, 10);
+		int n = 1;
 		while (x != 0) {
-			x = Long.divideUnsigned(x, 10);
+			x /= 10; // only need divideUnsigned first time
 			n++;
 		}
 		return n;
