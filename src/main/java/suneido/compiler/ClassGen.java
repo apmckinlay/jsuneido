@@ -135,7 +135,7 @@ public class ClassGen {
 	ClassGen(ContextLayered context, BaseClassSet baseClassSet, String name,
 			List<String> locals, boolean useArgsArray,
 			CallableType callableType, int nParams, int parentId,
-			String sourceFile, int lineNumber, PrintWriter pw) {
+			String sourceFile, PrintWriter pw) {
 		this.context = context;
 		BaseClassSet.BaseClass baseClass = useArgsArray
 				? baseClassSet.getUnspecialized() : baseClassSet.getSpecialization(nParams);
@@ -179,9 +179,8 @@ public class ClassGen {
 		firstParam = nextJavaLocal;
 		mv.visitCode();
 		startLabel = placeLabel();
-		mv.visitLineNumber(lineNumber, startLabel);
-		lastLineNumber = lineNumber;
-		lastLabelNotUsedForLineNumber = null;
+		lastLineNumber = -1;
+		lastLabelNotUsedForLineNumber = startLabel;
 		if (callableType != CallableType.WRAPPED_BLOCK && useArgsArray)
 			massage();
 	}
