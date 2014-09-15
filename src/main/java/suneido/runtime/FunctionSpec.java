@@ -48,7 +48,6 @@ public class FunctionSpec {
 	// DATA
 	//
 
-	final String name;
 	final boolean atParam;
 	final String[] paramNames;
 	final String[] dynParams;
@@ -83,14 +82,13 @@ public class FunctionSpec {
 	// 
 
 	public FunctionSpec(String... params) {
-		this(null, params, NO_DEFAULTS, false, null);
+		this(params, NO_DEFAULTS, false, null);
 	}
 	public FunctionSpec(String[] params, Object... defaults) {
-		this(null, params, defaults, false, null);
+		this(params, defaults, false, null);
 	}
-	public FunctionSpec(String name, String[] params, Object[] defaults,
-			boolean atParam, String[] dynParams) {
-		this.name = name;
+	public FunctionSpec(String[] params, Object[] defaults, boolean atParam,
+			String[] dynParams) {
 		this.paramNames = params;
 		this.dynParams = dynParams;
 		this.defaults = defaults;
@@ -257,8 +255,6 @@ public class FunctionSpec {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder("FunctionSpec(");
-		if (name != null)
-			sb.append(name).append(", ");
 		sb.append("params:");
 		if (atParam)
 			sb.append(" @");

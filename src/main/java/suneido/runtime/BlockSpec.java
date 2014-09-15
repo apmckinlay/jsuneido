@@ -39,7 +39,7 @@ public final class BlockSpec extends ArgsArraySpec {
 
 	public BlockSpec(String name, String[] paramNames, boolean atParam,
 			String[] localNames, String[] upvalueNames) {
-		super(name, paramNames, NO_DEFAULTS, atParam, null, localNames);
+		super(paramNames, NO_DEFAULTS, atParam, null, localNames);
 		this.upvalueNames = upvalueNames;
 		this.iparams = upvalueNames.length;
 	}
