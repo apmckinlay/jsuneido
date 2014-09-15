@@ -121,8 +121,8 @@ public class ClassTest {
 
 		def("A", "class { F() { 123 } N: 123 }");
 		def("B", "A { }");
-		testDisp("A.F", "A.F");
-		testDisp("B.F", "A.F");
+		testDisp("A.F", "A.F /* method */");
+		testDisp("B.F", "A.F /* method */");
 		testDisp("B.N", "123");
 		notFound("B.M");
 
