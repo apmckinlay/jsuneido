@@ -54,11 +54,12 @@ public class CallstackNone extends Callstack {
 
 	@Immutable
 	private static final class StackTraceElementWrapper extends Frame {
-		private final StackTraceElement ste;
+		
+		private final PseudoFunction pf;
 
 		StackTraceElementWrapper(StackTraceElement ste) {
 			super(CallstackNone.EMPTY_LOCAL_ARRAY);
-			this.ste = ste;
+			this.pf = new PseudoFunction(ste);
 		}
 
 		//
@@ -67,12 +68,12 @@ public class CallstackNone extends Callstack {
 
 		@Override
 		public Object getFrame() {
-			return new PseudoFunction(ste);
+			return pf;
 		}
 
 		@Override
 		public int getLineNumber() {
-			return ste.getLineNumber();
+			return pf.ste.getLineNumber();
 		}
 
 		//
@@ -81,7 +82,7 @@ public class CallstackNone extends Callstack {
 
 		@Override
 		public String toString() {
-			return ste.toString();
+			return pf.ste.toString();
 		}
 	}
 
@@ -126,10 +127,15 @@ public class CallstackNone extends Callstack {
 		public String display() {
 			StringBuilder sb = new StringBuilder(128);
 			sb.append(ste.getClassName()).append('.')
-					.append(ste.getMethodName()).append(" (")
-					.append(ste.getFileName());
-			if (0 < ste.getLineNumber()) {
-				sb.append(':').append(ste.getLineNumber());
+					.append(ste.getMethodName());
+			if (null != ste.getFileName() || 0 < ste.getLineNumber()) {
+				sb.append(" (");
+				if (null != ste.getFileName()) {
+					sb.append(ste.getFileName());
+				}
+				if (0 < ste.getLineNumber()) {
+					sb.append(':').append(ste.getLineNumber());
+				}
 			}
 			return sb.append(')').toString();
 		}
