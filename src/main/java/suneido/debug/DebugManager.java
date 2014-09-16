@@ -175,7 +175,13 @@ public final class DebugManager {
 			Throwable throwable) {
 		switch (actualModel) {
 		case ON:
-			return new CallstackAll(newStackInfo(), throwable);
+			try {
+				return new CallstackAll(newStackInfo(), throwable);
+			} catch (Throwable newException) {
+				Errlog.errlog("exception building callstack", newException);
+			}
+			// Deliberately fall through from the exception to build a
+			// minimalist CallstackNone.
 		case OFF:
 			return new CallstackNone(throwable);
 		default:
