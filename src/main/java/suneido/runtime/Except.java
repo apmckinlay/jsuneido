@@ -142,6 +142,9 @@ public final class Except extends String2 {
 		// appropriate.
 		if (throwable instanceof StackOverflowError) {
 			return "function call overflow";
+		} else if (throwable instanceof NullPointerException ||
+					throwable instanceof AssertionError) {
+			return throwable.getClass().getName();
 		} else {
 			return throwable.getMessage();
 		}
