@@ -176,6 +176,7 @@ public class SuClass extends SuValue {
 	private static class NotFound extends SuCallable {
 		String method;
 		NotFound(String method) {
+			this.callableType = CallableType.METHOD_NOT_FOUND;
 			this.method = method;
 		}
 		@Override
