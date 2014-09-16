@@ -142,7 +142,7 @@ public final class CallstackAll extends Callstack {
 					throw new SuInternalError(
 							"Java \"this\" of class "
 									+ javaThis.getClass().getName()
-									+ "has no callable type (anonymous subclass of SuCallable?)");
+									+ " has no callable type (anonymous subclass of SuCallable?)");
 				}
 				// Don't display locals for closures, bound methods, and any
 				// other callables that are just a wrappers around the "true"

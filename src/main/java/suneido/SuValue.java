@@ -8,6 +8,7 @@ import static suneido.SuException.methodNotFound;
 
 import java.nio.ByteBuffer;
 
+import suneido.runtime.CallableType;
 import suneido.runtime.Ops;
 import suneido.runtime.SuCallable;
 import suneido.runtime.SuClass;
@@ -171,6 +172,7 @@ public class SuValue implements Packable {
 	public static class NotFound extends SuCallable {
 		String method;
 		public NotFound(String method) {
+			this.callableType = CallableType.METHOD_NOT_FOUND;
 			this.method = method;
 		}
 		@Override

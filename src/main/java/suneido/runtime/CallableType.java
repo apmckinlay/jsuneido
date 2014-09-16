@@ -1,5 +1,6 @@
 package suneido.runtime;
 
+import suneido.SuValue;
 import suneido.jsdi.DllInterface;
 
 /**
@@ -15,6 +16,19 @@ public enum CallableType {
 	 * Unknown type of callable.
 	 */
 	UNKNOWN("???", "???", false),
+	/**
+	 * <p>
+	 * Type of a pseudo-callable returned when {@link SuValue#lookup(String)
+	 * method lookup} fails on some {@link SuValue value}.
+	 * </p>
+	 *
+	 * <p>
+	 * <strong>NOTE</strong>: {@link #isWrapper()} is <b>{@code true}</b> for
+	 * this enumerator so that it will be skipped by the debug stack frame
+	 * parser.
+	 * </p>
+	 */
+	METHOD_NOT_FOUND("NotFound", "", true),
 	/**
 	 * Callable is a plain function.
 	 * 
