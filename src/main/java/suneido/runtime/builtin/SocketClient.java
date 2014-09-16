@@ -157,20 +157,21 @@ public class SocketClient extends SuValue {
 		close();
 	}
 
-	public static final BuiltinClass clazz = new BuiltinClass() {
-		FunctionSpec newFS = new FunctionSpec(
-				array("address", "port", "timeout", "timeoutConnect"),
-				60, 0);
+	private static final FunctionSpec newFS = new FunctionSpec(array("address",
+			"port", "timeout", "timeoutConnect"), 60, 0);
+
+	private static final FunctionSpec callFS = new FunctionSpec(array(
+			"address", "port", "timeout", "timeoutConnect", "block"), 60, 0,
+			false);
+
+	public static final BuiltinClass clazz = new BuiltinClass("SocketClient",
+			newFS) {
 
 		@Override
 		public SocketClient newInstance(Object... args) {
 			args = Args.massage(newFS, args);
 			return new SocketClient(args);
 		}
-
-		FunctionSpec callFS = new FunctionSpec(
-				array("address", "port", "timeout", "timeoutConnect", "block"),
-				60, 0, false);
 
 		@Override
 		public Object call(Object... args) {

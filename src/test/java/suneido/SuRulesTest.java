@@ -8,7 +8,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import suneido.runtime.SuMethod0;
+import suneido.runtime.SuEvalBase0;
 
 public class SuRulesTest {
 
@@ -27,7 +27,7 @@ public class SuRulesTest {
 	@Test
 	public void test_no_dependencies() {
 		SuRules r = new SuRules();
-		r.attachRule("a", new SuMethod0() {
+		r.attachRule("a", new SuEvalBase0() {
 				@Override
 				public Object eval0(Object self) {
 					return "result";
@@ -38,7 +38,7 @@ public class SuRulesTest {
 
 	int count = 0;
 
-	SuMethod0 with_deps = new SuMethod0() {
+	SuEvalBase0 with_deps = new SuEvalBase0() {
 		@Override
 		public Object eval0(Object self) {
 			++count;
@@ -81,13 +81,13 @@ public class SuRulesTest {
 	public void test_chained_rules() {
 		SuRules r = new SuRules();
 		// r1 => r2 => a
-		r.attachRule("r1", new SuMethod0() {
+		r.attachRule("r1", new SuEvalBase0() {
 			@Override
 			public Object eval0(Object self) {
 				++count1;
 				return "=" + ((SuRules) self).get("r2").toString();
 			}});
-		r.attachRule("r2", new SuMethod0() {
+		r.attachRule("r2", new SuEvalBase0() {
 			@Override
 			public Object eval0(Object self) {
 				++count2;

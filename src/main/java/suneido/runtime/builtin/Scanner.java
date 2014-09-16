@@ -132,10 +132,11 @@ public class Scanner extends SuValue implements Iterable<String>, Iterator<Strin
 		throw new UnsupportedOperationException();
 	}
 
-	public static final BuiltinClass clazz = new BuiltinClass() {
+	public static final BuiltinClass clazz = new BuiltinClass("Scanner",
+			FunctionSpec.STRING) {
 		@Override
 		public Scanner newInstance(Object... args) {
-			args = Args.massage(FunctionSpec.string, args);
+			args = Args.massage(FunctionSpec.STRING, args);
 			return new Scanner(Ops.toStr(args[0]));
 		}
 	};

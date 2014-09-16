@@ -13,81 +13,46 @@ class Builtin {
 	public static final String PACKAGE_NAME = Builtin.class.getPackage()
 			.getName();
 
-	static SuCallable method(MethodHandle mh, FunctionSpec params) {
+	static SuCallable method(MethodHandle mh, String valueName, FunctionSpec params) {
 		if (params == null)
-			return new MethodN(mh, null);
-		switch (params.nParams()) {
+			return new MethodN(mh, valueName, null);
+		switch (params.getParamCount()) {
 		case 0:
-			return new Method0(mh, params);
+			return new Method0(mh, valueName, params);
 		case 1:
-			return new Method1(mh, params);
+			return new Method1(mh, valueName, params);
 		case 2:
-			return new Method2(mh, params);
+			return new Method2(mh, valueName, params);
 		case 3:
-			return new Method3(mh, params);
+			return new Method3(mh, valueName, params);
 		case 4:
-			return new Method4(mh, params);
+			return new Method4(mh, valueName, params);
 		default:
-			return new MethodN(mh, params);
+			return new MethodN(mh, valueName, params);
 		}
 	}
 
-	private static abstract class Method extends SuCallable {
+	private static abstract class Method extends SuBuiltinMethod {
 		protected final MethodHandle mh;
 
-		Method(MethodHandle mh, FunctionSpec params) {
+		Method(MethodHandle mh, String valueName, FunctionSpec params) {
+			super(valueName, params);
 			this.mh = mh;
-			this.params = params;
 		}
-
-		@Override
-		public String typeName() {
-			return "Method";
-		}
-
-		@Override
-		public abstract Object eval(Object self, Object... args);
-
-		@Override
-		public Object call(Object... args) {
-			return eval(this, args);
-		}
-		@Override
-		public Object call0() {
-			return eval0(this);
-		}
-		@Override
-		public Object call1(Object a) {
-			return eval1(this, a);
-		}
-		@Override
-		public Object call2(Object a, Object b) {
-			return eval2(this, a, b);
-		}
-		@Override
-		public Object call3(Object a, Object b, Object c) {
-			return eval3(this, a, b, c);
-		}
-		@Override
-		public Object call4(Object a, Object b, Object c, Object d) {
-			return eval4(this, a, b, c, d);
-		}
-
 	}
 
 	private static class MethodN extends Method {
 
-		MethodN(MethodHandle mh, FunctionSpec params) {
-			super(mh, params);
+		MethodN(MethodHandle mh, String valueName, FunctionSpec params) {
+			super(mh, valueName, params);
 		}
-
 		@Override
 		public Object eval(Object self, Object... args) {
 			if (params != null)
 				args = Args.massage(params, args);
 			try {
 				return mh.invoke(self, args);
-			} catch (RuntimeException e) {
+			} catch (RuntimeException | Error e) {
 				throw e;
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
@@ -97,8 +62,8 @@ class Builtin {
 
 	private static final class Method0 extends Method {
 
-		Method0(MethodHandle mh, FunctionSpec params) {
-			super(mh, params);
+		Method0(MethodHandle mh, String valueName, FunctionSpec params) {
+			super(mh, valueName, params);
 		}
 
 		@Override
@@ -111,7 +76,7 @@ class Builtin {
 		public Object eval0(Object self) {
 			try {
 				return mh.invoke(self);
-			} catch (RuntimeException e) {
+			} catch (RuntimeException | Error e) {
 				throw e;
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
@@ -121,8 +86,8 @@ class Builtin {
 
 	private static final class Method1 extends Method {
 
-		Method1(MethodHandle mh, FunctionSpec params) {
-			super(mh, params);
+		Method1(MethodHandle mh, String valueName, FunctionSpec params) {
+			super(mh, valueName, params);
 		}
 
 		@Override
@@ -140,7 +105,7 @@ class Builtin {
 		public Object eval1(Object self, Object a) {
 			try {
 				return mh.invoke(self, a);
-			} catch (RuntimeException e) {
+			} catch (RuntimeException | Error e) {
 				throw e;
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
@@ -150,8 +115,8 @@ class Builtin {
 
 	private static final class Method2 extends Method {
 
-		Method2(MethodHandle mh, FunctionSpec params) {
-			super(mh, params);
+		Method2(MethodHandle mh, String valueName, FunctionSpec params) {
+			super(mh, valueName, params);
 		}
 
 		@Override
@@ -174,7 +139,7 @@ class Builtin {
 		public Object eval2(Object self, Object a, Object b) {
 			try {
 				return mh.invoke(self, a, b);
-			} catch (RuntimeException e) {
+			} catch (RuntimeException | Error e) {
 				throw e;
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
@@ -184,8 +149,8 @@ class Builtin {
 
 	private static final class Method3 extends Method {
 
-		Method3(MethodHandle mh, FunctionSpec params) {
-			super(mh, params);
+		Method3(MethodHandle mh, String valueName, FunctionSpec params) {
+			super(mh, valueName, params);
 		}
 
 		@Override
@@ -213,7 +178,7 @@ class Builtin {
 		public Object eval3(Object self, Object a, Object b, Object c) {
 			try {
 				return mh.invoke(self, a, b, c);
-			} catch (RuntimeException e) {
+			} catch (RuntimeException | Error e) {
 				throw e;
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
@@ -223,8 +188,8 @@ class Builtin {
 
 	private static final class Method4 extends Method {
 
-		Method4(MethodHandle mh, FunctionSpec params) {
-			super(mh, params);
+		Method4(MethodHandle mh, String valueName, FunctionSpec params) {
+			super(mh, valueName, params);
 		}
 
 		@Override
@@ -257,7 +222,7 @@ class Builtin {
 		public Object eval4(Object self, Object a, Object b, Object c, Object d) {
 			try {
 				return mh.invoke(self, a, b, c, d);
-			} catch (RuntimeException e) {
+			} catch (RuntimeException | Error e) {
 				throw e;
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
@@ -270,7 +235,7 @@ class Builtin {
 	static SuCallable function(MethodHandle mh, String valueName, FunctionSpec params) {
 		if (params == null)
 			return new FunctionN(mh, valueName, null);
-		switch (params.nParams()) {
+		switch (params.getParamCount()) {
 		case 0:
 			return new Function0(mh, valueName, params);
 		case 1:
@@ -286,34 +251,13 @@ class Builtin {
 		}
 	}
 
-	private static abstract class Function extends SuCallable {
+	private static abstract class Function extends SuBuiltinFunction {
 		protected final MethodHandle mh;
-		private final String valueName;
 
 		Function(MethodHandle mh, String valueName, FunctionSpec params) {
+			super(valueName, params);
 			this.mh = mh;
-			this.valueName = valueName;
-			this.params = params;
 		}
-
-		@Override
-		public String typeName() {
-			return "Builtin";
-		}
-
-		@Override
-		public String valueName() {
-			return valueName;
-		}
-
-		@Override
-		public String display() {
-			return valueName + " /* builtin function */";
-		}
-
-		@Override
-		public abstract Object call(Object... args);
-
 	}
 
 	private static class FunctionN extends Function {
@@ -328,7 +272,7 @@ class Builtin {
 				args = Args.massage(params, args);
 			try {
 				return mh.invoke(args);
-			} catch (RuntimeException e) {
+			} catch (RuntimeException | Error e) {
 				throw e;
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
@@ -352,7 +296,7 @@ class Builtin {
 		public Object call0() {
 			try {
 				return mh.invoke();
-			} catch (RuntimeException e) {
+			} catch (RuntimeException | Error e) {
 				throw e;
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
@@ -380,7 +324,7 @@ class Builtin {
 		public Object call1(Object a) {
 			try {
 				return mh.invoke(a);
-			} catch (RuntimeException e) {
+			} catch (RuntimeException | Error e) {
 				throw e;
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
@@ -414,7 +358,7 @@ class Builtin {
 		public Object call2(Object a, Object b) {
 			try {
 				return mh.invoke(a, b);
-			} catch (RuntimeException e) {
+			} catch (RuntimeException | Error e) {
 				throw e;
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
@@ -453,7 +397,7 @@ class Builtin {
 		public Object call3(Object a, Object b, Object c) {
 			try {
 				return mh.invoke(a, b, c);
-			} catch (RuntimeException e) {
+			} catch (RuntimeException | Error e) {
 				throw e;
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
@@ -497,7 +441,7 @@ class Builtin {
 		public Object call4(Object a, Object b, Object c, Object d) {
 			try {
 				return mh.invoke(a, b, c, d);
-			} catch (RuntimeException e) {
+			} catch (RuntimeException | Error e) {
 				throw e;
 			} catch (Throwable e) {
 				throw new RuntimeException(e);

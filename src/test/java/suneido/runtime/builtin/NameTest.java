@@ -44,7 +44,7 @@ public class NameTest {
 		test("Name(#{})", "");
 		test("Name(Object())", "");
 		test("Name(Record())", "");
-		test("Name(function() { })", "");
+		test("Name(function() { })", "eval");
 //		test("Name(x = function() { })", "x"); FIXME: This test case should work, as it does on CSuneido
 //		test("Name(class { })", "");           FIXME: This test case should work, as it does on CSuneido
 //		test("Name(x = class { })", "x");      FIXME: This test case should work, as it does on CSuneido
@@ -52,8 +52,8 @@ public class NameTest {
 		test("Name((class { })())", "");
 		test("Name(x = (class { })())", "");
 		test("Name(x = new (class { }))", "");
-		test("Name({ })", "");
-		test("Name(x = { })", "");
+		test("Name({ })", "eval");
+		test("Name(x = { })", "eval");
 		test("x = class { Method() { } }; Name(x.Method)", "");
 		test("x = class { Method() { } }; Name(x().Method)", "");
 		// TODO: need testing for named functions

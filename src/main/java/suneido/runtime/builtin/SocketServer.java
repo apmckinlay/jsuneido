@@ -17,12 +17,15 @@ import java.util.concurrent.ThreadFactory;
 import suneido.SuException;
 import suneido.SuValue;
 import suneido.TheDbms;
-import suneido.runtime.*;
+import suneido.runtime.ArgsIterator;
+import suneido.runtime.BuiltinMethods;
+import suneido.runtime.Ops;
+import suneido.runtime.SuClass;
+import suneido.runtime.SuInstance;
 import suneido.util.Errlog;
 import suneido.util.ServerBySocket;
 import suneido.util.ServerBySocket.HandlerFactory;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
@@ -47,7 +50,7 @@ public class SocketServer extends SuClass {
 
 	private SocketServer() {
 		super("builtin", "SocketServer", null,
-				ImmutableMap.of("CallClass", new CallClass()));
+				BuiltinMethods.methods("SocketServer", SocketServer.class));
 	}
 
 	@Override
@@ -55,17 +58,14 @@ public class SocketServer extends SuClass {
 		throw new SuException("cannot create instances of SocketServer");
 	}
 
-	public static class CallClass extends SuMethod {
-		@Override
-		public Object eval(Object self, Object... args) {
-			args = convert(args);
-			int port = Ops.toInt(getPort(self, args));
-			Thread thread = new Thread(
-					new Listener(port, new Instance((SuClass) self, args)));
-			thread.setDaemon(true);
-			thread.start();
-			return null;
-		}
+	public static Object CallClass(Object self, Object... args) {
+		args = convert(args);
+		int port = Ops.toInt(getPort(self, args));
+		Thread thread = new Thread(
+				new Listener(port, new Instance((SuClass) self, args)));
+		thread.setDaemon(true);
+		thread.start();
+		return null;
 	}
 
 	/** @return An args array with name, port, and exit as named args (if present) */
@@ -208,21 +208,25 @@ public class SocketServer extends SuClass {
 
 		@Override
 		public SuValue lookup(String method) {
-			if (method == "RemoteUser")
-				return RemoteUser;
-			SuValue f = SocketClient.getMethod(method);
+			SuValue f = builtins.getMethod(method);
+			if (f != null)
+				return f;
+			f = SocketClient.getMethod(method);
 			if (f != null)
 				return f;
 			return super.lookup(method);
 		}
 
-		private final SuValue RemoteUser = new SuMethod0() {
-			@Override
-			public Object eval0(Object self) {
-				return socket.getInetAddress();
-			}
-		};
+		//
+		// BUILT-IN METHODS
+		//
 
+		private static final BuiltinMethods builtins = new BuiltinMethods(
+				"socketserver", Instance.class);
+
+		public Object RemoteUser(Object self) {
+			return socket.getInetAddress();
+		};
 	}
 
 }

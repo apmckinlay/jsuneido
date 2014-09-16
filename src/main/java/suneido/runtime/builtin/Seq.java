@@ -13,7 +13,11 @@ import suneido.runtime.*;
 
 public final class Seq extends BuiltinClass {
 	private static final FunctionSpec initFS =
-			FunctionSpec.from("from, to = false, by = 1");
+			ArgsArraySpec.from("from, to = false, by = 1");
+
+	public Seq() {
+		super("Seq", initFS);
+	}
 
 	@Override
 	public Object newInstance(Object... args) {

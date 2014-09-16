@@ -39,7 +39,7 @@ public class StringMethods extends BuiltinMethods {
 	public static final StringMethods singleton = new StringMethods();
 
 	private StringMethods() {
-		super(StringMethods.class, "Strings");
+		super("string", StringMethods.class, "Strings");
 	}
 
 	private static String toStr(Object self) {
@@ -230,7 +230,7 @@ public class StringMethods extends BuiltinMethods {
 		public static final SuValue singleton = new IterateMethods();
 
 		protected IterateMethods() {
-			super(IterateMethods.class, null);
+			super("stringiter", IterateMethods.class, null);
 		}
 
 		public static Object Next(Object self) {

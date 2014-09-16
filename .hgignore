@@ -1,7 +1,6 @@
 syntax: glob
-**.class
+target/**
 **.launch
-WhenBuilt.jar
 .DS_Store
 
 install.bat
@@ -73,7 +72,7 @@ syntax: regexp
 syntax: regexp
 ^axis\.go$
 syntax: regexp
-^jsuneido(-(amd64|x86))?(-raw)?\.jar$
+jsuneido.jar
 
 syntax: regexp
 ^dump-data\.txt$

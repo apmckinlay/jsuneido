@@ -27,9 +27,6 @@ import com.google.common.base.Splitter;
 
 @ThreadSafe // all static methods
 public final class Ops {
-	public static SuException BREAK_EXCEPTION = new SuException("block:break");
-	public static SuException CONTINUE_EXCEPTION = new SuException("block:continue");
-
 	public static boolean is_(Object x, Object y) {
 		if (x == y)
 			return true;

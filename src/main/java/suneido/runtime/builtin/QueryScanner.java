@@ -14,10 +14,11 @@ public class QueryScanner extends Scanner {
 		lexer.ignoreCase();
 	}
 
-	public static final BuiltinClass clazz = new BuiltinClass() {
+	public static final BuiltinClass clazz = new BuiltinClass("QueryScanner",
+			FunctionSpec.STRING) {
 		@Override
 		public QueryScanner newInstance(Object... args) {
-			args = Args.massage(FunctionSpec.string, args);
+			args = Args.massage(FunctionSpec.STRING, args);
 			return new QueryScanner(Ops.toStr(args[0]));
 		}
 	};

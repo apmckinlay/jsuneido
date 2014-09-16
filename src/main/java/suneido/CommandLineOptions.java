@@ -11,10 +11,11 @@ public class CommandLineOptions {
 	private static final int DEFAULT_PORT = 3147;
 	private final String[] args;
 	private int arg_i = 0;
-	public enum Action
-		{ REPL, SERVER, DUMP, LOAD, CHECK, VERSION, REBUILD, COMPACT, TEST, HELP,
-		ERROR, TESTCLIENT, TESTSERVER, CLIENT,
-		LOAD2, COMPACT2, REBUILD2 }
+
+	public enum Action {
+		REPL, SERVER, DUMP, LOAD, CHECK, VERSION, REBUILD, COMPACT, TEST, HELP, ERROR, TESTCLIENT, TESTSERVER, CLIENT, LOAD2, COMPACT2, REBUILD2
+	}
+
 	public Action action;
 	public String actionArg = null;
 	public int serverPort = -1;
@@ -30,15 +31,11 @@ public class CommandLineOptions {
 	public boolean unattended = false;
 
 	public static CommandLineOptions parse(String... args) {
-		return parse(DebugModel.STACK, args);
+		return new CommandLineOptions(args).parse();
 	}
 
-	public static CommandLineOptions parse(DebugModel defaultDebugModel, String... args) {
-		return new CommandLineOptions(defaultDebugModel, args).parse();
-	}
-
-	public CommandLineOptions(DebugModel defaultDebugModel, String[] args) {
-		this.debugModel = defaultDebugModel;
+	public CommandLineOptions(String[] args) {
+		this.debugModel = null; // Indicates no model chosen yet
 		this.args = args;
 	}
 
@@ -56,7 +53,7 @@ public class CommandLineOptions {
 				setAction(Action.SERVER);
 			else if (arg.equals("-client") || arg.equals("-c")) {
 				setAction(Action.CLIENT);
-				if (arg_i + 1 < args.length && ! args[arg_i + 1].startsWith("-"))
+				if (arg_i + 1 < args.length && !args[arg_i + 1].startsWith("-"))
 					actionArg = args[++arg_i];
 				else
 					actionArg = "127.0.0.1";
@@ -91,7 +88,8 @@ public class CommandLineOptions {
 				setAction(Action.TEST);
 			else if (arg.equals("-version") || arg.equals("-v"))
 				setAction(Action.VERSION);
-			else if (arg.equals("-help") || arg.equals("-h") || arg.equals("-?"))
+			else if (arg.equals("-help") || arg.equals("-h")
+					|| arg.equals("-?"))
 				setAction(Action.HELP);
 			else if (arg.equals("-testclient") || arg.equals("-tc"))
 				setActionWithArg(Action.TESTCLIENT);
@@ -118,7 +116,7 @@ public class CommandLineOptions {
 			else
 				error("unknown option: " + arg);
 			if (action == Action.ERROR)
-				return this;
+				break;
 		}
 		defaults();
 		validate();
@@ -156,7 +154,8 @@ public class CommandLineOptions {
 		if (this.action == null)
 			this.action = action;
 		else {
-			error("only one action is allowed, cannot have both " + this.action + " and " + action);
+			error("only one action is allowed, cannot have both " + this.action
+					+ " and " + action);
 		}
 	}
 
@@ -173,7 +172,7 @@ public class CommandLineOptions {
 
 	private String getArg() {
 		String next = arg_i + 1 < args.length ? args[arg_i + 1] : "--";
-		if (! next.startsWith("-") && ! next.equals("--")) {
+		if (!next.startsWith("-") && !next.equals("--")) {
 			++arg_i;
 			return next;
 		} else
@@ -183,14 +182,25 @@ public class CommandLineOptions {
 	private void defaults() {
 		if (action == null)
 			action = Action.REPL;
-		if (serverPort == -1 &&
-				(action == Action.SERVER || action == Action.CLIENT))
+		if (debugModel == null) {
+			debugModel = (Action.REPL == action || Action.CLIENT == action) ? DebugModel.ON
+					: DebugModel.OFF;
+		}
+		if (serverPort == -1
+				&& (action == Action.SERVER || action == Action.CLIENT))
 			serverPort = DEFAULT_PORT;
 	}
 
 	private void validate() {
-		if (serverPort != -1 && action != Action.SERVER && action != Action.CLIENT)
-			error("port should only be specifed with -server or -client, not " + action);
+		if (debugModel != DebugModel.OFF
+				&& !(action == Action.REPL || action == Action.CLIENT || action == Action.SERVER)) {
+			error("debug model '" + debugModel.getCommandLineOption()
+					+ "' can only be used with actions that run code");
+		}
+		if (serverPort != -1 && action != Action.SERVER
+				&& action != Action.CLIENT)
+			error("port should only be specifed with -server or -client, not "
+					+ action);
 	}
 
 	private void remainder() {
@@ -214,7 +224,7 @@ public class CommandLineOptions {
 			if (remainder != "")
 				sb.append(" rest: ").append(remainder);
 		}
-		if (impersonate != null && ! impersonate.equals(WhenBuilt.when()))
+		if (impersonate != null && !impersonate.equals(WhenBuilt.when()))
 			sb.append(" impersonate='").append(impersonate).append("'");
 		if (timeoutMin != DEFAULT_TIMEOUT)
 			sb.append(" timeout=" + timeoutMin);

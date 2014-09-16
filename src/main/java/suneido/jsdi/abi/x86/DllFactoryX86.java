@@ -35,8 +35,8 @@ final class DllFactoryX86 extends DllFactory {
 	//
 
 	@Override
-	protected Dll makeRealDll(String suTypeName, String libraryName,
-			String userFuncName, TypeList params, Type returnType) {
+	protected Dll makeRealDll(String libraryName, String userFuncName,
+			TypeList params, Type returnType) {
 		final ReturnTypeGroup rtg = ReturnTypeGroup.fromType(returnType);
 		long funcPtr = getFuncPtr(libraryName, userFuncName);
 		MarshallPlanX86 paramsPlan = null;
@@ -47,7 +47,7 @@ final class DllFactoryX86 extends DllFactory {
 			StorageCategory sc = paramsPlan.getStorageCategory();
 			nc = NativeCallX86.get(sc, rtg);
 		}
-		return new DllX86(funcPtr, params, returnType, rtg, nc, suTypeName,
-				this, libraryName, userFuncName, paramsPlan);
+		return new DllX86(funcPtr, params, returnType, rtg, nc, this,
+				libraryName, userFuncName, paramsPlan);
 	}
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 
-<project default="all" name="Build the JSDI C++ DLL">
+<project default="build" name="Build the JSDI C++ DLL">
 	<property environment="env"/>
 	<condition property="jsdi-path" value="${env.JSDI_PATH}" else="../jsdi">
 		<isset property="env.JSDI_PATH"/>
@@ -15,6 +15,14 @@
 	<property name="dll-src-dir-win32-amd64" value="${jsdi-vs-path}/x64/${jsdi-msbuild-config}"/>
 	<property name="dll-src-dir-win32-x86" value="${jsdi-vs-path}/${jsdi-msbuild-config}"/>
 	<property name="dll-dst-dir" value="lib"/>
+	<condition property="platform.windows">
+		<os family="windows"/>
+	</condition>
+	<condition property="platform.not-windows">
+		<not>
+			<os family="windows"/>
+		</not>
+	</condition>
 
 	<path id="javah-classpath">
 		<pathelement path="${java-target-dir}"/>
@@ -23,14 +31,15 @@
 		</fileset>
 	</path>
 	
-	<target name="all" depends="build-win32-amd64,build-win32-x86"/>
+	<target name="build" depends="build-win32-amd64,build-win32-x86"/>
 
 	<target name="rebuild" depends="rebuild-win32-amd64,rebuild-win32-x86"/>
 
 	<target name="clean" depends="clean-win32-amd64,clean-win32-x86"/>
 
-	<target name="build-win32-amd64" depends="gen_jni,gen_global_refs,gen_enums"
-	        description="Use Visual Studio to make the Windows AMD64 version of the dll"
+	<target name="build-win32-amd64" depends="gen_jni,gen_global_refs,gen_enums,platform-check"
+			description="Use Visual Studio to make the Windows AMD64 version of the dll"
+			if="platform.windows"
 	>
 		<exec executable="msbuild" dir="${jsdi-vs-path}" failonerror="true">
 			<arg value="${jsdi-vs-sln}"/>
@@ -43,7 +52,7 @@
 		/>
 	</target>
 
-	<target name="clean-win32-amd64">
+	<target name="clean-win32-amd64" depends="platform-check" if="platform.windows">
 		<exec executable="msbuild" dir="${jsdi-vs-path}" failonerror="true">
 			<arg value="${jsdi-vs-sln}"/>
 			<arg value="/t:Clean"/>
@@ -53,8 +62,9 @@
 
 	<target name="rebuild-win32-amd64" depends="clean-win32-amd64,build-win32-amd64"/>
 
-	<target name="build-win32-x86" depends="gen_jni,gen_global_refs,gen_enums"
-	        description="Use Visual Studio to make the Windows x86 version of the dll"
+	<target name="build-win32-x86" depends="gen_jni,gen_global_refs,gen_enums,platform-check"
+			description="Use Visual Studio to make the Windows x86 version of the dll"
+			if="platform.windows"
 	>
 		<exec executable="msbuild" dir="${jsdi-vs-path}" failonerror="true">
 			<arg value="${jsdi-vs-sln}"/>
@@ -67,7 +77,7 @@
 		/>
 	</target>
 
-	<target name="clean-win32-x86">
+	<target name="clean-win32-x86" depends="platform-check" if="platform.windows">
 		<exec executable="msbuild" dir="${jsdi-vs-path}" failonerror="true">
 			<arg value="${jsdi-vs-sln}"/>
 			<arg value="/t:Clean"/>
@@ -141,4 +151,7 @@
 		</delete>
 	</target>
 
+	<target name="platform-check" if="${platform.not-windows}">
+		<echo level="info" message="JSDI binaries will not be built on this non-Windows platform"/>
+	</target>
 </project>

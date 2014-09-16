@@ -13,7 +13,7 @@ import suneido.runtime.*;
 import suneido.util.Util;
 
 public class Digest extends SuValue {
-	private static final BuiltinMethods methods = new BuiltinMethods(Digest.class);;
+	private static final BuiltinMethods methods = new BuiltinMethods(Digest.class);
 	private final MessageDigest cksum;
 
 	private Digest(String which) {
@@ -48,13 +48,14 @@ public class Digest extends SuValue {
 	public static class Instance extends BuiltinClass {
 		String which;
 
-		public Instance(String which) {
+		public Instance(String which, String className) {
+			super(className);
 			this.which = which;
 		}
 
 		@Override
 		protected Object newInstance(Object... args) {
-			Args.massage(FunctionSpec.noParams, args);
+			Args.massage(FunctionSpec.NO_PARAMS, args);
 			return new Digest(which);
 		}
 

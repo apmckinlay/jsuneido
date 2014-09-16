@@ -153,8 +153,8 @@ public final class COMobject extends JSDIValue {
 		return TYPENAME;
 	}
 
-	private static final Map<String, SuCallable> builtins = BuiltinMethods
-			.methods(COMobject.class);
+	private static final BuiltinMethods builtins = new BuiltinMethods(
+			COMobject.class);
 
 	@Override
 	public synchronized Object get(Object member) {
@@ -201,7 +201,7 @@ public final class COMobject extends JSDIValue {
 
 	@Override
 	public SuValue lookup(String method) {
-		SuValue result = builtins.get(method);
+		SuValue result = builtins.getMethod(method);
 		if (null == result) {
 			result = new IDispatchMethod(method);
 		}
@@ -260,15 +260,15 @@ public final class COMobject extends JSDIValue {
 	// BUILT-IN CLASS
 	//
 
+	private static final FunctionSpec newFS = new FunctionSpec(array("progid-or-ptr"));
+
 	/**
 	 * Reference to a {@link BuiltinClass} that describes how to expose this
 	 * class to the Suneido programmer.
 	 * @see suneido.runtime.Builtins
 	 */
-	public static final SuValue clazz = new BuiltinClass() {
-
-		private final FunctionSpec newFS = new FunctionSpec(
-				array("progid-or-ptr"));
+	public static final BuiltinClass clazz = new BuiltinClass("COMobject",
+			newFS) {
 
 		@Override
 		protected Object newInstance(Object... args) {
@@ -290,8 +290,8 @@ public final class COMobject extends JSDIValue {
 				} else {
 					return Boolean.FALSE;
 				}
-			// Otherwise, if the parameter is a number, it is an IUnknown
-			// pointer which should be wrapped.
+				// Otherwise, if the parameter is a number, it is an IUnknown
+				// pointer which should be wrapped.
 			} else {
 				ptrToIUnknown = NumberConversions.toPointer64(x);
 				if (NumberConversions.nullPointer64() == ptrToIUnknown) {
@@ -344,7 +344,7 @@ public final class COMobject extends JSDIValue {
 
 		@Override
 		public Object eval(Object self, Object... args) {
-			return ((COMobject)self).invokeMethod(name, args);
+			return ((COMobject) self).invokeMethod(name, args);
 		}
 	}
 

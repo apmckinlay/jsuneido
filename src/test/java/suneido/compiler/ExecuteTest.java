@@ -228,14 +228,14 @@ public class ExecuteTest {
 	@Test
 	public void test_display() {
 		def("F", "function () { }");
-		testDisp("F", "F");
+		testDisp("F", "F /* function */");
 
 		def("C", "class { }");
 		testDisp("C", "C");
 		testDisp("C()", "C()");
 
 		def("C", "class { M() { } }");
-		testDisp("C.M", "C.M");
+		testDisp("C.M", "C.M /* method */");
 
 		testDisp("Pack", "Pack /* builtin function */");
 		testDisp("SocketServer", "SocketServer /* builtin class */");
@@ -359,7 +359,7 @@ public class ExecuteTest {
 	public static void test(String expr, String expected) {
 		Object result = eval(expr);
 		if (result instanceof SuBoundMethod)
-			result = ((SuBoundMethod) result).method;
+			result = ((SuBoundMethod) result).method();
 		Object exptd = eval(expected);
 		assert Ops.is_(exptd, result) : "expected: " + expected +
 				" but was " + Ops.display(result);

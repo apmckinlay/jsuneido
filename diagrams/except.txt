@@ -10,7 +10,110 @@ JAR size after Phase 2, 20140622: 1462413 (1.39 MB) (13.61% reduction in size)
 ===================
 TO DO BEFORE DEPLOY
 ===================
-Re-enable RethrowCallstackTest() in jSuneido (with BuiltDate() guard)
+* Re-enable RethrowCallstackTest() in jSuneido (with BuiltDate() guard)
+* Make sure the Type() tests test Type(dll ...) -> "Dll" and same for
+  Structure, Callback, Buffer... [should not be garbage or aStruct etc.]
+  
+  	Type(GetMessage)
+	Type(struct { pointer p })
+	Type(callback(long x))
+  
+  
+* Clean up build outputs and targets
+      [ ] jsuneido_jar.xml -> build.xml
+      [ ] NEW jsuneido_jar.xml just calls Ant on build.xml
+      [ ] raw JARs -> target/raw/
+      [ ] output JARs -> target/
+              + jsuneido.jar
+              + jsuneido-arch-win32-x86.jar
+              + jsuneido-arch-win32-amd64.jar
+              + jsuneido-arch-linux-amd64.jar
+              + jsuneido-all.jar
+              + jsuneido-all-debug.jar
+     [ ] build.xml should be:
+              + build
+              + clean
+              + rebuild
+              + [INTERNAL] : compile
+              + [INTERNAL] : when_built
+              + target-jar-jsuneido
+              + [INTERNAL] : target-jsuneido-rawjar
+              + target-jar-jsuneido-arch-win32-amd64 etc. 
+
+========
+20140911
+========
+-- Remaining TODO list:
+       [ ] Tests
+       
+
+========
+20140910
+========
+-- To finish up JDWPAgentClient, need to call the methods in the right places.
+-- This should be after we have processed all the frames so we can (A)
+   allocate the right number and (B) avoid invalidating all the StackFrame
+   objects because of un-suspending the thread.
+-- So: collect everything into List<String>, List<Value>, List<Boolean>, and
+   List<Integer> or whatever.
+-- After done all frames, allocFields() and get arrays
+-- Then for each frame, allocFrame() and store into arrays for that frame
+  
+
+========
+20140905
+========
+-- Need to be smarter about filtering callstack where we have call() calling
+   call3() or something.
+-- Filter locals:
+      "this", __SELF__, __ARGS__, dll calls etc.
+-- Stack-mode callstack
+-- JDWP mode for full debugging
+
+
+HOW "ALL" SYSTEM WORKS:
+
+    locals.c : Copy annotation of annotated methods
+               Filter : public, non-static, package prefix, annotated?
+
+    Suneido : Local variable translation
+    
+              OPTION 1: Put locals translation in SuCallable 
+
+               Translate local variables:
+                   SuCallable.translateLocals() ...
+                       [Go thru the functionSpec]
+                   Dll.translateLocals() ...
+
+              OPTION 2: Drive locals translation off of the annotation and the
+                        functionSpec.
+
+                  Annotation ignoreNonParams default true.
+
+HOW "STACK" SYSTEM WORKS:
+
+    For each stack frame element SFE:
+        Look up class of SFE
+            If class extends SuCallable
+                Clean up pattern:
+                    callX() call() eval?() -> callX
+                    call() eval?() -> call()
+                    evalX() eval() -> evalX
+                Determine name:
+                    If from suneido.code:
+                        Split on £ (AstCompile.METHOD_SEPARATOR)
+                        Extract library from source frame
+                    Else If from suneido.jsdi and is Dll:
+                        Replace with ??? dll ???
+                    Else If built-in
+                        Repalce with ??? built-in ???
+
+HOW DO YOU IDENTIFY PARAMETERS?
+
+    "self" -- May need to be eliminated -- ClassGen : it is always arg0 (_self_)
+    "args" -- ... -- ClassGen : it is always arg1 (_args_)
+
+SO IT may be possible to just iterate thru the FunctionSpec
 
 
 ========

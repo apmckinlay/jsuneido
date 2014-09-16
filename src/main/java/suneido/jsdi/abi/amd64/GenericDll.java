@@ -12,6 +12,7 @@ import suneido.jsdi.marshall.Marshaller;
 import suneido.jsdi.marshall.ReturnTypeGroup;
 import suneido.jsdi.type.Type;
 import suneido.runtime.Args;
+import suneido.runtime.ArgsArraySpec;
 
 /**
  * Generic implementation of {@code dll}.
@@ -38,9 +39,10 @@ final class GenericDll extends Dll {
 
 	protected GenericDll(long funcPtr, ParamsTypeList params, Type returnType,
 			ReturnTypeGroup returnTypeGroup, boolean is32BitIEEEFloatReturn,
-			NativeCall64 nc, String valueName, DllFactory dllFactory,
-			String libraryName, String funcName, MarshallPlan64 plan) {
-		super(funcPtr, params, returnType, valueName, dllFactory, libraryName, funcName);
+			NativeCall64 nc, DllFactory dllFactory, String libraryName,
+			String funcName, MarshallPlan64 plan) {
+		super(funcPtr, params, returnType, dllFactory, libraryName, funcName,
+				new ArgsArraySpec(params.getEntryNames()));
 		assert null != returnTypeGroup;
 		this.params = params;
 		this.nativeCall = nc;

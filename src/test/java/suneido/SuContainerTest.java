@@ -185,7 +185,7 @@ public class SuContainerTest {
 		assertEquals("06800000058000000a046e6578746669656c6480000006046e726f777380000006047461626c658000000a047461626c656e616d658000000a04746f74616c73697a6580000000", ByteBuffers.bufferToHex(buf).replace(" ", ""));
 	}
 
-	@Test(expected = RuntimeException.class)
+	@Test(expected = SuException.class)
 	public void packNest() {
 		SuContainer c = new SuContainer();
 		c.add(c);

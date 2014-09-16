@@ -56,12 +56,12 @@ public class Compiler {
 		AstNode ast = parse(src);
 		if (pw != null)
 			pw.append(ast.toString() + "\n\n");
-		return AstCompile.fold(library, name, pw, context, warnings, wantLineNumbers,
+		return AstCompile.fold(library, name, src, pw, context, warnings, wantLineNumbers,
 				ast);
 	}
 
 	private static boolean wantLineNumbers() {
-		return DebugModel.NONE != DebugManager.getInstance().getDebugModel();
+		return DebugModel.OFF != DebugManager.getInstance().getDebugModel();
 	}
 
 	public static AstNode parse(String src) {
