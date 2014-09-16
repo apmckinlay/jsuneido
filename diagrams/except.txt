@@ -11,10 +11,14 @@ JAR size after Phase 2, 20140622: 1462413 (1.39 MB) (13.61% reduction in size)
 TO DO BEFORE DEPLOY
 ===================
 * Re-enable RethrowCallstackTest() in jSuneido (with BuiltDate() guard)
-* Rename SuBlock* -> SuClosure*.
-* Try to prune the debug information in the JAR down to just -g:vars
 * Make sure the Type() tests test Type(dll ...) -> "Dll" and same for
   Structure, Callback, Buffer... [should not be garbage or aStruct etc.]
+  
+  	Type(GetMessage)
+	Type(struct { pointer p })
+	Type(callback(long x))
+  
+  
 * Clean up build outputs and targets
       [ ] jsuneido_jar.xml -> build.xml
       [ ] NEW jsuneido_jar.xml just calls Ant on build.xml
@@ -40,8 +44,6 @@ TO DO BEFORE DEPLOY
 20140911
 ========
 -- Remaining TODO list:
-       [ ] Callstack debugging
-       [ ] Source loading
        [ ] Tests
        
 
