@@ -23,7 +23,7 @@ public class SuFile extends SuValue {
 	private final String mode;
 	private final boolean append;
 	private RandomAccessFile f;
-	private static final BuiltinMethods methods = new BuiltinMethods(SuFile.class);
+	private static final BuiltinMethods methods = new BuiltinMethods("file", SuFile.class);
 
 	public SuFile(String filename, String mode) {
 		this.filename = filename;
@@ -217,15 +217,19 @@ public class SuFile extends SuValue {
 		return "File(" + filename + ", " + mode + ")";
 	}
 
-	public static final BuiltinClass clazz = new BuiltinClass() {
-		FunctionSpec newFS = new FunctionSpec(array("filename", "mode"), "r");
+	private static final FunctionSpec newFS = new FunctionSpec(array(
+			"filename", "mode"), "r");
+
+	private static final FunctionSpec callFS = new FunctionSpec(array(
+			"filename", "mode", "block"), "r", Boolean.FALSE);
+
+	public static final BuiltinClass clazz = new BuiltinClass("File", newFS) {
 		@Override
 		public SuFile newInstance(Object... args) {
 			args = Args.massage(newFS, args);
 			return new SuFile(Ops.toStr(args[0]), Ops.toStr(args[1]));
 		}
-		FunctionSpec callFS = new FunctionSpec(
-				array("filename", "mode", "block"), "r", Boolean.FALSE);
+
 		@Override
 		public Object call(Object... args) {
 			args = Args.massage(callFS, args);

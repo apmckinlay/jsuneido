@@ -10,6 +10,10 @@ import suneido.runtime.BuiltinClass;
 
 public class RecordClass extends BuiltinClass {
 
+	public RecordClass() {
+		super("Record", null);
+	}
+
 	@Override
 	public Object newInstance(Object... args) {
 		return create(args);

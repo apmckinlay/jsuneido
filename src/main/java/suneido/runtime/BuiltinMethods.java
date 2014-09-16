@@ -15,7 +15,6 @@ import java.util.Collections;
 import java.util.Map;
 
 import suneido.SuContainer;
-import suneido.SuException;
 import suneido.SuInternalError;
 import suneido.SuValue;
 import suneido.runtime.builtin.ContainerMethods;
@@ -50,21 +49,21 @@ public class BuiltinMethods extends SuValue {
 	}
 
 	public BuiltinMethods(Class<?> c) {
-		this(c, null);
+		this.methods = methods(c.getSimpleName().toLowerCase(), c);
+		this.userDefined = null;
 	}
 
-	public BuiltinMethods(Class<?> c, String userDefined) {
-		this.methods = methods(c);
+	public BuiltinMethods(String className, Class<?> c) {
+		this(className, c, null);
+	}
+
+	public BuiltinMethods(String className, Class<?> c, String userDefined) {
+		this.methods = null != c ? methods(className, c) : Collections.emptyMap();
 		this.userDefined = userDefined;
 	}
 
-	/** get methods through reflection
-	 * 
-	 * NOTE (VCS ==> APM): 20130628...I changed the visibility on this method so
-	 *                     that it can be called from JSDI packages (e.g.
-	 *                     struct).
-	 */
-	public static Map<String, SuCallable>  methods(Class<?> c) {
+	/** get methods through reflection */
+	public static Map<String, SuCallable> methods(String className, Class<?> c) {
 		ImmutableMap.Builder<String, SuCallable> b = ImmutableMap.builder();
 		MethodHandles.Lookup lookup = MethodHandles.lookup();
 		for (Method m : c.getDeclaredMethods()) {
@@ -74,9 +73,10 @@ public class BuiltinMethods extends SuValue {
 					isCapitalized(methodName)) {
 				try {
 					MethodHandle mh = lookup.unreflect(m);
-					b.put(methodName, Builtin.method(mh, params(m, 1)));
+					b.put(methodName, Builtin.method(mh, className + "."
+							+ methodName, params(m, 1)));
 				} catch (IllegalAccessException e) {
-					throw new SuException("error getting method " +
+					throw new SuInternalError("error getting method " +
 									c.getName() + " " + m.getName(), e);
 				}
 			}
@@ -106,11 +106,14 @@ public class BuiltinMethods extends SuValue {
 
 	private static FunctionSpec params(Method m, int nExtra) {
 		Params p = m.getAnnotation(Params.class);
-		int nParams = m.getParameterTypes().length;
-		FunctionSpec params = (p == null)
-				? (nParams == nExtra) ? FunctionSpec.noParams : null
-				: FunctionSpec.from(p.value());
-		return params;
+		int nParams = m.getParameterCount();
+		if (null == p) {
+			return nParams == nExtra ? FunctionSpec.NO_PARAMS : null;
+		} else if (0 < nParams && Object[].class.isAssignableFrom(m.getParameterTypes()[nParams-1])) {
+			return ArgsArraySpec.from(p.value());
+		} else {
+			return FunctionSpec.from(p.value());
+		}
 	}
 
 	private static String methodName(Method m) {

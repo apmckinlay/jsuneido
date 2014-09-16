@@ -15,7 +15,6 @@ import java.util.concurrent.TimeUnit;
 import suneido.compiler.Compiler;
 import suneido.database.server.DbmsServer;
 import suneido.debug.DebugManager;
-import suneido.debug.DebugModel;
 import suneido.intfc.database.Database;
 import suneido.intfc.database.DatabasePackage;
 import suneido.jsdi.JSDI;
@@ -42,7 +41,7 @@ public class Suneido {
 
 	public static void main(String[] args) {
 		ClassLoader.getSystemClassLoader().setPackageAssertionStatus("suneido", true);
-		cmdlineoptions = CommandLineOptions.parse(DebugModel.ALL, args);
+		cmdlineoptions = CommandLineOptions.parse(args);
 		if (cmdlineoptions.unattended) {
 			try {
 				System.setOut(new PrintStream(new FileOutputStream("output.log", true)));
@@ -188,7 +187,7 @@ public class Suneido {
 		System.out.println("-p[ort] #                 the TCP/IP port for server or client (default 3147)");
 		System.out.println("-repl                     (default) interactive read-eval-print-loop command line");
 		System.out.println("-nojsdi                   disable JSDI dll interface");
-		System.out.println("-debug all|stack|none     debug model (default is 'all': most information, may be slower)");
+		System.out.println("-debug on|off             debug model (default is 'on', but may run slower)");
 		System.out.println("-d[ump] [table]           dump to database.su or <table> to <table>.su");
 		System.out.println("-l[oad] [table]           load from database.su or <table> from <table>.su");
 		System.out.println("-check                    check the database integrity");

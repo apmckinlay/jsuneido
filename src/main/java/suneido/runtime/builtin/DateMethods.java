@@ -21,7 +21,7 @@ import suneido.runtime.SuCallable;
  */
 public final class DateMethods {
 	private static final BuiltinMethods methods =
-			new BuiltinMethods(DateMethods.class, "Dates");
+			new BuiltinMethods("date", DateMethods.class, "Dates");
 
 	/** no instances, all static */
 	private DateMethods() {

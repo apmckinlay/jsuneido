@@ -25,6 +25,7 @@ public class AstCompile {
 	private final String library;
 	private final String globalName;
 	private final String sourceFile;
+	private final String sourceCode;
 	/* british pound sign - needs to be valid in identifiers */
 	public static final char METHOD_SEPARATOR = '\u00A3';
 	private static final int MAX_DIRECT_ARGS = 4;
@@ -39,20 +40,21 @@ public class AstCompile {
 	private final SuContainer warnings;
 	private final boolean wantLineNumbers;
 
-	public static Object fold(String library, String globalName, PrintWriter pw,
-			ContextLayered context, SuContainer warnings,
+	public static Object fold(String library, String globalName, String src,
+			PrintWriter pw, ContextLayered context, SuContainer warnings,
 			boolean wantLineNumbers, AstNode ast) {
-		return new AstCompile(library, globalName, pw, context, warnings,
+		return new AstCompile(library, globalName, src, pw, context, warnings,
 				wantLineNumbers).fold(ast);
 	}
 
-	private AstCompile(String library, String globalName, PrintWriter pw,
-			ContextLayered context, SuContainer warnings,
+	private AstCompile(String library, String globalName, String src,
+			PrintWriter pw, ContextLayered context, SuContainer warnings,
 			boolean wantLineNumbers) {
 		this.library = library;
 		this.globalName = globalName;
-		this.sourceFile = library.isEmpty() ? "<" + globalName + ">" :
-			"library[" + library + "]->" + globalName;
+		this.sourceCode = src;
+		this.sourceFile = library.isEmpty() ? "<" + globalName + ">"
+				: "library[" + library + "]->" + globalName;
 		this.pw = pw;
 		this.context = context;
 		this.warnings = warnings;
@@ -90,8 +92,9 @@ public class AstCompile {
 		case CLASS:
 			return foldClass(name, ast);
 		case METHOD:
+			return foldFunction(name, ast, CallableType.METHOD);
 		case FUNCTION:
-			return foldFunction(name, ast);
+			return foldFunction(name, ast, CallableType.FUNCTION);
 		case STRUCT:
 			return foldStruct(name, ast);
 		case DLL:
@@ -189,34 +192,42 @@ public class AstCompile {
 		return name;
 	}
 
-	private SuCallable foldFunction(String name, AstNode ast) {
+	private SuCompiledCallable foldFunction(String name, AstNode ast,
+			CallableType callableType) {
 		int prevFnId = fnId;
 		fnId = nextFnId.incrementAndGet();
 		boolean prevInMethod = inMethod;
-		inMethod = (ast.token == Token.METHOD);
-		SuCallable fn = function(name, ast);
+		inMethod = CallableType.METHOD == callableType;
+		SuCompiledCallable fn = function(name, ast, callableType);
 		inMethod = prevInMethod;
 		fnId = prevFnId;
 		return fn;
 	}
 
 	/** used for functions, methods, and blocks that don't need to be closures */
-	private SuCallable function(String name, AstNode ast) {
-		boolean method = ast.token == Token.METHOD || AstUsesThis.check(ast);
-		nameBegin(name, "$f");
-		SuCallable fn = javaClass(ast, method ? BaseClassSet.METHOD
-				: BaseClassSet.FUNCTION, method ? "eval" : "call", null);
+	private SuCompiledCallable function(String name, AstNode ast,
+			CallableType callableType) {
+		boolean isEval = CallableType.METHOD == callableType
+				|| AstUsesThis.check(ast);
+		nameBegin(name, callableType.compilerNameSuffix());
+		SuCompiledCallable fn = javaClass(ast, isEval ? BaseClassSet.EVALBASE
+				: BaseClassSet.CALLBASE, callableType, null);
 		nameEnd();
 		return fn;
 	}
 
 	private void block(ClassGen cg, AstNode ast) {
 		if (ast.third() == null) {
-			SuCallable f = function(null, ast);
+			// Third will be null where a previous call to AstSharesVars.check()
+			// by this.closure(...) did detect a closure.
+			SuCompiledCallable f = function(null, ast, CallableType.BLOCK);
 			cg.constant(f);
 			cg.addBlockReturnCatcher();
 		} else {
-			assert ast.third().token == Token.CLOSURE;
+			assert Token.CLOSURE == ast.third().token;
+			// Third will be Token.CLOSURE where a previous call to
+			// AstSharesVars.check() by this.closure(...) found a closure and
+			// replaced the null that was originally inserted by the parser.
 			int iBlockDef = cg.addConstant(closure(cg, ast));
 			List<AstNode> params = ast.first().children;
 			final int nParams = params.size();
@@ -225,15 +236,16 @@ public class AstCompile {
 				useArgsArray = true;
 			else if (nParams > 0 && params.get(0).value.startsWith("@"))
 				useArgsArray = true;
-			cg.block(iBlockDef, nParams, useArgsArray);
+			cg.wrapBlockWithClosure(iBlockDef, nParams, useArgsArray);
 		}
 	}
 
-	private SuCallable closure(ClassGen cg, AstNode ast) {
+	private SuCompiledCallable closure(ClassGen cg, AstNode ast) {
 		// needed to check if child blocks share with this block
-		AstSharesVars.check(ast);
-		nameBegin(null, "$b");
-		SuCallable fn = javaClass(ast, BaseClassSet.CALLABLE, "eval", cg.locals);
+		AstSharesVars.check(ast); // Has side-effects: may modify ast 
+		nameBegin(null, CallableType.WRAPPED_BLOCK.compilerNameSuffix());
+		SuCompiledCallable fn = javaClass(ast, BaseClassSet.EVALBASE,
+				CallableType.WRAPPED_BLOCK, cg.locals);
 		nameEnd();
 		return fn;
 	}
@@ -321,7 +333,7 @@ public class AstCompile {
 
 	@DllInterface
 	private Object foldDll(String name, AstNode ast) {
-		nameBegin(name, "$d");
+		nameBegin(name, CallableType.DLL.compilerNameSuffix());
 		TypeList params = typeList(Token.DLL, ast.fourth().children);
 		Type returnType = null;
 		String returnTypeName = ast.third().value;
@@ -337,10 +349,10 @@ public class AstCompile {
 			throw new SuException("invalid dll return type: " + returnTypeName);
 		}
 		Factory factory = JSDI.getInstance().getFactory();
-		Dll dll = factory.makeDll(curName, ast.first().value,
-				ast.second().value, params, returnType);
+		Dll dll = factory.makeDll(ast.first().value, ast.second().value,
+				params, returnType);
 		nameEnd();
-		return dll;
+		return dll.setSource(library, globalName, sourceCode);
 	}
 
 	@DllInterface
@@ -358,12 +370,13 @@ public class AstCompile {
 	 * @param locals
 	 *            The outer locals for a block. Not used for functions.
 	 */
-	private SuCallable javaClass(AstNode ast, BaseClassSet baseClassSet,
-			String method, List<String> locals) {
+	private SuCompiledCallable javaClass(AstNode ast, BaseClassSet baseClassSet,
+			CallableType callableType, List<String> locals) {
 		List<AstNode> params = ast.first().children;
-		ClassGen cg = new ClassGen(context, baseClassSet, curName, method, locals,
-				useArgsArray(ast, baseClassSet, params), ast.token == Token.BLOCK,
+		ClassGen cg = new ClassGen(context, baseClassSet, curName, locals,
+				useArgsArray(ast, callableType, params), callableType,
 				params.size(), fnId, sourceFile, pw);
+		putLineNumber(cg, ast);
 
 		for (AstNode param : params)
 			cg.param(param.value, fold(param.first()), inMethod ? suClassName
@@ -381,7 +394,7 @@ public class AstCompile {
 			statement(cg, stat, null, i == statements.size() - 1);
 		}
 		try {
-			return cg.end(suClass).setSource(library, globalName);
+			return cg.end(suClass).setSource(library, globalName, sourceCode);
 		} catch (Error e) {
 			throw new SuException("error compiling " + curName, e);
 // TODO: should be an SuInternalError but getting less descriptive info that way
@@ -389,9 +402,9 @@ public class AstCompile {
 		}
 	}
 
-	private static boolean useArgsArray(AstNode ast,
-			BaseClassSet baseClassSet, List<AstNode> params) {
-		if (BaseClassSet.CALLABLE == baseClassSet) // closure block
+	private static boolean useArgsArray(AstNode ast, CallableType callableType,
+			List<AstNode> params) {
+		if (CallableType.WRAPPED_BLOCK == callableType) // closure block
 			return true;
 		// need to call this regardless to process child blocks
 		boolean shares = AstSharesVars.check(ast);

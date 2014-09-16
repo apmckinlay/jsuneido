@@ -23,12 +23,8 @@ package suneido;
  * @author Victor Schappert
  * @since 20140622
  */
+@SuppressWarnings("serial")
 public final class SuInternalError extends Error {
-
-	/**
-	 * Automatically-generated serialization version number.
-	 */
-	private static final long serialVersionUID = 5735199310821065450L;
 
 	//
 	// CONSTRUCTORS

@@ -10,7 +10,6 @@ import suneido.debug.Callstack;
 import suneido.debug.CallstackProvider;
 import suneido.debug.DebugManager;
 import suneido.debug.Frame;
-import suneido.debug.LocalVariable;
 
 /**
  * <p>
@@ -44,7 +43,7 @@ public final class Except extends String2 {
 	//
 
 	public Except(Throwable throwable) {
-		this(throwable.toString(), throwable);
+		this(translateMsgToSuneido(throwable), throwable);
 	}
 
 	public Except(String message, Throwable throwable) {
@@ -130,14 +129,21 @@ public final class Except extends String2 {
 
 	private static SuContainer callob(Frame x) {
 		SuContainer call = new SuContainer();
-		SuContainer locals = new SuContainer();
-		for (LocalVariable local : x.getLocals()) {
-			locals.put(local.getName(), local.getValue());
-		}
-		call.put("locals", locals);
-		call.put("fn", x.getFrameName());
+		call.put("locals", x.getLocalsContainer());
+		call.put("fn", x.getFrame());
 		int lineNumber = x.getLineNumber();
-		call.put("src_n", 0 < lineNumber ? lineNumber : Boolean.FALSE);
+		call.put("line", 0 < lineNumber ? lineNumber : Boolean.FALSE);
 		return call;
+	}
+
+	private static String translateMsgToSuneido(Throwable throwable) {
+		// Some Java exceptions have special names in Suneido. This method
+		// converts the Java-style message to a Suneido-style message where
+		// appropriate.
+		if (throwable instanceof StackOverflowError) {
+			return "function call overflow";
+		} else {
+			return throwable.getMessage();
+		}
 	}
 }

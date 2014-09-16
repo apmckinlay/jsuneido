@@ -122,8 +122,8 @@ public class BootstrapTest {
 		// debug option
 		final ArrayList<Object[]> result = new ArrayList<Object[]>();
 		final Boolean[] FT = { Boolean.FALSE, Boolean.TRUE };
-		final String[] DEBUG_OPTION = { "", Bootstrap.DEBUG_OPTION_ALL,
-				Bootstrap.DEBUG_OPTION_STACK, Bootstrap.DEBUG_OPTION_NONE };
+		final String[] DEBUG_OPTION = { "", Bootstrap.DEBUG_OPTION_ON,
+				Bootstrap.DEBUG_OPTION_OFF };
 		for (Boolean skipBoot : FT) {
 			for (String debugOption : DEBUG_OPTION) {
 				result.add(new Object[] { skipBoot, debugOption });

@@ -9,6 +9,7 @@ import suneido.jsdi.DllFactory;
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.type.Type;
 import suneido.runtime.Args;
+import suneido.runtime.FunctionSpec;
 
 /**
  * Dll with one parameters, corresponds to {@link NativeCall64#J1_RETURN_INT64}.
@@ -34,9 +35,9 @@ final class FastDll1 extends Dll {
 	//
 
 	FastDll1(long funcPtr, ParamsTypeList params, Type returnType,
-			String valueName, DllFactory dllFactory, String libraryName,
-			String funcName) {
-		super(funcPtr, params, returnType, valueName, dllFactory, libraryName, funcName);
+			DllFactory dllFactory, String libraryName, String funcName) {
+		super(funcPtr, params, returnType, dllFactory, libraryName, funcName,
+				new FunctionSpec(params.getEntryNames()));
 		p0 = params.get(0).getType();
 	}
 

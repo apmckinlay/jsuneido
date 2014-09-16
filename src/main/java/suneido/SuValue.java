@@ -16,7 +16,7 @@ import suneido.runtime.SuClass;
  * Base class for Suneido data types.
  * e.g. {@link SuContainer}, {@link SuRecord}, {@link SuClass}
  */
-public abstract class SuValue implements Packable {
+public class SuValue implements Packable {
 
 	@Override
 	public String toString() {
@@ -65,8 +65,9 @@ public abstract class SuValue implements Packable {
 			} else {
 				return s.substring(16);
 			}
+		} else {
+			return s.substring(8);
 		}
-		throw new SuInternalError("unrecognized package: " + s);
 	}
 
 	/**

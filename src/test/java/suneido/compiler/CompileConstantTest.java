@@ -15,7 +15,7 @@ import suneido.SuContainer;
 import suneido.SuDate;
 import suneido.SuRecord;
 import suneido.compiler.Compiler;
-import suneido.runtime.SuFunction;
+import suneido.runtime.SuCallBase;
 
 public class CompileConstantTest {
 
@@ -53,7 +53,7 @@ public class CompileConstantTest {
 		assertEquals(new SuContainer(), compile("#()"));
 		assertEquals(new SuRecord(), compile("#{}"));
 
-		assertTrue(compile("function () { }") instanceof SuFunction);
+		assertTrue(compile("function () { }") instanceof SuCallBase);
 	}
 
 	private static Object compile(String s) {

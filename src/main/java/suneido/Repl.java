@@ -7,6 +7,7 @@ package suneido;
 import java.io.*;
 
 import suneido.compiler.Compiler;
+import suneido.debug.CallstackProvider;
 import suneido.jsdi.JSDI;
 import suneido.runtime.Ops;
 
@@ -67,7 +68,11 @@ public class Repl {
 				if (result != null)
 					out.println(" => " + Ops.display(result));
 			} catch (Throwable e) {
-				e.printStackTrace(out);
+				if (e instanceof CallstackProvider) {
+					((CallstackProvider)e).printCallstack(out);
+				} else {
+					e.printStackTrace(out);
+				}
 			}
 		}
 		out.println("bye");

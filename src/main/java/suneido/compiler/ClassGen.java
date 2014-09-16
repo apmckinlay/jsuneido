@@ -45,7 +45,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
@@ -58,10 +57,12 @@ import org.objectweb.asm.util.TraceClassVisitor;
 
 import suneido.SuException;
 import suneido.SuInternalError;
-import suneido.debug.Locals;
 import suneido.runtime.Args;
+import suneido.runtime.ArgsArraySpec;
+import suneido.runtime.BlockFlowException;
 import suneido.runtime.BlockReturnException;
 import suneido.runtime.BlockSpec;
+import suneido.runtime.CallableType;
 import suneido.runtime.ContextLayered;
 import suneido.runtime.Dynamic;
 import suneido.runtime.Except;
@@ -70,6 +71,7 @@ import suneido.runtime.Ops;
 import suneido.runtime.Range;
 import suneido.runtime.SuCallable;
 import suneido.runtime.SuClass;
+import suneido.runtime.SuCompiledCallable;
 import suneido.runtime.builtin.ObjectClass;
 import suneido.runtime.builtin.RecordClass;
 
@@ -84,7 +86,7 @@ import com.google.common.collect.Lists;
  */
 public class ClassGen {
 	private static final String COMPILED_CODE_PACKAGE_SLASHES = "suneido/code/";
-	private static final String COMPILED_CODE_PACKAGE_DOTS = COMPILED_CODE_PACKAGE_SLASHES.replace('/', '.');
+	public static final String COMPILED_CODE_PACKAGE_DOTS = COMPILED_CODE_PACKAGE_SLASHES.replace('/', '.');
 	private static final String CLASS_GEN_INTERNAL_NAME = Type.getInternalName(ClassGen.class);
 	private static final String OPS_INTERNAL_NAME = Type.getInternalName(Ops.class);
 	private static final String DYNAMIC_INTERNAL_NAME = Type.getInternalName(Dynamic.class);
@@ -96,11 +98,14 @@ public class ClassGen {
 	private static final String RECORD_BUILTIN_CLASS_INTERNAL_NAME = Type.getInternalName(RecordClass.class);
 	private static final String ARGS_SPECIAL_INTERNAL_NAME = Type.getInternalName(Args.Special.class);
 	private static final String ARGS_SPECIAL_DESCRIPTOR = Type.getDescriptor(Args.Special.class);
-	private static final String LOCALS_ANNOTATION_DESCRIPTOR = Type.getDescriptor(Locals.class);
-	private static final String LOCALS_SOURCELANGUAGE_DESCRIPTOR = Type.getDescriptor(Locals.SourceLanguage.class);
+	private static final String BLOCK_FLOW_EXCEPTION_INTERNAL_NAME = Type.getInternalName(BlockFlowException.class);
+	private static final String BLOCK_FLOW_EXCEPTION_DESCRIPTOR = Type.getDescriptor(BlockFlowException.class);
+	private static final String SUCALLABLE_INTERNAL_NAME = Type.getInternalName(SuCallable.class);
 	private static final int THIS = 0;
 	private int SELF = -1;
 	private int ARGS = -2;
+	private static final String ARGS_VAR_NAME = "_args_";
+	public static final String SELF_VAR_NAME = "_self_";
 	private final ContextLayered context;
 	private final String name;
 	private final String base;
@@ -121,58 +126,54 @@ public class ClassGen {
 	private TryCatch blockReturnCatcher = null;
 	private TryCatch dynamicFinally = null;
 	final boolean useArgsArray;
-	final boolean isBlock;
-	final boolean closure;
+	final CallableType callableType;
 	final int parentId;
 	private final List<String> dynParams = Lists.newArrayList();
 	private int lastLineNumber;
 	private Label lastLabelNotUsedForLineNumber;
 
-	ClassGen(ContextLayered context, BaseClassSet baseClassSet,
-			String name, String method, List<String> locals,
-			boolean useArgsArray, boolean isBlock, int nParams, int parentId,
+	ClassGen(ContextLayered context, BaseClassSet baseClassSet, String name,
+			List<String> locals, boolean useArgsArray,
+			CallableType callableType, int nParams, int parentId,
 			String sourceFile, PrintWriter pw) {
 		this.context = context;
-		this.base = useArgsArray ? baseClassSet.getInternalName() : 
-			baseClassSet.getInternalName(nParams);
+		BaseClassSet.BaseClass baseClass = useArgsArray
+				? baseClassSet.getUnspecialized() : baseClassSet.getSpecialization(nParams);
+		this.base = baseClass.getInternalName();
 		this.name = name;
 		this.className = makeInternalName(name);
 		this.locals = locals == null ? new ArrayList<String>() : locals;
 		this.useArgsArray = useArgsArray;
-		this.isBlock = isBlock;
+		this.callableType = callableType;
 		this.parentId = parentId;
-		closure = isBlock && baseClassSet == BaseClassSet.CALLABLE;
 		iBlockParams = this.locals.size();
 		cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		cv = classVisitor(sourceFile, pw);
 		genInit();
 		javaLocals.put("this", nextJavaLocal++);
+		final String method = baseClass.getMethodName();
 		if (useArgsArray) {
-			if (method.equals("call")) {
+			if (BaseClassSet.CALLBASE == baseClassSet) {
 				mv = methodVisitor(ACC_PUBLIC, method,
 						"([Ljava/lang/Object;)Ljava/lang/Object;");
-				javaLocals.put("_args_", ARGS = nextJavaLocal++);
-				annotateLocals(false);
+				javaLocals.put(ARGS_VAR_NAME, ARGS = nextJavaLocal++);
 			} else {
-				assert method.equals("eval");
+				assert BaseClassSet.EVALBASE == baseClassSet;
 				mv = methodVisitor(ACC_PUBLIC, method,
 						"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
-				javaLocals.put("_self_", SELF = nextJavaLocal++);
-				javaLocals.put("_args_", ARGS = nextJavaLocal++);
-				annotateLocals(true);
+				javaLocals.put(SELF_VAR_NAME, SELF = nextJavaLocal++);
+				javaLocals.put(ARGS_VAR_NAME, ARGS = nextJavaLocal++);
 			}
 		} else {
-			if (method.equals("call")) {
-				mv = methodVisitor(ACC_PUBLIC, "call" + nParams, "("
+			if (BaseClassSet.CALLBASE == baseClassSet) {
+				mv = methodVisitor(ACC_PUBLIC, method, "("
 						+ directArgs[nParams] + ")Ljava/lang/Object;");
-				annotateLocals(false);
 			} else {
-				assert method.equals("eval");
-				mv = methodVisitor(ACC_PUBLIC, "eval" + nParams,
+				assert BaseClassSet.EVALBASE == baseClassSet;
+				mv = methodVisitor(ACC_PUBLIC, method,
 						"(Ljava/lang/Object;" + directArgs[nParams]
 								+ ")Ljava/lang/Object;");
-				javaLocals.put("_self_", SELF = nextJavaLocal++);
-				annotateLocals(true);
+				javaLocals.put(SELF_VAR_NAME, SELF = nextJavaLocal++);
 			}
 		}
 		firstParam = nextJavaLocal;
@@ -180,7 +181,7 @@ public class ClassGen {
 		startLabel = placeLabel();
 		lastLineNumber = -1;
 		lastLabelNotUsedForLineNumber = startLabel;
-		if (!closure && useArgsArray)
+		if (callableType != CallableType.WRAPPED_BLOCK && useArgsArray)
 			massage();
 	}
 
@@ -201,17 +202,11 @@ public class ClassGen {
 		return mv;
 	}
 
-	private void annotateLocals(boolean isSelfCall) {
-		AnnotationVisitor av = mv.visitAnnotation(LOCALS_ANNOTATION_DESCRIPTOR, true);
-		av.visitEnum("sourceLanguage", LOCALS_SOURCELANGUAGE_DESCRIPTOR, "SUNEIDO");
-		av.visitEnd();
-	}
-
 	private void massage() {
 		assert ARGS >= 0;
 		mv.visitVarInsn(ALOAD, THIS);
 		mv.visitVarInsn(ALOAD, ARGS);
-		mv.visitMethodInsn(INVOKESPECIAL, BaseClassSet.CALLABLE.getInternalName(),
+		mv.visitMethodInsn(INVOKESPECIAL, SUCALLABLE_INTERNAL_NAME,
 				"massage", "([Ljava/lang/Object;)[Ljava/lang/Object;", false);
 		mv.visitVarInsn(ASTORE, ARGS);
 	}
@@ -309,7 +304,7 @@ public class ClassGen {
 	}
 
 	void returnValue() {
-		if (isBlock)
+		if (callableType.isBlock())
 			blockReturn();
 		else
 			areturn();
@@ -421,7 +416,7 @@ public class ClassGen {
 	void globalLoad(int slot) {
 		mv.visitVarInsn(ALOAD, THIS);
 		iconst(slot);
-		mv.visitMethodInsn(INVOKESPECIAL, BaseClassSet.CALLABLE.getInternalName(),
+		mv.visitMethodInsn(INVOKESPECIAL, SUCALLABLE_INTERNAL_NAME,
 				"contextGet", "(I)Ljava/lang/Object;", false);
 	}
 
@@ -503,13 +498,13 @@ public class ClassGen {
 
 	void invokeGlobal() {
 		mv.visitMethodInsn(INVOKESPECIAL,
-				BaseClassSet.CALLABLE.getInternalName(), "invoke",
+				SUCALLABLE_INTERNAL_NAME, "invoke",
 				"(I[Ljava/lang/Object;)Ljava/lang/Object;", false);
 	}
 
 	void invokeGlobal(int nargs) {
 		mv.visitMethodInsn(INVOKESPECIAL,
-				BaseClassSet.CALLABLE.getInternalName(), "invoke" + nargs, "(I"
+				SUCALLABLE_INTERNAL_NAME, "invoke" + nargs, "(I"
 						+ directArgs[nargs] + ")Ljava/lang/Object;", false);
 	}
 
@@ -564,7 +559,7 @@ public class ClassGen {
 	void invokeSuper() {
 		mv.visitMethodInsn(
 				INVOKESPECIAL,
-				BaseClassSet.CALLABLE.getInternalName(),
+				SUCALLABLE_INTERNAL_NAME,
 				"superInvoke",
 				"(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/Object;",
 				false);
@@ -600,8 +595,8 @@ public class ClassGen {
 	}
 
 	void blockThrow(String which) {
-		mv.visitFieldInsn(GETSTATIC, OPS_INTERNAL_NAME,
-				which, "Lsuneido/SuException;");
+		mv.visitFieldInsn(GETSTATIC, BLOCK_FLOW_EXCEPTION_INTERNAL_NAME,
+				which, BLOCK_FLOW_EXCEPTION_DESCRIPTOR);
 		mv.visitInsn(ATHROW);
 	}
 
@@ -736,11 +731,12 @@ public class ClassGen {
 		mv.visitInsn(AASTORE);
 	}
 
-	void block(int iBlockDef, int nParams, boolean useArgsArray) {
+	void wrapBlockWithClosure(int iBlockDef, int nParams, boolean useArgsArray) {
 		// new SuBlock(block, self, locals)
-		final String className = useArgsArray
-				? BaseClassSet.BLOCK.getInternalName()
-				: BaseClassSet.BLOCK.getInternalName(nParams);
+		final BaseClassSet.BaseClass baseClass = useArgsArray
+				? BaseClassSet.CLOSURE.getUnspecialized()
+				: BaseClassSet.CLOSURE.getSpecialization(nParams);
+		final String className = baseClass.getInternalName();
 		mv.visitTypeInsn(NEW, className);
 		mv.visitInsn(DUP);
 		loadConstant(iBlockDef);			// block
@@ -757,7 +753,7 @@ public class ClassGen {
 	}
 
 	void addBlockReturnCatcher() {
-		if (! isBlock && blockReturnCatcher == null)
+		if (! callableType.isBlock() && blockReturnCatcher == null)
 			blockReturnCatcher = startTryCatch(BLOCK_RETURN_EXCEPTION_INTERNAL_NAME);
 	}
 
@@ -794,7 +790,7 @@ public class ClassGen {
 				false);
 	}
 
-	SuCallable end(SuClass suClass) {
+	SuCompiledCallable end(SuClass suClass) {
 		if (blockReturnCatcher != null)
 			finishBlockReturnCatcher();
 		if (dynamicFinally != null)
@@ -815,14 +811,14 @@ public class ClassGen {
 
 		cv.visitEnd();
 
-		SuCallable callable;
+		SuCompiledCallable callable;
 		shareConstants.set(constants);
 		try {
 			Loader loader = new Loader();
 			Class<?> sc = loader.defineClass(COMPILED_CODE_PACKAGE_DOTS + name,
 					cw.toByteArray());
 			try {
-				callable = (SuCallable) sc.newInstance();
+				callable = (SuCompiledCallable) sc.newInstance();
 			} catch (InstantiationException | IllegalAccessException e) {
 				throw new SuException("newInstance error: " + e);
 			}
@@ -830,31 +826,53 @@ public class ClassGen {
 			shareConstants.set(null);
 		}
 
-		return callable.finishInit(suClass, functionSpec(bm), context, isBlock);
+		return callable.finishInit(suClass, functionSpec(bm), context,
+				callableType);
 	}
 
 	static String[] stringArray = new String[0];
 
 	private FunctionSpec functionSpec(BiMap<Integer,String> bm) {
 		FunctionSpec fspec;
-		String[] params = new String[nParams];
-		if (closure) {
+		String[] paramNames = new String[nParams];
+		if (CallableType.WRAPPED_BLOCK == callableType) {
 			for (int i = 0; i < nParams; ++i)
-				params[i] = locals.get(i + iBlockParams);
-			fspec = new BlockSpec(name, params, nParams, atParam, iBlockParams);
+				paramNames[i] = locals.get(i + iBlockParams);
+			fspec = new BlockSpec(name, paramNames, atParam, localNames(), upvalueNames());
 			hideBlockParams();
 		} else if (useArgsArray) {
 			for (int i = 0; i < nParams; ++i)
-				params[i] = locals.get(i);
-			fspec = new FunctionSpec(name, params, constantsArray(), atParam,
-					dynParams.toArray(stringArray), locals.size());
+				paramNames[i] = locals.get(i);
+			fspec = new ArgsArraySpec(paramNames, constantsArray(), atParam,
+					dynParams.toArray(stringArray), localNames());
 		} else {
 			for (int i = 0; i < nParams; ++i)
-				params[i] = bm.get(i + firstParam);
-			fspec = new FunctionSpec(name, params, constantsArray(), atParam,
-					dynParams.toArray(stringArray));
+				paramNames[i] = bm.get(i + firstParam);
+			fspec = new FunctionSpec(paramNames, constantsArray(), atParam, dynParams.toArray(stringArray));
 		}
 		return fspec;
+	}
+
+	private String[] localNames() {
+		final int localStart = iBlockParams + nParams;
+		final int N = locals.size();
+		if (localStart < N) {
+			final String[] localNames = new String[N - localStart];
+			for (int i = localStart; i < N; ++i) {
+				localNames[i - localStart] = locals.get(i);
+			}
+			return localNames;
+		} else {
+			return FunctionSpec.NO_VARS;
+		}
+	}
+
+	private String[] upvalueNames() {
+		final String[] upvalueNames = new String[iBlockParams];
+		for (int i = 0; i < iBlockParams; ++i) {
+			upvalueNames[i] = locals.get(i);
+		}
+		return upvalueNames;
 	}
 
 	private void hideBlockParams() {

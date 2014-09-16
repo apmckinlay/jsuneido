@@ -14,6 +14,7 @@ import suneido.jsdi.type.InOutString;
 import suneido.jsdi.type.Type;
 import suneido.jsdi.type.TypeList;
 import suneido.runtime.Args;
+import suneido.runtime.ArgsArraySpec;
 
 /**
  * Concrete implementation of {@link Dll} for the Windows x86 platform.
@@ -38,10 +39,10 @@ final class DllX86 extends Dll {
 
 	protected DllX86(long funcPtr, TypeList params, Type returnType,
 			ReturnTypeGroup returnTypeGroup, NativeCallX86 nc,
-			String valueName, DllFactory dllFactory, String libraryName,
-			String funcName, MarshallPlanX86 plan) {
-		super(funcPtr, params, returnType, valueName, dllFactory, libraryName,
-				funcName);
+			DllFactory dllFactory, String libraryName, String funcName,
+			MarshallPlanX86 plan) {
+		super(funcPtr, params, returnType, dllFactory, libraryName, funcName,
+				new ArgsArraySpec(params.getEntryNames()));
 		assert null != returnTypeGroup;
 		this.returnTypeGroup = returnTypeGroup;
 		this.nativeCall = nc;

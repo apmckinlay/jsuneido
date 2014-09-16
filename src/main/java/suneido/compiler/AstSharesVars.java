@@ -22,7 +22,7 @@ import com.google.common.collect.Sets;
  * <li>where inner block shares a variable of its containing block
  * <li>where sharing is with a parent several levels up
  */
-public class AstSharesVars {
+final class AstSharesVars {
 
 	public static boolean check(AstNode ast) {
 		Visitor v = new Visitor(ast);

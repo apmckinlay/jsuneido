@@ -27,7 +27,7 @@ public class SuTransaction extends SuValue {
 	private boolean update = false;
 	private String conflict = null;
 	private static final BuiltinMethods methods =
-			new BuiltinMethods(SuTransaction.class, "Transactions");
+			new BuiltinMethods("transaction", SuTransaction.class, "Transactions");
 
 	private static final FunctionSpec tranFS =
 			new FunctionSpec(array("read", "update"), NA, NA);
@@ -74,7 +74,7 @@ public class SuTransaction extends SuValue {
 	}
 
 	private static final FunctionSpec QueryParams =
-			FunctionSpec.from("query, block = false");
+			ArgsArraySpec.from("query, block = false");
 
 	public static Object Query(Object self, Object... args) {
 		String where = queryWhere(args);
@@ -111,7 +111,7 @@ public class SuTransaction extends SuValue {
 		return queryOne((SuTransaction) self, args, Dir.NEXT, true);
 	}
 
-	private static final FunctionSpec queryOneFS = new FunctionSpec("query");
+	static final FunctionSpec queryOneFS = new FunctionSpec("query");
 
 	public static Object queryOne(SuTransaction ti, Object[] args, Dir dir,
 			boolean single) {
@@ -202,7 +202,9 @@ public class SuTransaction extends SuValue {
 		return "Transaction";
 	}
 
-	public static final BuiltinClass clazz = new BuiltinClass() {
+	public static final BuiltinClass clazz = new BuiltinClass("Transaction",
+			tranFS) {
+
 		@Override
 		public SuTransaction newInstance(Object... args) {
 			return new SuTransaction(args);

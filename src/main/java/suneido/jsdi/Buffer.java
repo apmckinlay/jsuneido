@@ -411,7 +411,7 @@ public final class Buffer extends JSDIValue implements CharSequence {
 	//
 
 	private static final Map<String, SuCallable> builtins = BuiltinMethods
-			.methods(Buffer.class);
+			.methods("buffer", Buffer.class);
 
 	@Override
 	public Object get(Object member) {
@@ -517,15 +517,16 @@ public final class Buffer extends JSDIValue implements CharSequence {
 	// BUILT-IN CLASS
 	//
 
+	private static final FunctionSpec newFS = new FunctionSpec(array("size",
+			"string"), "");
+
 	/**
 	 * Reference to a {@link BuiltinClass} that describes how to expose this
 	 * class to the Suneido programmer.
+	 * 
 	 * @see suneido.runtime.Builtins
 	 */
-	public static final SuValue clazz = new BuiltinClass() {
-
-		private final FunctionSpec newFS = new FunctionSpec(array("size",
-				"string"), "");
+	public static final BuiltinClass clazz = new BuiltinClass("Buffer", newFS) {
 
 		@Override
 		protected Object newInstance(Object... args) {
@@ -539,8 +540,7 @@ public final class Buffer extends JSDIValue implements CharSequence {
 				throw new JSDIException("Buffer size must be greater than zero");
 			}
 			Object o = args[1];
-			return o instanceof Buffer
-					? new Buffer(size, (Buffer)o)
+			return o instanceof Buffer ? new Buffer(size, (Buffer) o)
 					: new Buffer(size, Ops.toStr(o));
 		}
 	};

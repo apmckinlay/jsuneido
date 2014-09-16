@@ -31,7 +31,7 @@ public class SuInstance extends SuValue {
 	final SuClass myclass;
 	private final Map<String, Object> ivars;
 	private static final Map<String, SuCallable> methods =
-			BuiltinMethods.methods(SuInstance.class);
+			BuiltinMethods.methods("object", SuInstance.class);
 
 	public SuInstance(SuClass myclass) {
 		this.myclass = myclass;

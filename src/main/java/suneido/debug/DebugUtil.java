@@ -22,9 +22,9 @@ public final class DebugUtil {
 
 	/**
 	 * Returns the path to the {@link suneido.boot.Platform platform}
-	 * -appropriate jSuneido debug support library&mdash;which is a JVMTI
-	 * agent&mdash;or {@code null} if the agent library cannot be found for any
-	 * reason.
+	 * -appropriate jSuneido debug (<strong>jsdebug</strong>) support
+	 * library&mdash;which is a JVMTI agent&mdash;or {@code null} if the agent
+	 * library cannot be found for any reason.
 	 *
 	 * @return Debug support JVMTI agent path, or {@code null}
 	 */
@@ -47,11 +47,11 @@ public final class DebugUtil {
 	 * @see #getJDWPPortPropertyArg(String)
 	 */
 	public static String getJDWPAgentArg(String jdwpServerPort) {
-		return "-agentlib:jdwp=server=y,suspend=n,transport=dt_socket,address=localhost:"
+		return "-agentlib:jdwp=server=y,suspend=n,transport=dt_socket,address="
 				+ jdwpServerPort;
 	}
 
-	/**
+/**
 	 * Returns a command-line argument suitable for starting a JVM with the
 	 * {@value #JDWP_PORT_PROP_NAME} defined and set to the value given in
 	 * {@code jdwpServerPort}. This is useful to communicate to a child JVM
@@ -121,6 +121,25 @@ public final class DebugUtil {
 		return System.getProperty(JDWP_PORT_PROP_NAME);
 	}
 
+	/**
+	 * <p>
+	 * Returns whether the user has set a system property to indicate that the
+	 * bootstrap system should implement {@link DebugModel#ON full debugging}
+	 * using JDWP even if a {@link suneido.boot.Platform platform}-appropriate
+	 * jSuneido debug (<strong>jsdebug</strong>) support library is available.
+	 * </p>
+	 *
+	 * <p>
+	 * Unless the user explicitly sets {@link #JDWP_FORCE_PROP_NAME}, the value
+	 * returned will be <strong>{@code false}</strong>.
+	 * </p>
+	 *
+	 * @return True iff the user has forced full debugging to be done using JDWP
+	 */
+	public static boolean isJDWPForced() {
+		return null != System.getProperty(JDWP_FORCE_PROP_NAME);
+	}
+
 	//
 	// CONSTANTS
 	//
@@ -135,6 +154,24 @@ public final class DebugUtil {
 	 * @see #getJDWPAgentClientPort()
 	 */
 	public static final String JDWP_PORT_PROP_NAME = "suneido.debug.port";
+
+	/**
+	 * <p>
+	 * Name of system property used to force {@link DebugModel#ON full
+	 * debugging} to be implemented using the JDWP approach rather than using
+	 * the {@link suneido.boot.Platform platform}-appropriate jSuneido debug
+	 * (<strong>jsdebug</strong>) support library.
+	 * </p>
+	 *
+	 * <p>
+	 * This properly is primarily useful for debugging the {@link JDWPAgentClient
+	 * JDWP client} in situations where the bootstrapper would normally load
+	 * the <strong>jsdebug</strong> agent. 
+	 * </p>
+	 *
+	 * @see #isJDWPForced()
+	 */
+	public static final String JDWP_FORCE_PROP_NAME = "suneido.debug.force-jdwp";
 
 	//
 	// INTERNALS

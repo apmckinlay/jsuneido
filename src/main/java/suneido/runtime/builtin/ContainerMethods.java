@@ -21,7 +21,7 @@ import suneido.util.Util.Range;
 /** Used by {@link SuContainer} */
 public final class ContainerMethods {
 	private static final BuiltinMethods methods =
-			new BuiltinMethods(ContainerMethods.class, "Objects");
+			new BuiltinMethods("object", ContainerMethods.class, "Objects");
 
 	/** no instances, all static */
 	private ContainerMethods() {
@@ -97,7 +97,7 @@ public final class ContainerMethods {
 	}
 
 	public static Object Assocs(Object self, Object... args) {
-		Args.massage(FunctionSpec.noParams, args);
+		Args.massage(FunctionSpec.NO_PARAMS, args);
 		return new SuSequence(((SuContainer) self).iterable(iterWhich(args), IterResult.ASSOC));
 	}
 
@@ -217,6 +217,11 @@ public final class ContainerMethods {
 		}
 
 		@Override
+		public String typeName() {
+			return "ObjectIter";
+		}
+
+		@Override
 		public SuValue lookup(String method) {
 			return IterateMethods.singleton.lookup(method);
 		}
@@ -226,7 +231,7 @@ public final class ContainerMethods {
 		public static final SuValue singleton = new IterateMethods();
 
 		protected IterateMethods() {
-			super(IterateMethods.class, null);
+			super("objectiter", IterateMethods.class, null);
 		}
 
 		public static Object Next(Object self) {
@@ -243,12 +248,6 @@ public final class ContainerMethods {
 			iter.iter = iter.c.iterator();
 			return null;
 		}
-
-		@Override
-		public String typeName() {
-			return "ObjectIter";
-		}
-
 	}
 
 	@Params("value")
@@ -281,7 +280,7 @@ public final class ContainerMethods {
 		if (args.length == 0)
 			return new SuSequence(((SuContainer) self)
 					.iterable(IterWhich.ALL, IterResult.KEY));
-		Args.massage(FunctionSpec.noParams, args); // args must be named
+		Args.massage(FunctionSpec.NO_PARAMS, args); // args must be named
 		return new SuSequence(((SuContainer) self)
 				.iterable(iterWhich(args), IterResult.KEY));
 	}
@@ -292,7 +291,7 @@ public final class ContainerMethods {
 	}
 
 	public static Object Size(Object self, Object... args) {
-		Args.massage(FunctionSpec.noParams, args); // args must be named
+		Args.massage(FunctionSpec.NO_PARAMS, args); // args must be named
 		SuContainer c = (SuContainer) self;
 		switch (iterWhich(args)) {
 		case LIST:
@@ -365,7 +364,7 @@ public final class ContainerMethods {
 	}
 
 	public static Object Values(Object self, Object... args) {
-		Args.massage(FunctionSpec.noParams, args); // args must be named
+		Args.massage(FunctionSpec.NO_PARAMS, args); // args must be named
 		SuContainer c = (SuContainer) self;
 		return new SuSequence(c.iterable(iterWhich(args), IterResult.VALUE));
 	}

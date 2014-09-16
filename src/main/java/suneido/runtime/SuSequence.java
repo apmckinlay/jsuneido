@@ -34,7 +34,7 @@ public class SuSequence extends SuContainer {
 		return super.lookup(method);
 	}
 
-	private static final SuValue Next = new SuMethod0() {
+	private static final SuValue Next = new SuBuiltinMethod0("seq.Next") {
 		@Override
 		public Object eval0(Object self) {
 			Iterator<Object> iter = ((SuSequence) self).iter;
@@ -42,7 +42,7 @@ public class SuSequence extends SuContainer {
 		}
 	};
 
-	private static final SuValue Copy = new SuMethod0() {
+	private static final SuValue Copy = new SuBuiltinMethod0("seq.Copy") {
 		@Override
 		public Object eval0(Object self) {
 			return new SuContainer(((SuSequence) self).iterable);

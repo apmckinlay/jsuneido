@@ -7,14 +7,16 @@ package suneido.jsdi;
 import java.util.Map;
 
 import suneido.SuValue;
-import suneido.jsdi.type.InOutString;
 import suneido.jsdi.type.BindException;
+import suneido.jsdi.type.InOutString;
 import suneido.jsdi.type.Type;
 import suneido.jsdi.type.TypeId;
 import suneido.jsdi.type.TypeList;
 import suneido.runtime.BuiltinMethods;
+import suneido.runtime.CallableType;
 import suneido.runtime.FunctionSpec;
 import suneido.runtime.SuCallable;
+import suneido.runtime.SuCompiledCallable;
 
 /**
  * Represents a Suneido {@code dll} callable.
@@ -23,28 +25,26 @@ import suneido.runtime.SuCallable;
  * @since 20130708
  */
 @DllInterface
-public abstract class Dll extends SuCallable {
+public abstract class Dll extends SuCompiledCallable {
 
 	//
 	// DATA
 	//
 
-	protected final long     funcPtr;
-	protected final TypeList dllParams;     // don't confuse w SuCallable.params
-	protected final Type     returnType;
+	protected final long funcPtr;
+	protected final TypeList dllParams; // don't confuse w SuCallable.params
+	protected final Type returnType;
 
-	private final String     valueName;
-	private final DllFactory dllFactory;    // for finalization
-	        final String     libraryName;   // package-visible for DllFactory
-	private final String     funcName;
+	private final DllFactory dllFactory; // for finalization
+	final String libraryName; // package-visible for DllFactory
+	private final String funcName;
 
 	//
 	// CONSTRUCTORS
 	//
 
 	protected Dll(long funcPtr, TypeList params, Type returnType,
-			String valueName, DllFactory dllFactory, String libraryName,
-			String funcName) {
+			DllFactory dllFactory, String libraryName, String funcName, FunctionSpec funcSpec) {
 		assert (TypeId.VOID == returnType.getTypeId() || TypeId.BASIC == returnType
 				.getTypeId()
 				&& StorageType.VALUE == returnType.getStorageType())
@@ -55,14 +55,14 @@ public abstract class Dll extends SuCallable {
 		this.funcPtr = funcPtr;
 		this.dllParams = params;
 		this.returnType = returnType;
-		this.valueName = valueName;
 		this.dllFactory = dllFactory;
 		this.libraryName = libraryName;
 		this.funcName = funcName;
 		//
 		// Initialize SuCallable fields
 		//
-		super.params = new FunctionSpec(params.getEntryNames());
+		super.callableType = CallableType.DLL;
+		super.params = funcSpec;
 	}
 
 	//
@@ -83,11 +83,11 @@ public abstract class Dll extends SuCallable {
 	//
 
 	private static final Map<String, SuCallable> builtins = BuiltinMethods
-			.methods(Dll.class);
+			.methods("dll", Dll.class);
 
 	@Override
-	public final String valueName() {
-		return valueName;
+	public final String typeName() {
+		return "aDll";
 	}
 
 	@Override
@@ -104,17 +104,29 @@ public abstract class Dll extends SuCallable {
 		return call(args);
 	}
 
+	@Override
+	public final String display() {
+		final StringBuilder sb = new StringBuilder(128);
+		appendName(sb).append(" /* ");
+		appendLibrary(sb).append(callableType.displayString()).append(' ')
+				.append(libraryName).append(':').append(funcName).append(" 0x")
+				.append(Long.toHexString(funcPtr)).append(" */");
+		return sb.toString();
+	}
+
 	//
 	// ANCESTOR CLASS: Object
 	//
 
 	@Override
-	public String toString() {
+	public final String toString() {
 		final StringBuilder sb = new StringBuilder(128);
 		sb.append("dll ").append(returnType.getDisplayName()).append(' ')
 				.append(libraryName).append(':').append(funcName);
 		sb.append(dllParams.toParamsTypeString());
-		sb.append(" /* 0x").append(Long.toHexString(funcPtr)).append(" */");
+		sb.append(" /* ");
+		appendLibrary(sb).append(getClass().getName()).append(" 0x")
+				.append(Long.toHexString(funcPtr)).append(" */");
 		return sb.toString();
 	}
 
@@ -133,7 +145,7 @@ public abstract class Dll extends SuCallable {
 
 	// TODO: implement -- see Suneidoc for dll.Trace
 	// TODO: give it a parameter so you can turn it off!
-	public static Object Trace(Object self) { 
+	public static Object Trace(Object self) {
 		throw new RuntimeException("not yet implemented");
 	}
 }
