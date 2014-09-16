@@ -77,7 +77,7 @@
 	<!--                -->
 
 	<target name="build" description="Build all jSuneido JARS"
-			depends="target-jsuneido,target-jsuneido-arch-win32-amd64,target-jsuneido-arch-win32-x86,target-jsuneido-arch-linux-amd64,target-jsuneido-full"/>
+			depends="target-jsuneido,target-jsuneido-arch-win32-amd64,target-jsuneido-arch-win32-x86,target-jsuneido-arch-linux-amd64,target-jsuneido-full,required-files"/>
 
 	<target name="clean" description="Delete all outputs"
 			depends="clean-classes,clean-raw-jars,clean-jars"/>
@@ -86,7 +86,7 @@
 			depends="clean,build"/>
 
 	<target name="rebuild-everything" description="Rebuild native libraries and jSuneido JARS"
-			depends="native,rebuild"/>
+			depends="clean,jsdebug,jsdi,build"/>
 
 	<target name="target-jsuneido"
 			description="jsuneido.jar: Lean jSuneido, no native libraries or JSDI"
@@ -156,7 +156,7 @@
 	<!--	NOTE: Don't include "description" element on internal targets or
 			will lose their internalness -->
 
-	<target name="compile" depends="when,required-files">
+	<target name="compile" depends="when,dirs">
 		<javac srcdir="${main.srcdir}" destdir="${main.dstdir.classes}"
 				classpathref="main.classpath"
 				includeAntRuntime="false"
@@ -188,7 +188,7 @@
 		</echo>
 	</target>
 
-	<target name="manifest" depends="when">
+	<target name="manifest" depends="when,dirs">
 		<manifest file="${jar.manifest.file}">
 			<attribute name="Main-Class" value="${jar.manifest.main-class}"/>
 			<!--
@@ -212,8 +212,15 @@ lib/${lib.lucene-queryparser}"
 		</manifest>
 	</target>
 
-	<target name="native">
+	<target name="jsdebug">
 		<ant antfile="build_jsdebug.xml" target="rebuild"/>
+	</target>
+
+	<target name="jsdi" depends="compile">
+		<!--
+			Depends on "compile" because the automatic code generation in
+			the JSDI build requires certain .class files to be built.
+		-->
 		<ant antfile="build_jsdi.xml" target="rebuild"/>
 	</target>
 
@@ -225,9 +232,21 @@ lib/${lib.lucene-queryparser}"
 		<delete dir="${main.dstdir.raw-jars}"/>
 	</target>
 
-	<target name="clean-jars" depends="clean-links-windows">
-		<delete dir="${main.dstdir.jars}"/>
+	<target name="clean-jars">
 		<delete file="jsuneido.jar"/>
+		<!--
+			Delete the directory, being careful not to blindly follow the "lib"
+			symbolic link. Per the Ant docs:
+			
+				'For historical reasons <delete dir="x"/> is different from
+				 <delete><fileset dir="x"/></delete>, it will try to remove
+				 everything inside "x" including "x" itself, not taking default
+				 excludes into account, blindly following all symbolic links.
+				 If you need more control, use a nested <fileset>.'
+		-->
+		<delete>
+			<fileset dir="${main.dstdir.jars}" followsymlinks="false"/>
+		</delete>
 	</target>
 
 	<target name="required-files" depends="dirs,links"/>
@@ -247,27 +266,17 @@ lib/${lib.lucene-queryparser}"
 		-->
 	</target>
 
-	<target name="links-windows" if="platform.windows" depends="clean-links-windows">
-		<exec executable="cmd" dir="${main.dstdir.jars}">
-			<arg value="/C mklink /D /J lib ${basedir}\lib"/> 
-		</exec>
-	</target>
-
-	<target name="clean-links-windows">
+	<target name="links-windows" if="platform.windows">
 		<!--
 			To remove a symbolic link to a directory created with mklink, you
 			have to use 'rmdir', not 'del', or it'll delete everything at node
 			linked to: http://superuser.com/q/167076/223733.
-
-			The reason this target is a dependency of the "clean-jars" target is
-			that running the Ant delete task on a directory containing a Windows
-			symlink to a directory causes the same issues as running 'del'
-			directly on the symlink: it recursively clobbers everything in the
-			directory pointed to! So we always have to clean up the link first
-			with 'rmdir'.
 		-->
 		<exec executable="cmd" dir="${main.dstdir.jars}">
 			<arg value="/C rmdir lib"/>
+		</exec>
+		<exec executable="cmd" dir="${main.dstdir.jars}">
+			<arg value="/C mklink /D /J lib ${basedir}\lib"/> 
 		</exec>
 	</target>
 
