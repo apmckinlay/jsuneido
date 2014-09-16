@@ -618,4 +618,14 @@ public class CallbackTest {
 		assertEquals(-43, eval(code));
 		assertEquals(eval("#()"), eval("Callbacks()"));
 	}
+
+	//
+	// MISC
+	//
+
+	@Test
+	public void testType() {
+		assertEquals("Callback", eval("Type(TestCallback_Int32_1)"));
+		assertEquals("Callback", eval("Type(callback())"));
+	}
 }

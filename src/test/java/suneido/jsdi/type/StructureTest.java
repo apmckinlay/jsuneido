@@ -321,4 +321,13 @@ public class StructureTest {
 		}, JSDIException.class, "win32 exception: ACCESS_VIOLATION");
 	}
 
+	//
+	// MISC
+	//
+
+	@Test
+	public void testType() {
+		assertEquals("Structure", eval("Type(RECT)"));
+		assertEquals("Structure", eval("Type(struct { pointer p })"));
+	}
 }

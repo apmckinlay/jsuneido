@@ -556,4 +556,14 @@ public class DllTest {
 			assertEquals(eval("#(1 2 3 4 5 6 7 8 9 10)"), eval(code));
 		}
 	}
+
+	//
+	// MISC
+	//
+
+	@Test
+	public void testType() {
+		assertEquals("Dll", eval("Type(TestVoid)"));
+		assertEquals("Dll", eval("Type(dll void void:fake())"));
+	}
 }

@@ -86,11 +86,6 @@ public abstract class Dll extends SuCompiledCallable {
 			.methods("dll", Dll.class);
 
 	@Override
-	public final String typeName() {
-		return "aDll";
-	}
-
-	@Override
 	public SuValue lookup(String method) {
 		SuValue result = builtins.get(method);
 		return null != result ? result : super.lookup(method);

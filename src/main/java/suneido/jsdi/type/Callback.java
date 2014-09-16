@@ -314,6 +314,15 @@ public class Callback extends ComplexType {
 	}
 
 	//
+	// ANCESTOR CLASS: SuValue
+	//
+
+	@Override
+	public final String typeName() {
+		return "Callback";
+	}
+
+	//
 	// ANCESTOR CLASS: Object
 	//
 
