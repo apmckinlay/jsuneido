@@ -193,19 +193,9 @@ public final class DebugManager {
 	 *            not be an instance of {@link CallstackProvider}
 	 * @return Call stack derived from {@code throwable}'s stack trace
 	 */
+	@SuppressWarnings("static-method")
 	public Callstack makeCallstackFromThrowable(Throwable throwable) {
-		switch (actualModel) {
-		case ON:
-			// This is a serious problem: control should never pass to code
-			// which attempts to create a full callstack out of a throwable.
-			Errlog.errlog("can't make 'all' Callstack from throwable", throwable);
-			// Despite the problem, fall through to the "NONE" case so the
-			// Suneido programmer can get some kind of a stack trace.
-		case OFF:
-			return new CallstackNone(throwable);
-		default:
-			throw SuInternalError.unhandledEnum(actualModel);
-		}
+		return new CallstackNone(throwable);
 	}
 
 	//

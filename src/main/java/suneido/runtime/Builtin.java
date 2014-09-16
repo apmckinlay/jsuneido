@@ -52,7 +52,7 @@ class Builtin {
 				args = Args.massage(params, args);
 			try {
 				return mh.invoke(self, args);
-			} catch (RuntimeException e) {
+			} catch (RuntimeException | Error e) {
 				throw e;
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
@@ -76,7 +76,7 @@ class Builtin {
 		public Object eval0(Object self) {
 			try {
 				return mh.invoke(self);
-			} catch (RuntimeException e) {
+			} catch (RuntimeException | Error e) {
 				throw e;
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
@@ -105,7 +105,7 @@ class Builtin {
 		public Object eval1(Object self, Object a) {
 			try {
 				return mh.invoke(self, a);
-			} catch (RuntimeException e) {
+			} catch (RuntimeException | Error e) {
 				throw e;
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
@@ -139,7 +139,7 @@ class Builtin {
 		public Object eval2(Object self, Object a, Object b) {
 			try {
 				return mh.invoke(self, a, b);
-			} catch (RuntimeException e) {
+			} catch (RuntimeException | Error e) {
 				throw e;
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
@@ -178,7 +178,7 @@ class Builtin {
 		public Object eval3(Object self, Object a, Object b, Object c) {
 			try {
 				return mh.invoke(self, a, b, c);
-			} catch (RuntimeException e) {
+			} catch (RuntimeException | Error e) {
 				throw e;
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
@@ -222,7 +222,7 @@ class Builtin {
 		public Object eval4(Object self, Object a, Object b, Object c, Object d) {
 			try {
 				return mh.invoke(self, a, b, c, d);
-			} catch (RuntimeException e) {
+			} catch (RuntimeException | Error e) {
 				throw e;
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
@@ -272,7 +272,7 @@ class Builtin {
 				args = Args.massage(params, args);
 			try {
 				return mh.invoke(args);
-			} catch (RuntimeException e) {
+			} catch (RuntimeException | Error e) {
 				throw e;
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
@@ -296,7 +296,7 @@ class Builtin {
 		public Object call0() {
 			try {
 				return mh.invoke();
-			} catch (RuntimeException e) {
+			} catch (RuntimeException | Error e) {
 				throw e;
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
@@ -324,7 +324,7 @@ class Builtin {
 		public Object call1(Object a) {
 			try {
 				return mh.invoke(a);
-			} catch (RuntimeException e) {
+			} catch (RuntimeException | Error e) {
 				throw e;
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
@@ -358,7 +358,7 @@ class Builtin {
 		public Object call2(Object a, Object b) {
 			try {
 				return mh.invoke(a, b);
-			} catch (RuntimeException e) {
+			} catch (RuntimeException | Error e) {
 				throw e;
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
@@ -397,7 +397,7 @@ class Builtin {
 		public Object call3(Object a, Object b, Object c) {
 			try {
 				return mh.invoke(a, b, c);
-			} catch (RuntimeException e) {
+			} catch (RuntimeException | Error e) {
 				throw e;
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
@@ -441,7 +441,7 @@ class Builtin {
 		public Object call4(Object a, Object b, Object c, Object d) {
 			try {
 				return mh.invoke(a, b, c, d);
-			} catch (RuntimeException e) {
+			} catch (RuntimeException | Error e) {
 				throw e;
 			} catch (Throwable e) {
 				throw new RuntimeException(e);
