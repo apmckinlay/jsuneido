@@ -40,4 +40,12 @@ public class TrTest {
 		// collapse at end
 		assertThat(tr("hello \t\n\n", " \t\n", "\n"), equalTo("hello\n"));
 		}
+
+	/**
+	 * PortTests fixture.
+	 * Takes four arguments: string, from, to, and expected result.
+	 */
+	public static boolean pt_tr(String... args) {
+		return Tr.tr(args[0], args[1], args[2]).equals(args[3]);
+	}
 }

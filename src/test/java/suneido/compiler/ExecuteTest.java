@@ -9,6 +9,8 @@ import static org.junit.Assert.fail;
 import static suneido.compiler.Compiler.eval;
 import static suneido.util.testing.Throwing.assertThrew;
 
+import java.util.Arrays;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -367,6 +369,30 @@ public class ExecuteTest {
 
 	public static void testDisp(String expr, String expected) {
 		assertEquals(expected, Ops.display(eval(expr)));
+	}
+
+	/*
+	 * PortTests fixture.
+	 * First argument is an expression to evaluate.
+	 * Optional second argument is the expected result, default is true.
+	 */
+	public static boolean pt_execute(String... args) {
+		Ops.default_single_quotes = true;
+		try {
+			String result = Ops.display(eval(args[0]));
+			String expected = "true";
+			if (args.length > 1)
+				expected = args[1];
+			boolean ok = result.equals(expected);
+			if (! ok) {
+				System.out.println("for: " + Arrays.toString(args));
+				System.out.println("got: " + result);
+				System.out.println("expected: " + expected);
+			}
+			return ok;
+		} finally {
+			Ops.default_single_quotes = false;
+		}
 	}
 
 }

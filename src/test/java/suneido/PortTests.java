@@ -9,19 +9,33 @@ import static suneido.compiler.Token.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-import suneido.compiler.Compiler;
+import suneido.compiler.ExecuteTest;
 import suneido.compiler.Lexer;
 import suneido.compiler.Token;
-import suneido.runtime.Ops;
 import suneido.util.DnumTest;
-import suneido.util.Regex;
-import suneido.util.Tr;
+import suneido.util.RegexTest;
+import suneido.util.TrTest;
 
-/** Run portable tests defined in text files */
+/**
+ * Run tests defined in text files
+ * that are portable across Suneido implementations.
+ * <p>
+ * Currently, there are implementations in jSuneido, gSuneido,
+ * and in Suneido (stdlib) itself.
+ * <p>
+ * Looks for a ptestdir.txt file in a parent directory
+ * that contains the path to the tests.
+ * Since the tests are shared between multiple suneido implementations
+ * ptestdir.txt should be in a common parent.
+ * <p>
+ * Fixtures must be defined in each implementation for each type of test,
+ * usually along with the other unit test code.
+ * <p>
+ * Tests are in a separate repo at github.com/apmckinlay/suneido_tests
+ */
 public class PortTests {
 	static class TestDir {
 		final static String path = findTestDir(); // lazy initialization
@@ -57,7 +71,7 @@ public class PortTests {
 
 		Parser(String src) {
 			lxr = new Lexer(src);
-			tok = lxr.next();
+			next(true);
 		}
 
 		public boolean run() {
@@ -144,59 +158,21 @@ public class PortTests {
 		testmap.put(name, test);
 	}
 
-	static Test ptest = (args) -> args[0].equals(args[1]);
-
-	static Test pt_tr_replace =
-			(args) -> Tr.tr(args[0], args[1], args[2]).equals(args[3]);
-
-	// pt_match is a ptest for matching
-	// simple usage is two arguments, string and pattern
-	// an optional third argument can be "false" for matches that should fail
-	// or additional arguments can specify \0, \1, ...
-	static boolean pt_regex_match(String... args) {
-		Regex.Pattern pat = Regex.compile(args[1]);
-		Regex.Result result = pat.firstMatch(args[0], 0);
-		boolean ok = result != null;
-		if (args.length > 2) {
-			if (args[2].equals("false"))
-				ok = ! ok;
-			else if (result != null)
-				for (int i = 2; i < args.length; ++i)
-					ok = ok && args[i].equals(result.group(args[0], i - 2));
-		}
-		return ok;
-	}
-
-	static boolean pt_execute(String... args) {
-		Ops.default_single_quotes = true;
-		try {
-			String result = Ops.display(Compiler.eval(args[0]));
-			String expected = "true";
-			if (args.length > 1)
-				expected = args[1];
-			boolean ok = result.equals(expected);
-			if (! ok) {
-				System.out.println("for: " + Arrays.toString(args));
-				System.out.println("got: " + result);
-				System.out.println("expected: " + expected);
-			}
-			return ok;
-		} finally {
-			Ops.default_single_quotes = false;
-		}
-	}
-
 	public static void main(String[] args) {
 		//System.out.println("'" + TestDir.path + "'");
-		addTest("ptest", ptest);
+		addTest("ptest", (a) -> a[0].equals(a[1]));
 		runFile("ptest.test");
-		addTest("tr_replace", pt_tr_replace);
+		addTest("tr", TrTest::pt_tr);
 		runFile("tr.test");
-		addTest("regex_match", PortTests::pt_regex_match);
+		addTest("regex_match", RegexTest::pt_regex_match);
 		runFile("regex.test");
-		addTest("execute", PortTests::pt_execute);
+		addTest("execute", ExecuteTest::pt_execute);
 		runFile("execute.test");
 		addTest("dnum_add", DnumTest::pt_dnum_add);
+		addTest("dnum_sub", DnumTest::pt_dnum_sub);
+		addTest("dnum_mul", DnumTest::pt_dnum_mul);
+		addTest("dnum_div", DnumTest::pt_dnum_div);
+		addTest("dnum_cmp", DnumTest::pt_dnum_cmp);
 		runFile("dnum.test");
 	}
 

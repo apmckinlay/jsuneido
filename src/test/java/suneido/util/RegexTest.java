@@ -363,4 +363,24 @@ public class RegexTest {
 		assertNull(Regex.compile(rx).amatch(s, 0));
 	}
 
+	/**
+	 * PortTests fixture for matching.
+	 * Simple usage is two arguments, string and pattern.
+	 * An optional third argument can be "false" for matches that should fail
+	 * or additional arguments can specify \0, \1, ...
+	 */
+	public static boolean pt_regex_match(String... args) {
+		Regex.Pattern pat = Regex.compile(args[1]);
+		Regex.Result result = pat.firstMatch(args[0], 0);
+		boolean ok = result != null;
+		if (args.length > 2) {
+			if (args[2].equals("false"))
+				ok = ! ok;
+			else if (result != null)
+				for (int i = 2; i < args.length; ++i)
+					ok = ok && args[i].equals(result.group(args[0], i - 2));
+		}
+		return ok;
+	}
+
 }

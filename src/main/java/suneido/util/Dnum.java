@@ -255,12 +255,9 @@ public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 		long coef = x.coef + y.coef;
 		if (Long.compareUnsigned(coef, x.coef) < 0 ||
 				Long.compareUnsigned(coef, y.coef) < 0) { // overflow
-			boolean[] roundup = new boolean[1];
-			x.shiftRight(roundup);
-			if (roundup[0])
+			if (x.shiftRight())
 				x.coef++;
-			y.shiftRight(roundup);
-			if (roundup[0])
+			if (y.shiftRight())
 				y.coef++;
 			coef = x.coef + y.coef;
 		}
@@ -289,13 +286,13 @@ public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 		}
 		while (y.exp > x.exp && y.shiftLeft()) {
 		}
-		boolean[] roundup = new boolean[1];
-		while (y.exp > x.exp && x.shiftRight(roundup)) {
-		}
+		boolean roundup = false;
+		while (y.exp > x.exp && x.coef != 0)
+			roundup = x.shiftRight();
 		if (x.exp != y.exp) {
 			assert x.coef == 0;
 			x.exp = y.exp;
-		} else if (roundup[0])
+		} else if (roundup)
 			x.coef++;
 	}
 
@@ -316,16 +313,13 @@ public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 	}
 
 	/** WARNING: may modify, requires defensive copy */
-	private boolean shiftRight(boolean[] roundup) {
-		roundup[0] = false;
-		if (coef == 0)
-			return false;
-		roundup[0] = Long.remainderUnsigned(coef, 10) >= 5;
+	private boolean shiftRight() {
+		boolean roundup = Long.remainderUnsigned(coef, 10) >= 5;
 		coef = Long.divideUnsigned(coef, 10);
 		// don't increment past max
 		if (exp < Byte.MAX_VALUE)
 			exp++;
-		return true;
+		return roundup;
 	}
 
 	private static Dnum result(int sign, long coef, int exp) {
@@ -377,11 +371,11 @@ public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 	private static Dnum minCoef(Dnum x) {
 		if (x.coef != 0 && Long.remainderUnsigned(x.coef, 10) == 0) {
 			x = x.copy();
-			boolean[] roundup = new boolean[1];
+			boolean roundup;
 			do
-				x.shiftRight(roundup);
+				roundup = x.shiftRight();
 			while (x.coef != 0 && Long.remainderUnsigned(x.coef, 10) == 0);
-			if (roundup[0])
+			if (roundup)
 				x.coef++;
 		}
 		return x;
@@ -391,11 +385,11 @@ public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 		final long HI5 = 0x1fL << 59;
 		if ((x.coef & HI5) != 0) {
 			x = x.copy();
-			boolean[] roundup = new boolean[1];
+			boolean roundup;
 			do
-				x.shiftRight(roundup);
+				roundup = x.shiftRight();
 			while ((x.coef & HI5) != 0);
-			if (roundup[0])
+			if (roundup)
 				x.coef++;
 		}
 		final long oneE9 = 1000000000L;

@@ -219,11 +219,51 @@ public class DnumTest {
 		}
 	}
 
-	// PortTests
+	/** PortTests */
 	public static boolean pt_dnum_add(String... args) {
 		Dnum x = parse(args[0]);
 		Dnum y = parse(args[1]);
-		return add(x, y).toString().equals(args[2]);
+		return add(x, y).toString().equals(args[2]) &&
+				add(y, x).toString().equals(args[2]);
+	}
+
+	/** PortTests */
+	public static boolean pt_dnum_sub(String... args) {
+		Dnum x = parse(args[0]);
+		Dnum y = parse(args[1]);
+		return sub(x, y).toString().equals(args[2]) &&
+				(args[2].equals("0") || sub(y, x).toString().equals("-" + args[2]));
+	}
+
+	/** PortTests */
+	public static boolean pt_dnum_mul(String... args) {
+		Dnum x = parse(args[0]);
+		Dnum y = parse(args[1]);
+		return mul(x, y).toString().equals(args[2]) &&
+				mul(y, x).toString().equals(args[2]);
+	}
+
+	/** PortTests */
+	public static boolean pt_dnum_div(String... args) {
+		Dnum x = parse(args[0]);
+		Dnum y = parse(args[1]);
+		return div(x, y).toString().equals(args[2]);
+	}
+
+	/** PortTests */
+	public static boolean pt_dnum_cmp(String... data) {
+		int n = data.length;
+		for (int i = 0; i < n; ++i) {
+			Dnum x = parse(data[i]);
+			if (cmp(x, x) != 0)
+				return false;
+			for (int j = i + 1; j < n; ++j) {
+				Dnum y = parse(data[j]);
+				if (cmp(x, y) != -1 || cmp(y, x) != +1)
+					return false;
+			}
+		}
+		return true;
 	}
 
 }
