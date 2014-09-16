@@ -39,21 +39,9 @@ public class SuCallable extends SuValue {
 	 * Returns the broad callable category this callable belongs to
 	 *
 	 * @return Callable type
-	 * @see #isBlock()
 	 */
 	public final CallableType callableType() {
 		return callableType;
-	}
-
-	/**
-	 * Indicates whether a callable is a Suneido block
-	 *
-	 * @return True iff "this" is block
-	 * @see #callableType()
-	 */
-	public final boolean isBlock() {
-		final CallableType c = callableType();
-		return CallableType.BLOCK == c || CallableType.CLOSURE == c;
 	}
 
 	public SuClass suClass() {
@@ -154,7 +142,7 @@ public class SuCallable extends SuValue {
 	}
 
 	public static boolean isBlock(Object x) {
-		return x instanceof SuCallable && ((SuCallable) x).isBlock();
+		return x instanceof SuCallable && ((SuCallable) x).callableType.isBlock();
 	}
 
 	// --------------------------------------------------------------------------
