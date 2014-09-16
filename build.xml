@@ -225,7 +225,7 @@ lib/${lib.lucene-queryparser}"
 		<delete dir="${main.dstdir.raw-jars}"/>
 	</target>
 
-	<target name="clean-jars">
+	<target name="clean-jars" depends="clean-links-windows">
 		<delete dir="${main.dstdir.jars}"/>
 		<delete file="jsuneido.jar"/>
 	</target>
@@ -247,17 +247,27 @@ lib/${lib.lucene-queryparser}"
 		-->
 	</target>
 
-	<target name="links-windows" if="platform.windows">
+	<target name="links-windows" if="platform.windows" depends="clean-links-windows">
+		<exec executable="cmd" dir="${main.dstdir.jars}">
+			<arg value="/C mklink /D /J lib ${basedir}\lib"/> 
+		</exec>
+	</target>
+
+	<target name="clean-links-windows">
 		<!--
 			To remove a symbolic link to a directory created with mklink, you
 			have to use 'rmdir', not 'del', or it'll delete everything at node
-			linked to: http://superuser.com/q/167076/223733
+			linked to: http://superuser.com/q/167076/223733.
+
+			The reason this target is a dependency of the "clean-jars" target is
+			that running the Ant delete task on a directory containing a Windows
+			symlink to a directory causes the same issues as running 'del'
+			directly on the symlink: it recursively clobbers everything in the
+			directory pointed to! So we always have to clean up the link first
+			with 'rmdir'.
 		-->
 		<exec executable="cmd" dir="${main.dstdir.jars}">
 			<arg value="/C rmdir lib"/>
-		</exec>
-		<exec executable="cmd" dir="${main.dstdir.jars}">
-			<arg value="/C mklink /D /J lib ${basedir}\lib"/> 
 		</exec>
 	</target>
 
