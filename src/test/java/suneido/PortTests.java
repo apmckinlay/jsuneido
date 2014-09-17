@@ -114,12 +114,12 @@ public class PortTests {
 				if (!test.run(args.toArray(new String[0]))) {
 					ok = false;
 					System.out.println("\tFAILED: " + args);
-				}
+				} else
+					n++;
 				next(true);
-				n++;
 			}
 			if (ok) {
-				System.out.printf("\tok (%d)\n", n);
+				System.out.printf("\t%d passed\n", n);
 			}
 			return ok;
 		}
