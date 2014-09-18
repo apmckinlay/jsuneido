@@ -69,7 +69,10 @@
 		<os family="windows"/>
 	</condition>
 	<condition property="platform.linux">
-		<os family="unix"/>
+		<and>
+			<os family="unix"/>
+			<not><os family="mac"/></not>
+		</and>
 	</condition>
 
 	<!--                -->
