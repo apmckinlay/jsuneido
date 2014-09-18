@@ -78,3 +78,6 @@ syntax: regexp
 ^dump-data\.txt$
 syntax: regexp
 ^dump-index\.txt$
+
+syntax: regexp
+^lib/WhenBuilt\.jar$
