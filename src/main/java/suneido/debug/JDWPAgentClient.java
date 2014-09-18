@@ -108,7 +108,8 @@ final class JDWPAgentClient {
 			if (isRunning()) {
 				throw new SuInternalError("agent controller is already running");
 			}
-			runningThread = new Thread(actualClient);
+			runningThread = new Thread(actualClient, getClass().getName());
+			runningThread.setDaemon(true);
 			actualClient.mustStop = false;
 			runningThread.start();
 		}
