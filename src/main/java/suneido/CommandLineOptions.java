@@ -194,6 +194,7 @@ public class CommandLineOptions {
 	private void validate() {
 		if (debugModel != DebugModel.OFF
 				&& !(action == Action.REPL || action == Action.CLIENT || action == Action.SERVER)) {
+			debugModel = DebugModel.OFF; // Don't start debugging if startup error
 			error("debug model '" + debugModel.getCommandLineOption()
 					+ "' can only be used with actions that run code");
 		}
