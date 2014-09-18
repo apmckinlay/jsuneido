@@ -50,11 +50,11 @@ public class Suneido {
 				Errlog.fatal("failed to redirect stdout or stderr", e);
 			}
 		}
-		DebugManager.getInstance().setDebugModel(cmdlineoptions.debugModel);
 		if (cmdlineoptions.max_update_tran_sec != 0)
 			dbpkg.setOption("max_update_tran_sec", cmdlineoptions.max_update_tran_sec);
 		if (cmdlineoptions.max_writes_per_tran != 0)
 			dbpkg.setOption("max_writes_per_tran", cmdlineoptions.max_writes_per_tran);
+		DebugManager.getInstance().setDebugModel(cmdlineoptions.debugModel);
 		try {
 			doAction();
 		} catch (Throwable e) {
