@@ -22,6 +22,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import suneido.debug.DebugUtil;
 import suneido.util.LineBufferingByteConsumer;
 
 /**
@@ -70,19 +71,39 @@ public class BootstrapTest {
 
 	private static PrintStream initialSystemDotOut;
 	private static String initialSkipBoot;
+	private static String initialForceJDWP;
 	private LineCollector collector;
 	private final boolean skipBoot;
 	private final String debugOption;
+	private final boolean forceJDWP;
 
-	public BootstrapTest(boolean skipBoot, String debugOption) {
+	public BootstrapTest(boolean skipBoot, String debugOption, boolean forceJDWP) {
 		this.skipBoot = skipBoot;
 		this.debugOption = debugOption;
+		this.forceJDWP = forceJDWP;
+	}
+
+	private static void setProp(String propName, boolean flag) {
+		if (flag) {
+			System.setProperty(propName, "true");
+		} else {
+			System.clearProperty(propName);
+		}
+	}
+
+	private static void unsetProp(String propName, String origPropValue) {
+		if (null == origPropValue) {
+			System.clearProperty(propName);
+		} else {
+			System.setProperty(propName, origPropValue);
+		}
 	}
 
 	@BeforeClass
 	public static void setupAllTests() {
 		initialSystemDotOut = System.out;
 		initialSkipBoot = System.getProperty(Bootstrap.SKIP_BOOT_PROPERTY_NAME);
+		initialForceJDWP = System.getProperty(DebugUtil.JDWP_FORCE_PROP_NAME);
 	}
 
 	@AfterClass
@@ -97,22 +118,15 @@ public class BootstrapTest {
 	public void setUpOneTest() throws IOException {
 		collector = new LineCollector();
 		System.setOut(new PrintStream(collector));
-		if (skipBoot) {
-			System.setProperty(Bootstrap.SKIP_BOOT_PROPERTY_NAME, "true");
-		} else {
-			System.clearProperty(Bootstrap.SKIP_BOOT_PROPERTY_NAME);
-		}
+		setProp(Bootstrap.SKIP_BOOT_PROPERTY_NAME, skipBoot);
+		setProp(DebugUtil.JDWP_FORCE_PROP_NAME, forceJDWP);
 	}
 
 	@After
 	public void teardownOneTest() throws IOException {
 		System.setOut(initialSystemDotOut);
-		if (null == initialSkipBoot) {
-			System.clearProperty(Bootstrap.SKIP_BOOT_PROPERTY_NAME);
-		} else {
-			System.setProperty(Bootstrap.SKIP_BOOT_PROPERTY_NAME,
-					initialSkipBoot);
-		}
+		unsetProp(Bootstrap.SKIP_BOOT_PROPERTY_NAME, initialSkipBoot);
+		unsetProp(DebugUtil.JDWP_FORCE_PROP_NAME, initialForceJDWP);
 		collector.close();
 	}
 
@@ -126,7 +140,9 @@ public class BootstrapTest {
 				Bootstrap.DEBUG_OPTION_OFF };
 		for (Boolean skipBoot : FT) {
 			for (String debugOption : DEBUG_OPTION) {
-				result.add(new Object[] { skipBoot, debugOption });
+				for (Boolean forceJDWP : FT) {
+					result.add(new Object[] { skipBoot, debugOption, forceJDWP });
+				}
 			}
 		}
 		return result;
