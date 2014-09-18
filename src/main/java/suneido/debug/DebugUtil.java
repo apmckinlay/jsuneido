@@ -6,6 +6,7 @@ package suneido.debug;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 
 import suneido.SuInternalError;
@@ -89,13 +90,17 @@ public final class DebugUtil {
 	 */
 	public static String getFreeJDWPAgentServerPort() {
 		// First attempt: use the default port
-		try (ServerSocket test = new ServerSocket(JDWP_DEFAULT_PORT)) {
+		try (ServerSocket test = new ServerSocket()) {
+			test.setReuseAddress(false);
+			test.bind(new InetSocketAddress(JDWP_DEFAULT_PORT));
 			return Integer.toString(JDWP_DEFAULT_PORT);
 		} catch (Exception e) {
 			// Squelch
 		}
 		// Second attempt: use any available port
-		try (ServerSocket test = new ServerSocket(0)) {
+		try (ServerSocket test = new ServerSocket()) {
+			test.setReuseAddress(false);
+			test.bind(new InetSocketAddress(0));
 			return Integer.toString(test.getLocalPort());
 		} catch (IOException e) {
 			throw new SuInternalError(
