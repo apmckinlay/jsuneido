@@ -77,7 +77,7 @@ public class PortTests {
 		public boolean run() {
 			boolean ok = true;
 			while (tok != EOF) {
-				ok = ok && run1();
+				ok = run1() && ok;
 			}
 			return ok;
 		}
@@ -91,8 +91,8 @@ public class PortTests {
 			if (testmap.containsKey(name))
 				test = testmap.get(name);
 			else {
-				System.out.println("\tMISSING: '" + name + "'");
-				test = (args) -> false;
+				System.out.println("\tMISSING TEST FIXTURE");
+				test = null;
 			}
 			int n = 0;
 			boolean ok = true;
@@ -111,14 +111,15 @@ public class PortTests {
 					if (tok == EOF || tok == NEWLINE)
 						break;
 				}
-				if (!test.run(args.toArray(new String[0]))) {
+				if (test == null) {
+				} else if (!test.run(args.toArray(new String[0]))) {
 					ok = false;
 					System.out.println("\tFAILED: " + args);
 				} else
 					n++;
 				next(true);
 			}
-			if (ok) {
+			if (test != null) {
 				System.out.printf("\t%d passed\n", n);
 			}
 			return ok;
