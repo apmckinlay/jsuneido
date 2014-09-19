@@ -175,6 +175,10 @@ public class CallstackNone extends Callstack {
 		public static Object Source(Object self) {
 			return ((PseudoFunction) self).sourceCode();
 		}
+
+		public static Object Disasm(Object self) {
+			return Boolean.FALSE;
+		}
 	}
 
 	//

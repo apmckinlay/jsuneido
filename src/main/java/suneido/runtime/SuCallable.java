@@ -5,6 +5,7 @@
 package suneido.runtime;
 
 import suneido.SuValue;
+import suneido.compiler.Disassembler;
 
 /**
  * <p>
@@ -53,6 +54,10 @@ public class SuCallable extends SuValue {
 	}
 
 	public String sourceCode() {
+		return null;
+	}
+
+	public byte[] byteCode() {
 		return null;
 	}
 
@@ -196,6 +201,8 @@ public class SuCallable extends SuValue {
 			return Params;
 		else if ("Source".equals(methodName))
 			return Source;
+		else if ("Disasm". equals(methodName))
+			return Disasm;
 		return super.lookup(methodName);
 	}
 
@@ -213,6 +220,14 @@ public class SuCallable extends SuValue {
 		@Override
 		public Object eval0(Object self) {
 			return ((SuCallable) self).sourceCode();
+		}
+	};
+
+	private static final SuValue Disasm = new SuBuiltinMethod0(
+			"function.Disasm") {
+		@Override
+		public Object eval0(Object self) {
+			return Disassembler.disassemble((SuCallable)self);
 		}
 	};
 }
