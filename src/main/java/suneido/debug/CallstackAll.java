@@ -187,11 +187,6 @@ public final class CallstackAll extends Callstack {
 			// FunctionSpec hierarchy; and forcing all built-ins to carry a
 			// FuntionSpec. For the time being, however, we'll just call the
 			// unnamed arguments "arg0", "arg1", and so on.
-// FIXME: remove this debugging code
-if (null == argsArray) {
-System.out.println(javaThis + " ; " + javaThis.getClass().getName() + " ; has a NULL args array"); // TODO: delete me
-throwable.printStackTrace(); // TODO: delete me
-}
 			assert null != argsArray;
 			ArgsIterator iter = new ArgsIterator(argsArray);
 			localIndex = 0;
