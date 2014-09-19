@@ -6,6 +6,7 @@ package suneido.debug;
 
 import suneido.SuContainer;
 import suneido.SuInternalError;
+import suneido.runtime.CallableType;
 
 /**
  * Represents one frame in a Suneido {@link Callstack}.
@@ -47,4 +48,6 @@ public abstract class Frame {
 		}
 		return locals;
 	}
+
+	public abstract CallableType getCallableType();
 }

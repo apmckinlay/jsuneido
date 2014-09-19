@@ -79,10 +79,21 @@ public abstract class Callstack implements Iterable<Frame> {
 	 * Returns the number of frames in the {@link #frames()} list.
 	 *
 	 * @return Number of frames in this stack trace
+	 * @see #isEmpty()
 	 * @see #frames()
 	 */
 	public final int size() {
 		return frames().size();
+	}
+
+	/**
+	 * Indicates whether the list of frames is empty.
+	 *
+	 * @return True iff {@link #frames()}.{@link List#isEmpty() isEmpty()}
+	 * @see #size()
+	 */
+	public final boolean isEmpty() {
+		return frames().isEmpty();
 	}
 
 	//
