@@ -57,14 +57,29 @@ public class Repl {
 		out.println("Built: " + WhenBuilt.when());
 		if (JSDI.isInitialized())
 			out.println("JSDI: " + JSDI.getInstance().whenBuilt());
-		while (true) {
+		StringBuilder code = new StringBuilder(1024);
+		repl: while (true) {
 			out.print("> ");
 			out.flush();
-			String line = in.readLine();
-			if (line == null || "q".equals(line))
-				break;
+			code.delete(0,  code.length());
+			// Collect 1 or more lines of input: if a line ends with '\', it
+			// indicates to ignore the '\' and continue reading the next line.
+			while (true) {
+				String line = in.readLine();
+				if (line == null || "q".equals(line))
+					break repl;
+				if (line.isEmpty())
+					break;
+				if ('\\' == line.charAt(line.length() - 1)) {
+					code.append(line, 0, line.length() - 1).append('\n');
+				} else {
+					code.append(line);
+					break;
+				}
+			}
+			// Evaluate the code
 			try {
-				Object result = Compiler.eval(line);
+				Object result = Compiler.eval(code);
 				if (result != null)
 					out.println(" => " + Ops.display(result));
 			} catch (Throwable e) {
@@ -74,7 +89,7 @@ public class Repl {
 					e.printStackTrace(out);
 				}
 			}
-		}
+		} // repl: while (true)
 		out.println("bye");
 		out.flush();
 	}

@@ -64,11 +64,11 @@ public class Compiler {
 		return pc.parse();
 	}
 
-	public static Object eval(String s) {
+	public static Object eval(CharSequence s) {
 		return Ops.call0(compile("eval", "function () { " + s + "\n}"));
 	}
 
-	public static Object eval(String s, ContextLayered context) {
+	public static Object eval(CharSequence s, ContextLayered context) {
 		return Ops.call0(compile("", "eval", "function () { " + s + "\n}", context));
 	}
 
