@@ -10,8 +10,6 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuContainer;
 import suneido.Suneido;
-import suneido.debug.DebugManager;
-import suneido.debug.DebugModel;
 import suneido.runtime.ContextLayered;
 import suneido.runtime.Ops;
 
@@ -32,17 +30,15 @@ import suneido.runtime.Ops;
 public class Compiler {
 
 	public static Object compile(String name, String src) {
-		return compile("", name, src, null, Suneido.context, null,
-				wantLineNumbers());
+		return compile("", name, src, null, Suneido.context, null, true);
 	}
 
 	public static Object compile(String name, String src, SuContainer warnings) {
-		return compile("", name, src, null, Suneido.context, warnings,
-				wantLineNumbers());
+		return compile("", name, src, null, Suneido.context, warnings, true);
 	}
 
 	public static Object compile(String library, String name, String src, ContextLayered context) {
-		return compile(library, name, src, null, context, null, wantLineNumbers());
+		return compile(library, name, src, null, context, null, true);
 	}
 
 	static Object compile(String name, String src, PrintWriter pw,
@@ -58,10 +54,6 @@ public class Compiler {
 			pw.append(ast.toString() + "\n\n");
 		return AstCompile.fold(library, name, src, pw, context, warnings, wantLineNumbers,
 				ast);
-	}
-
-	private static boolean wantLineNumbers() {
-		return DebugModel.OFF != DebugManager.getInstance().getDebugModel();
 	}
 
 	public static AstNode parse(String src) {
