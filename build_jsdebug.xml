@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<project default="build" name="Build the jsdebug Shared Library">
+	<property environment="env"/>
+	<condition property="jsdebug.path" value="${env.JSDEBUG_PATH}" else="../jsdebug">
+		<isset property="env.JSDEBUG_PATH"/>
+	</condition>
+	<property name="jsdebug.vs.path" value="${jsdebug.path}/vs/vs12"/>
+	<property name="jsdebug.vs.sln" value="vs12.sln"/>
+	<property name="jsdebug.msbuild.config" value="Release"/>
+	<property name="jsdebug.dir.dll.win32-amd64" value="${jsdebug.vs.path}/x64/${jsdebug.msbuild.config}"/>
+	<property name="jsdebug.dir.dll.win32-x86" value="${jsdebug.vs.path}/${jsdebug.msbuild.config}"/>
+	<property name="jsdebug.dir.dst" value="lib"/>
+	<property name="jsdebug.make.config" value="release"/>
+	<property name="jsdebug.make.path" value="${jsdebug.path}/make"/>
+	<property name="jsdebug.dir.so" value="${jsdebug.make.path}/bin/${jsdebug.make.config}"/>
+	<condition property="platform.windows">
+		<os family="windows"/>
+	</condition>
+	<condition property="platform.linux">
+		<os family="unix"/>
+	</condition>
+
+	<target name="build" depends="build-win32-amd64,build-win32-x86,build-linux-amd64"/>
+
+	<target name="rebuild" depends="rebuild-win32-amd64,rebuild-win32-x86,rebuild-linux-amd64"/>
+
+	<target name="clean" depends="clean-win32-amd64,clean-win32-x86,clean-linux-amd64"/>
+
+	<target name="build-win32-amd64" if="${platform.windows}"
+			description="Use Visual Studio to make the Windows AMD64 version of the dll"
+	>
+		<exec executable="msbuild" dir="${jsdebug.vs.path}" failonerror="true">
+			<arg value="${jsdebug.vs.sln}"/>
+			<arg value="/t:Build"/>
+			<arg value="/p:Configuration=${jsdebug.msbuild.config};Platform=x64"/>
+			<arg value="/m"/>
+		</exec>
+		<copy file="${jsdebug.dir.dll.win32-amd64}/jsdebug.dll" todir="${jsdebug.dir.dst}/win32-amd64"
+			overwrite="true" failonerror="true"
+		/>
+	</target>
+
+	<target name="clean-win32-amd64" if="${platform.windows}">
+		<exec executable="msbuild" dir="${jsdebug.vs.path}" failonerror="true">
+			<arg value="${jsdebug.vs.sln}"/>
+			<arg value="/t:Clean"/>
+			<arg value="/p:Configuration=${jsdebug.msbuild.config};Platform=x64"/>
+		</exec>
+	</target>
+
+	<target name="rebuild-win32-amd64" depends="clean-win32-amd64,build-win32-amd64"/>
+
+	<target name="build-win32-x86" if="${platform.windows}"
+	        description="Use Visual Studio to make the Windows x86 version of the dll"
+	>
+		<exec executable="msbuild" dir="${jsdebug.vs.path}" failonerror="true">
+			<arg value="${jsdebug.vs.sln}"/>
+			<arg value="/t:Build"/>
+			<arg value="/p:Configuration=${jsdebug.msbuild.config};Platform=Win32"/>
+			<arg value="/m"/>
+		</exec>
+		<copy file="${jsdebug.dir.dll.win32-x86}/jsdebug.dll" todir="${jsdebug.dir.dst}/win32-x86"
+			  overwrite="true" failonerror="true"
+		/>
+	</target>
+
+	<target name="clean-win32-x86" if="${platform.windows}">
+		<exec executable="msbuild" dir="${jsdebug.vs.path}" failonerror="true">
+			<arg value="${jsdebug.vs.sln}"/>
+			<arg value="/t:Clean"/>
+			<arg value="/p:Configuration=${jsdebug.msbuild.config};Platform=Win32"/>
+		</exec>
+	</target>
+
+	<target name="rebuild-win32-x86" depends="clean-win32-x86,build-win32-x86"/>
+
+	<target name="build-linux-amd64" if="platform.linux-amd64"
+			depends="determine-linux-amd64">
+		<exec executable="make" dir="${jsdebug.make.path}" failonerror="true">
+			<arg value="CONFIG=${jsdebug.make.config}"/>
+		</exec>
+		<copy file="${jsdebug.dir.so}/jsdebug.so" todir="${jsdebug.dir.dst}/linux-amd64"
+			overwrite="true" failonerror="true"
+		/>
+	</target>
+
+	<target name="clean-linux-amd64" if="platform.linux-amd64"
+			depends="determine-linux-amd64">
+		<exec executable="make" dir="${jsdebug.make.path}" failonerror="true">
+			<arg value="clean"/>
+			<arg value="CONFIG=${jsdebug.make.config}"/>
+		</exec>
+	</target>
+
+	<target name="rebuild-linux-amd64" if="platform.linux-amd64"
+			depends="clean-linux-amd64,build-linux-amd64"/>
+
+	<target name="determine-linux-amd64" if="platform.linux">
+		<exec executable="/bin/sh" outputproperty="command.output">
+			<arg line="-c 'uname -m'"/>
+		</exec>
+		<condition property="platform.linux-amd64">
+			<contains string="${command.output}" substring="_64"/>
+		</condition>
+	</target>
+
+</project>
+
