@@ -38,6 +38,7 @@ import suneido.runtime.Ops;
  * </p>
  *
  * @author Andrew McKinlay
+ * @see Disassembler
  */
 @ThreadSafe
 public class Compiler {

@@ -813,10 +813,13 @@ public class ClassGen {
 
 		SuCompiledCallable callable;
 		shareConstants.set(constants);
+		final byte[] byteCode = cw.toByteArray();
 		try {
+			// FIXME: Is it a good idea to have a separate new ClassLoader for
+			//        each of potentially thousands of new classes? 
 			Loader loader = new Loader();
 			Class<?> sc = loader.defineClass(COMPILED_CODE_PACKAGE_DOTS + name,
-					cw.toByteArray());
+					byteCode);
 			try {
 				callable = (SuCompiledCallable) sc.newInstance();
 			} catch (InstantiationException | IllegalAccessException e) {
@@ -827,7 +830,7 @@ public class ClassGen {
 		}
 
 		return callable.finishInit(suClass, functionSpec(bm), context,
-				callableType);
+				callableType, byteCode);
 	}
 
 	static String[] stringArray = new String[0];

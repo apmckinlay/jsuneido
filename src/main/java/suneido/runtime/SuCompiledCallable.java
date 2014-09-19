@@ -16,6 +16,7 @@ public class SuCompiledCallable extends SuCallable {
 
 	private String library;
 	private String sourceCode;
+	private byte[] byteCode;
 
 	/**
 	 * Called by the compiler to set source library and source code information
@@ -30,7 +31,7 @@ public class SuCompiledCallable extends SuCallable {
 	 * @return {@code this}
 	 */
 	public final SuCompiledCallable setSource(String library, String name,
-			String sourceCode) {
+	        String sourceCode) {
 		this.name = name;
 		this.library = library;
 		this.sourceCode = sourceCode;
@@ -50,15 +51,18 @@ public class SuCompiledCallable extends SuCallable {
 	 *            Context callable belongs to
 	 * @param callableType
 	 *            What kind of callable this is, <i>eg</i> function
+	 * @param byteCode
+	 *            Java bytecode of the compiled object (may be {@code null})
 	 * @return {@code this}
 	 */
 	public final SuCompiledCallable finishInit(SuClass myClass,
-			FunctionSpec params, ContextLayered context,
-			CallableType callableType) {
+	        FunctionSpec params, ContextLayered context,
+	        CallableType callableType, byte[] byteCode) {
 		this.myClass = myClass;
 		this.params = params;
 		this.context = context;
 		this.callableType = callableType;
+		this.byteCode = byteCode;
 		return this;
 	}
 
@@ -77,5 +81,10 @@ public class SuCompiledCallable extends SuCallable {
 	@Override
 	public String sourceCode() {
 		return sourceCode;
+	}
+
+	@Override
+	public byte[] byteCode() {
+		return byteCode;
 	}
 }
