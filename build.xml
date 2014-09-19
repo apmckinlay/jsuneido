@@ -235,7 +235,7 @@ lib/${lib.lucene-queryparser}"
 		<delete dir="${main.dstdir.raw-jars}"/>
 	</target>
 
-	<target name="clean-jars">
+	<target name="clean-jars" depends="clean-links">
 		<delete file="jsuneido.jar"/>
 		<!--
 			Delete the directory, being careful not to blindly follow the "lib"
@@ -252,6 +252,17 @@ lib/${lib.lucene-queryparser}"
 		</delete>
 	</target>
 
+	<target name="clean-links">
+		<!--
+			To remove a symbolic link to a directory created with mklink, you
+			have to use 'rmdir', not 'del', or it'll delete everything at node
+			linked to: http://superuser.com/q/167076/223733.
+		-->
+		<exec executable="cmd" dir="${main.dstdir.jars}" osfamily="windows">
+			<arg value="/C rmdir lib"/>
+		</exec>
+	</target>
+
 	<target name="required-files" depends="dirs,links"/>
 
 	<target name="dirs">
@@ -260,24 +271,13 @@ lib/${lib.lucene-queryparser}"
 		<mkdir dir="${main.dstdir.raw-jars}"/>
 	</target>
 
-	<target name="links" depends="links-windows,links-linux">
+	<target name="links" depends="clean-links,links-linux">
 		<!--
 			Create a symbolic link to the "lib" directory from within the
 			target JARs directory. This makes it easier to run the JARs from
 			the target directory without getting a "ERROR: lucene not found"
 			message.
 		-->
-	</target>
-
-	<target name="links-windows" if="platform.windows">
-		<!--
-			To remove a symbolic link to a directory created with mklink, you
-			have to use 'rmdir', not 'del', or it'll delete everything at node
-			linked to: http://superuser.com/q/167076/223733.
-		-->
-		<exec executable="cmd" dir="${main.dstdir.jars}">
-			<arg value="/C rmdir lib"/>
-		</exec>
 		<exec executable="cmd" dir="${main.dstdir.jars}">
 			<arg value="/C mklink /D /J lib ${basedir}\lib"/> 
 		</exec>
