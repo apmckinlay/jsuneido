@@ -15,6 +15,9 @@
 -keep public class suneido.** {
     public *;
 }
+-keep public class suneido.runtime.Ops {
+    public static java.lang.Throwable exception(java.lang.Object);
+}
 
 -keep class suneido.immudb.BtreeKey
 -keep class suneido.compiler.ParseFunction$Context
