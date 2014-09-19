@@ -59,10 +59,12 @@ public final class CallstackAll extends Callstack {
 			this.lineNumber = lineNumber;
 		}
 
+		@Override
 		public Object getFrame() {
 			return callable;
 		}
 
+		@Override
 		public int getLineNumber() {
 			return lineNumber;
 		}
