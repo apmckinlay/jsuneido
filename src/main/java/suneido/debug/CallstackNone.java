@@ -215,7 +215,6 @@ public class CallstackNone extends Callstack {
 	@Override
 	protected List<Frame> makeFrames() {
 		final StackTraceElement[] stackTrace = throwable.getStackTrace();
-		final Frame[] frames = new Frame[stackTrace.length];
 		int i = 0; // stackTraceElement #
 		int j = 0; // frame #
 		if (0 < stackTrace.length
@@ -224,6 +223,7 @@ public class CallstackNone extends Callstack {
 		                getOpsExceptionMethodName())) {
 			++i; // Skip over first stack trace element if it is Ops.exception()
 		}
+		final Frame[] frames = new Frame[stackTrace.length - i];
 		for (; i < stackTrace.length; ++i, ++j) {
 			frames[j] = new StackTraceElementWrapper(stackTrace[i]);
 		}
