@@ -14,17 +14,30 @@ import suneido.runtime.ContextLayered;
 import suneido.runtime.Ops;
 
 /**
+ * <p>
  * The components of the compiler are:
+ *
  * <ul>
- * <li>{@link Lexer} - breaks source into tokens
- * <li>{@link ParseConstant}
- * <li>{@link ParseFunction}
- * <li>{@link ParseExpression}
- * <li>{@link ParseStruct}
- * <li>{@link AstGenerator} - generates an AST, based on calls from parsers
- * <li>{@link AstNode} - make up the AST
- * <li>{@link AstCompile} - compiles an AST to Java byte code
+ * <li>
+ * {@link Lexer} - breaks source into tokens</li>
+ * <li>
+ * {@link ParseConstant}</li>
+ * <li>
+ * {@link ParseFunction}</li>
+ * <li>
+ * {@link ParseExpression}</li>
+ * <li>
+ * {@link ParseStruct}</li>
+ * <li>
+ * {@link AstGenerator} - generates an AST, based on calls from parsers</li>
+ * <li>
+ * {@link AstNode} - make up the AST</li>
+ * <li>
+ * {@link AstCompile} - compiles an AST to Java byte code</li>
  * </ul>
+ * </p>
+ *
+ * @author Andrew McKinlay
  */
 @ThreadSafe
 public class Compiler {
