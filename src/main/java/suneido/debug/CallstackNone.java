@@ -72,7 +72,7 @@ public class CallstackNone extends Callstack {
 		//
 
 		@Override
-		public Object getFrame() {
+		public SuValue getFrame() {
 			return pf;
 		}
 

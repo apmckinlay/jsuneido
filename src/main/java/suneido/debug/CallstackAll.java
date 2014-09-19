@@ -10,6 +10,7 @@ import java.util.Map;
 
 import suneido.SuException;
 import suneido.SuInternalError;
+import suneido.SuValue;
 import suneido.compiler.ClassGen;
 import suneido.runtime.Args;
 import suneido.runtime.ArgsArraySpec;
@@ -60,7 +61,7 @@ public final class CallstackAll extends Callstack {
 		}
 
 		@Override
-		public Object getFrame() {
+		public SuValue getFrame() {
 			return callable;
 		}
 
