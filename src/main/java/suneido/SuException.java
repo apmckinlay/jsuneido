@@ -154,15 +154,6 @@ public class SuException extends RuntimeException implements CallstackProvider {
 	}
 
 	//
-	// ACCESSORS
-	//
-
-	// TODO: If removing this doesn't break anything, delete it
-	// public Object get() {
-	// return getMessage();
-	// }
-
-	//
 	// STATICS
 	//
 
