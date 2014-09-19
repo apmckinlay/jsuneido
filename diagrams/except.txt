@@ -1,5 +1,14 @@
 PROJECT TAG:
 
+========
+20140919
+========
+	add Disasm
+	line numbers test
+	fix usign in SuCallable.java : 181
+	delete commented-out LIBPAT at CallstackNone.java : 121
+
+
 User-friendly stack trace project
 [PHASE 1: Factor internal errors out of SuException]
 [PHASE 2: Take debug symbols out of jsuneido.jar]
@@ -101,7 +110,7 @@ HOW "STACK" SYSTEM WORKS:
                     evalX() eval() -> evalX
                 Determine name:
                     If from suneido.code:
-                        Split on £ (AstCompile.METHOD_SEPARATOR)
+                        Split on ï¿½ (AstCompile.METHOD_SEPARATOR)
                         Extract library from source frame
                     Else If from suneido.jsdi and is Dll:
                         Replace with ??? dll ???
