@@ -8,6 +8,10 @@ import static suneido.compiler.Token.*;
 import suneido.compiler.Generator.MType;
 import suneido.jsdi.DllInterface;
 
+// TODO change to build and return the actual value, rather than AstNode tree
+// inefficient to build AST and then traverse it to build e.g. object
+// maybe handle line numbers in ParseFunction/Expression
+// see cSuneido compile.cpp & gSuneido constant.go
 public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 
 	ParseConstant(Lexer lexer, G generator) {
