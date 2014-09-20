@@ -82,7 +82,7 @@ public abstract class ComplexType extends Type {
 	//
 
 	@Override
-	public final String valueName() {
+	protected final String internalName() {
 		return valueName;
 	}
 }

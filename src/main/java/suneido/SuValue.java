@@ -93,7 +93,12 @@ public class SuValue implements Packable {
 	 * @see #typeName()
 	 */
 	public String valueName() {
-		return "";
+		String name = internalName();
+		if (null == name || "eval".equals(name) || name.startsWith("eval$")) {
+			return "";
+		} else {
+			return name;
+		}
 	}
 
 	public Object get(Object member) {
@@ -126,8 +131,13 @@ public class SuValue implements Packable {
 	public static boolean isCallable(Object x) {
 		return x instanceof SuValue && ((SuValue) x).isCallable();
 	}
+
 	protected boolean isCallable() {
 		return false;
+	}
+
+	protected String internalName() {
+		return null;
 	}
 
 	public Object call0() {
