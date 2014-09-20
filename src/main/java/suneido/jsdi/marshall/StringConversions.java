@@ -8,15 +8,17 @@ import suneido.jsdi.DllInterface;
 
 
 /**
- * TODO: docs
+ * Utility class to convert between Java strings and values that can be passed
+ * to {@code dll} functions.
  * 
  * @author Victor Schappert
  * @since 20130718
+ * @see Buffer
  */
 @DllInterface
-public final class StringConversions {
+final class StringConversions {
 
-	public static byte[] stringToZeroTerminatedByteArray(String value) {
+	static byte[] stringToZeroTerminatedByteArray(String value) {
 		final int N = value.length();
 		byte[] b = new byte[N + 1];
 		for (int k = 0; k < N; ++k) {
