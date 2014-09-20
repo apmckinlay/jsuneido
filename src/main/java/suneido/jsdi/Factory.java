@@ -156,7 +156,33 @@ public abstract class Factory {
 		throw unreachable();
 	}
 
-	// TODO: docs since 20140718
+	/**
+	 * <p>
+	 * Returns an instance of {@link Type} representing the requested
+	 * {@code string} type.
+	 * </p>
+	 *
+	 * <p>
+	 * Called by the compiler to make string members of user-defined JSDI types
+	 * <i>ie</i> {@link Structure struct}, {@link Dll dll}, and {@link Callback
+	 * callback}.
+	 * </p>
+	 *
+	 * @param storageType
+	 *            Whether the string type is a value type, array type, or
+	 *            pointer type
+	 * @param numElements
+	 *            Number of elements in an array-type string
+	 * @param isZeroTerminated
+	 *            Whether the string is zero-terminated
+	 * @param hasInModifier
+	 *            Whether the string is an <code>[<b>in</b>]</code> string or
+	 *            not
+	 * @return String type constructed from the given parameters
+	 * @throws JSDIException If an invalid combination of parameters is passed
+	 * @since 20140718
+	 * @see #makeResourceType(StorageType, int, boolean, boolean)
+	 */
 	@SuppressWarnings("static-method")
 	public final Type makeStringType(StorageType storageType, int numElements,
 			boolean isZeroTerminated, boolean hasInModifier) {
@@ -179,7 +205,33 @@ public abstract class Factory {
 		throw unreachable();
 	}
 
-	// TODO: docs since 20140718
+	/**
+	 * <p>
+	 * Returns an instance of {@link Type} representing the requested
+	 * {@code resource} type.
+	 * </p>
+	 *
+	 * <p>
+	 * Called by the compiler to make string members of user-defined JSDI types
+	 * <i>ie</i> {@link Structure struct}, {@link Dll dll}, and {@link Callback
+	 * callback}.
+	 * </p>
+	 *
+	 * @param storageType
+	 *            Whether the resource type is a value type, array type, or
+	 *            pointer type
+	 * @param numElements
+	 *            Number of elements in an array-type resource
+	 * @param isZeroTerminated
+	 *            Whether the resource is zero-terminated
+	 * @param hasInModifier
+	 *            Whether the resource type has an <code>[<b>in</b>]</code>
+	 *            modifier or not
+	 * @return
+	 * @throws JSDIException Unless a value type is requested
+	 * @since 20140718
+	 * @see #makeStringType(StorageType, int, boolean, boolean)
+	 */
 	@SuppressWarnings("static-method")
 	public final Type makeResourceType(StorageType storageType, int numElements,
 			boolean isZeroTerminated, boolean hasInModifier) {

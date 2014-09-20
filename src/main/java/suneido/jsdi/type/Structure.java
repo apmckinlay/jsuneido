@@ -116,7 +116,7 @@ public final class Structure extends ComplexType {
 
 	private Object fromBuffer(Buffer data, MarshallPlan plan) {
 		final int N = plan.getSizeDirect();
-		// TODO: For this case, it would be more efficient to make a dedicated
+		// NOTE: For this case, it would be more efficient to make a dedicated
 		//       byte[] marshaller in the normal jsdi package and use the
 		//       Buffer's internal data they way we were doing before.
 		final long[] longData = new long[plan.getSizeDirectLongAligned()

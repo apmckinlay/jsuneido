@@ -65,8 +65,21 @@ public class Callback extends ComplexType {
 		return NumberConversions.toLong(result);
 	}
 
-	// TODO: document
-	public final MarshallPlan getMarshallPlan() { // Called by ThunkManagers
+	/**
+	 * <p>
+	 * Binds any {@link LateBinding late-binding} parameter types of this
+	 * callback and returns the marshall plan for marshalling/unmarshalling the
+	 * callback's parameters.
+	 * </p>
+	 * <p>
+	 * Called by ABI-specific sub-classes of {@link ThunkManager} at the time a
+	 * thunk is created in order to provide marshalling/unmarshalling
+	 * information to the native-side (jsdi.dll) thunk.
+	 * </p>
+	 * 
+	 * @return Marshall plan for the callback
+	 */
+	public final MarshallPlan getMarshallPlan() {
 		// TODO: resolve thread safety and update issues --
 		// this will cause problems if marshall plan on an already bound
 		// thunk can change
