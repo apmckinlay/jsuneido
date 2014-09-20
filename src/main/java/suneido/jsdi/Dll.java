@@ -4,18 +4,13 @@
 
 package suneido.jsdi;
 
-import java.util.Map;
-
-import suneido.SuValue;
 import suneido.jsdi.type.BindException;
 import suneido.jsdi.type.InOutString;
 import suneido.jsdi.type.Type;
 import suneido.jsdi.type.TypeId;
 import suneido.jsdi.type.TypeList;
-import suneido.runtime.BuiltinMethods;
 import suneido.runtime.CallableType;
 import suneido.runtime.FunctionSpec;
-import suneido.runtime.SuCallable;
 import suneido.runtime.SuCompiledCallable;
 
 /**
@@ -82,15 +77,6 @@ public abstract class Dll extends SuCompiledCallable {
 	// ANCESTOR CLASS: SuValue
 	//
 
-	private static final Map<String, SuCallable> builtins = BuiltinMethods
-			.methods("dll", Dll.class);
-
-	@Override
-	public SuValue lookup(String method) {
-		SuValue result = builtins.get(method);
-		return null != result ? result : super.lookup(method);
-	}
-
 	@Override
 	public final Object eval(Object self, Object... args) {
 		// Need to implement 'eval' because a Dll could be a class or object
@@ -132,15 +118,5 @@ public abstract class Dll extends SuCompiledCallable {
 		} finally {
 			super.finalize();
 		}
-	}
-
-	//
-	// BUILT-IN METHODS
-	//
-
-	// TODO: implement -- see Suneidoc for dll.Trace
-	// TODO: give it a parameter so you can turn it off!
-	public static Object Trace(Object self) {
-		throw new RuntimeException("not yet implemented");
 	}
 }
