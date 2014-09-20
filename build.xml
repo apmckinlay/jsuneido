@@ -278,7 +278,7 @@ lib/${lib.lucene-queryparser}"
 			the target directory without getting a "ERROR: lucene not found"
 			message.
 		-->
-		<exec executable="cmd" dir="${main.dstdir.jars}">
+		<exec executable="cmd" dir="${main.dstdir.jars}" osfamily="windows">
 			<arg value="/C mklink /D /J lib ${basedir}\lib"/> 
 		</exec>
 	</target>
