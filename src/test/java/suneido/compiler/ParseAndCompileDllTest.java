@@ -88,7 +88,6 @@ public class ParseAndCompileDllTest {
 				"\t[in] string m,\n" +
 				"\tresource n\n" +
 			"\t)";
-			// TODO: add callback
 
 	public final String[] VALID_RETURN_TYPES = { "void", "bool", "int8",
 			"int16", "int32", "int64", "pointer", "float", "double", "handle",
