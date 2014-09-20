@@ -39,7 +39,6 @@ public class Triggers {
 					oldrec == null ? false : new SuRecord(oldrec, table.getFields(), t),
 					newrec == null ? false : new SuRecord(newrec, table.getFields(), t));
 		} catch (Exception e) {
-e.printStackTrace(); // TODO: Is this line supposed to be here?
 			throw new SuException(e + " (" + trigger + ")", e);
 		}
 	}
