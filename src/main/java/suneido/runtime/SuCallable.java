@@ -162,8 +162,8 @@ public class SuCallable extends SuValue {
 	}
 
 	@Override
-	public String valueName() {
-		return null == name ? "" : name;
+	protected final String internalName() {
+		return name;
 	}
 
 	@Override

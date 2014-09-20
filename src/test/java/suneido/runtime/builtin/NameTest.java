@@ -44,20 +44,18 @@ public class NameTest {
 		test("Name(#{})", "");
 		test("Name(Object())", "");
 		test("Name(Record())", "");
-		test("Name(function() { })", "eval");
-//		test("Name(x = function() { })", "x"); FIXME: This test case should work, as it does on CSuneido
-//		test("Name(class { })", "");           FIXME: This test case should work, as it does on CSuneido
-//		test("Name(x = class { })", "x");      FIXME: This test case should work, as it does on CSuneido
+		test("Name(function() { })", "");
+		test("Name(x = function() { })", "");
+		test("Name(class { })", "");
+		test("Name(x = class { })", "");
 		test("Name(new (class { }))", "");
 		test("Name((class { })())", "");
 		test("Name(x = (class { })())", "");
 		test("Name(x = new (class { }))", "");
-		test("Name({ })", "eval");
-		test("Name(x = { })", "eval");
+		test("Name({ })", "");
+		test("Name(x = { })", "");
 		test("x = class { Method() { } }; Name(x.Method)", "");
 		test("x = class { Method() { } }; Name(x().Method)", "");
-		// TODO: need testing for named functions
-//		test("Name(x = class { })", "x");
 	}
 
 	@Test
@@ -90,8 +88,8 @@ public class NameTest {
 		test("Name(A)", "");
 
 		define("A", "function() { }");
-//		test("Name(A)", "A");                  FIXME: This test case should work, as it does on CSuneido
-//		test("x = A; Name(x)", "A");           FIXME: This test case should work, as it does on CSuneido
+		test("Name(A)", "A");
+		test("x = A; Name(x)", "A");
 
 		define("B", "class { }");
 		test("Name(B)", "B");
@@ -104,12 +102,12 @@ public class NameTest {
 		Assumption.jvmIsOnWindows();
 		test("Name(Buffer(1, ''))", "");
 		test("Name(x = Buffer(1, ''))", "");
-//		test("Name(struct { char x })", "");      FIXME: This test case should work, as it does on CSuneido
-//		test("Name(x = struct { char x })", "");  FIXME: This test case should work, as it does on CSuneido
-//		test("Name(callback())", "");             FIXME: This test case should work, as it does on CSuneido
-//		test("Name(x = callback())", "");         FIXME: This test case should work, as it does on CSuneido
-//		test("Name(dll void void:f())", "");      FIXME: This test case should work, as it does on CSuneido
-//		test("Name(x = dll void void:f())", "");  FIXME: This test case should work, as it does on CSuneido
+		test("Name(struct { char x })", "");
+		test("Name(x = struct { char x })", "");
+		test("Name(callback())", "");
+		test("Name(x = callback())", "");
+		test("Name(dll void void:f())", "");
+		test("Name(x = dll void void:f())", "");
 	}
 
 	@Test

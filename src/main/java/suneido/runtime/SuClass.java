@@ -310,7 +310,7 @@ public class SuClass extends SuValue {
 	}
 
 	@Override
-	public String valueName() {
+	protected final String internalName() {
 		return name;
 	}
 
