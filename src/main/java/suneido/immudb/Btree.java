@@ -652,7 +652,7 @@ class Btree implements TranIndex {
 		return totalSize;
 	}
 
-	static final float MIN_FRAC = .001f;
+	static final float MIN_FRAC = 1e-9f;
 
 	/** from is inclusive, end is exclusive */
 	@Override
