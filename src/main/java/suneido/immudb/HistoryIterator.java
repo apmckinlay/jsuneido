@@ -8,6 +8,7 @@ import static suneido.immudb.UpdateTransaction.REMOVE;
 
 import java.util.Date;
 
+import suneido.SuDate;
 import suneido.intfc.database.Record;
 import suneido.util.IntArraysList;
 
@@ -119,7 +120,9 @@ class HistoryIterator implements suneido.intfc.database.HistoryIterator {
 	}
 
 	private Record[] result(String action, DataRecord r) {
-		Record r1 = new RecordBuilder().add(date).add(action).build();
+		Record r1 = new RecordBuilder().
+				add(SuDate.fromTime(date.getTime())).
+				add(action).build();
 		return new Record[] { r1, r };
 	}
 
