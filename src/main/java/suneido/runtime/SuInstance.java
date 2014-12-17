@@ -104,11 +104,10 @@ public class SuInstance extends SuValue {
 		if ((key == NA) == (all == NA))
 			throw new SuException("usage: object.Delete(field) or object.Delete(all:)");
 		if (key != NA)
-			return ((SuInstance) self).ivars.remove(key) == null ? false : self;
-		else {
+			((SuInstance) self).ivars.remove(key);
+		else // all:
 			((SuInstance) self).ivars.clear();
-			return self;
-		}
+		return self;
 	}
 
 	public static Object Eval(Object self, Object... args) {
