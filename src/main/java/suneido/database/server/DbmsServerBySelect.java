@@ -9,10 +9,7 @@ import static suneido.util.ByteBuffers.stringToBuffer;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -212,6 +209,23 @@ public class DbmsServerBySelect {
 				list.add(sd.getSessionId());
 		}
 		return list;
+	}
+
+	static int kill_connections(String sessionId) {
+		int nkilled = 0;
+		synchronized(DbmsServer.serverDataSet) {
+			Iterator<ServerData> iter = DbmsServer.serverDataSet.iterator();
+			while (iter.hasNext()) {
+				ServerData serverData = iter.next();
+				if (sessionId.equals(serverData.getSessionId())) {
+					++nkilled;
+					serverData.end();
+					serverData.outputQueue.close();
+					iter.remove();
+				}
+			}
+		}
+		return nkilled;
 	}
 
 }

@@ -87,7 +87,7 @@ public class DbmsLocal extends Dbms {
 
 	@Override
 	public int kill(String sessionId) {
-		return 0;
+		return DbmsServer.kill_connections(sessionId);
 	}
 
 	@Override
