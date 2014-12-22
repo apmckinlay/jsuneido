@@ -10,7 +10,6 @@ import static suneido.util.ByteBuffers.stringToBuffer;
 import static suneido.util.Util.listToParens;
 
 import java.nio.ByteBuffer;
-import java.util.Iterator;
 import java.util.List;
 
 import suneido.SuContainer;
@@ -260,20 +259,8 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			int nkilled = 0;
 			String sessionId = bufferToString(line).trim();
-			synchronized(DbmsServer.serverDataSet) {
-				Iterator<ServerData> iter = DbmsServer.serverDataSet.iterator();
-				while (iter.hasNext()) {
-					ServerData serverData = iter.next();
-					if (sessionId.equals(serverData.getSessionId())) {
-						++nkilled;
-						serverData.end();
-						serverData.outputQueue.close();
-						iter.remove();
-					}
-				}
-			}
+			int nkilled = DbmsServer.kill_connections(sessionId);
 			return stringToBuffer("N" + nkilled + "\r\n");
 		}
 	},
