@@ -108,14 +108,15 @@ public class SocketClient extends SuValue {
 		}
 	}
 
-	// NOTE: Readline should be consistent across file, socket, and runpiped
+	// NOTE: line ending should be consistent across file, socket, and runpiped
 	private String readLine() throws IOException {
 		StringBuilder sb = new StringBuilder();
 		while (true) {
 			int c = input.read();
 			if (c == '\n' || c == -1)
 				break ;
-			sb.append((char) c);
+			if (sb.length() < 2000) // max should be consistent with cSuneido
+				sb.append((char) c);
 		}
 		return Util.toLine(sb);
 	}

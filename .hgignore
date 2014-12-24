@@ -19,6 +19,8 @@ dropsrc.bat
 lucene*.jar
 zlibwapi.dll
 scilexer.dll
+jsuneido-raw.jar
+jsuneido140714.jar
 syntax: regexp
 ^\.externalToolBuilders$
 syntax: regexp
