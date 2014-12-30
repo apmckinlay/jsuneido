@@ -18,6 +18,7 @@ public enum DebugModel {
 	 * Full debugging, as described in {@link Bootstrap#DEBUG_OPTION_ALL}.
 	 */
 	ON(Bootstrap.DEBUG_OPTION_ON),
+
 	/**
 	 * No extra debugging support, as described in
 	 * {@link Bootstrap#DEBUG_OPTION_NONE}.

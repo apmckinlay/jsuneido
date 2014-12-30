@@ -138,7 +138,7 @@ public final class Bootstrap {
 	 * {@code stdout} , except that the relevant consumer is
 	 * {@code stderrConsumer}.
 	 * </p>
-	 * 
+	 *
 	 * @param args
 	 *            Command-line arguments for {@link Suneido#main(String[])
 	 *            Suneido.main(...)} in the child JVM
@@ -346,6 +346,7 @@ public final class Bootstrap {
 		public boolean printedAtLeastOneLine = false;
 		public final ArrayList<String> fatalErrors = new ArrayList<String>();
 
+		@Override
 		public void accept(CharSequence message) {
 			if (null != message) {
 				final String strMessage = message.toString();
@@ -415,10 +416,10 @@ public final class Bootstrap {
 	 * simpler debug model.</li>
 	 * </ul>
 	 * <sup>&dagger;</sup>: <em>This evidently involves a small amount of
-	 * information loss the sense that suppressed internal Java stack frames
+	 * information loss in the sense that suppressed internal Java stack frames
 	 * may produce some useful information about the state of the program</em>.
 	 * </p>
-	 * 
+	 *
 	 * @see #DEBUG_OPTION
 	 * @see #DEBUG_OPTION_OFF
 	 */
