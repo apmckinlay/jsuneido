@@ -73,9 +73,10 @@ import com.google.common.primitives.Ints;
  *				|	[:xdigit:]			CharClass
  *
  * handling ignore case:
- * - compile Chars and CharClass to lower case
- * - match has to convert to lower case
- * - also handled by Backref
+ * - case is ASCII only i.e. a-z, A-Z, not unicode
+ * - compile Chars to lower case, match has to convert to lower case
+ * - CharClass tries matching both toupper and tolower (to handle ranges)
+ * - Backref converts both to lower
  * NOTE: assumes that ignore case state is in sync between compile and match
  * this won't be the case for e.g. (abc(?i)def)+
  *
@@ -246,6 +247,26 @@ public class Regex {
 
 	// compile -----------------------------------------------------------------
 
+	static final CharMatcher blank = CharMatcher.anyOf(" \t");
+	static final CharMatcher digit = CharMatcher.anyOf("0123456789");
+	static final CharMatcher notDigit = digit.negate();
+	static final CharMatcher lower = CharMatcher.inRange('a', 'z');
+	static final CharMatcher upper = CharMatcher.inRange('A', 'Z');
+	static final CharMatcher alpha = lower.or(upper);
+	static final CharMatcher alnum = digit.or(alpha);
+	static final CharMatcher punct =
+			CharMatcher.anyOf("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~");
+	static final CharMatcher graph = alnum.or(punct);
+	static final CharMatcher print = graph.or(CharMatcher.is(' '));
+	static final CharMatcher xdigit =
+			CharMatcher.anyOf("0123456789abcdefABCDEF");
+	static final CharMatcher space = CharMatcher.anyOf(" \t\r\n");
+	static final CharMatcher notSpace = space.negate();
+	static final CharMatcher cntrl = CharMatcher.inRange('\u0000', '\u001f')
+				.or(CharMatcher.inRange('\u007f', '\u009f'));
+	static final CharMatcher word = alnum.or(CharMatcher.is('_'));
+	static final CharMatcher notWord = word.negate();
+
 	private static class Compiler {
 		String src;
 		int si = 0;
@@ -346,23 +367,21 @@ public class Regex {
 			emitChars(src.substring(start, si));
 		}
 
-		private static final CharMatcher CM_NOTWORD = CM_WORD.negate();
-
 		void simple() {
 			if (match("."))
 				emit(any);
 			else if (match("\\d"))
-				emit(new CharClass(CharMatcher.DIGIT));
+				emit(new CharClass(digit));
 			else if (match("\\D"))
-				emit(new CharClass(CharMatcher.DIGIT.negate()));
+				emit(new CharClass(notDigit));
 			else if (match("\\w"))
-				emit(new CharClass(CM_WORD));
+				emit(new CharClass(word));
 			else if (match("\\W"))
-				emit(new CharClass(CM_NOTWORD));
+				emit(new CharClass(notWord));
 			else if (match("\\s"))
-				emit(new CharClass(CharMatcher.WHITESPACE));
+				emit(new CharClass(space));
 			else if (match("\\S"))
-				emit(new CharClass(CharMatcher.WHITESPACE.negate()));
+				emit(new CharClass(notSpace));
 			else if (matchBackref()) {
 				int i = src.charAt(si - 1) - '0';
 				emit(new Backref(i, ignoringCase));
@@ -386,8 +405,7 @@ public class Regex {
 		private void emitChars(String s) {
 			if (inChars && inCharsIgnoringCase == ignoringCase &&
 					! next1of("?*+")) {
-				((Chars) pat.get(pat.size() - 1)).chars +=
-						(ignoringCase ? s.toLowerCase() : s);
+				((Chars) pat.get(pat.size() - 1)).add(s);
 			} else {
 				emit(ignoringCase ? new CharsIgnoreCase(s) : new Chars(s));
 				inChars = true;
@@ -408,25 +426,29 @@ public class Regex {
 			while (si < sn && src.charAt(si) != ']') {
 				CharMatcher elem;
 				if (matchRange()) {
-					elem = range(src.charAt(si - 3), src.charAt(si - 1));
+					char from = src.charAt(si - 3);
+					char to = src.charAt(si - 1);
+					elem = (from <= to)
+							? CharMatcher.inRange(from, to)
+							: CharMatcher.NONE;
 				} else if (match("\\d"))
 					elem = digit;
 				else if (match("\\D"))
-					elem = notdigit;
+					elem = notDigit;
 				else if (match("\\w"))
-					elem = CM_WORD;
+					elem = word;
 				else if (match("\\W"))
-					elem = CM_NOTWORD;
+					elem = notWord;
 				else if (match("\\s"))
-					elem = CharMatcher.WHITESPACE;
+					elem = space;
 				else if (match("\\S"))
-					elem = notwhite;
+					elem = notSpace;
 				else if (match("[:"))
 					elem = posixClass();
 				else {
 					if (si + 1 < sn)
 						match("\\");
-					chars.append(handleCase(src.charAt(si++)));
+					chars.append(src.charAt(si++));
 					continue;
 				}
 				cm = cm.or(elem);
@@ -444,10 +466,6 @@ public class Regex {
 			emit(ignoringCase ? new CharClassIgnoreCase(cm) : new CharClass(cm));
 		}
 
-		private char handleCase(char c) {
-			return ignoringCase ? Character.toLowerCase(c) : c;
-		}
-
 		private boolean matchRange() {
 			if (src.charAt(si + 1) == '-' &&
 					si+2 < sn && src.charAt(si + 2) != ']') {
@@ -457,54 +475,29 @@ public class Regex {
 				return false;
 		}
 
-		private CharMatcher range(char from, char to) {
-			if (ignoringCase) {
-				char lofrom = Character.toLowerCase(from);
-				char loto = Character.toLowerCase(to);
-				if ((from == lofrom) != (to == loto) || (from < 'A' && 'Z' < to))
-					throw new RuntimeException(
-							"regular expression range invalid with ignore case");
-				return CharMatcher.inRange(lofrom, loto);
-			} else
-				return CharMatcher.inRange(from, to);
-		}
-
-		static final CharMatcher blank = CharMatcher.anyOf(" \t");
-		static final CharMatcher digit = CharMatcher.anyOf("0123456789");
-		static final CharMatcher notdigit = digit.negate();
-		static final CharMatcher alnum = digit.or(CharMatcher.JAVA_LETTER);
-		static final CharMatcher punct =
-				CharMatcher.anyOf("!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~");
-		static final CharMatcher graph = alnum.or(punct);
-		static final CharMatcher print = graph.or(CharMatcher.is(' '));
-		static final CharMatcher xdigit =
-				CharMatcher.anyOf("0123456789abcdefABCDEF");
-		static final CharMatcher notwhite = CharMatcher.WHITESPACE.negate();
-
 		CharMatcher posixClass() {
 			if (match("alpha:]"))
-				return CharMatcher.JAVA_LETTER;
+				return alpha;
 			else if (match("alnum:]"))
 				return alnum;
 			else if (match("blank:]"))
 				return blank;
 			else if (match("cntrl:]"))
-				return CharMatcher.JAVA_ISO_CONTROL;
+				return cntrl;
 			else if (match("digit:]"))
 				return digit;
 			else if (match("graph:]"))
 				return graph;
 			else if (match("lower:]"))
-				return CharMatcher.JAVA_LOWER_CASE;
+				return lower;
 			else if (match("print:]"))
 				return print;
 			else if (match("punct:]"))
 				return punct;
 			else if (match("space:]"))
-				return CharMatcher.WHITESPACE;
+				return space;
 			else if (match("upper:]"))
-				return ignoringCase
-						? CharMatcher.JAVA_LOWER_CASE : CharMatcher.JAVA_UPPER_CASE;
+				return upper;
 			else if (match("xdigit:]"))
 				return xdigit;
 			else
@@ -547,9 +540,6 @@ public class Regex {
 		}
 
 	}
-
-	private static final CharMatcher CM_WORD =
-			CharMatcher.JAVA_LETTER_OR_DIGIT.or(CharMatcher.is('_'));
 
 	// elements of compiled regex ----------------------------------------------
 
@@ -648,7 +638,7 @@ public class Regex {
 	static class StartOfWord extends Element {
 		@Override
 		public int omatch(String s, int si) {
-			return (si == 0 || ! CM_WORD.matches(s.charAt(si - 1))) ? si : FAIL;
+			return (si == 0 || ! word.matches(s.charAt(si - 1))) ? si : FAIL;
 		}
 		@Override
 		public String toString() {
@@ -661,7 +651,7 @@ public class Regex {
 	static class EndOfWord extends Element {
 		@Override
 		public int omatch(String s, int si) {
-			return (si >= s.length() || ! CM_WORD.matches(s.charAt(si)))
+			return (si >= s.length() || ! word.matches(s.charAt(si)))
 					? si : FAIL;
 		}
 		@Override
@@ -713,6 +703,10 @@ public class Regex {
 			this.chars = chars;
 		}
 
+		public void add(String s) {
+			chars += s;
+		}
+
 		@Override
 		public int omatch(String s, int si) {
 			if (! s.startsWith(chars, si))
@@ -738,6 +732,11 @@ public class Regex {
 
 		CharsIgnoreCase(String chars) {
 			super(chars.toLowerCase());
+		}
+
+		@Override
+		public void add(String s) {
+			chars += s.toLowerCase();
 		}
 
 		@Override
@@ -810,15 +809,20 @@ public class Regex {
 		int omatch(String s, int si) {
 			if (si >= s.length())
 				return FAIL;
-			return cm.matches(Character.toLowerCase(s.charAt(si))) ? si + 1 : FAIL;
+			return matches(s.charAt(si)) ? si + 1 : FAIL;
 		}
 
 		@Override
 		public int nextPossible(String s, int si, int sn) {
 			for (++si; si < sn; ++si)
-				if (cm.matches(Character.toLowerCase(s.charAt(si))))
+				if (matches(s.charAt(si)))
 					return si;
 			return sn + 1; // no possible match
+		}
+
+		private boolean matches(char c) {
+			return cm.matches(Character.toLowerCase(c)) ||
+					cm.matches(Character.toUpperCase(c));
 		}
 
 		@Override
@@ -900,5 +904,5 @@ public class Regex {
 		}
 	}
 	final static Right RIGHT0 = new Right(0);
-
 }
+
