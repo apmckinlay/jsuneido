@@ -50,9 +50,9 @@ public class RegexTest {
 		test(".\\5.", ". \\5 .");
 		test("(?i)\\5", "i\\5");
 
-		except("(?i)[5-M]", "range invalid");
-		except("(?i)[M-}]", "range invalid");
-		except("(?i)[5-}]", "range invalid");
+//		except("(?i)[5-M]", "range invalid");
+//		except("(?i)[M-}]", "range invalid");
+//		except("(?i)[5-}]", "range invalid");
 
 		test("a[.]b", "'a.b'");
 
@@ -374,7 +374,9 @@ public class RegexTest {
 		Regex.Result result = pat.firstMatch(args[0], 0);
 		boolean ok = result != null;
 		if (args.length > 2) {
-			if (args[2].equals("false"))
+			if (args[2].equals("true"))
+				;
+			else if (args[2].equals("false"))
 				ok = ! ok;
 			else if (result != null)
 				for (int i = 2; i < args.length; ++i)
