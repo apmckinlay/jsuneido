@@ -16,9 +16,9 @@
 	<!--                      -->
 
 	<property name="lib.dir" value="lib"/>
-	<property name="lib.lucene-core" value="lucene-core-4.8.1.jar"/>
-	<property name="lib.lucene-analyzers-common" value="lucene-analyzers-common-4.8.1.jar"/>
-	<property name="lib.lucene-queryparser" value="lucene-queryparser-4.8.1.jar"/>
+	<property name="lib.lucene-core" value="lucene-core-4.10.3.jar"/>
+	<property name="lib.lucene-analyzers-common" value="lucene-analyzers-common-4.10.3.jar"/>
+	<property name="lib.lucene-queryparser" value="lucene-queryparser-4.10.3.jar"/>
 
 	<property name="main.srcdir" value="src/main/java"/>
 	<property name="main.dstdir.classes" value="target/classes"/>
@@ -26,7 +26,7 @@
 	<property name="main.dstdir.raw-jars" value="target/jar/raw"/>
 
 	<path id="main.classpath">
-		<pathelement location="${lib.dir}/asm-all-5.0.2.jar"/>
+		<pathelement location="${lib.dir}/asm-all-5.0.3.jar"/>
 		<pathelement location="${lib.dir}/guava-18.0.jar"/>
 		<pathelement location="${lib.dir}/jsr305-1.3.9.jar"/>
 		<pathelement location="${lib.dir}/${lib.lucene-core}"/>

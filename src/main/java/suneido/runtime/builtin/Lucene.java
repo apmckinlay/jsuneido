@@ -37,7 +37,7 @@ Lucene.Search("lucene", "good") {|key| Print(key: key) }
 */
 
 public class Lucene extends BuiltinClass {
-	public static final Version version = Version.LUCENE_48;
+	public static final Version version = Version.LATEST;
 	public static final Lucene singleton = new Lucene();
 
 	private Lucene() {
@@ -160,7 +160,7 @@ public class Lucene extends BuiltinClass {
 				IndexReader ir = DirectoryReader.open(dir)) {
 			IndexSearcher searcher = new IndexSearcher(ir);
 			Analyzer analyzer = analyzer();
-			QueryParser parser = new QueryParser(version, "text", analyzer);
+			QueryParser parser = new QueryParser("text", analyzer);
 			Query query = parser.parse(queryStr);
 			TopDocs results = searcher.search(query, limit);
 			ScoreDoc[] hits = results.scoreDocs;
@@ -176,6 +176,6 @@ public class Lucene extends BuiltinClass {
 	}
 
 	private static Analyzer analyzer() {
-		return new EnglishAnalyzer(version);
+		return new EnglishAnalyzer();
 	}
 }
