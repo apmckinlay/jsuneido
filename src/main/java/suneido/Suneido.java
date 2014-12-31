@@ -186,8 +186,8 @@ public class Suneido {
 		System.out.println("-c[lient]                 run as client");
 		System.out.println("-p[ort] #                 the TCP/IP port for server or client (default 3147)");
 		System.out.println("-repl                     (default) interactive read-eval-print-loop command line");
-		System.out.println("-nojsdi                   disable JSDI dll interface");
-		System.out.println("-debug on|off             debug model (default is 'on', but may run slower)");
+		System.out.println("-nojsdi                   disable JSDI dll interface (default for server)");
+		System.out.println("-debug on|off             default is 'on' for repl & client, 'off' otherwise");
 		System.out.println("-d[ump] [table]           dump to database.su or <table> to <table>.su");
 		System.out.println("-l[oad] [table]           load from database.su or <table> from <table>.su");
 		System.out.println("-check                    check the database integrity");
