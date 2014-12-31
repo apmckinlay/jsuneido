@@ -120,10 +120,10 @@ enum NativeCall64 {
 	 * <li>four parameters or fewer;</li>
 	 * <li>parameters and return value use direct storage only;</li>
 	 * <li>all parameters can be marshalled into a 64-bit Java {@code long} value</li>
-	 * <li>return value is can be marshalled into a 64-bit Java {@code long} value</li>
+	 * <li>return value can be marshalled into a 64-bit Java {@code long} value</li>
 	 * </ul>
 	 * </p>
-	 * 
+	 *
 	 *
 	 * @return Whether this native call can be fast-called
 	 * @since 20140801
@@ -218,7 +218,7 @@ enum NativeCall64 {
 	// STATICS
 	//
 
-	
+
 	public static final int MAX_LONGMARSHALL_PARAMS = 4;
 
 	private static final int MAX_NUMPARAMS_VALUE = MAX_LONGMARSHALL_PARAMS + 1;
@@ -241,7 +241,7 @@ enum NativeCall64 {
 
 	private static final int scIndex(StorageCategory sc, boolean hasFpParams) {
 		int index = sc.ordinal();
-		return hasFpParams ? index + 3 : index; 
+		return hasFpParams ? index + 3 : index;
 	}
 
 	// fastCallMap[numParams:0..4]
@@ -267,7 +267,7 @@ enum NativeCall64 {
 			}
 		}
 	}
-	
+
 	static {
 		// Fastcall map
 		fastCallMap = new NativeCall64[] { J0_RETURN_INT64, J1_RETURN_INT64,
