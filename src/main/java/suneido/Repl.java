@@ -54,9 +54,12 @@ public class Repl {
 				throw e;
 		}
 		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-		out.println("Built: " + WhenBuilt.when());
+		out.print("Built: " + WhenBuilt.when());
 		if (JSDI.isInitialized())
-			out.println("JSDI: " + JSDI.getInstance().whenBuilt());
+			out.print(" JSDI: " + JSDI.getInstance().whenBuilt());
+		out.print(" debug: " + Suneido.cmdlineoptions.debugModel);
+		out.println();
+
 		StringBuilder code = new StringBuilder(1024);
 		repl: while (true) {
 			out.print("> ");
