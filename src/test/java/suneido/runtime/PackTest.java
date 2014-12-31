@@ -4,7 +4,7 @@
 
 package suneido.runtime;
 
-import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -21,7 +21,6 @@ import org.junit.Test;
 import suneido.SuContainer;
 import suneido.SuDate;
 import suneido.SuRecord;
-import suneido.runtime.Ops;
 
 public class PackTest {
 
@@ -92,17 +91,17 @@ public class PackTest {
 
 	@Test
 	public void pack_number_size() {
-		assertThat(packSizeLong(1000), is(4));
-		assertThat(packSizeLong(10000), is(4));
-		assertThat(packSizeLong(10001), is(6));
-		assertThat(packSizeLong(9999999999999999L), is(10));
-		assertThat(packSizeLong(Long.MAX_VALUE), is(10));
-		assertThat(packSize(BigDecimal.valueOf(Long.MAX_VALUE)), is(10));
+		assertThat(packSizeLong(1000), equalTo(4));
+		assertThat(packSizeLong(10000), equalTo(4));
+		assertThat(packSizeLong(10001), equalTo(6));
+		assertThat(packSizeLong(9999999999999999L), equalTo(10));
+		assertThat(packSizeLong(Long.MAX_VALUE), equalTo(10));
+		assertThat(packSize(BigDecimal.valueOf(Long.MAX_VALUE)), equalTo(10));
 	}
 
 	@Test
 	public void big_decimal() {
-		assertThat(BigDecimal.valueOf(1200, 0).precision(), is(4));
+		assertThat(BigDecimal.valueOf(1200, 0).precision(), equalTo(4));
 
 		BigDecimal n = BigDecimal.valueOf(12345678);
 		assert n != n.stripTrailingZeros();
@@ -110,20 +109,20 @@ public class PackTest {
 
 	@Test
 	public void inf() {
-		assertThat(packSize(INF), is(2));
+		assertThat(packSize(INF), equalTo(2));
 		ByteBuffer buf = pack(INF);
-		assertThat(buf.capacity(), is(2));
-		assertThat(buf.get(0) & 0xff, is(3));
-		assertThat(buf.get(1) & 0xff, is(255));
+		assertThat(buf.capacity(), equalTo(2));
+		assertThat(buf.get(0) & 0xff, equalTo(3));
+		assertThat(buf.get(1) & 0xff, equalTo(255));
 	}
 
 	@Test
 	public void minus_inf() {
-		assertThat(packSize(MINUS_INF), is(2));
+		assertThat(packSize(MINUS_INF), equalTo(2));
 		ByteBuffer buf = pack(MINUS_INF);
-		assertThat(buf.capacity(), is(2));
-		assertThat(buf.get(0) & 0xff, is(2));
-		assertThat(buf.get(1) & 0xff, is(0));
+		assertThat(buf.capacity(), equalTo(2));
+		assertThat(buf.get(0) & 0xff, equalTo(2));
+		assertThat(buf.get(1) & 0xff, equalTo(0));
 	}
 
 }
