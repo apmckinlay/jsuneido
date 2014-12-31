@@ -13,11 +13,12 @@ public class CommandLineOptions {
 	private int arg_i = 0;
 
 	public enum Action {
-		REPL, SERVER, DUMP, LOAD, CHECK, VERSION, REBUILD, COMPACT, TEST, HELP, ERROR, TESTCLIENT, TESTSERVER, CLIENT, LOAD2, COMPACT2, REBUILD2
+		REPL, SERVER, DUMP, LOAD, CHECK, VERSION, REBUILD, COMPACT, TEST, HELP,
+		ERROR, TESTCLIENT, TESTSERVER, CLIENT, LOAD2, COMPACT2, REBUILD2
 	}
 
 	public Action action;
-	public String actionArg = null;
+	public String actionArg;
 	public int serverPort = -1;
 	public DebugModel debugModel;
 	public String remainder = "";
@@ -35,7 +36,6 @@ public class CommandLineOptions {
 	}
 
 	public CommandLineOptions(String[] args) {
-		this.debugModel = null; // Indicates no model chosen yet
 		this.args = args;
 	}
 
@@ -189,6 +189,8 @@ public class CommandLineOptions {
 		if (serverPort == -1
 				&& (action == Action.SERVER || action == Action.CLIENT))
 			serverPort = DEFAULT_PORT;
+		if (action == Action.SERVER)
+			jsdi = false;
 	}
 
 	private void validate() {
