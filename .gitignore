@@ -1,0 +1,4 @@
+*.log
+src/main/java/suneido/WhenBuilt.java
+target/*
+jsuneido.jar
