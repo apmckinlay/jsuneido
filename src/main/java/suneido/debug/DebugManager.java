@@ -63,7 +63,8 @@ public final class DebugManager {
 		if (testIf_jsdebugAgent_Available() || startJDWPAgent())
 			return DebugModel.ON;
 		else {
-			Errlog.errlog("unable to initialize 'all' debugging - falling back to 'stack' debugging");
+			Errlog.errlog("unable to initialize 'all' debugging - "
+					+ "falling back to 'stack' debugging");
 			return DebugModel.OFF;
 		}
 	}
