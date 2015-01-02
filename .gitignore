@@ -2,3 +2,8 @@
 src/main/java/suneido/WhenBuilt.java
 target/*
 jsuneido.jar
+*.dbd
+*.dbi
+*.go
+*.tmp
+*.su
