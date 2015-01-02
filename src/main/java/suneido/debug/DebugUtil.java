@@ -5,9 +5,9 @@
 package suneido.debug;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.security.SecureRandom;
 
 import suneido.SuInternalError;
 import suneido.boot.NativeLibrary;
@@ -83,31 +83,39 @@ public final class DebugUtil {
 	 * robust</strong> enough to recover from a failure to bind.
 	 * </p>
 	 *
+	 * <p>
+	 * 2015-01-02 apm - Unfortunately we are <strong>not</strong> robust.
+	 * If the port is in use due to a race jSuneido crashes.
+	 * Therefore changed to randomly pick a port.
+	 * Potentially could still get a race collision but it should be very rare
+	 * as long as SecureRandom starts off really randomly.
+	 * Using SecureRandom is ugly but not sure what else to use.
+	 * </p>
+	 *
 	 * @return Port number in string form
 	 * @throw SuInternalError If it is not possible to locate any open port
 	 * @see #getJDWPAgentClientPort()
 	 * @see #getJDWPAgentArg()
 	 */
 	public static String getFreeJDWPAgentServerPort() {
-		// First attempt: use the default port
-		try (ServerSocket test = new ServerSocket()) {
-			test.setReuseAddress(false);
-			test.bind(new InetSocketAddress(JDWP_DEFAULT_PORT));
-			return Integer.toString(JDWP_DEFAULT_PORT);
-		} catch (Exception e) {
-			// Squelch
-		}
-		// Second attempt: use any available port
-		try (ServerSocket test = new ServerSocket()) {
-			test.setReuseAddress(false);
-			test.bind(new InetSocketAddress(0));
-			return Integer.toString(test.getLocalPort());
-		} catch (IOException e) {
-			throw new SuInternalError(
-					"I/O error while looking for open jdwp socket", e);
-		} catch (SecurityException e) {
-			throw new SuInternalError(
-					"security error while looking for jdwp socket", e);
+		SecureRandom random = new SecureRandom();
+		byte[] bytes = new byte[2];
+		int tries = 0;
+		while (true) {
+			if (++tries > MAX_TRIES)
+				throw new SuInternalError(
+						"failed to find port for jdwp (too many tries)");
+			random.nextBytes(bytes);
+			int port = (bytes[1] << 8) | bytes[0];
+			if (port == 0)
+				continue;
+			try (ServerSocket test = new ServerSocket()) {
+				test.setReuseAddress(false);
+				test.bind(new InetSocketAddress(port));
+				return Integer.toString(port);
+			} catch (Exception e) {
+				// Squelch
+			}
 		}
 	}
 
@@ -117,7 +125,7 @@ public final class DebugUtil {
 	 * listening. This value is {@code null} if there is no JDWP agent
 	 * listening.
 	 * </p>
-	 * 
+	 *
 	 * @return Port number in string form, or {@code null}
 	 * @see #JDWP_PORT_PROP_NAME
 	 * @see #getFreeJDWPAgentServerPort()
@@ -171,7 +179,7 @@ public final class DebugUtil {
 	 * <p>
 	 * This properly is primarily useful for debugging the {@link JDWPAgentClient
 	 * JDWP client} in situations where the bootstrapper would normally load
-	 * the <strong>jsdebug</strong> agent. 
+	 * the <strong>jsdebug</strong> agent.
 	 * </p>
 	 *
 	 * @see #isJDWPForced()
@@ -182,9 +190,9 @@ public final class DebugUtil {
 	// INTERNALS
 	//
 
-	private static final String LIBRARY_NAME_ROOT = "jsdebug";
+	private static final int MAX_TRIES = 100;
 
-	private static final int JDWP_DEFAULT_PORT = 3457;
+	private static final String LIBRARY_NAME_ROOT = "jsdebug";
 
 	private static String getLibraryName() {
 		switch (Platform.getPlatform()) {
