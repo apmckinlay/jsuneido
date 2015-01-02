@@ -8,3 +8,6 @@ jsuneido.jar
 *.tmp
 *.su
 *.bak
+*.exe
+*.bat
+*.dll
