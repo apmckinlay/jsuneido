@@ -5,9 +5,8 @@
 package suneido.debug;
 
 import java.io.File;
-import java.net.InetSocketAddress;
+import java.io.IOException;
 import java.net.ServerSocket;
-import java.security.SecureRandom;
 
 import suneido.SuInternalError;
 import suneido.boot.NativeLibrary;
@@ -86,36 +85,25 @@ public final class DebugUtil {
 	 * <p>
 	 * 2015-01-02 apm - Unfortunately we are <strong>not</strong> robust.
 	 * If the port is in use due to a race jSuneido crashes.
-	 * Therefore changed to randomly pick a port.
-	 * Potentially could still get a race collision but it should be very rare
-	 * as long as SecureRandom starts off really randomly.
-	 * Using SecureRandom is ugly but not sure what else to use.
+	 * Using an ephemeral port (0/null) seems to work, but not guaranteed.
 	 * </p>
 	 *
 	 * @return Port number in string form
-	 * @throw SuInternalError If it is not possible to locate any open port
+	 * @throw SuInternalError on error
 	 * @see #getJDWPAgentClientPort()
 	 * @see #getJDWPAgentArg()
 	 */
 	public static String getFreeJDWPAgentServerPort() {
-		SecureRandom random = new SecureRandom();
-		byte[] bytes = new byte[2];
-		int tries = 0;
-		while (true) {
-			if (++tries > MAX_TRIES)
-				throw new SuInternalError(
-						"failed to find port for jdwp (too many tries)");
-			random.nextBytes(bytes);
-			int port = (bytes[1] << 8) | bytes[0];
-			if (port == 0)
-				continue;
-			try (ServerSocket test = new ServerSocket()) {
-				test.setReuseAddress(false);
-				test.bind(new InetSocketAddress(port));
-				return Integer.toString(port);
-			} catch (Exception e) {
-				// Squelch
-			}
+		try (ServerSocket test = new ServerSocket()) {
+			test.setReuseAddress(false);
+			test.bind(null);
+			return Integer.toString(test.getLocalPort());
+		} catch (IOException e) {
+			throw new SuInternalError(
+					"I/O error while looking for open jdwp socket", e);
+		} catch (SecurityException e) {
+			throw new SuInternalError(
+					"security error while looking for jdwp socket", e);
 		}
 	}
 
