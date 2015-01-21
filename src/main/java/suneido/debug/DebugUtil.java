@@ -178,8 +178,6 @@ public final class DebugUtil {
 	// INTERNALS
 	//
 
-	private static final int MAX_TRIES = 100;
-
 	private static final String LIBRARY_NAME_ROOT = "jsdebug";
 
 	private static String getLibraryName() {
