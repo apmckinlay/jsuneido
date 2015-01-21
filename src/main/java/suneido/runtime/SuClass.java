@@ -31,7 +31,7 @@ public class SuClass extends SuValue {
 	private static final Map<String, SuCallable> basicMethods =
 			BuiltinMethods.methods("class", SuClass.class);
 	private static final BuiltinMethods userGeneralMethods = new BuiltinMethods(
-			"object", Object.class, "Objects");
+			"object", null, "Objects");
 	protected Context context = Suneido.context; // TODO pass it in
 
 	@SuppressWarnings("unchecked")
