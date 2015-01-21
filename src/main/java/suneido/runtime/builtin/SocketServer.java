@@ -17,11 +17,7 @@ import java.util.concurrent.ThreadFactory;
 import suneido.SuException;
 import suneido.SuValue;
 import suneido.TheDbms;
-import suneido.runtime.ArgsIterator;
-import suneido.runtime.BuiltinMethods;
-import suneido.runtime.Ops;
-import suneido.runtime.SuClass;
-import suneido.runtime.SuInstance;
+import suneido.runtime.*;
 import suneido.util.Errlog;
 import suneido.util.ServerBySocket;
 import suneido.util.ServerBySocket.HandlerFactory;
@@ -167,7 +163,8 @@ public class SocketServer extends SuClass {
 		}
 	}
 
-	static class Instance extends SuInstance implements Runnable {
+	// needs to be public for builtin methods to work
+	public static class Instance extends SuInstance implements Runnable {
 		SocketClient socket;
 
 		Instance(SuClass serverClass, Object[] args) {
@@ -224,8 +221,9 @@ public class SocketServer extends SuClass {
 		private static final BuiltinMethods builtins = new BuiltinMethods(
 				"socketserver", Instance.class);
 
-		public Object RemoteUser(Object self) {
-			return socket.getInetAddress();
+		public static Object RemoteUser(Object self) {
+			Instance instance = (Instance) self;
+			return instance.socket.getInetAddress();
 		};
 	}
 
