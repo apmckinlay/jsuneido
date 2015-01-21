@@ -69,8 +69,9 @@ public class BuiltinMethods extends SuValue {
 		for (Method m : c.getDeclaredMethods()) {
 			int mod = m.getModifiers();
 			String methodName = methodName(m);
-			if (Modifier.isPublic(mod) && Modifier.isStatic(mod) &&
-					isCapitalized(methodName)) {
+			if (! isCapitalized(methodName))
+				continue;
+			if (Modifier.isPublic(mod) && Modifier.isStatic(mod)) {
 				try {
 					MethodHandle mh = lookup.unreflect(m);
 					b.put(methodName, Builtin.method(mh, className + "."
@@ -79,6 +80,10 @@ public class BuiltinMethods extends SuValue {
 					throw new SuInternalError("error getting method " +
 									c.getName() + " " + m.getName(), e);
 				}
+			} else {
+				throw new SuInternalError("BuiltinMethods found capitalized method "
+						+ c.getName() + " " + m.getName()
+						+ " that was not public static");
 			}
 		}
 		return b.build();
