@@ -163,8 +163,15 @@ class Check {
 
 	public static void main(String[] args) {
 		String dbfilename = "suneido.db";
+
 		System.out.println("Fastcheck " + dbfilename + " " +
 				(Check.fastcheck(dbfilename) ? "succeeded" : "FAILED"));
+
+		Storage dstor = new MmapFile(dbfilename + "d", "r");
+		Storage istor = new MmapFile(dbfilename + "i", "r");
+		Check check = new Check(dstor, istor);
+		System.out.println("Fullcheck " + dbfilename + " " +
+				(check.fullcheck() ? "succeeded" : "FAILED"));
 	}
 
 }
