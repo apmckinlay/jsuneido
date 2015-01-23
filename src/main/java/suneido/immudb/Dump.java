@@ -12,7 +12,15 @@ import java.nio.ByteBuffer;
 import suneido.runtime.Ops;
 
 /** for debugging - prints info about file contents */
-class Dump {
+public class Dump {
+
+	public static void dump() {
+		Database db = Database.openReadonly("suneido.db");
+	    db.dump(false);
+	    db.close();
+	    System.err.println("dumped suneido.dbd to dump-data.txt and "
+	    		+ "suneido.dbi to dump-index.txt");
+	}
 
 	/** dump the entire contents */
 	static void dump(Storage dstor, Storage istor, boolean detail) {
@@ -54,10 +62,11 @@ class Dump {
 		for (StorageIter iter = new StorageIter(istor, iAdr).dontChecksum();
 				! iter.eof(); iter.advance2()) {
 			assert iter.status() == StorageIter.Status.OK : "CORRUPT!";
-			System.out.println(Storage.adrToOffset(iter.adr()) +
+			System.out.println(Storage.adrToOffset(iter.adr()) + ":" +
 					" size " + iter.size() +
-					" cksum " + Integer.toHexString(iter.cksum()) +
 					" date " + Ops.display(iter.date()) +
+					" checksum " + Integer.toHexString(iter.cksum()) +
+					(iter.verifyChecksum() ? "" : " CHECKSUM MISMATCH") +
 					"\n\t" + Check.info(istor, iter.adr(), iter.size()));
 		}
 	}
@@ -66,12 +75,15 @@ class Dump {
 		for (StorageIter iter = new StorageIter(dstor, dAdr).dontChecksum();
 				! iter.eof(); iter.advance2()) {
 			ByteBuffer buf = dstor.buffer(iter.adr());
-			char c = (char) buf.get(Tran.HEAD_SIZE);
-			System.out.println(Storage.adrToOffset(iter.adr()) +
-					" type " + c +
+			int typeAdr = dstor.advance(iter.adr(), Tran.HEAD_SIZE);
+			buf = dstor.buffer(typeAdr);
+			char type = (char) buf.get();
+			System.out.println(Storage.adrToOffset(iter.adr()) + ":" +
+					" type " + type +
 					" size " + iter.size() +
 					" date " + Ops.display(iter.date()) +
-					" checksum " + Integer.toHexString(iter.cksum()));
+					" checksum " + Integer.toHexString(iter.cksum()) +
+					(iter.verifyChecksum() ? "" : " CHECKSUM MISMATCH"));
 			if (detail)
 				new Proc(dstor, iter.adr()).process();
 		}
@@ -105,9 +117,8 @@ class Dump {
 	}
 
 	public static void main(String[] args) throws FileNotFoundException {
-		Database db = Database.openReadonly("suneido.db");
-	    db.dump(false);
-//		ending(db.dstor, db.istor);
+		dump();
+//		ending(db.dstor, db.istor, false);
 	}
 
 }

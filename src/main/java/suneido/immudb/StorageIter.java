@@ -134,7 +134,7 @@ class StorageIter {
 	}
 
 	// depends on buf.remaining() going to end of storage chunk
-	private boolean verifyChecksum() {
+	public boolean verifyChecksum() {
 		Checksum cs = new Checksum();
 		long remaining = size - Tran.HEAD_SIZE;
 		int pos = adr;

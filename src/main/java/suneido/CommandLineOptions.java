@@ -13,7 +13,7 @@ public class CommandLineOptions {
 	private int arg_i = 0;
 
 	public enum Action {
-		REPL, SERVER, DUMP, LOAD, CHECK, VERSION, REBUILD, COMPACT, TEST, HELP,
+		REPL, SERVER, DUMP, LOAD, CHECK, VERSION, REBUILD, COMPACT, DBDUMP, HELP,
 		ERROR, TESTCLIENT, TESTSERVER, CLIENT, LOAD2, COMPACT2, REBUILD2
 	}
 
@@ -84,8 +84,8 @@ public class CommandLineOptions {
 			else if (arg.startsWith("-compact:")) {
 				setAction(Action.COMPACT2);
 				actionArg = arg.substring(9);
-			} else if (arg.equals("-tests") || arg.equals("-t"))
-				setAction(Action.TEST);
+			} else if (arg.equals("-dbdump"))
+				setAction(Action.DBDUMP);
 			else if (arg.equals("-version") || arg.equals("-v"))
 				setAction(Action.VERSION);
 			else if (arg.equals("-help") || arg.equals("-h")

@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 import suneido.compiler.Compiler;
 import suneido.database.server.DbmsServer;
 import suneido.debug.DebugManager;
+import suneido.immudb.Dump;
 import suneido.intfc.database.Database;
 import suneido.intfc.database.DatabasePackage;
 import suneido.jsdi.JSDI;
@@ -115,6 +116,9 @@ public class Suneido {
 		case COMPACT2:
 			DbTools.compact2(dbpkg, cmdlineoptions.actionArg);
 			break;
+		case DBDUMP:
+			Dump.dump();
+			break;
 		case VERSION:
 			System.out.println("jSuneido " + WhenBuilt.when());
 			if (JSDI.isInitialized()) {
@@ -199,6 +203,7 @@ public class Suneido {
 		System.out.println("-ut #                     set max update tran duration in seconds (default 10)");
 		System.out.println("-mw #                     set max writes per update transaction (default 10000)");
 		System.out.println("-u[nattended]             redirect stdout and stderr to output.log and error.log");
+		System.out.println("-dbdump                   output database structure (for debugging)");
 		System.out.println("-h[elp] or -?             print this message");
 		System.out.println("--                        end the options, useful if arguments start with '-'");
 	}
