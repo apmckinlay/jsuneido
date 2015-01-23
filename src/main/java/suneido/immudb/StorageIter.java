@@ -19,6 +19,7 @@ import com.google.common.base.MoreObjects;
  */
 class StorageIter {
 	enum Status { OK, SIZE_MISMATCH, CHECKSUM_FAIL, BAD_SIZE };
+	private static final int MIN_SIZE = Tran.HEAD_SIZE + Tran.TAIL_SIZE;
 	private static final byte[] zero_tail = new byte[Tran.TAIL_SIZE];
 	final Storage stor;
 	/** address (not offset) of current commit/persist */
@@ -52,6 +53,10 @@ class StorageIter {
 			return ;
 		ByteBuffer buf = stor.buffer(adr);
 		size = Storage.intToSize(buf.getInt());
+		if (size < MIN_SIZE || stor.CHUNK_SIZE < size) {
+			status = Status.BAD_SIZE;
+			return;
+		}
 		date = buf.getInt();
 		int end = stor.advance(adr, size - Tran.TAIL_SIZE);
 		if (! stor.isValidAdr(end)) {
