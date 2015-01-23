@@ -139,7 +139,6 @@ public class TransactionTest {
 		t = null;
 
 		check(db.readTransaction(), "tmp");
-		//DumpData.dump(stor);
 		db.checkTransEmpty();
 		db.close();
 	}
