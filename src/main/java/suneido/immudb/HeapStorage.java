@@ -11,7 +11,7 @@ import java.nio.ByteBuffer;
  * @see MmapFile
  */
 class HeapStorage extends Storage {
-	private final static int DEFAULT_CHUNK_SIZE = 1024;
+	private final static int DEFAULT_CHUNK_SIZE = 8192;
 
 	HeapStorage() {
 		super(DEFAULT_CHUNK_SIZE);

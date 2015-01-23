@@ -32,7 +32,7 @@ abstract class Storage {
 	static final int ALIGN = (1 << SHIFT); // must be power of 2
 	private static final int MASK = ALIGN - 1;
 	protected ByteBuffer[] chunks = new ByteBuffer[32];
-	protected final int CHUNK_SIZE;
+	final int CHUNK_SIZE;
 	protected volatile long storSize = 0;
 
 	Storage(int chunkSize) {
@@ -84,11 +84,21 @@ abstract class Storage {
 		offset += align(length);
 		if (offset < storSize) {
 			ByteBuffer buf = buf(offset);
-			if (buf.getLong() == 0)
-				// skip end of chunk padding
-				offset += Longs.BYTES + buf.remaining();
+			if (buf.getLong() == 0) {
+				int remaining = Longs.BYTES + buf.remaining();
+				if (allZero(buf))
+					offset += remaining;
+				// else don't skip
+			}
 		}
 		return offsetToAdr(offset);
+	}
+
+	private static boolean allZero(ByteBuffer buf) {
+		while (buf.remaining() > 0)
+			if (buf.getLong() != 0)
+				return false;
+		return true;
 	}
 
 	/**
