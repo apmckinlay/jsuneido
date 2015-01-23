@@ -30,7 +30,7 @@ class MmapFile extends Storage {
 	private final FileChannel fc;
 	private final long starting_file_size;
 	private int last_force;
-	private boolean open = false;
+	private volatile boolean open = false;
 
 	/** @param mode Must be "r" or "rw" */
 	MmapFile(String filename, String mode) {
