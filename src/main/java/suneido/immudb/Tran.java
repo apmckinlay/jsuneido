@@ -56,9 +56,6 @@ class Tran implements Translator {
 	void allowStore() {
 		dstor.protect(); // enable output
 		head_adr = dstor.alloc(HEAD_SIZE); // to hold size and datetime
-		// don't leave head as zero
-		// because if we crash zero can be mistaken as end of chunk padding
-		dstor.buffer(head_adr).putInt(-1).putInt(-1);
 	}
 
 	/**
