@@ -53,7 +53,7 @@ class StorageIter {
 			return ;
 		ByteBuffer buf = stor.buffer(adr);
 		size = Storage.intToSize(buf.getInt());
-		if (size < MIN_SIZE || stor.CHUNK_SIZE < size) {
+		if (size < MIN_SIZE) {
 			status = Status.BAD_SIZE;
 			return;
 		}
