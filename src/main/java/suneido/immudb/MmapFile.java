@@ -30,6 +30,7 @@ class MmapFile extends Storage {
 	private final FileChannel fc;
 	private final long starting_file_size;
 	private int last_force;
+	private boolean open = false;
 
 	/** @param mode Must be "r" or "rw" */
 	MmapFile(String filename, String mode) {
@@ -59,6 +60,7 @@ class MmapFile extends Storage {
 			throw new SuException("can't open/create " + file, e);
 		}
 		fc = fin.getChannel();
+		open = true;
 		findEnd();
 		starting_file_size = storSize;
 		last_force = offsetToChunk(storSize);
@@ -90,6 +92,8 @@ class MmapFile extends Storage {
 	/** @return the file mapping containing the specified offset */
 	@Override
 	protected synchronized ByteBuffer get(int chunk) {
+		if (! open)
+			throw new RuntimeException("can't access database - it is not open");
 		long pos = (long) chunk * CHUNK_SIZE;
 		long len = mode == FileChannel.MapMode.READ_WRITE
 				? CHUNK_SIZE : Math.min(CHUNK_SIZE, storSize - pos);
@@ -104,7 +108,7 @@ class MmapFile extends Storage {
 	synchronized void force() {
 		if (storSize == starting_file_size) // nothing written
 			return;
-		
+
 		for (int i = last_force; i <= offsetToChunk(storSize); ++i)
 			if (chunks[i] != null)
 				try {
@@ -113,7 +117,7 @@ class MmapFile extends Storage {
 				} catch (Exception e) {
 					// ignore intermittent IoExceptions on Windows
 				}
-		
+
 		// this is needed to update file last modified time on Windows
 		try {
 			fin.seek(storSize);
@@ -125,6 +129,7 @@ class MmapFile extends Storage {
 
 	@Override
 	void close() {
+		open = false;
 		force();
 		Arrays.fill(chunks, null); // might help gc
 		try {
