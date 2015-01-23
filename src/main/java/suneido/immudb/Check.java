@@ -123,7 +123,7 @@ class Check {
 	 * @return true if no problems found
 	 */
 	private boolean checkFrom(int dAdr, int iAdr) {
-		dIter = new StorageIter(dstor, dAdr);
+		dIter = new StorageIter(dstor, dAdr).checkType();
 		iIter = new StorageIter(istor, iAdr);
 		PersistInfo iInfo = null;
 		while (dIter.notFinished() && iIter.notFinished()) {

@@ -18,7 +18,7 @@ import com.google.common.base.MoreObjects;
  * @see StorageIterReverse
  */
 class StorageIter {
-	enum Status { OK, SIZE_MISMATCH, CHECKSUM_FAIL, BAD_SIZE };
+	enum Status { OK, SIZE_MISMATCH, CHECKSUM_FAIL, BAD_SIZE, BAD_TYPE };
 	private static final int MIN_SIZE = Tran.HEAD_SIZE + Tran.TAIL_SIZE;
 	private static final byte[] zero_tail = new byte[Tran.TAIL_SIZE];
 	final Storage stor;
@@ -28,9 +28,10 @@ class StorageIter {
 	private long size;
 	/** date/time of current commit/persist */
 	private int date = 0;
-	private Status status = Status.OK;
+	protected Status status = Status.OK;
 	private int cksum; // of current commit/persist
 	private boolean verifyChecksums = true;
+	private boolean checkType = false; // only applies to data not index file
 
 	StorageIter(Storage stor) {
 		this(stor, Storage.FIRST_ADR);
@@ -47,7 +48,12 @@ class StorageIter {
 		return this;
 	}
 
-	private void seek(int adr) {
+	StorageIter checkType() {
+		checkType = true;
+		return this;
+	}
+
+	protected void seek(int adr) {
 		this.adr = adr;
 		if (eof())
 			return ;
@@ -75,6 +81,14 @@ class StorageIter {
 		if (verifyChecksums && ! verifyChecksum()) {
 			status = Status.CHECKSUM_FAIL;
 			return;
+		}
+
+		if (checkType) {
+			int typeAdr = stor.advance(adr, Tran.HEAD_SIZE);
+			buf = stor.buffer(typeAdr);
+			byte type = buf.get();
+			if (type != 'u' && type != 's' && type != 'b')
+				status = Status.BAD_TYPE;
 		}
 	}
 
