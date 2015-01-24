@@ -263,9 +263,11 @@ class Database implements suneido.intfc.database.Database {
 
 	@Override
 	public void close() {
-		persist();
-		dstor.close();
-		istor.close();
+		synchronized (commitLock) {
+			persist();
+			dstor.close();
+			istor.close();
+		}
 	}
 
 	@Override
