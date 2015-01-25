@@ -224,6 +224,11 @@ abstract class Storage {
 		return adr == 0 ? storSize : storSize - adrToOffset(adr);
 	}
 
+	/** @return a limit address i.e. just past the end of the current data */
+	int upTo() {
+		return offsetToAdr(storSize);
+	}
+
 	boolean isValidPos(long pos) {
 		if (pos < 0)
 			pos += storSize;

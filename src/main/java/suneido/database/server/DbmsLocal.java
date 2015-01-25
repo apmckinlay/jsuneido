@@ -81,6 +81,11 @@ public class DbmsLocal extends Dbms {
 	}
 
 	@Override
+	public String check() {
+		return db.check();
+	}
+
+	@Override
 	public int finalSize() {
 		return db.finalSize();
 	}

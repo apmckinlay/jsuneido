@@ -6,8 +6,6 @@ package suneido.intfc.database;
 
 import java.util.List;
 
-import suneido.intfc.database.DatabasePackage.Status;
-
 public interface Database {
 
 	Transaction readTransaction();
@@ -49,6 +47,6 @@ public interface Database {
 
 	void checkTransEmpty();
 
-	Status check();
+	String check();
 
 }

@@ -337,7 +337,7 @@ public class RequestTest {
 
 	@After
 	public void check() {
-		assertThat(db.check(), equalTo(DatabasePackage.Status.OK));
+		assertThat(db.check(), equalTo(""));
 	}
 
 	private void req(String request) {

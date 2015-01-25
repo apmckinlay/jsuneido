@@ -15,10 +15,10 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
-import suneido.SuInternalError;
 import suneido.SuContainer;
 import suneido.SuDate;
 import suneido.SuException;
+import suneido.SuInternalError;
 import suneido.database.query.Header;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Row;
@@ -140,6 +140,12 @@ public class DbmsRemote extends Dbms {
 		if (date == null)
 			throw new SuException("bad timestamp from server: " + s);
 		return date;
+	}
+
+	@Override
+	public String check() {
+		writeLine("CHECK");
+		return (String) readValue();
 	}
 
 	@Override

@@ -66,6 +66,20 @@ public interface DatabasePackage {
 
 	Observer nullObserver = (String msg) -> { };
 
+	static class StringObserver implements Observer {
+		StringBuilder sb = new StringBuilder();
+
+		@Override
+		public void print(String msg) {
+			sb.append(msg);
+		}
+
+		@Override
+		public String toString() {
+			return sb.toString();
+		}
+	}
+
 	/** used by Built() */
 	String name();
 

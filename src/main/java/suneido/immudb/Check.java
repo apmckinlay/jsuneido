@@ -22,6 +22,8 @@ class Check {
 	private static final int CORRUPT = -1;
 	private final Storage dstor;
 	private final Storage istor;
+	private int dUpTo = Integer.MAX_VALUE;
+	private int iUpTo = Integer.MAX_VALUE;
 	/** set by findLast for fastcheck */
 	private int lastadr = 0;
 	private Date lastOkDate = null;
@@ -48,6 +50,12 @@ class Check {
 	Check(Storage dstor, Storage istor) {
 		this.dstor = dstor;
 		this.istor = istor;
+	}
+
+	Check upTo(int dUpTo, int iUpTo) {
+		this.dUpTo = dUpTo;
+		this.iUpTo = iUpTo;
+		return this;
 	}
 
 	/**
@@ -123,8 +131,8 @@ class Check {
 	 * @return true if no problems found
 	 */
 	private boolean checkFrom(int dAdr, int iAdr) {
-		dIter = new StorageIter(dstor, dAdr).checkType();
-		iIter = new StorageIter(istor, iAdr);
+		dIter = new StorageIter(dstor, dAdr).upTo(dUpTo).checkType();
+		iIter = new StorageIter(istor, iAdr).upTo(iUpTo);
 		PersistInfo iInfo = null;
 		while (dIter.notFinished() && iIter.notFinished()) {
 			if (iInfo == null)

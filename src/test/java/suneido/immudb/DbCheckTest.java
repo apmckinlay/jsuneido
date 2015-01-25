@@ -8,8 +8,6 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import suneido.intfc.database.DatabasePackage.Status;
-
 public class DbCheckTest extends TestBase {
 
 	@Test
@@ -47,7 +45,7 @@ public class DbCheckTest extends TestBase {
 	}
 
 	protected void dbcheck() {
-		assertEquals(Status.OK, db.check());
+		assertEquals("", db.check());
 	}
 
 }

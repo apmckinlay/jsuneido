@@ -48,6 +48,11 @@ class DbCheck {
 	static Status check(Storage dstor, Storage istor, Observer ob) {
 		return new DbCheck(dstor, istor, ob).check();
 	}
+	static Status check(Storage dstor, Storage istor, int dUpTo, int iUpTo,
+			Observer ob) {
+		Check check = new Check(dstor, istor).upTo(dUpTo, iUpTo);
+		return new DbCheck(dstor, istor, ob).check(check);
+	}
 
 	DbCheck(Storage dstor, Storage istor, Observer ob) {
 		this.dstor = dstor;
@@ -56,8 +61,11 @@ class DbCheck {
 	}
 
 	Status check() {
+		return check(new Check(dstor, istor));
+	}
+
+	private Status check(Check check) {
 		println("checksums...");
-		Check check = new Check(dstor, istor);
 		Status status = Status.CORRUPTED;
 		boolean ok = check.fullcheck();
 		last_good_commit = check.lastOkDate();

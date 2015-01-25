@@ -74,6 +74,13 @@ public enum Command {
 			return ok();
 		}
 	},
+	CHECK {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				NetworkOutput outputQueue) {
+			return valueResult(outputQueue, TheDbms.dbms().check());
+		}
+	},
 	CLOSE {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,

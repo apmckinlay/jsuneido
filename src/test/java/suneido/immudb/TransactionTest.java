@@ -340,7 +340,7 @@ public class TransactionTest {
 
 	@After
 	public void check() {
-		assert db.check() == DatabasePackage.Status.OK;
+		assert "".equals(db.check());
 	}
 
 	private void make_tmp(int nrecs) {

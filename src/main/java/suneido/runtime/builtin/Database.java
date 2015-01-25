@@ -67,4 +67,17 @@ public class Database extends BuiltinClass {
 		return Suneido.cmdlineoptions.impersonate = Ops.toStr(a);
 	}
 
+	@Params("table = false")
+	public static Object Dump(Object self, Object table) {
+		if (table == Boolean.FALSE)
+			TheDbms.dbms().dump("");
+		else
+			TheDbms.dbms().dump(Ops.toStr(table));
+		return null;
+	}
+
+	public static Object Check(Object self) {
+		return TheDbms.dbms().check();
+	}
+
 }

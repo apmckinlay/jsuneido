@@ -14,6 +14,7 @@ import suneido.SuException;
 import suneido.immudb.DbHashTrie.Entry;
 import suneido.immudb.DbHashTrie.IntEntry;
 import suneido.intfc.database.DatabasePackage.Status;
+import suneido.intfc.database.DatabasePackage.StringObserver;
 import suneido.runtime.Triggers;
 import suneido.util.FileUtils;
 
@@ -127,12 +128,17 @@ class Database implements suneido.intfc.database.Database {
 		return Database.open(dstor, istor);
 	}
 
-	/** used by tests */
 	@Override
-	public Status check() {
-		persist();
-		return DbCheck.check(dstor, istor);
-				//suneido.intfc.database.DatabasePackage.printObserver);
+	public String check() {
+		int dUpTo, iUpTo;
+		synchronized (commitLock) {
+			persist();
+			dUpTo = dstor.upTo();
+			iUpTo = istor.upTo();
+		}
+		StringObserver so = new StringObserver();
+		Status status = DbCheck.check(dstor, istor, dUpTo, iUpTo, so);
+		return status == Status.OK ? "" : so.toString();
 	}
 
 	void dump(boolean detail) {
