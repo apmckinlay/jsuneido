@@ -9,6 +9,7 @@ import static suneido.Suneido.dbpkg;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import suneido.DbTools;
 import suneido.SuContainer;
@@ -24,12 +25,11 @@ import suneido.intfc.database.Transaction;
 import suneido.runtime.builtin.ServerEval;
 import suneido.util.Errlog;
 
-import com.google.common.collect.Lists;
-
 /** Connects Suneido to a local database. */
 public class DbmsLocal extends Dbms {
 	private final Database db;
-	private static final List<String> libraries = Lists.newArrayList("stdlib");
+	private static final List<String> libraries =
+			new CopyOnWriteArrayList<String>(new String[] { "stdlib" });
 
 	public DbmsLocal(Database db) {
 		this.db = db;
