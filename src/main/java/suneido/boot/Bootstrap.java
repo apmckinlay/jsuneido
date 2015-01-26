@@ -229,7 +229,7 @@ public final class Bootstrap {
 		// While converting into non-modifiable list, strip out all the agent
 		// arguments if they are present. This is required *among other reasons*
 		// because if our (the current) JVM process was started with the JDWP
-		// agent and it bound t a given IP port, the new JVM we are going to
+		// agent and it was bound to a given IP port, the new JVM we are going to
 		// start will error out if it attempts to bind to the same port. Another
 		// reason if that if you are trying to debug the parent process in, say,
 		// Eclipse, you don't want to deal with the child process erroring out
@@ -432,7 +432,7 @@ public final class Bootstrap {
 	 *
 	 * <p>
 	 * Under this option, the Suneido {@code Locals()} built-in and all related
-	 * ways of determing local variables will return {@code #()}. The stack
+	 * ways of determining local variables will return {@code #()}. The stack
 	 * trace presented to the Suneido programmer will be the full Java stack
 	 * trace without any modification.
 	 * </p>
