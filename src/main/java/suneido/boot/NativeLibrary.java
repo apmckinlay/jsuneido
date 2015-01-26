@@ -112,7 +112,7 @@ public final class NativeLibrary {
 				return null;
 			}
 			if (!libraryDir.isDirectory()) {
-				Errlog.errlog(errMsg);
+				Errlog.errlog(errMsg + ": " + libraryDir);
 				return null;
 			}
 		}
