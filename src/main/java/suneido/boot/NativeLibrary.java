@@ -106,7 +106,7 @@ public final class NativeLibrary {
 		if (!libraryDir.exists()) {
 			final String errMsg = "can't make platform library directory";
 			try {
-				libraryDir.mkdir();
+				libraryDir.mkdirs();
 			} catch (SecurityException e) {
 				Errlog.errlog(errMsg, e);
 				return null;
