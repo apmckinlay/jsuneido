@@ -15,13 +15,14 @@ import suneido.boot.Bootstrap;
 public enum DebugModel {
 
 	/**
-	 * Full debugging, as described in {@link Bootstrap#DEBUG_OPTION_ALL}.
+	 * Full debugging, 
+	 * as described in {@link Bootstrap#DEBUG_OPTION_ON}.
 	 */
 	ON(Bootstrap.DEBUG_OPTION_ON),
 
 	/**
-	 * No extra debugging support, as described in
-	 * {@link Bootstrap#DEBUG_OPTION_NONE}.
+	 * No extra debugging support, 
+	 * as described in {@link Bootstrap#DEBUG_OPTION_OFF}.
 	 */
 	OFF(Bootstrap.DEBUG_OPTION_OFF);
 

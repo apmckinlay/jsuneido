@@ -25,9 +25,9 @@ import com.google.common.base.Joiner;
 
 /**
  * <p>
- * Technical entry-point to start Suneido runtime. Will pass control over to the
+ * Initial entry-point to start Suneido runtime. Will pass control over to the
  * "logical" entry point, {@link suneido.Suneido Suneido}, either in the current
- * JVM or after starting a new JVM.
+ * JVM or in a new JVM it starts.
  * </p>
  *
  * <p>
@@ -48,12 +48,12 @@ public final class Bootstrap {
 	 *            Command-line arguments
 	 */
 	public static void main(String[] args) {
-		// If the bootstrip skip flag is set, proceed directly to Suneido
+		// If the bootstrap skip flag is set, proceed directly to Suneido
 		if (null != System.getProperty(SKIP_BOOT_PROPERTY_NAME)) {
 			runSuneidoInThisJVM(args);
 			// Otherwise, run the bootstrap process...
 		} else {
-			String debugOption = DEBUG_OPTION_ON;
+			String debugOption = DEBUG_OPTION_OFF;
 			// Determine the debug option
 			for (int k = 0; k < args.length; ++k) {
 				final String arg = args[k];
@@ -72,8 +72,8 @@ public final class Bootstrap {
 			// Process the debug option
 			if (DEBUG_OPTION_ON.equals(debugOption)) {
 				final StderrEchoer stderrEchoer = new StderrEchoer();
-				try (LineBufferingByteConsumer stderrConsumer = new LineBufferingByteConsumer(
-						stderrEchoer)) {
+				try (LineBufferingByteConsumer stderrConsumer = 
+						new LineBufferingByteConsumer(stderrEchoer)) {
 					// Start a new JVM, collecting the exit code. Echo the new
 					// process's stdout to our stdout, but filter out phrases
 					// relating to the bootstrapping process itself. Echo the
@@ -81,10 +81,9 @@ public final class Bootstrap {
 					// whether error messages printed to stderr indicate a fatal
 					// for the new JVM startup that we can recover from by
 					// falling back to running Suneido from this JVM.
-					int exitCode = runSuneidoInNewJVM(args, true, (byte[] b,
-							int n) -> {
-						System.out.write(b, 0, n);
-					}, stderrConsumer);
+					int exitCode = runSuneidoInNewJVM(args, true, 
+							(byte[] b, int n) -> { System.out.write(b, 0, n); }, 
+							stderrConsumer);
 					if (0 != exitCode) {
 						if (!stderrEchoer.fatalErrors.isEmpty()) {
 							for (String fatal : stderrEchoer.fatalErrors) {
@@ -357,7 +356,8 @@ public final class Bootstrap {
 				}
 				System.err.print(strMessage);
 				System.err.flush();
-				if (strMessage.startsWith("FATAL")) {
+				if (strMessage.startsWith("FATAL") ||
+						strMessage.startsWith("JDWP exit error")) {
 					fatalErrors.add(strMessage);
 				}
 			}
@@ -373,15 +373,18 @@ public final class Bootstrap {
 	 * argument is intended to be an option.
 	 */
 	public static final char OPTION_INDICATOR = '-';
+	
 	/**
 	 * On the command line, marks the end of options.
 	 */
 	public static final String OPTIONS_END = "--";
+	
 	/**
 	 * On the command line, indicates that the next argument is one of
 	 * {@link #DEBUG_OPTION_ON} or {@link #DEBUG_OPTION_OFF}.
 	 */
 	public static final String DEBUG_OPTION = "-debug";
+	
 	/**
 	 * <p>
 	 * On the command line, indicates that full debugging support should be
@@ -424,6 +427,7 @@ public final class Bootstrap {
 	 * @see #DEBUG_OPTION_OFF
 	 */
 	public static final String DEBUG_OPTION_ON = "on";
+	
 	/**
 	 * <p>
 	 * On the command-line, indicates that no extra debugging support should be

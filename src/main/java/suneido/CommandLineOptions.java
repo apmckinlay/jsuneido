@@ -7,6 +7,11 @@ package suneido;
 import suneido.debug.DebugModel;
 import suneido.util.Errlog;
 
+/*
+ * WARNING: setting debug from here doesn't work properly 
+ * because {@link Bootstrap} does its own command line option handling.
+ */
+
 public class CommandLineOptions {
 	private static final int DEFAULT_PORT = 3147;
 	private final String[] args;
@@ -20,7 +25,7 @@ public class CommandLineOptions {
 	public Action action;
 	public String actionArg;
 	public int serverPort = -1;
-	public DebugModel debugModel;
+	public DebugModel debugModel = DebugModel.OFF;
 	public String remainder = "";
 	public String impersonate = WhenBuilt.when();
 	private static final int DEFAULT_TIMEOUT = 4 * 60; // 4 hours
