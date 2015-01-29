@@ -20,6 +20,7 @@ import suneido.Suneido;
 import suneido.runtime.BlockReturnException;
 import suneido.runtime.Ops;
 import suneido.runtime.SuBoundMethod;
+
 public class ExecuteTest {
 
 	@Before

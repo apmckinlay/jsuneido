@@ -9,6 +9,13 @@ import java.nio.ByteBuffer;
 import suneido.SuValue;
 import suneido.runtime.builtin.StringMethods;
 
+/**
+ * Abstract base class for string-like values {@link Concats} and {@link Except}
+ * Used for type check in {@link Ops} is_
+ * and for common implementations of {@link SuValue} and Comparable methods
+ * <p>
+ * NOTE: Buffer does not extend String2
+ */
 public abstract class String2 extends SuValue implements Comparable<String2>,
 		CharSequence {
 

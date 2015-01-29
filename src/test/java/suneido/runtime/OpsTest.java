@@ -4,6 +4,7 @@
 
 package suneido.runtime;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -18,51 +19,81 @@ import static suneido.runtime.Ops.*;
 
 import java.math.BigDecimal;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import suneido.SuException;
-import suneido.runtime.BlockReturnException;
-import suneido.runtime.Ops;
-import suneido.runtime.String2;
+import suneido.compiler.ExecuteTest;
+import suneido.jsdi.Buffer;
 
 import com.google.common.base.Strings;
 
 public class OpsTest {
 
+	@Before
+	public void setQuoting() {
+		Ops.default_single_quotes = true;
+	}
+
+	@After
+	public void restoreQuoting() {
+		Ops.default_single_quotes = false;
+	}
+
+	/** @see ExecuteTest test_display */
 	@Test
-	public void test_equals() {
-		assertTrue(is(null, null));
-		assertFalse(is(null, 123));
-		assertFalse(is(123, null));
-		assertTrue(is(123, 123));
-		assertTrue(is((long) 123, 123));
-		assertTrue(is(123, (long) 123));
-		assertTrue(is((byte) 123, (long) 123));
-		assertTrue(is(1.0F, 1.0D));
-		assertTrue(is((byte) 1, 1.0D));
-		assertTrue(is(1.0F, BigDecimal.valueOf(1)));
-		assertTrue(is("abc", "abc"));
-		assertTrue(is(123, BigDecimal.valueOf(123)));
-		assertTrue(is(BigDecimal.valueOf(123), 123));
+	public void test_display() {
+		assertThat(Ops.display("hello"), equalTo("'hello'"));
+		assertThat(Ops.display("hello\000"), equalTo("'hello\000'"));
+		assertThat(Ops.display(new Buffer(5, "hello")), equalTo("'hello'"));
+		assertThat(Ops.display(new Buffer(7, "hello")), equalTo("'hello\000\000'"));
+		assertThat(Ops.display(new Concats("hello", "world")), equalTo("'helloworld'"));
+	}
+
+	@Test
+	public void test_is() {
+		assertFalse(Ops.is(null, 123));
+		assertFalse(Ops.is(123, null));
+		is(null, null);
+		is(123, 123);
+		is((long) 123, 123);
+		is((byte) 123, (long) 123);
+		is(1.0F, 1.0D);
+		is((byte) 1, 1.0D);
+		is(1.0F, BigDecimal.valueOf(1));
+		is(123, BigDecimal.valueOf(123));
+		is("hello", "hello");
+		is("hello", new Concats("hel", "lo"));
+		is("hello", new Buffer(5, "hello"));
+		is("hello", new Except("hello", null));
+	}
+	private static void is(Object x, Object y) {
+		assertTrue(Ops.is(x, y));
+		assertTrue(Ops.is(y, x));
+		assertTrue(Ops.cmp(x, y) == 0);
+		assertTrue(Ops.cmp(y, x) == 0);
 	}
 
 	@Test
 	public void test_cmp() {
-		assertEquals(0, cmp(123, 123));
-		assertEquals(0, cmp((long) 123, 123));
-		assertEquals(0, cmp(123, (long) 123));
-		assertEquals(0, cmp("abc", "abc"));
-		assertTrue(cmp(true, false) > 0);
-		assertTrue(cmp(true, 123) < 0);
-		assertTrue(cmp(456, 123) > 0);
-		assertTrue(cmp(123, "def") < 0);
-		assertTrue(cmp("abc", "def") < 0);
-		assertTrue(cmp(1, BigDecimal.valueOf(1.1)) < 0);
-		assertTrue(cmp(1, BigDecimal.valueOf(.9)) > 0);
-		assertTrue(cmp(BigDecimal.valueOf(.9), 1) < 0);
-		assertTrue(cmp(BigDecimal.valueOf(1.1), 1) > 0);
-		assertTrue(cmp(123, this) < 0);
-		assertTrue(cmp(this, "hello") > 0);
+		lt(false, true);
+		lt(true, 123);
+		lt(123, 456);
+		lt(123, "def");
+		lt("abc", "def");
+		lt(1, BigDecimal.valueOf(1.1));
+		lt(BigDecimal.valueOf(.9), 1);
+		lt(BigDecimal.valueOf(.9), 1);
+		lt(1, BigDecimal.valueOf(1.1));
+		lt(123, this);
+		lt("hello", this);
+	}
+	private static void lt(Object x, Object y) {
+		assertTrue(Ops.cmp(x, y) < 0);
+		assertTrue(Ops.cmp(y, x) > 0);
+		assertFalse(Ops.is(x, y));
+		assertFalse(Ops.is(y, x));
 	}
 
 	@Test
@@ -126,7 +157,7 @@ public class OpsTest {
 		assertEquals(-333, sub("123", y));
 		assertEquals(new BigDecimal("-455.1"), sub(z, y));
 		assertEquals(new BigDecimal("122.1"), sub(x, z));
-		assertTrue(is(ZERO, sub(z, z)));
+		is(ZERO, sub(z, z));
 
 		assertEquals(INF, sub(INF, x));
 		assertEquals(MINUS_INF, sub(x, INF));

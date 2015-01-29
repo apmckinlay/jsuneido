@@ -125,11 +125,11 @@ public final class Ops {
 			((SuSequence) y).instantiate();
 			yClass = SuContainer.class;
 		}
-		if (x instanceof String2) {
+		if (x instanceof CharSequence) {
 			x = x.toString();
 			xClass = String.class;
 		}
-		if (y instanceof String2) {
+		if (y instanceof CharSequence) {
 			y = y.toString();
 			yClass = String.class;
 		}
@@ -449,10 +449,14 @@ public final class Ops {
 	public static String display(Object x) {
 		if (x == null)
 			return "null";
-		if (x instanceof SuValue)
-			return ((SuValue) x).display();
+		// need to check for string before SuValue
+		// because Concats and Buffer are SuValue but don't have display
+		// could add display but need to handle String here anyway
+		// since it's not SuValue
 		if (isString(x))
 			return displayString(x);
+		if (x instanceof SuValue)
+			return ((SuValue) x).display();
 		String s = toStr2(x);
 		if (s != null)
 			return s;
