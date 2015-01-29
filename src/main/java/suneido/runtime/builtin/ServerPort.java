@@ -4,12 +4,12 @@
 
 package suneido.runtime.builtin;
 
-import suneido.Suneido;
+import suneido.TheDbms;
 
 public class ServerPort {
 
 	public static int ServerPort() {
-		return Suneido.cmdlineoptions.serverPort;
+		return TheDbms.serverPort();
 	}
 
 }

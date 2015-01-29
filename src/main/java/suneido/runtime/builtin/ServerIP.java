@@ -4,15 +4,13 @@
 
 package suneido.runtime.builtin;
 
-import java.net.InetAddress;
-
 import suneido.TheDbms;
 
 public class ServerIP {
 
 	public static String ServerIP() {
-		InetAddress inetAddress = TheDbms.dbms().getInetAddress();
-		return inetAddress == null ? "" : inetAddress.getHostAddress();
+		String ip = TheDbms.serverIP();
+		return ip == null ? "" : ip;
 	}
 
 }

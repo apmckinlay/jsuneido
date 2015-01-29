@@ -52,6 +52,14 @@ public class TheDbms {
 		TheDbms.port = port;
 	}
 
+	public static String serverIP() {
+		return ip;
+	}
+
+	public static int serverPort() {
+		return port;
+	}
+
 	public static void set(Database db) {
 		localDbms = new DbmsLocal(db);
 	}
