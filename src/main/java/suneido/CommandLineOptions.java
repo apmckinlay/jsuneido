@@ -8,7 +8,7 @@ import suneido.debug.DebugModel;
 import suneido.util.Errlog;
 
 /*
- * WARNING: setting debug from here doesn't work properly 
+ * WARNING: setting debug from here doesn't work properly
  * because {@link Bootstrap} does its own command line option handling.
  */
 
@@ -188,8 +188,8 @@ public class CommandLineOptions {
 		if (action == null)
 			action = Action.REPL;
 		if (debugModel == null) {
-			debugModel = (Action.REPL == action || Action.CLIENT == action) ? DebugModel.ON
-					: DebugModel.OFF;
+			debugModel = (Action.REPL == action || Action.CLIENT == action)
+					? DebugModel.ON : DebugModel.OFF;
 		}
 		if (serverPort == -1
 				&& (action == Action.SERVER || action == Action.CLIENT))
