@@ -4,6 +4,8 @@
 
 package suneido.util;
 
+import gnu.trove.list.array.TIntArrayList;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -124,7 +126,7 @@ public class Regex {
 
 	@Immutable
 	public static class Pattern {
-		final int MAX_BRANCH = 1000;
+		private static final int ALT_INIT_CAPACITY = 100;
 		private final List<Element> pat;
 
 		private Pattern(List<Element> pat) {
@@ -138,8 +140,8 @@ public class Regex {
 		public Result firstMatch(String s, int pos) {
 			// allocate these once per match instead of once per amatch
 			Result result = new Result();
-			int alt_si[] = new int[MAX_BRANCH];
-			int alt_pi[] = new int[MAX_BRANCH];
+			TIntArrayList alt_si = new TIntArrayList(ALT_INIT_CAPACITY);
+			TIntArrayList alt_pi = new TIntArrayList(ALT_INIT_CAPACITY);
 			int sn = s.length();
 			assert 0 <= pos && pos <= sn;
 			Element e = pat.get(1); // skip LEFT0
@@ -156,8 +158,8 @@ public class Regex {
 		 */
 		public Result lastMatch(String s, int pos) {
 			Result result = new Result();
-			int alt_si[] = new int[MAX_BRANCH];
-			int alt_pi[] = new int[MAX_BRANCH];
+			TIntArrayList alt_si = new TIntArrayList(ALT_INIT_CAPACITY);
+			TIntArrayList alt_pi = new TIntArrayList(ALT_INIT_CAPACITY);
 			int sn = s.length();
 			assert 0 <= pos && pos <= sn;
 			for (int si = pos; si >= 0; si--)
@@ -171,8 +173,8 @@ public class Regex {
 		 */
 		public void forEachMatch(String s, ForEach action) {
 			Result result = new Result();
-			int alt_si[] = new int[MAX_BRANCH];
-			int alt_pi[] = new int[MAX_BRANCH];
+			TIntArrayList alt_si = new TIntArrayList(ALT_INIT_CAPACITY);
+			TIntArrayList alt_pi = new TIntArrayList(ALT_INIT_CAPACITY);
 			int sn = s.length();
 			Element e = pat.get(1); // skip LEFT0
 			for (int si = 0; si <= sn; si = e.nextPossible(s, si, sn))
@@ -190,20 +192,21 @@ public class Regex {
 		 */
 		public Result amatch(String s, int si) {
 			return amatch(s, si, new Result(),
-					new int[MAX_BRANCH], new int[MAX_BRANCH]);
+					new TIntArrayList(ALT_INIT_CAPACITY),
+					new TIntArrayList(ALT_INIT_CAPACITY));
 		}
 
 		private Result amatch(String s, int si, Result result,
-				int[] alt_si, int[] alt_pi) {
+				TIntArrayList alt_si, TIntArrayList alt_pi) {
 			Arrays.fill(result.end, -1);
-			int na = 0;
+			alt_si.resetQuick(); // need to reset since these are reused
+			alt_pi.resetQuick();
 			for (int pi = 0; pi < pat.size(); ) {
 				Element e = pat.get(pi);
 				if (e instanceof Branch) {
 					Branch b = (Branch) e;
-					alt_pi[na] = pi + b.alt;
-					alt_si[na] = si;
-					++na;
+					alt_pi.add(pi + b.alt);
+					alt_si.add(si);
 					pi += b.main;
 				} else if (e instanceof Jump) {
 					pi += ((Jump) e).offset;
@@ -223,13 +226,15 @@ public class Regex {
 					si = e.omatch(s, si, result);
 					if (si >= 0)
 						++pi;
-					else if (na > 0) {
-						// backtrack
-						--na;
-						si = alt_si[na];
-						pi = alt_pi[na];
-					} else
-						return null;
+					else {
+						int na = alt_si.size();
+						if (na > 0) {
+							// backtrack
+							si = alt_si.removeAt(na - 1);
+							pi = alt_pi.removeAt(na - 1);
+						} else
+							return null;
+					}
 				}
 			}
 			return result;
