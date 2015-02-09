@@ -13,7 +13,7 @@ import suneido.database.server.Dbms;
 import suneido.database.server.DbmsLocal;
 import suneido.database.server.DbmsRemote;
 import suneido.intfc.database.Database;
-import suneido.util.Print;
+import suneido.runtime.builtin.SocketServer;
 
 public class TheDbms {
 	private static final long IDLE_TIMEOUT_MS = 5 * 60 * 1000; // 5 min
@@ -68,6 +68,7 @@ public class TheDbms {
 		return localDbms != null || ip != null;
 	}
 
+	/** used by {@link SocketServer} */
 	public static void closeIfIdle() {
 		DbmsRemote dr = remoteDbms.get();
 		if (dr == null)
@@ -76,8 +77,6 @@ public class TheDbms {
 		if (dr.idleSince == 0)
 			dr.idleSince = t;
 		else if (t - dr.idleSince > IDLE_TIMEOUT_MS) {
-			Print.timestamped("closing idle dbms connection for " +
-					Thread.currentThread().getName());
 			dbmsRemotes.remove(dr);
 			remoteDbms.set(null);
 			dr.close();
