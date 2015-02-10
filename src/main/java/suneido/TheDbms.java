@@ -47,15 +47,23 @@ public class TheDbms {
 		return dbms == null ? "" : dbms.sessionid();
 	}
 
+	// used when starting a client
 	public static void remote(String ip, int port) {
 		TheDbms.ip = ip;
 		TheDbms.port = port;
 	}
 
+	// used when starting a server
+	public static void setPort(int port) {
+		TheDbms.port = port;
+	}
+
+	// used by ServerIP builtin
 	public static String serverIP() {
 		return ip;
 	}
 
+	// used by ServerPort builtin
 	public static int serverPort() {
 		return port;
 	}

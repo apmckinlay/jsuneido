@@ -70,6 +70,7 @@ public class Suneido {
 			Repl.repl();
 			break;
 		case SERVER:
+			TheDbms.setPort(cmdlineoptions.serverPort);
 			if (! System.getProperty("java.vm.name").contains("Server VM"))
 				System.out.println("WARNING: Server VM is recommended");
 			Print.timestamped("starting server");
