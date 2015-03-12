@@ -31,6 +31,24 @@ public class CircLogsTest {
 		test("CircLog()", "test\ntest2\n");
 	}
 	
+	@Test
+	public void test_emptyString(){
+		clear();
+		int prevQi = CircLog.qi;
+		
+		test("CircLog('')", null);
+		assertEquals(prevQi, CircLog.qi);
+		test("CircLog()", "");
+		
+		test("CircLog(' \t ')", null);
+		assertEquals(prevQi, CircLog.qi);
+		test("CircLog()", "");
+
+		test("CircLog(' abc ')", null);
+		assertEquals(prevQi + 1, CircLog.qi);
+		test("CircLog()", "abc\n");
+	}
+	
 	private static void test(String expr, String result) {
 		assertEquals(result, eval(expr));
 	}

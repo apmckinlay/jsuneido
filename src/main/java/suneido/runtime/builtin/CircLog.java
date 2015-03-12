@@ -11,13 +11,18 @@ public class CircLog {
 	@Params("string = false")
 	public static Object CircLog(Object s) {
 		if (s == Boolean.FALSE) {
-			String str = "";
+			StringBuilder sb = new StringBuilder();
 			for(int i = (qi + 1) % QSIZE; i != qi; i = (i + 1) % QSIZE )
-				if (queue[i] != "" && queue[i] != null)
-					str += queue[i] + "\n";
-			return str;
+				if (queue[i] != "" && queue[i] != null) {
+					sb.append(queue[i]);
+					sb.append("\n");
+				}
+			return sb.toString();
 		}
-		queue[qi] = Ops.toStr(s).trim();
+		String str = Ops.toStr(s).trim();
+		if (str.isEmpty())
+			return null;
+		queue[qi] = str;
 		qi = (qi + 1) % QSIZE;
 		return null;
 	}
