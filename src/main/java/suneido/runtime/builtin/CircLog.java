@@ -12,11 +12,9 @@ public class CircLog {
 	public static Object CircLog(Object s) {
 		if (s == Boolean.FALSE) {
 			StringBuilder sb = new StringBuilder();
-			for(int i = (qi + 1) % QSIZE; i != qi; i = (i + 1) % QSIZE )
-				if (queue[i] != "" && queue[i] != null) {
-					sb.append(queue[i]);
-					sb.append("\n");
-				}
+			for(int i = (qi + 1) % QSIZE; i != qi; i = (i + 1) % QSIZE)
+				if (queue[i] != null && !queue[i].isEmpty())
+					sb.append(queue[i]).append("\n");
 			return sb.toString();
 		}
 		String str = Ops.toStr(s).trim();
