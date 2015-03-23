@@ -42,6 +42,7 @@ public class Builtins {
 			.put("COMobject", COMobject.clazz)
 			.put("Callbacks", function(ThunkManager.Callbacks.class))
 			.put("Cat", function(Cat.class))
+			.put("CircLog", function(CircLog.class))
 			.put("Class?", function(ClassQ.class))
 			.put("ClearCallback", function(ThunkManager.ClearCallback.class))
 			.put("Cmdline", function(Cmdline.class))
