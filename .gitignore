@@ -11,3 +11,4 @@ jsuneido.jar
 *.exe
 *.bat
 *.dll
+.DS_Store
