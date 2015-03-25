@@ -53,7 +53,8 @@ class BulkTransaction extends ReadWriteTransaction {
 	}
 
 	@Override
-	protected int updateRecord2(int tblnum, DataRecord from, DataRecord to) {
+	protected int updateRecord2(int tblnum, DataRecord from, DataRecord to,
+			Blocking blocking) {
 		throw new UnsupportedOperationException("BulkTransaction updateRecord");
 	}
 

@@ -284,13 +284,14 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	}
 
 	@Override
-	public int updateRecord(int recadr, suneido.intfc.database.Record rec) {
+	public int updateRecord(int recadr, suneido.intfc.database.Record rec,
+			Blocking blocking) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public int updateRecord(int tblnum, suneido.intfc.database.Record oldrec,
-			suneido.intfc.database.Record newrec) {
+			suneido.intfc.database.Record newrec, Blocking blocking) {
 		throw new UnsupportedOperationException();
 	}
 

@@ -72,35 +72,38 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	// update ------------------------------------------------------------------
 
 	@Override
-	public int updateRecord(int fromadr, suneido.intfc.database.Record to) {
+	public int updateRecord(int fromadr, suneido.intfc.database.Record to,
+			Blocking blocking) {
 		if (fromadr == 1)
 			throw new SuException("can't update the same record multiple times");
 		DataRecord from = tran.getrec(fromadr);
-		updateRecord(from.tblnum(), from, to);
+		updateRecord(from.tblnum(), from, to, blocking);
 		return 1; // don't know record address till commit
 	}
 
 	@Override
 	public int updateRecord(int tblnum,
 			suneido.intfc.database.Record from,
-			suneido.intfc.database.Record r) {
+			suneido.intfc.database.Record r, Blocking blocking) {
 		DataRecord to = truncateRecord(tblnum, r);
-		updateRecord2(tblnum, (DataRecord) from, to);
+		updateRecord2(tblnum, (DataRecord) from, to, blocking);
 		// must be final step - may throw
 		callTrigger(ck_getTable(tblnum), from, to);
 		return 1; // don't know record address till commit
 	}
 
-	protected int updateRecord2(int tblnum, DataRecord from, DataRecord to) {
+	protected int updateRecord2(int tblnum, DataRecord from, DataRecord to,
+			Blocking blocking) {
 		check(tblnum, "update");
 		onlyReads = false;
 		to.tblnum(tblnum);
-		int adr = indexedData(tblnum).update(from, to);
+		int adr = indexedData(tblnum).update(from, to, blocking);
 		updateRowInfo(tblnum, 0, to.bufSize() - from.bufSize());
 		return adr;
 	}
 
 	// used by foreign key cascade
+	// WARNING: does NOT do foreign key checking
 	void updateAll(int tblnum, int[] colNums, Record oldkey, Record newkey) {
 		IndexIter iter = getIndex(tblnum, colNums).iterator(oldkey);
 		for (iter.next(); ! iter.eof(); iter.next()) {
@@ -110,7 +113,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 				int j = Ints.indexOf(colNums, i);
 				rb.add(j == -1 ? oldrec.get(i) : newkey.get(j));
 			}
-			updateRecord(tblnum, oldrec, rb.build());
+			updateRecord(tblnum, oldrec, rb.build(), Blocking.NO_BLOCK);
 		}
 	}
 

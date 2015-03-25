@@ -83,9 +83,10 @@ class UpdateTransaction extends ReadWriteTransaction {
 	}
 
 	@Override
-	protected int updateRecord2(int tblnum, DataRecord from, DataRecord to) {
+	protected int updateRecord2(int tblnum, DataRecord from, DataRecord to,
+			Blocking blocking) {
 		to.address(tran.refToInt(to));
-		int fromadr = super.updateRecord2(tblnum, from, to);
+		int fromadr = super.updateRecord2(tblnum, from, to, blocking);
 		addAction(UPDATE);
 		actions.add(fromadr);
 		actions.add(to.address());
@@ -120,7 +121,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 				int j = Ints.indexOf(colNums, i);
 				rb.add(j == -1 ? oldrec.get(i) : newkey.get(j));
 			}
-			updateRecord(tblnum, oldrec, rb.build());
+			updateRecord(tblnum, oldrec, rb.build(), Blocking.NO_BLOCK);
 		}
 	}
 

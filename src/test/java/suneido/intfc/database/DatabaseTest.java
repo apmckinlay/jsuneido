@@ -171,6 +171,27 @@ public class DatabaseTest extends TestBase {
 		assertRecords(1);
 	}
 
+	@Test
+	public void add_should_block_with_cascade() {
+		makeTable(3);
+		make_test2(Fkmode.CASCADE);
+		addShouldBlock(rec(11, 5, 1));
+	}
+
+	@Test
+	public void add_should_block_with_cascade_deletes() {
+		makeTable(3);
+		make_test2(Fkmode.CASCADE_DELETES);
+		addShouldBlock(rec(11, 5, 1));
+	}
+
+	@Test
+	public void add_should_block_with_cascade_updates() {
+		makeTable(3);
+		make_test2(Fkmode.CASCADE_UPDATES);
+		addShouldBlock(rec(11, 5, 1));
+	}
+
 	private void assertRecords(int n) {
 		Transaction t;
 		t = db.readTransaction();
@@ -281,6 +302,10 @@ public class DatabaseTest extends TestBase {
 		make_test2(Fkmode.CASCADE_UPDATES);
 
 		Transaction t = db.updateTransaction();
+		t.addRecord("test", record(99));
+		t.ck_complete();
+
+		t = db.updateTransaction();
 		t.updateRecord(t.getTable("test").num(), get("test").get(1), record(11));
 		t.ck_complete();
 
