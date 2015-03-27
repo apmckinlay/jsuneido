@@ -14,6 +14,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import suneido.DbTools;
 import suneido.SuContainer;
 import suneido.SuDate;
+import suneido.SuException;
 import suneido.compiler.Compiler;
 import suneido.database.query.CompileQuery;
 import suneido.database.query.Query.Dir;
@@ -199,6 +200,25 @@ public class DbmsLocal extends Dbms {
 	@Override
 	public void enableTrigger(String table) {
 		db.enableTrigger(table);
+	}
+
+	@Override
+	public byte[] nonce() {
+		throw new SuException("nonce only allowed on clients");
+	}
+
+	@Override
+	public boolean auth(String data) {
+		throw new SuException("auth only allowed on clients");
+	}
+
+	@Override
+	public byte[] token() {
+		return Auth.token();
+	}
+
+	Database getDb() {
+		return db;
 	}
 
 }

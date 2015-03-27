@@ -82,4 +82,8 @@ public abstract class Dbms {
 	public abstract void disableTrigger(String table);
 	public abstract void enableTrigger(String table);
 
+	public abstract byte[] nonce();
+	public abstract boolean auth(String data);
+	public abstract byte[] token();
+
 }

@@ -51,7 +51,7 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			TheDbms.dbms().admin(bufferToString(line));
+			dbms().admin(bufferToString(line));
 			return t();
 		}
 	},
@@ -66,6 +66,18 @@ public enum Command {
 			return ok();
 		}
 	},
+	AUTH {
+		@Override
+		public int extra(ByteBuffer buf) {
+			return ck_getnum('D', buf);
+		}
+
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				NetworkOutput outputQueue) {
+			return Auth.auth(bufferToString(extra)) ? t() : f();
+		}
+	},
 	BINARY {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
@@ -78,7 +90,7 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			return valueResult(outputQueue, TheDbms.dbms().check());
+			return valueResult(outputQueue, dbms().check());
 		}
 	},
 	CLOSE {
@@ -112,14 +124,14 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			return valueResult(outputQueue, TheDbms.dbms().connections());
+			return valueResult(outputQueue, dbms().connections());
 		}
 	},
 	COPY {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			TheDbms.dbms().copy(bufferToString(line).trim());
+			dbms().copy(bufferToString(line).trim());
 			return ok();
 		}
 	},
@@ -132,7 +144,7 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			DbmsQuery dq = TheDbms.dbms().cursor(bufferToString(extra));
+			DbmsQuery dq = dbms().cursor(bufferToString(extra));
 			int cn = ServerData.forThread().addCursor(dq);
 			return stringToBuffer("C" + cn + "\r\n");
 		}
@@ -141,14 +153,14 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			return stringToBuffer("N" + TheDbms.dbms().cursors() + "\r\n");
+			return stringToBuffer("N" + dbms().cursors() + "\r\n");
 		}
 	},
 	DUMP {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			TheDbms.dbms().dump(bufferToString(line).trim());
+			dbms().dump(bufferToString(line).trim());
 			return ok();
 		}
 	},
@@ -195,7 +207,7 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			return stringToBuffer("N" + TheDbms.dbms().finalSize() + "\r\n");
+			return stringToBuffer("N" + dbms().finalSize() + "\r\n");
 		}
 	},
 	GET {
@@ -237,7 +249,7 @@ public enum Command {
 			DbmsTran tran = getTran(line);
 			String query = bufferToString(extra);
 			HeaderAndRow hr = (tran == null)
-				? TheDbms.dbms().get(dir, query, one)
+				? dbms().get(dir, query, one)
 				: tran.get(dir,	query, one);
 			if (hr == null)
 				outputQueue.add(eof());
@@ -275,7 +287,7 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			List<LibGet> srcs = TheDbms.dbms().libget(bufferToString(line).trim());
+			List<LibGet> srcs = dbms().libget(bufferToString(line).trim());
 			StringBuilder resp = new StringBuilder();
 			for (LibGet src : srcs)
 				resp.append("L").append(src.text.limit()).append(" ");
@@ -293,15 +305,23 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			return stringToBuffer(listToParens(TheDbms.dbms().libraries()) + "\r\n");
+			return stringToBuffer(listToParens(dbms().libraries()) + "\r\n");
 		}
 	},
 	LOG {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			TheDbms.dbms().log(bufferToString(line).trim());
+			dbms().log(bufferToString(line).trim());
 			return ok();
+		}
+	},
+	/** return a random string to hash with password for authorization */
+	NONCE {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				NetworkOutput outputQueue) {
+			return ByteBuffer.wrap(Auth.nonce());
 		}
 	},
 	ORDER {
@@ -374,7 +394,7 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			Object result = TheDbms.dbms().run(bufferToString(line));
+			Object result = dbms().run(bufferToString(line));
 			if (result == null)
 				return stringToBuffer("\r\n");
 			return ServerData.forThread().textmode
@@ -387,14 +407,14 @@ public enum Command {
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
 			return stringToBuffer(
-					TheDbms.dbms().sessionid(bufferToString(line).trim()) + "\r\n");
+					dbms().sessionid(bufferToString(line).trim()) + "\r\n");
 		}
 	},
 	SIZE {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			return stringToBuffer("S" + (TheDbms.dbms().size() >> 2) + "\r\n");
+			return stringToBuffer("S" + (dbms().size() >> 2) + "\r\n");
 		}
 	},
 	TEMPDEST {
@@ -416,14 +436,22 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			return stringToBuffer(Ops.display(TheDbms.dbms().timestamp()) + "\r\n");
+			return stringToBuffer(Ops.display(dbms().timestamp()) + "\r\n");
+		}
+	},
+	/** return a random string for one-time authorization */
+	TOKEN {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				NetworkOutput outputQueue) {
+			return ByteBuffer.wrap(Auth.token());
 		}
 	},
 	TRANLIST {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			return stringToBuffer(listToParens(TheDbms.dbms().tranlist()) + "\r\n");
+			return stringToBuffer(listToParens(dbms().tranlist()) + "\r\n");
 		}
 	},
 	TRANSACTION {
@@ -439,7 +467,7 @@ public enum Command {
 						+ "\r\n");
 			// MAYBE associate session id with transaction
 			int tn = ServerData.forThread().addTransaction(
-					TheDbms.dbms().transaction(readwrite));
+					dbms().transaction(readwrite));
 			return stringToBuffer("T" + tn + "\r\n");
 		}
 	},
@@ -490,6 +518,7 @@ public enum Command {
 	private static final ByteBuffer OK_ = stringToBuffer("OK\r\n");
 	private static final ByteBuffer EOF_ = stringToBuffer("EOF\r\n");
 	private static final ByteBuffer TRUE_ = stringToBuffer("t\r\n");
+	private static final ByteBuffer FALSE_ = stringToBuffer("f\r\n");
 
 	static ByteBuffer badcmd() {
 		return BADCMD_.duplicate();
@@ -505,6 +534,9 @@ public enum Command {
 	}
 	static ByteBuffer t() {
 		return TRUE_.duplicate();
+	}
+	static ByteBuffer f() {
+		return FALSE_.duplicate();
 	}
 
 	/**
@@ -638,5 +670,12 @@ public enum Command {
 			return false;
 		int n = string.length();
 		return line.length() == n || line.charAt(n) == ' ';
+	}
+
+	private static Dbms dbms() {
+		Dbms dbms = TheDbms.dbms();
+		if (! ServerData.forThread().auth)
+			dbms = new DbmsUnauth(dbms);
+		return dbms;
 	}
 }

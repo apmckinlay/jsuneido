@@ -10,6 +10,9 @@ import java.util.*;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
+import suneido.TheDbms;
+import suneido.intfc.database.Database;
+import suneido.intfc.database.Transaction;
 import suneido.util.NetworkOutput;
 
 /**
@@ -31,14 +34,26 @@ public class ServerData {
 	private String sessionId = "127.0.0.1";
 	public final NetworkOutput outputQueue; // for kill
 	public boolean textmode = true;
+	private byte[] nonce = null;
+	public boolean auth;
 
 	/** for tests */
 	public ServerData() {
 		this.outputQueue = null;
+		this.auth = true;
 	}
 
 	public ServerData(NetworkOutput outputQueue) {
 		this.outputQueue = outputQueue;
+
+		Database db = ((DbmsLocal) TheDbms.dbms()).getDb();
+		Transaction t = db.readTransaction();
+		try {
+			auth = ! t.tableExists("users");
+		} finally {
+			t.complete();
+		}
+		auth = true; //TEMPORARY until applications are converted
 	}
 
 	/**
@@ -150,4 +165,15 @@ public class ServerData {
 		for (Map.Entry<Integer, DbmsTran> e : trans.entrySet())
 			e.getValue().abort();
 	}
+
+	public void setNonce(byte[] nonce) {
+		this.nonce = nonce;
+	}
+
+	public byte[] getNonce() {
+		byte[] result = nonce;
+		nonce = null;
+		return result;
+	}
+
 }

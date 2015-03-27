@@ -537,4 +537,30 @@ public class DbmsRemote extends Dbms {
 	public void enableTrigger(String table) {
 	}
 
+	@Override
+	public byte[] nonce() {
+		writeLine("NONCE");
+		ByteBuffer buf = io.read(Auth.NONCE_SIZE);
+		byte[] bytes = new byte[Auth.NONCE_SIZE];
+		buf.get(bytes);
+		return bytes;
+	}
+
+	@Override
+	public byte[] token() {
+		writeLine("TOKEN");
+		ByteBuffer buf = io.read(Auth.TOKEN_SIZE);
+		byte[] bytes = new byte[Auth.TOKEN_SIZE];
+		buf.get(bytes);
+		return bytes;
+	}
+
+	@Override
+	public boolean auth(String data) {
+		// NOTE: data could contain newlines
+		writeLineBuf("AUTH", "D" + data.length());
+		io.write(data);
+		return io.readLine().equals("t");
+	}
+
 }
