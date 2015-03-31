@@ -41,7 +41,6 @@ public class TheDbms {
 		byte[] token = authToken.get();
 		if (token != null)
 			dbms.auth(Util.bytesToString(token));
-System.out.println("<NEW DBMS>");
 		return dbms;
 	}
 
