@@ -12,7 +12,6 @@ import java.security.SecureRandom;
 import java.util.List;
 import java.util.Set;
 
-import suneido.SuException;
 import suneido.TheDbms;
 import suneido.intfc.database.Database;
 import suneido.intfc.database.Record;
@@ -42,9 +41,10 @@ public class Auth {
 	}
 
 	/** @return a one time random token that can be used to authorize */
+	// must not throw because client-server protocol won't handle it
 	public static byte[] token() {
 		if (! ServerData.forThread().auth)
-			throw new SuException("not authorized");
+			return new byte[TOKEN_SIZE];
 		byte[] token = random(TOKEN_SIZE);
 		tokens.add(Util.bytesToString(token));
 		return token;
