@@ -21,21 +21,20 @@ public class TheDbms {
 	private static int port = 3147;
 	private static DbmsLocal localDbms;
 	private static final ThreadLocal<DbmsRemote> remoteDbms =
-			new ThreadLocal<>();
+			ThreadLocal.withInitial(TheDbms::newDbms);
 	private static final Set<DbmsRemote> dbmsRemotes =
 			Collections.synchronizedSet(new HashSet<DbmsRemote>());
 
 	public static Dbms dbms() {
-		if (ip == null)
-			return localDbms;
-		DbmsRemote dbms = remoteDbms.get();
-		if (dbms == null) {
-			dbms = new DbmsRemote(ip, port);
-			dbmsRemotes.add(dbms);
-			dbms.sessionid(dbms.sessionid("") + ":" +
-					Thread.currentThread().getName());
-			remoteDbms.set(dbms);
-		}
+		return (ip == null) ? localDbms : remoteDbms.get();
+	}
+
+	private static DbmsRemote newDbms() {
+		DbmsRemote dbms;
+		dbms = new DbmsRemote(ip, port);
+		dbmsRemotes.add(dbms);
+		remoteDbms.set(dbms);
+		dbms.sessionid(dbms.sessionid("") + ":" + Thread.currentThread().getName());
 		return dbms;
 	}
 
