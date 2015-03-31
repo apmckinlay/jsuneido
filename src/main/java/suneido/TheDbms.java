@@ -14,6 +14,7 @@ import suneido.database.server.DbmsLocal;
 import suneido.database.server.DbmsRemote;
 import suneido.intfc.database.Database;
 import suneido.runtime.builtin.SocketServer;
+import suneido.util.Util;
 
 public class TheDbms {
 	private static final long IDLE_TIMEOUT_MS = 5 * 60 * 1000; // 5 min
@@ -24,6 +25,7 @@ public class TheDbms {
 			ThreadLocal.withInitial(TheDbms::newDbms);
 	private static final Set<DbmsRemote> dbmsRemotes =
 			Collections.synchronizedSet(new HashSet<DbmsRemote>());
+	private static final ThreadLocal<byte[]> authToken = new ThreadLocal<>();
 
 	public static Dbms dbms() {
 		return (ip == null) ? localDbms : remoteDbms.get();
@@ -35,6 +37,11 @@ public class TheDbms {
 		dbmsRemotes.add(dbms);
 		remoteDbms.set(dbms);
 		dbms.sessionid(dbms.sessionid("") + ":" + Thread.currentThread().getName());
+		// auth will only succeed if parent was authorized
+		byte[] token = authToken.get();
+		if (token != null)
+			dbms.auth(Util.bytesToString(token));
+System.out.println("<NEW DBMS>");
 		return dbms;
 	}
 
@@ -73,6 +80,10 @@ public class TheDbms {
 
 	public static boolean isAvailable() {
 		return localDbms != null || ip != null;
+	}
+
+	public static void setAuthToken(byte[] token) {
+		authToken.set(token);
 	}
 
 	/** used by {@link SocketServer} */

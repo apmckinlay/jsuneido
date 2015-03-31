@@ -8,7 +8,6 @@ import suneido.TheDbms;
 import suneido.runtime.Ops;
 import suneido.runtime.Params;
 import suneido.util.Errlog;
-import suneido.util.Util;
 
 public class ThreadFunction {
 
@@ -35,8 +34,8 @@ public class ThreadFunction {
 		public void run() {
 			// runs in the child thread
 			try {
-				// auth will only succeed if parent was authorized
-				TheDbms.dbms().auth(Util.bytesToString(token));
+				// don't want to auth here since that will force dbms connection
+				TheDbms.setAuthToken(token);
 				Ops.call(callable);
 			} catch (Throwable e ) {
 				Errlog.uncaught("in thread", e);
