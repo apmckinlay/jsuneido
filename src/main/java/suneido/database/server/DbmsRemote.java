@@ -530,7 +530,6 @@ public class DbmsRemote extends Dbms {
 
 	@Override
 	public void disableTrigger(String table) {
-//		throw new SuException("When client-server, only the server can DoWithoutTriggers");
 	}
 
 	@Override
