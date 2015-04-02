@@ -556,6 +556,8 @@ public class DbmsRemote extends Dbms {
 
 	@Override
 	public boolean auth(String data) {
+		if ("".equals(data))
+			return false;
 		// NOTE: data could contain newlines
 		writeLineBuf("AUTH", "D" + data.length());
 		io.write(data);
