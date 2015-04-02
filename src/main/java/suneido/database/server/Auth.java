@@ -97,9 +97,8 @@ public class Auth {
 			if (table == null)
 				return "";
 			List<String> flds = table.getFields();
-			int user_fld = flds.indexOf("user");
 			int pass_fld = flds.indexOf("passhash");
-			if (user_fld < 0 || pass_fld < 0)
+			if (pass_fld < 0)
 				return "";
 			Record rec = t.lookup(table.num(), "user", key);
 			if (rec == null)
@@ -108,7 +107,6 @@ public class Auth {
 		} finally {
 			t.complete();
 		}
-
 	}
 
 	private static String sha1(String s) {
