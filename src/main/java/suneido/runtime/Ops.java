@@ -637,7 +637,7 @@ public final class Ops {
 		if (x instanceof SuValue)
 			((SuValue) x).put(member, value);
 		else
-			throw new SuException(typeName(x) + " does not support put");
+			throw new SuException(typeName(x) + " does not support put (" + member + ")");
 	}
 
 	public static Object get(Object x, Object member) {
@@ -656,7 +656,7 @@ public final class Ops {
 			; // fall thru to error
 		else if (isString(member))
 			return getProperty(x, member.toString());
-		throw new SuException(typeName(x) + " does not support get " + x + "." + member);
+		throw new SuException(typeName(x) + " does not support get (" + member + ")");
 	}
 
 	private static Object getProperty(Object x, String member) {
