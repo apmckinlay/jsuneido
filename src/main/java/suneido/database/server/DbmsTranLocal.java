@@ -84,4 +84,14 @@ public class DbmsTranLocal implements DbmsTran {
 		return t.toString();
 	}
 
+	@Override
+	public int readCount() {
+		return t.readCount();
+	}
+
+	@Override
+	public int writeCount() {
+		return t.writeCount();
+	}
+
 }

@@ -77,4 +77,10 @@ public interface Transaction {
 
 	boolean isAborted();
 
+	default int readCount() {
+		return 0;
+	}
+	default int writeCount() {
+		return 0;
+	}
 }

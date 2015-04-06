@@ -459,6 +459,16 @@ class UpdateTransaction extends ReadWriteTransaction {
 		return commitTime;
 	}
 
+	@Override
+	public int readCount() {
+		return reads.values().stream().mapToInt(tr -> tr.readCount()).sum();
+	}
+
+	@Override
+	public int writeCount() {
+		return writeCount;
+	}
+
 	// needed for PriorityQueue's in Transactions
 	static final Comparator<UpdateTransaction> byCommit =
 			(t1, t2) -> Longs.compare(t1.commitTime, t2.commitTime);

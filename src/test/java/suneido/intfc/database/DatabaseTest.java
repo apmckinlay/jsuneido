@@ -41,7 +41,11 @@ public class DatabaseTest extends TestBase {
 
 		Record r = rec(12, 34);
 		Transaction t = db.updateTransaction();
+		assertThat(t.readCount(), equalTo(0));
+		assertThat(t.writeCount(), equalTo(0));
 		t.addRecord("test", r);
+		assertThat(t.readCount(), equalTo(0));
+		assertThat(t.writeCount(), equalTo(1));
 		t.ck_complete();
 
 		List<Record> recs = get("test");
@@ -58,6 +62,8 @@ public class DatabaseTest extends TestBase {
 
 		t = db.updateTransaction();
 		t.removeRecord(getTable("test").num(), recs.get(0));
+		assertThat(t.readCount(), equalTo(0));
+		assertThat(t.writeCount(), equalTo(1));
 		t.ck_complete();
 
 		assertThat(count("test"), equalTo(0));

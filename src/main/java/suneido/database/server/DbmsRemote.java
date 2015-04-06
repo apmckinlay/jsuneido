@@ -375,6 +375,18 @@ public class DbmsRemote extends Dbms {
 			return readRecord(true);
 		}
 
+		@Override
+		public int readCount() {
+			writeLine("READCOUNT", "T" + tn);
+			return readInt('C');
+		}
+
+		@Override
+		public int writeCount() {
+			writeLine("WRITECOUNT", "T" + tn);
+			return readInt('C');
+		}
+
 	}
 
 	private void writeRecord(String cmd, Record rec) {

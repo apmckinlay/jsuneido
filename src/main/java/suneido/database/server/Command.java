@@ -365,6 +365,14 @@ public enum Command {
 			return stringToBuffer("Q" + qn + "\r\n");
 		}
 	},
+	READCOUNT {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				NetworkOutput outputQueue) {
+			DbmsTran tran = getTran(line);
+			return stringToBuffer("C" + (tran.readCount()) + "\r\n");
+		}
+	},
 	REQUEST {
 		@Override
 		public int extra(ByteBuffer buf) {
@@ -486,6 +494,14 @@ public enum Command {
 			int recadr = ck_getnum('A', line);
 			recadr = tran.update(recadr, makeRecord(extra));
 			return stringToBuffer("U" + recadr + "\r\n");
+		}
+	},
+	WRITECOUNT {
+		@Override
+		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
+				NetworkOutput outputQueue) {
+			DbmsTran tran = getTran(line);
+			return stringToBuffer("C" + (tran.writeCount()) + "\r\n");
 		}
 	};
 

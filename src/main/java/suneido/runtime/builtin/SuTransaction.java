@@ -73,6 +73,14 @@ public class SuTransaction extends SuValue {
 		return ((SuTransaction) self).t.isEnded();
 	}
 
+	public static Object ReadCount(Object self) {
+		return ((SuTransaction) self).t.readCount();
+	}
+
+	public static Object WriteCount(Object self) {
+		return ((SuTransaction) self).t.writeCount();
+	}
+
 	private static final FunctionSpec QueryParams =
 			ArgsArraySpec.from("query, block = false");
 

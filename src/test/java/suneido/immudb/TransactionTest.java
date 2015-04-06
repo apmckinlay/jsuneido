@@ -41,7 +41,11 @@ public class TransactionTest {
 	public void check_one_add() {
 		make_tmp();
 		UpdateTransaction t = db.updateTransaction();
+		assertThat(t.readCount(), equalTo(0));
+		assertThat(t.writeCount(), equalTo(0));
 		t.addRecord("tmp", rec(123, "foo"));
+		assertThat(t.readCount(), equalTo(0));
+		assertThat(t.writeCount(), equalTo(1));
 		t.commit();
 	}
 
