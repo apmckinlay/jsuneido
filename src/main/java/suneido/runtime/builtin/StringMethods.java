@@ -17,20 +17,13 @@ import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.regex.Pattern;
 
-import suneido.SuContainer;
-import suneido.SuException;
-import suneido.SuValue;
-import suneido.Suneido;
-import suneido.TheDbms;
+import suneido.*;
 import suneido.compiler.Compiler;
 import suneido.runtime.BuiltinMethods;
 import suneido.runtime.Ops;
 import suneido.runtime.Params;
-import suneido.util.Regex;
+import suneido.util.*;
 import suneido.util.Regex.Result;
-import suneido.util.RegexCache;
-import suneido.util.Tabs;
-import suneido.util.Util;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
@@ -151,9 +144,10 @@ public class StringMethods extends BuiltinMethods {
 		return i == -1 ? s.length() : i;
 	}
 
-	@Params("string")
-	public static Object FindLast(Object self, Object a) {
-		int i = toStr(self).lastIndexOf(toStr(a));
+	@Params("s, i = false")
+	public static Object FindLast(Object self, Object a, Object b) {
+		int pos = (b == Boolean.FALSE) ? Integer.MAX_VALUE : toInt(b);
+		int i = toStr(self).lastIndexOf(toStr(a), pos);
 		return i == -1 ? Boolean.FALSE : i;
 	}
 
