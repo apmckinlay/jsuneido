@@ -22,13 +22,18 @@ public class TheDbms {
 	private static int port = 3147;
 	private static DbmsLocal localDbms;
 	private static final ThreadLocal<DbmsRemote> remoteDbms =
-			ThreadLocal.withInitial(TheDbms::newDbms);
+			new ThreadLocal<>();
 	private static final Set<DbmsRemote> dbmsRemotes =
 			Collections.synchronizedSet(new HashSet<DbmsRemote>());
 	private static final ThreadLocal<byte[]> authToken = new ThreadLocal<>();
 
 	public static Dbms dbms() {
-		return (ip == null) ? localDbms : remoteDbms.get();
+		if (ip == null)
+			return localDbms;
+		DbmsRemote dbms = remoteDbms.get();
+		if (dbms == null)
+			dbms = newDbms();
+		return dbms;
 	}
 
 	private static DbmsRemote newDbms() {
