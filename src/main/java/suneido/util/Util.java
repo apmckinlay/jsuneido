@@ -21,6 +21,10 @@ import com.google.common.collect.Lists;
  */
 @ThreadSafe
 public class Util {
+	/** Readline limit for SuFile, SocketClient, and RunPiped.
+	 * Should be consistent with cSuneido.
+	 */
+	public static final int MAX_LINE = 4000;
 
 	public static boolean isCapitalized(String s) {
 		return Character.isUpperCase(s.charAt(0));

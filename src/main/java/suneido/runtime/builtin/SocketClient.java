@@ -115,7 +115,7 @@ public class SocketClient extends SuValue {
 			int c = input.read();
 			if (c == '\n' || c == -1)
 				break ;
-			if (sb.length() < 2000) // max should be consistent with cSuneido
+			if (sb.length() < Util.MAX_LINE)
 				sb.append((char) c);
 		}
 		return Util.toLine(sb);
