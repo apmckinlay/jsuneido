@@ -250,7 +250,7 @@ public final class ContainerMethods {
 		}
 	}
 
-	@Params("value")
+	@Params("string = ''")
 	public static Object Join(Object self, Object a) {
 		String sep = Ops.toStr(a);
 		StringBuilder sb = new StringBuilder();
