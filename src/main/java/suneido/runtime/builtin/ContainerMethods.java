@@ -98,7 +98,7 @@ public final class ContainerMethods {
 
 	public static Object Assocs(Object self, Object... args) {
 		Args.massage(FunctionSpec.NO_PARAMS, args);
-		return new SuSequence(((SuContainer) self).iterable(iterWhich(args), IterResult.ASSOC));
+		return new Sequence(((SuContainer) self).iterable(iterWhich(args), IterResult.ASSOC));
 	}
 
 	public static Object Base(Object self) {
@@ -278,10 +278,10 @@ public final class ContainerMethods {
 
 	public static Object Members(Object self, Object... args) {
 		if (args.length == 0)
-			return new SuSequence(((SuContainer) self)
+			return new Sequence(((SuContainer) self)
 					.iterable(IterWhich.ALL, IterResult.KEY));
 		Args.massage(FunctionSpec.NO_PARAMS, args); // args must be named
-		return new SuSequence(((SuContainer) self)
+		return new Sequence(((SuContainer) self)
 				.iterable(iterWhich(args), IterResult.KEY));
 	}
 
@@ -366,7 +366,7 @@ public final class ContainerMethods {
 	public static Object Values(Object self, Object... args) {
 		Args.massage(FunctionSpec.NO_PARAMS, args); // args must be named
 		SuContainer c = (SuContainer) self;
-		return new SuSequence(c.iterable(iterWhich(args), IterResult.VALUE));
+		return new Sequence(c.iterable(iterWhich(args), IterResult.VALUE));
 	}
 
 	@Params("value=null")

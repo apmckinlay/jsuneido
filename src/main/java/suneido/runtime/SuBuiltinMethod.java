@@ -1,3 +1,7 @@
+/* Copyright 2014 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.runtime;
 
 /**
@@ -7,7 +11,7 @@ package suneido.runtime;
  *
  * <p>
  * <strong>NOTE:</strong> It will <em>rarely</em> be necessary to derive a
- * subclass from this class directly. Unless there is a reason why 
+ * subclass from this class directly. Unless there is a reason why
  * {@link BuiltinMethods} will not work, please use
  * {@link BuiltinMethods#methods(String, Class)} instead of deriving a subclass
  * from this class.
@@ -16,13 +20,13 @@ package suneido.runtime;
  * @author Victor Schappert
  * @since 20140914
  */
-abstract class SuBuiltinMethod extends SuBuiltinBase {
+public abstract class SuBuiltinMethod extends SuBuiltinBase {
 
 	//
 	// CONSTRUCTORS
 	//
 
-	SuBuiltinMethod(String name, FunctionSpec params) {
+	public SuBuiltinMethod(String name, FunctionSpec params) {
 		super(CallableType.BUILTIN_METHOD, name, params);
 	}
 

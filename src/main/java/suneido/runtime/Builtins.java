@@ -117,6 +117,7 @@ public class Builtins {
 			.put("Scanner", Scanner.clazz)
 			.put("Scheduled", function(Scheduled.class))
 			.put("Seq", new Seq())
+			.put("Sequence", function(SuSequence.class))
 			.put("ServerEval", function(ServerEval.class))
 			.put("ServerIP", function(ServerIP.class))
 			.put("ServerPort", function(ServerPort.class))

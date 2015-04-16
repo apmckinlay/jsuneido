@@ -173,6 +173,10 @@ public class SuInstance extends SuValue {
 		ivars.put(member.toString(), value);
 	}
 
+	public Object classGet(Object member) {
+		return myclass.get2(member);
+	}
+
 	@Override
 	public boolean equals(Object value) {
 		if (value == this)

@@ -4,7 +4,6 @@
 
 package suneido.runtime;
 
-import java.nio.ByteBuffer;
 import java.util.Iterator;
 
 import suneido.SuContainer;
@@ -13,13 +12,14 @@ import suneido.SuValue;
 /**
  * A wrapper for an Iterable that can be treated like an SuContainer but doesn't
  * instantiate the object if you just iterate over it.
+ * See also: {@link SuSequence} which wraps a Suneido iterator
  */
-public class SuSequence extends SuContainer {
+public class Sequence extends SequenceBase {
 	private final Iterable<Object> iterable;
 	private final Iterator<Object> iter;
 	private boolean instantiated = false;
 
-	public SuSequence(Iterable<Object> iterable) {
+	public Sequence(Iterable<Object> iterable) {
 		this.iterable = iterable;
 		iter = iterable.iterator();
 	}
@@ -37,7 +37,7 @@ public class SuSequence extends SuContainer {
 	private static final SuValue Next = new SuBuiltinMethod0("seq.Next") {
 		@Override
 		public Object eval0(Object self) {
-			Iterator<Object> iter = ((SuSequence) self).iter;
+			Iterator<Object> iter = ((Sequence) self).iter;
 			return iter.hasNext() ? iter.next() : this;
 		}
 	};
@@ -45,41 +45,17 @@ public class SuSequence extends SuContainer {
 	private static final SuValue Copy = new SuBuiltinMethod0("seq.Copy") {
 		@Override
 		public Object eval0(Object self) {
-			return new SuContainer(((SuSequence) self).iterable);
+			// avoid two copies (instantiate & copy)
+			// for common usage: for m in ob.Members().Copy()
+			Sequence seq = (Sequence) self;
+			return seq.instantiated
+					? new SuContainer(seq)
+					: new SuContainer(seq.iterable);
 		}
 	};
 
 	@Override
-	public boolean equals(Object other) {
-		instantiate();
-		return super.equals(other);
-	}
-
-	@Override
-	public int hashCode() {
-		instantiate();
-		return super.hashCode();
-	}
-
-	@Override
-	public String toString() {
-		instantiate();
-		return super.toString();
-	}
-
-	@Override
-	public void pack(ByteBuffer buf) {
-		instantiate();
-		super.pack(buf);
-	}
-
-	@Override
-	public int packSize(int nest) {
-		instantiate();
-		return super.packSize(nest);
-	}
-
-	void instantiate() {
+	protected void instantiate() {
 		if (instantiated)
 			return;
 		addAll(iterable);
@@ -89,18 +65,6 @@ public class SuSequence extends SuContainer {
 	@Override
 	public Iterator<Object> iterator() {
 		return instantiated ? super.iterator() : iterable.iterator();
-	}
-
-	@Override
-	public Object get(Object key) {
-		instantiate();
-		return super.get(key);
-	}
-
-	@Override
-	public SuContainer toContainer() {
-		instantiate();
-		return this;
 	}
 
 }

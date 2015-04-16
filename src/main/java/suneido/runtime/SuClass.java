@@ -72,7 +72,7 @@ public class SuClass extends SuValue {
 		return null;
 	}
 
-	protected Object get2(Object member) {
+	Object get2(Object member) {
 		Object value = members.get(member);
 		return (value != null || baseGlobal == null)
 			? value
