@@ -60,6 +60,12 @@ class MmapFile extends Storage {
 			throw new SuException("can't open/create " + file, e);
 		}
 		fc = fin.getChannel();
+		try {
+			if (mode == "rw" && fc.tryLock() == null)
+				throw new SuException("can't lock database file");
+		} catch (IOException e) {
+			throw new SuException("can't lock database file");
+		}
 		open = true;
 		findEnd();
 		starting_file_size = storSize;
