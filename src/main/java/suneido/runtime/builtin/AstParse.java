@@ -14,7 +14,7 @@ import suneido.runtime.Params;
 public class AstParse {
 
 	@Params("string")
-	public static Object Parse(Object a) {
+	public static Object AstParse(Object a) {
 		String src = Ops.toStr(a);
 		AstNode ast = suneido.compiler.Compiler.parse(src);
 		return new AstWrapper(ast);
@@ -31,15 +31,17 @@ public class AstParse {
 		public Object get(Object member) {
 			switch (Ops.toStr(member)) {
 			case "Value":
-				return node.value;
+				return node.value == null ? "" : node.value;
 			case "Token":
 				return node.token.toString();
 			case "Line":
 				return node.lineNumber;
 			case "Children":
 				SuContainer children = new SuContainer(node.children.size());
-				for (AstNode child : node.children)
-					children.add(new AstWrapper(child));
+				if (node.children != null)
+					for (AstNode child : node.children)
+						if (child != null)
+							children.add(new AstWrapper(child));
 				return children;
 			}
 			throw new SuException("AstNode unknown member: " + member);
