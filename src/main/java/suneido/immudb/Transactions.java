@@ -30,10 +30,11 @@ class Transactions {
 	private final AtomicInteger nextNum = new AtomicInteger();
 	/** all active transactions (read and update), for Database.Transactions() */
 	private final Set<Transaction> trans = Sets.newHashSet();
-	/** active update transactions */
-	private final PriorityQueue<UpdateTransaction> utrans =
-			new PriorityQueue<>(MAX_OVERLAPPING, UpdateTransaction.byAsof);
-	/** committed read-write transactions that overlap outstanding transactions */
+	/** active update transactions by asof (when they started)
+	 *  used to track oldest active update transaction */
+	private final TreeSet<UpdateTransaction> utrans =
+			new TreeSet<>(UpdateTransaction.byAsof);
+	/** committed update transactions that overlap active transactions */
 	private final TreeSet<UpdateTransaction> overlapping =
 			new TreeSet<>(UpdateTransaction.byCommit);
 	private static final long FUTURE = Long.MAX_VALUE;
@@ -75,7 +76,7 @@ class Transactions {
 	synchronized void setExclusive(Transaction t) {
 		if ((t instanceof BulkTransaction)
 				? ! utrans.isEmpty()
-				: utrans.size() != 1 || utrans.peek() != t)
+				: utrans.size() != 1 || utrans.first() != t)
 			throw new SuException("cannot make transaction exclusive");
 		exclusive = true;
 	}
@@ -123,7 +124,7 @@ class Transactions {
 	 * i.e. commitTime before the oldest outstanding update transaction.
 	 */
 	private void cleanOverlapping() {
-		long oldest = utrans.isEmpty() ? FUTURE : utrans.peek().asof();
+		long oldest = utrans.isEmpty() ? FUTURE : utrans.first().asof();
 		while (! overlapping.isEmpty() && overlapping.first().commitTime() <= oldest)
 			overlapping.remove(overlapping.first());
 		assert ! utrans.isEmpty() || overlapping.isEmpty();
@@ -140,7 +141,7 @@ class Transactions {
 		synchronized (this) {
 			if (overlapping.size() <= MAX_OVERLAPPING)
 				return;
-			t = utrans.peek();
+			t = utrans.first();
 		}
 		// abort outside synchronized to avoid deadlock
 		abort(t, "too many concurrent update transactions");
@@ -154,7 +155,7 @@ class Transactions {
 			synchronized (this) {
 				if (utrans.isEmpty())
 					return;
-				t = utrans.peek();
+				t = utrans.first();
 				if (t.stopwatch.elapsed(TimeUnit.SECONDS) < MAX_UPDATE_TRAN_DURATION_SEC)
 					return;
 			}
