@@ -23,13 +23,19 @@ import suneido.runtime.Ops;
  * <li>
  * {@link ParseConstant}</li>
  * <li>
- * {@link ParseFunction}</li>
+ * {@link ParseFunction} - used by ParseConstant</li>
  * <li>
- * {@link ParseExpression}</li>
+ * {@link ParseExpression} - used by ParseFunction</li>
  * <li>
- * {@link ParseStruct}</li>
+ * {@link ParseStruct} - used by ParseConstant</li>
  * <li>
- * {@link AstGenerator} - generates an AST, based on calls from parsers</li>
+ * {@link ParseDll} - used by ParseConstant</li>
+ * <li>
+ * {@link ParseCallback} - used by ParseConstant</li>
+ * <li>
+ * {@link Generator} - interface, called by parsers with results
+ * <li>
+ * {@link AstGenerator} - implementation of Generator to create AST</li>
  * <li>
  * {@link AstNode} - make up the AST</li>
  * <li>

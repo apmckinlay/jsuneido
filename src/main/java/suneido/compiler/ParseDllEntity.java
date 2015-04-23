@@ -5,29 +5,14 @@
 package suneido.compiler;
 
 import static suneido.SuInternalError.unreachable;
-import static suneido.compiler.Token.ARRAYTYPE;
-import static suneido.compiler.Token.CALLBACK;
-import static suneido.compiler.Token.COMMA;
-import static suneido.compiler.Token.DLL;
-import static suneido.compiler.Token.IDENTIFIER;
-import static suneido.compiler.Token.IN;
-import static suneido.compiler.Token.L_BRACKET;
-import static suneido.compiler.Token.MUL;
-import static suneido.compiler.Token.NEWLINE;
-import static suneido.compiler.Token.POINTERTYPE;
-import static suneido.compiler.Token.R_BRACKET;
-import static suneido.compiler.Token.R_CURLY;
-import static suneido.compiler.Token.R_PAREN;
-import static suneido.compiler.Token.SEMICOLON;
-import static suneido.compiler.Token.STRUCT;
-import static suneido.compiler.Token.VALUETYPE;
+import static suneido.compiler.Token.*;
 import suneido.SuException;
 import suneido.jsdi.DllInterface;
 
 /**
  * Shared members and functionality for matching entities that form part of the
- * DLL interface.
- * 
+ * DLL interface. Used by ParseCallback, ParseDll, ParseStruct.s
+ *
  * @author Victor Schappert
  * @since 20130621
  */
