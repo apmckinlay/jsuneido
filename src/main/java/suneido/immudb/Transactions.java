@@ -26,7 +26,7 @@ import com.google.common.collect.Sets;
  */
 @ThreadSafe
 class Transactions {
-	private final AtomicLong clock = new AtomicLong();
+	private final AtomicLong clock = new AtomicLong(1); // zero is reserved
 	private final AtomicInteger nextNum = new AtomicInteger();
 	/** all active transactions (read and update), for Database.Transactions() */
 	private final Set<Transaction> trans = Sets.newHashSet();
@@ -62,12 +62,14 @@ class Transactions {
 	}
 
 	synchronized void add(Transaction t) {
-		if (t instanceof UpdateTransaction) {
-			if (exclusive)
-				throw new SuException("blocked by exclusive transaction");
-			utrans.add((UpdateTransaction) t);
-		}
 		trans.add(t);
+	}
+
+	synchronized void addUpdateTran(UpdateTransaction t) {
+		if (exclusive)
+			throw new SuException("blocked by exclusive transaction");
+		assert t.asof() > 0;
+		utrans.add(t);
 	}
 
 	synchronized void setExclusive(Transaction t) {
@@ -96,7 +98,7 @@ class Transactions {
 	}
 
 	synchronized void commit(Transaction t) {
-		if (t instanceof ReadWriteTransaction) 
+		if (t instanceof ReadWriteTransaction)
 			exclusive = false;
 		verify(trans.remove(t));
 		if (t instanceof UpdateTransaction) {
@@ -108,7 +110,7 @@ class Transactions {
 	}
 
 	synchronized void abort(Transaction t) {
-		if (t instanceof ReadWriteTransaction) 
+		if (t instanceof ReadWriteTransaction)
 			exclusive = false;
 		verify(trans.remove(t));
 		if (t instanceof UpdateTransaction)
@@ -153,8 +155,7 @@ class Transactions {
 				if (utrans.isEmpty())
 					return;
 				t = utrans.peek();
-				if (t.stopwatch == null ||
-						t.stopwatch.elapsed(TimeUnit.SECONDS) < MAX_UPDATE_TRAN_DURATION_SEC)
+				if (t.stopwatch.elapsed(TimeUnit.SECONDS) < MAX_UPDATE_TRAN_DURATION_SEC)
 					return;
 			}
 			// abort outside synchronized to avoid deadlock

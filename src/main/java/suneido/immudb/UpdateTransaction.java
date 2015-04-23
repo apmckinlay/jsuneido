@@ -22,7 +22,6 @@ import suneido.util.ThreadConfined;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Ints;
-import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
 
 /**
@@ -61,6 +60,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 	UpdateTransaction(int num, Database db) {
 		super(num, db);
 		asof = db.trans.clock();
+		trans.addUpdateTran(this); // must be after setting asof
 	}
 
 	@Override
@@ -222,9 +222,12 @@ class UpdateTransaction extends ReadWriteTransaction {
 					") writes (output/update/delete) in one transaction " + this);
 		long secs = stopwatch.elapsed(TimeUnit.SECONDS);
 		if (secs > WARN_UPDATE_TRAN_DURATION_SEC &&
-				! (this instanceof SchemaTransaction))
-			Errlog.errlog("WARNING: long duration transaction " + this +
+				! (this instanceof SchemaTransaction)) {
+			String type = (secs < Transactions.MAX_UPDATE_TRAN_DURATION_SEC + 2)
+					? "WARNING" : "ERROR";
+			Errlog.errlog(type + ": long duration update transaction " + this +
 					" (" + secs + " seconds)");
+		}
 	}
 
 	private void buildReads() {
@@ -471,9 +474,9 @@ class UpdateTransaction extends ReadWriteTransaction {
 
 	// needed for PriorityQueue's in Transactions
 	static final Comparator<UpdateTransaction> byCommit =
-			(t1, t2) -> Longs.compare(t1.commitTime, t2.commitTime);
+			(t1, t2) -> Long.compare(t1.commitTime, t2.commitTime);
 	static final Comparator<UpdateTransaction> byAsof =
-			(t1, t2) -> Longs.compare(t1.asof, t2.asof);
+			(t1, t2) -> Long.compare(t1.asof, t2.asof);
 
 	@Override
 	public String toString() {
