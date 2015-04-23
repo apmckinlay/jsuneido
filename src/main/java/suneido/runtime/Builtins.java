@@ -34,6 +34,7 @@ public class Builtins {
 			.put("And", function(And.class))
 			.put("AssertionError",
 						function(suneido.runtime.builtin.AssertionError.class))
+			.put("AstParse", function(AstParse.class))
 			.put("Boolean?", function(BooleanQ.class))
 			.put("Buffer", Buffer.clazz)
 			.put("Buffer?", function(BufferQ.class))
