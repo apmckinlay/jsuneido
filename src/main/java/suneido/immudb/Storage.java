@@ -6,9 +6,6 @@ package suneido.immudb;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Arrays;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.UnsignedInts;
@@ -24,16 +21,18 @@ import com.google.common.primitives.UnsignedInts;
  * <li>therefore maximum file size is unsigned int max * ALIGN (32gb)
  * <li>blocks should not start with (long) 0 since that is used to detect padding
  */
-@ThreadSafe
 abstract class Storage {
 	static final int FIRST_ADR = 1;
 	protected static final int SHIFT = 3;
 	private static final long MAX_SIZE = 0xffffffffL << SHIFT;
 	static final int ALIGN = (1 << SHIFT); // must be power of 2
 	private static final int MASK = ALIGN - 1;
-	protected ByteBuffer[] chunks = new ByteBuffer[32];
 	final int CHUNK_SIZE;
+	private final int MAX_CHUNKS = 512; // unsigned int max * align / chunk size
+	protected final ByteBuffer[] chunks = new ByteBuffer[MAX_CHUNKS];
 	protected volatile long storSize = 0;
+	private volatile long protect = 0;
+
 
 	Storage(int chunkSize) {
 		CHUNK_SIZE = align(chunkSize);
@@ -58,15 +57,7 @@ abstract class Storage {
 		long offset = storSize;
 		storSize += n;
 
-		int chunk = offsetToChunk(offset);
-		if (chunk >= chunks.length)
-			growChunks(chunk);
-
 		return offsetToAdr(offset);
-	}
-
-	private void growChunks(int chunk) {
-		chunks = Arrays.copyOf(chunks, (3 * chunk) / 2);
 	}
 
 	static int align(int n) {
@@ -139,8 +130,6 @@ abstract class Storage {
 		return (int) (adrToOffset(adr) % CHUNK_SIZE);
 	}
 
-	private long protect = 0;
-
 	void protect() {
 		assert protect == 0 || protect == Integer.MAX_VALUE;
 		protect = storSize;
@@ -165,8 +154,6 @@ abstract class Storage {
 	protected ByteBuffer map(long offset) {
 		assert 0 <= offset && offset < storSize;
 		int chunk = offsetToChunk(offset);
-		if (chunk >= chunks.length)
-			growChunks(chunk);
 		if (chunks[chunk] == null) {
 			chunks[chunk] = get(chunk);
 			chunks[chunk].order(ByteOrder.BIG_ENDIAN);
@@ -221,7 +208,8 @@ abstract class Storage {
 
 	/** @return Number of bytes from adr to current offset */
 	long sizeFrom(int adr) {
-		return adr == 0 ? storSize : storSize - adrToOffset(adr);
+		long size = storSize;
+		return adr == 0 ? size : size - adrToOffset(adr);
 	}
 
 	/** @return a limit address i.e. just past the end of the current data */
@@ -230,9 +218,10 @@ abstract class Storage {
 	}
 
 	boolean isValidPos(long pos) {
+		long size = storSize;
 		if (pos < 0)
-			pos += storSize;
-		return 0 <= pos && pos < storSize;
+			pos += size;
+		return 0 <= pos && pos < size;
 	}
 
 	boolean isValidAdr(int adr) {
