@@ -25,6 +25,7 @@ import suneido.SuException;
  */
 @ThreadSafe
 class MmapFile extends Storage {
+	private static final int MMAP_CHUNK_SIZE = 64 * 1024 * 1024;
 	private final FileChannel.MapMode mode;
 	private final RandomAccessFile fin;
 	private final FileChannel fc;
@@ -39,7 +40,7 @@ class MmapFile extends Storage {
 
 	/** @param mode Must be "r" or "rw" */
 	MmapFile(File file, String mode) {
-		super(64 * 1024 * 1024);
+		super(MMAP_CHUNK_SIZE);
 		switch (mode) {
 		case "r":
 			if (!file.canRead())
