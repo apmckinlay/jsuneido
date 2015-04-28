@@ -13,7 +13,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 /** WARNING slightly different from suneido.util.checksum */
 class Checksum {
 	private final Adler32 cksum = new Adler32();
-	private static final byte[] bytes = new byte[1024];
+	private final byte[] bytes = new byte[1024];
 
 	/** starts at current position, advances position to limit */
 	void update(ByteBuffer buf) {
