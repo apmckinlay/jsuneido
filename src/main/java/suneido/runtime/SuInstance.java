@@ -6,6 +6,7 @@ package suneido.runtime;
 
 import static suneido.runtime.FunctionSpec.NA;
 
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -201,6 +202,16 @@ public class SuInstance extends SuValue {
 		} finally {
 			stack.pop();
 		}
+	}
+
+	@Override
+	public void pack(ByteBuffer buf) {
+		throw new SuException("can't pack class instance");
+	}
+
+	@Override
+	public int packSize(int nest) {
+		throw new SuException("can't pack class instance");
 	}
 
 	@Override
