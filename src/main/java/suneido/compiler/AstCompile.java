@@ -67,7 +67,6 @@ public class AstCompile {
 
 	/**
 	 * Evaluate constant expressions at compile time.
-	 * Only processes the top level of the AST, does not recurse.
 	 * @returns value if ast can be evaluated at compile time, otherwise null
 	 */
 	private Object fold(String name, AstNode ast) {
@@ -242,7 +241,7 @@ public class AstCompile {
 
 	private SuCompiledCallable closure(ClassGen cg, AstNode ast) {
 		// needed to check if child blocks share with this block
-		AstSharesVars.check(ast); // Has side-effects: may modify ast 
+		AstSharesVars.check(ast); // Has side-effects: may modify ast
 		nameBegin(null, CallableType.WRAPPED_BLOCK.compilerNameSuffix());
 		SuCompiledCallable fn = javaClass(ast, BaseClassSet.EVALBASE,
 				CallableType.WRAPPED_BLOCK, cg.locals);
