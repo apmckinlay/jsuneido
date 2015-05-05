@@ -6,19 +6,17 @@ package suneido.runtime.builtin;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static java.text.CharacterIterator.DONE;
 import static suneido.runtime.Ops.toInt;
 import static suneido.util.Tr.tr;
 
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
-import java.text.CharacterIterator;
-import java.text.StringCharacterIterator;
 import java.util.regex.Pattern;
 
 import suneido.*;
 import suneido.compiler.Compiler;
+import suneido.compiler.Doesc;
 import suneido.runtime.BuiltinMethods;
 import suneido.runtime.Ops;
 import suneido.runtime.Params;
@@ -460,53 +458,7 @@ public class StringMethods extends BuiltinMethods {
 
 	public static Object Unescape(Object self) {
 		String s = toStr(self);
-		CharacterIterator ci = new StringCharacterIterator(s);
-		StringBuilder sb = new StringBuilder(s.length());
-		for (char c = ci.first(); c != DONE; c = ci.next())
-			if (c == '\\')
-				sb.append(doesc(ci));
-			else
-				sb.append(c);
-		return sb.toString();
-	}
-
-	public static char doesc(CharacterIterator ci) {
-		assert ci.current() == '\\';
-		int dig1, dig2, dig3;
-		char c = ci.next();
-		switch (c) {
-		case 'n':
-			return '\n';
-		case 't':
-			return '\t';
-		case 'r':
-			return '\r';
-		case 'x':
-			// hex
-			dig1 = Character.digit(ci.next(), 16);
-			dig2 = Character.digit(ci.next(), 16);
-			if (dig1 != -1 && dig2 != -1)
-				return (char) (16 * dig1 + dig2);
-			else {
-				ci.setIndex(ci.getIndex() - 3); // back to backslash
-				return '\\';
-			}
-		case '\\':
-		case '"':
-		case '\'':
-			return c;
-		default:
-			// octal
-			dig1 = Character.digit(ci.next(), 8);
-			dig2 = Character.digit(ci.next(), 8);
-			dig3 = Character.digit(ci.next(), 8);
-			if (dig1 != -1 && dig2 != -1 && dig3 != -1)
-				return (char) (64 * dig1 + 8 * dig2 + dig3);
-			else {
-				ci.setIndex(ci.getIndex() - 4); // back to backslash
-				return '\\';
-			}
-		}
+		return Doesc.doesc(s);
 	}
 
 	public static Object Upper(Object self) {
