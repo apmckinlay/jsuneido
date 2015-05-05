@@ -143,8 +143,8 @@ public class AstCompile {
 	}
 
 	private Object foldObject(AstNode ast) {
-		SuContainer c = ast.token == Token.OBJECT ? new SuContainer()
-				: new SuRecord();
+		SuContainer c = (ast.token == Token.OBJECT)
+				? new SuContainer() : new SuRecord();
 		for (AstNode member : ast.children) {
 			AstNode name = member.first();
 			Object value = fold(member.second());
