@@ -8,7 +8,7 @@
 			+ jsuneido-arch-win32-x86.jar : full jSuneido, JSDI, jsdebug, win32-x86 only
 			+ jsuneido-arch-win32-amd64.jar : full jSuneido, JSDI, jsdebug, win32-amd64 only
 			+ jsuneido-arch-linux-amd64.jar : lean jSuneido with jsdebug for linux-amd64
-			+ jsuneido-all.jar : full jSuneido with all architecture-specific libraries
+			+ jsuneido-full.jar : full jSuneido with all architecture-specific libraries
 	-->
 
 	<!--                      -->
