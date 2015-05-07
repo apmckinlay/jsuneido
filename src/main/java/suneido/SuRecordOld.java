@@ -290,9 +290,9 @@ public abstract class SuRecordOld extends SuContainer {
 		return deps;
 	}
 
-	public void update() {
+	public void update(SuContainer ob) {
 		ck_modify("Update");
-		Record newrec = toDbRecord(hdr);
+		Record newrec = ob.toDbRecord(hdr);
 		recadr = tran.getTransaction().update(recadr, newrec);
 		verify(recadr != 0);
 	}
