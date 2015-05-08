@@ -106,7 +106,10 @@ public class AstCompile {
 				return Ops.uminus(value);
 			break;
 		case ADD: // unary
-			return fold(ast.first());
+			value = fold(ast.first());
+			if (value != null)
+				return Numbers.toNum(value);
+			break;
 		case AND:
 			for (AstNode expr : ast.children) {
 				value = fold(expr);
