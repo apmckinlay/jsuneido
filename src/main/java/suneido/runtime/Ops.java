@@ -323,7 +323,7 @@ public final class Ops {
 		//       how is it even possible to get a Short/Byte number??). From the
 		//       point of view of efficiency, it makes sense to move the
 		//       Float/Double negation branches further up since they are much
-		//       more likely to be taken t han the Short/Byte branches.
+		//       more likely to be taken than the Short/Byte branches.
 		if (x instanceof Float)
 			return -(Float) x;
 		if (x instanceof Double)
