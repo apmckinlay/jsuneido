@@ -6,8 +6,14 @@ package suneido.compiler;
 
 import static suneido.compiler.ParseFunction.LOOP;
 import static suneido.compiler.Token.*;
+
+import java.util.Set;
+
+import suneido.SuException;
 import suneido.compiler.ParseFunction.Context;
 import suneido.database.query.ParseQuery;
+
+import com.google.common.collect.Sets;
 
 public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	boolean EQ_as_IS = false;
@@ -376,22 +382,37 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	private T argumentList(Token closing) {
 		T args = null;
 		T keyword = null;
+		Set<String> keywords = Sets.newHashSet();
 		while (token != closing) {
-			if (lookAhead() == COLON) {
-				keyword = keyword();
-			} else if (keyword != null)
-				syntaxError("un-named arguments must come before named arguments");
-
-			Token ahead = lookAhead();
-			boolean trueDefault = (keyword != null &&
-					(token == COMMA || token == closing || ahead == COLON));
-
-			if (trueDefault) {
-				args = generator.argumentList(args, keyword,
-						generator.boolTrue(lexer.getLineNumber()));
+			T expr;
+			if (token == COLON) {
+				// f(:name) is equivalent to f(name: name)
+				int lineNumber = lexer.getLineNumber();
+				match(COLON);
+				String identifier = lexer.getValue();
+				if (! keywords.add(identifier))
+					throw new SuException("duplicate argument name: " + identifier);
+				match(IDENTIFIER);
+				keyword = generator.string(identifier);
+				expr = generator.identifier(identifier, lineNumber);
 			} else {
-				args = generator.argumentList(args, keyword, expression());
+				if (lookAhead() == COLON) {
+					if (! keywords.add(lexer.getValue()))
+						throw new SuException("duplicate argument name: " +
+								lexer.getValue());
+					keyword = keyword();
+				} else if (keyword != null)
+					syntaxError("un-named arguments must come before named arguments");
+
+				Token ahead = lookAhead();
+				boolean trueDefault = (keyword != null &&
+						(token == COMMA || token == closing || ahead == COLON));
+
+				expr = trueDefault
+						? generator.boolTrue(lexer.getLineNumber())
+						: expression();
 			}
+			args = generator.argumentList(args, keyword, expr);
 			matchIf(COMMA);
 		}
 		match(closing);
