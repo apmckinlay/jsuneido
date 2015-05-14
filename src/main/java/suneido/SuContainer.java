@@ -13,6 +13,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.database.query.Header;
@@ -27,6 +28,7 @@ import suneido.util.NullIterator;
 import suneido.util.PairStack;
 import suneido.util.Util;
 
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.Iterables;
 
 //TODO detect the same modification-during-iteration as cSuneido (see ObjectsTest)
@@ -41,10 +43,10 @@ import com.google.common.collect.Iterables;
 public class SuContainer extends SuValue
 		implements Comparable<SuContainer>, Iterable<Object> {
 	public final List<Object> vec;
-	private final Map<Object,Object> map =
-			Collections.synchronizedMap(new CanonicalMap());
+	private final Map<Object,Object> map;
 	protected Object defval = null;
 	private boolean readonly = false;
+	public final static SuContainer EMPTY = new SuContainer(Empty.EMPTY);
 
 	@SuppressWarnings("serial")
 	private static class CanonicalMap extends HashMap<Object, Object> {
@@ -70,6 +72,7 @@ public class SuContainer extends SuValue
 
 	public SuContainer(int vecCapacity) {
 		vec = Collections.synchronizedList(new ArrayList<>(vecCapacity));
+		map = Collections.synchronizedMap(new CanonicalMap());
 	}
 
 	public SuContainer() {
@@ -87,6 +90,13 @@ public class SuContainer extends SuValue
 		vec.addAll(other.vec);
 		map.putAll(other.map);
 		defval = other.defval;
+	}
+	
+	enum Empty { EMPTY };
+	private SuContainer(Empty empty) {
+		vec = Collections.emptyList();
+		map = Collections.emptyMap();
+		readonly = true;
 	}
 
 	public static SuContainer of(Object x, Object y) {

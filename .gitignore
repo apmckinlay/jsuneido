@@ -14,5 +14,5 @@ jsuneido.jar
 .DS_Store
 /nbproject/*
 nb-build.xml
-
 manifest.mf
+hunspell/*

@@ -146,6 +146,8 @@ public class AstCompile {
 	}
 
 	private Object foldObject(AstNode ast) {
+		if (ast.token == Token.OBJECT && ast.children.size() == 0)
+			return SuContainer.EMPTY;
 		SuContainer c = (ast.token == Token.OBJECT)
 				? new SuContainer() : new SuRecord();
 		for (AstNode member : ast.children) {
