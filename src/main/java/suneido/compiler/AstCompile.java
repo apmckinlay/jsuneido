@@ -20,13 +20,16 @@ import suneido.jsdi.*;
 import suneido.jsdi.type.*;
 import suneido.runtime.*;
 
+/**
+ * Compiles an AST (from parsing) into Java classes
+ */
 public class AstCompile {
 	private final PrintWriter pw;
 	private final String library;
 	private final String globalName;
 	private final String sourceFile;
 	private final String sourceCode;
-	/* british pound sign - needs to be valid in identifiers */
+	/* British pound sign - needs to be valid in identifiers */
 	public static final char METHOD_SEPARATOR = '\u00A3';
 	private static final int MAX_DIRECT_ARGS = 4;
 	private String suClassName = null;
