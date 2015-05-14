@@ -95,10 +95,21 @@ public final class ContainerMethods {
 					+ "or to numeric positions");
 		}
 	}
+	
+	private static SuContainer toContainer(Object x) {
+		if (x instanceof SuContainer)
+			return (SuContainer) x;
+		if (x instanceof SuValue) {
+			SuContainer c = Ops.toContainer(x);
+			if (c != null)
+				return c;
+		}
+		throw new SuException("can't convert to container");
+	}
 
 	public static Object Assocs(Object self, Object... args) {
 		Args.massage(FunctionSpec.NO_PARAMS, args);
-		return new Sequence(((SuContainer) self).iterable(iterWhich(args), IterResult.ASSOC));
+		return new Sequence(toContainer(self).iterable(iterWhich(args), IterResult.ASSOC));
 	}
 
 	public static Object Base(Object self) {
@@ -106,7 +117,7 @@ public final class ContainerMethods {
 	}
 
 	public static Object Copy(Object self) {
-		return new SuContainer((SuContainer) self);
+		return new SuContainer(toContainer(self));
 	}
 
 	public static Object Delete(Object self, Object... args) {
@@ -114,7 +125,7 @@ public final class ContainerMethods {
 	}
 
 	static Object delete(Object self, Object[] args) {
-		SuContainer c = (SuContainer) self;
+		SuContainer c = toContainer(self);
 		ArgsIterator iter = new ArgsIterator(args);
 		if (! iter.hasNext())
 			deleteUsage();
@@ -145,12 +156,12 @@ public final class ContainerMethods {
 
 	@Params("value, block=false")
 	public static Object EqualRange(Object self, Object a, Object b) {
-		Range r = ((SuContainer) self).equalRange(a, b);
+		Range r = toContainer(self).equalRange(a, b);
 		return SuContainer.of(r.left, r.right);
 	}
 
 	public static Object Erase(Object self, Object... args) {
-		SuContainer c = (SuContainer) self;
+		SuContainer c = toContainer(self);
 		ArgsIterator iter = new ArgsIterator(args);
 		if (! iter.hasNext())
 			eraseUsage();
@@ -191,20 +202,20 @@ public final class ContainerMethods {
 
 	@Params("value")
 	public static Object Find(Object self, Object a) {
-		Object key = ((SuContainer) self).find(a);
+		Object key = toContainer(self).find(a);
 		return key == null ? false : key;
 	}
 
 	@Params("key, block")
 	public static Object GetDefault(Object self, Object a, Object b) {
-		Object x = ((SuContainer) self).getIfPresent(a);
+		Object x = toContainer(self).getIfPresent(a);
 		if (x != null)
 			return x;
 		return SuCallable.isBlock(b) ? Ops.call(b) : b;
 	}
 
 	public static Object Iter(Object self) {
-		return new Iterate((SuContainer) self);
+		return new Iterate(toContainer(self));
 	}
 
 	private static final class Iterate extends SuValue {
@@ -254,7 +265,7 @@ public final class ContainerMethods {
 	public static Object Join(Object self, Object a) {
 		String sep = Ops.toStr(a);
 		StringBuilder sb = new StringBuilder();
-		for (Object x : ((SuContainer) self).vec) {
+		for (Object x : toContainer(self).vec) {
 			if (Ops.isString(x))
 				sb.append(x.toString());
 			else
@@ -268,20 +279,20 @@ public final class ContainerMethods {
 
 	@Params("value, block=false")
 	public static Object LowerBound(Object self, Object a, Object b) {
-		return ((SuContainer) self).lowerBound(a, b);
+		return toContainer(self).lowerBound(a, b);
 	}
 
 	@Params("key")
 	public static Object MemberQ(Object self, Object a) {
-		return ((SuContainer) self).containsKey(a);
+		return toContainer(self).containsKey(a);
 	}
 
 	public static Object Members(Object self, Object... args) {
 		if (args.length == 0)
-			return new Sequence(((SuContainer) self)
+			return new Sequence(toContainer(self)
 					.iterable(IterWhich.ALL, IterResult.KEY));
 		Args.massage(FunctionSpec.NO_PARAMS, args); // args must be named
-		return new Sequence(((SuContainer) self)
+		return new Sequence(toContainer(self)
 				.iterable(iterWhich(args), IterResult.KEY));
 	}
 
@@ -292,7 +303,7 @@ public final class ContainerMethods {
 
 	public static Object Size(Object self, Object... args) {
 		Args.massage(FunctionSpec.NO_PARAMS, args); // args must be named
-		SuContainer c = (SuContainer) self;
+		SuContainer c = toContainer(self);
 		switch (iterWhich(args)) {
 		case LIST:
 			return c.vecSize();
@@ -319,24 +330,24 @@ public final class ContainerMethods {
 	}
 
 	public static Object ReadonlyQ(Object self) {
-		return ((SuContainer) self).getReadonly();
+		return toContainer(self).getReadonly();
 	}
 
 	public static Object ReverseE(Object self) {
-		SuContainer c = (SuContainer) self;
+		SuContainer c = toContainer(self);
 		c.reverse();
 		return c;
 	}
 
 	public static Object Set_readonly(Object self) {
-		SuContainer c = (SuContainer) self;
+		SuContainer c = toContainer(self);
 		c.setReadonly();
 		return self;
 	}
 
 	@Params("i, n=INTMAX")
 	public static Object Slice(Object self, Object a, Object b) {
-		SuContainer c = (SuContainer) self;
+		SuContainer c = toContainer(self);
 		int vecsize = c.vecSize();
 		int i = toInt(a);
 		if (i < 0)
@@ -351,33 +362,33 @@ public final class ContainerMethods {
 
 	@Params("block")
 	public static Object Sort(Object self, Object a) {
-		SuContainer c = (SuContainer) self;
+		SuContainer c = toContainer(self);
 		c.sort(a);
 		return c;
 	}
 
 	@Params("block")
 	public static Object SortE(Object self, Object a) {
-		SuContainer c = (SuContainer) self;
+		SuContainer c = toContainer(self);
 		c.sort(a);
 		return c;
 	}
 
 	public static Object Values(Object self, Object... args) {
 		Args.massage(FunctionSpec.NO_PARAMS, args); // args must be named
-		SuContainer c = (SuContainer) self;
+		SuContainer c = toContainer(self);
 		return new Sequence(c.iterable(iterWhich(args), IterResult.VALUE));
 	}
 
 	@Params("value=null")
 	public static Object Set_default(Object self, Object a) {
-		SuContainer c = (SuContainer) self;
+		SuContainer c = toContainer(self);
 		c.setDefault(a);
 		return c;
 	}
 
 	public static Object UniqueE(Object self) {
-		SuContainer c = (SuContainer) self;
+		SuContainer c = toContainer(self);
 		List<Object> v = c.vec;
 		int dst = 1;
 		for (int src = 1; src < v.size(); ++src) {
@@ -394,7 +405,7 @@ public final class ContainerMethods {
 
 	@Params("value, block=false")
 	public static Object UpperBound(Object self, Object a, Object b) {
-		return ((SuContainer) self).upperBound(a, b);
+		return toContainer(self).upperBound(a, b);
 	}
 
 	public static SuCallable lookup(String method) {
