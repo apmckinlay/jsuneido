@@ -131,6 +131,8 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	}
 
 	protected int removeRecord(int tblnum, Record rec) {
+		if (rec.address() == 1)
+			throw new SuException("can't update the same record multiple times");
 		check(tblnum, "delete");
 		onlyReads = false;
 		int adr = indexedData(tblnum).remove(rec);
