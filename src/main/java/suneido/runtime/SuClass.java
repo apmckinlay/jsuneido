@@ -89,12 +89,14 @@ public class SuClass extends SuValue {
 		Object o = get2(method);
 		if (o instanceof SuCallable)
 			return (SuCallable) o;
-		if ("New".equals(method))
+		switch (method) {
+		case "New":
 			return initMethod;
-		if ("CallClass".equals(method))
+		case "CallClass":
 			return newInstanceMethod;
-		if ("Eval".equals(method))
+		case "Eval":
 			return eval;
+		}
 		f = userGeneralMethods.getMethod(method);
 		if (f != null)
 			return f;
@@ -181,7 +183,7 @@ public class SuClass extends SuValue {
 		}
 		@Override
 		public Object eval(Object self, Object... args) {
-			if (method != "Default") {
+			if (! "Default".equals(method)) {
 				Object fn = toClass(self).get2("Default");
 				if (fn instanceof SuCallable) {
 					Object newargs[] = new Object[1 + args.length];

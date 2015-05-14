@@ -25,8 +25,6 @@ import suneido.compiler.Compiler;
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.JSDI;
 import suneido.jsdi.SimpleContext;
-import suneido.jsdi.com.COMException;
-import suneido.jsdi.com.COMobject;
 import suneido.runtime.ContextLayered;
 import suneido.util.testing.Assumption;
 

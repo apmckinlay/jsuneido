@@ -12,3 +12,7 @@ jsuneido.jar
 *.bat
 *.dll
 .DS_Store
+/nbproject/*
+nb-build.xml
+
+manifest.mf

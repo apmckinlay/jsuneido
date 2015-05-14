@@ -180,9 +180,9 @@ public class SuCallable extends SuValue {
 	}
 
 	@Override
-	public SuValue lookup(String methodName) {
+	public SuValue lookup(String method) {
 		// WARNING: The reason this class is subclassing SuBuiltinMethod0 for
-		// its built-ins instead of usign BuiltinMethods.methods() is
+		// its built-ins instead of using BuiltinMethods.methods() is
 		// that I encountered JVM instability leading to random crashes
 		// when the following conditions obtained:
 		// 1) SuCallable is loaded by a native agent on VMInit
@@ -197,17 +197,19 @@ public class SuCallable extends SuValue {
 		// and method handle initialization don't play well together.
 		// I tried to reproduce the bug using a stripped down project
 		// but wasn't able to do so... -- VCS @ 20140914
-		if ("Params".equals(methodName))
+		switch (method) {
+		case "Params":
 			return Params;
-		else if ("Source".equals(methodName))
+		case "Source":
 			return Source;
-		else if ("Disasm". equals(methodName))
+		case "Disasm":
 			return Disasm;
-		return super.lookup(methodName);
+		}
+		return super.lookup(method);
 	}
 
-	private static final SuValue Params = new SuBuiltinMethod0(
-			"function.Params") {
+	private static final SuValue Params =
+			new SuBuiltinMethod0("function.Params") {
 		@Override
 		public Object eval0(Object self) {
 			FunctionSpec p = ((SuCallable) self).params;
@@ -215,16 +217,16 @@ public class SuCallable extends SuValue {
 		}
 	};
 
-	private static final SuValue Source = new SuBuiltinMethod0(
-			"function.Source") {
+	private static final SuValue Source =
+			new SuBuiltinMethod0("function.Source") {
 		@Override
 		public Object eval0(Object self) {
 			return ((SuCallable) self).sourceCode();
 		}
 	};
 
-	private static final SuValue Disasm = new SuBuiltinMethod0(
-			"function.Disasm") {
+	private static final SuValue Disasm =
+			new SuBuiltinMethod0("function.Disasm") {
 		@Override
 		public Object eval0(Object self) {
 			return Disassembler.disassemble((SuCallable)self);

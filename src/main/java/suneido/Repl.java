@@ -14,21 +14,8 @@ import suneido.runtime.Ops;
 /*
  -agentlib:hprof=cpu=samples,interval=1,depth=6,cutoff=.01
 
- CheckLibraries(Libraries())
  CheckLibrary('stdlib')
-
- TestRunner.Run(#(stdlib), skipTags: #(gui, windows), quit_on_failure:)
- TestRunner.Run(#(Accountinglib), skipTags: #(windows), quit_on_failure:)
- TestRunner.Run(#(etalib), skipTags: #(windows), quit_on_failure:)
- TestRunner.Run(#(ticketlib), skipTags: #(windows), quit_on_failure:)
- TestRunner.Run(#(joblib), skipTags: #(windows), quit_on_failure:)
- TestRunner.Run(#(prlib), skipTags: #(windows), quit_on_failure:)
- TestRunner.Run(#(prcadlib), skipTags: #(windows), quit_on_failure:)
- TestRunner.Run(#(etaprlib), skipTags: #(windows), quit_on_failure:)
- TestRunner.Run(#(invenlib), skipTags: #(windows), quit_on_failure:)
- TestRunner.Run(#(wolib), skipTags: #(windows), quit_on_failure:)
- TestRunner.Run(#(polib), skipTags: #(windows), quit_on_failure:)
-
+ CheckLibraries(Libraries())
  TestRunner.Run(skipTags: #(gui, windows), quit_on_failure:);;
  */
 
