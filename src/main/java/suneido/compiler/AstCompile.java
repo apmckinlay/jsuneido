@@ -1347,8 +1347,11 @@ public class AstCompile {
 			member(cg, ast);
 			return ClassGen.MEMBER_REF;
 		case SUBSCRIPT:
+			AstNode sub = ast.second();
+			if (sub.token == Token.RANGETO || sub.token == Token.RANGELEN)
+				throw new SuException("ranges are read-only");
 			expression(cg, ast.first());
-			expression(cg, ast.second());
+			expression(cg, sub);
 			return ClassGen.MEMBER_REF;
 		default:
 			throw SuInternalError.unhandledEnum(ast.token);
