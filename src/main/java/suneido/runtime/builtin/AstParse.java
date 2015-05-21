@@ -4,12 +4,13 @@
 
 package suneido.runtime.builtin;
 
+import java.lang.ref.SoftReference;
+
 import suneido.SuContainer;
-import suneido.SuException;
-import suneido.SuValue;
 import suneido.compiler.AstNode;
 import suneido.runtime.Ops;
 import suneido.runtime.Params;
+import suneido.runtime.VirtualContainer;
 
 public class AstParse {
 
@@ -20,36 +21,12 @@ public class AstParse {
 		return new AstWrapper(ast);
 	}
 
-	private static class AstWrapper extends SuValue {
+	private static class AstWrapper extends VirtualContainer {
 		AstNode node;
+		SoftReference<SuContainer> ob = new SoftReference<>(null);
 
 		public AstWrapper(AstNode node) {
 			this.node = node;
-		}
-
-		@Override
-		public Object get(Object member) {
-			switch (Ops.toStr(member)) {
-			case "Value":
-				return node.value == null ? "" : node.value;
-			case "Token":
-				return node.token.toString();
-			case "Line":
-				return node.lineNumber;
-			case "Children":
-				SuContainer children = new SuContainer(node.children.size());
-				if (node.children != null)
-					for (AstNode child : node.children)
-						if (child != null)
-							children.add(new AstWrapper(child));
-				return children;
-			}
-			throw new SuException("AstNode unknown member: " + member);
-		}
-
-		@Override
-		public String toString() {
-			return "AstNode";
 		}
 
 		@Override
@@ -57,6 +34,26 @@ public class AstParse {
 			return "AstNode";
 		}
 
+		@Override
+		protected SuContainer value() {
+			SuContainer c = ob.get();
+			if (c == null) {
+				ob = new SoftReference<>(c = new SuContainer());
+				c.put("Token", node.token.toString());
+				if (node.value != null)
+					c.put("Value", node.value);
+				c.put("Line", node.lineNumber);
+				if (node.children == null)
+					c.put("Children", SuContainer.EMPTY);
+				else {
+					SuContainer c2 = new SuContainer(node.children.size());
+					for (AstNode child : node.children)
+						if (child != null)
+							c2.add(new AstWrapper(child));
+					c.put("Children", c2);
+				}
+			}
+			return c;
+		}
 	}
-
 }
