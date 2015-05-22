@@ -55,5 +55,11 @@ public class AstParse {
 			}
 			return c;
 		}
+
+		@Override
+		public String toString() {
+			return ob.get() == null ? "AstNode" : super.toString();
+		}
+
 	}
 }
