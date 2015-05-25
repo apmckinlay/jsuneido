@@ -26,7 +26,7 @@ abstract class Storage {
 	protected static final int SHIFT = 3;
 	private static final long MAX_SIZE = 0xffffffffL << SHIFT;
 	static final int ALIGN = (1 << SHIFT); // must be power of 2
-	private static final int MASK = ALIGN - 1;
+	protected static final int MASK = ALIGN - 1;
 	final int CHUNK_SIZE;
 	private final int MAX_CHUNKS = 512; // unsigned int max * align / chunk size
 	protected final ByteBuffer[] chunks = new ByteBuffer[MAX_CHUNKS];

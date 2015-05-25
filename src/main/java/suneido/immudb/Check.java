@@ -70,6 +70,9 @@ class Check {
 	/** check the last FAST_NPERSISTS persists */
 	boolean fastcheck() {
 		try {
+			if (0 != (dstor.sizeFrom(0) % Storage.ALIGN) ||
+					0 != (istor.sizeFrom(0) % Storage.ALIGN))
+				return false;
 			int adr = findLast(FAST_NPERSISTS);
 			return (adr == CORRUPT) ? false
 					: (adr == EMPTY) ? true : checkFrom(lastadr, adr);

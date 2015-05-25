@@ -18,7 +18,8 @@ import com.google.common.base.MoreObjects;
  * @see StorageIterReverse
  */
 class StorageIter {
-	enum Status { OK, SIZE_MISMATCH, CHECKSUM_FAIL, BAD_SIZE, BAD_TYPE };
+	enum Status {
+		OK, SIZE_MISMATCH, CHECKSUM_FAIL, BAD_SIZE, BAD_TYPE, FILE_TRUNCATED };
 	private static final int MIN_SIZE = Tran.HEAD_SIZE + Tran.TAIL_SIZE;
 	private static final byte[] zero_tail = new byte[Tran.TAIL_SIZE];
 	final Storage stor;
@@ -64,6 +65,10 @@ class StorageIter {
 		if (eof())
 			return ;
 		ByteBuffer buf = stor.buffer(adr);
+		if (buf.remaining() < MIN_SIZE) {
+			status = Status.FILE_TRUNCATED;
+			return;
+		}
 		size = Storage.intToSize(buf.getInt());
 		if (size < MIN_SIZE) {
 			status = Status.BAD_SIZE;
