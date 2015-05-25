@@ -78,7 +78,8 @@ class MmapFile extends Storage {
 		storSize = fileLength();
 		if (storSize == 0)
 			return;
-		assert storSize % ALIGN == 0;
+		if (0 != (storSize % ALIGN))
+			return; // not aligned
 		ByteBuffer buf = map(storSize - 1);
 		int i = (int) ((storSize - 1) % CHUNK_SIZE) + 1;
 		assert ALIGN >= 8;
