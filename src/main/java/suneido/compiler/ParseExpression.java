@@ -84,7 +84,8 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 
 	private T inExpression() {
 		T expr = bitorExpression();
-		if (matchIf(IN)) {
+		Token op = token;
+		if (isIn()) {
 			T exprs = null;
 			match(L_PAREN);
 			while (token != R_PAREN) {
@@ -92,9 +93,18 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 				matchIf(COMMA);
 			}
 			match(R_PAREN);
-			return generator.in(expr, exprs);
+			T e = generator.in(expr, exprs);
+			if (op == NOT)
+				e = generator.unaryExpression(NOT, e);
+			return e;
 		}
 		return expr;
+	}
+
+	private boolean isIn() {
+		if (token == NOT && lookAhead() == IDENTIFIER && ahead.getKeyword() == IN)
+			match();
+		return matchIf(IN);
 	}
 
 	private T bitorExpression() {
