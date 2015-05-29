@@ -237,7 +237,6 @@ public final class Ops {
 	}
 
 	public static boolean isString(Object x) {
-		// TODO: change to single check for instanceof CharSequence?
 		return x instanceof CharSequence;
 	}
 
