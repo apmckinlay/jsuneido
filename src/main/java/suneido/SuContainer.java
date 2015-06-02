@@ -13,7 +13,6 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import suneido.database.query.Header;
@@ -28,7 +27,6 @@ import suneido.util.NullIterator;
 import suneido.util.PairStack;
 import suneido.util.Util;
 
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.Iterables;
 
 //TODO detect the same modification-during-iteration as cSuneido (see ObjectsTest)
@@ -91,7 +89,7 @@ public class SuContainer extends SuValue
 		map.putAll(other.map);
 		defval = other.defval;
 	}
-	
+
 	enum Empty { EMPTY };
 	private SuContainer(Empty empty) {
 		vec = Collections.emptyList();
@@ -377,17 +375,19 @@ public class SuContainer extends SuValue
 	public boolean equals(Object value) {
 		if (value == this)
 			return true;
-		SuContainer c = Ops.toContainer(value);
-		if (c == null)
-			return false;
-		return equals2(this, c, new PairStack());
+		return equals2(this, value, null);
 	}
 
 	// avoid infinite recursion from self-reference
-	private static boolean equals2(SuContainer x, SuContainer y, PairStack stack) {
+	private static boolean equals2(SuContainer x, Object value, PairStack stack) {
+		SuContainer y = Ops.toContainer(value);
+		if (y == null)
+			return false;
 		if (x.vec.size() != y.vec.size() || x.map.size() != y.map.size())
 			return false;
-		if (stack.contains(x, y))
+		if (stack == null)
+			stack = new PairStack();
+		else if (stack.contains(x, y))
 			return true; // comparison is already in progress
 		stack.push(x, y);
 		try {
@@ -410,10 +410,7 @@ public class SuContainer extends SuValue
 		if (x instanceof SuInstance && y instanceof SuInstance)
 			return SuInstance.equals2((SuInstance) x, (SuInstance) y, stack);
 		SuContainer cx = Ops.toContainer(x);
-		if (cx == null)
-			return Ops.is_(x, y);
-		SuContainer cy = Ops.toContainer(y);
-		return (cy == null) ? false : equals2(cx, cy, stack);
+		return (cx == null) ? Ops.is_(x, y) : equals2(cx, y, stack);
 	}
 
 	@Override

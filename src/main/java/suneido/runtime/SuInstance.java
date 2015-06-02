@@ -184,14 +184,16 @@ public class SuInstance extends SuValue {
 			return true;
 		if (! (value instanceof SuInstance))
 			return false;
-		return equals2(this, (SuInstance) value, new PairStack());
+		return equals2(this, (SuInstance) value, null);
 	}
 
 	// avoid infinite recursion from self-reference
 	public static boolean equals2(SuInstance x, SuInstance y, PairStack stack) {
 		if (x.myclass != y.myclass || x.ivars.size() != y.ivars.size())
 			return false;
-		if (stack.contains(x, y))
+		if (stack == null)
+			stack = new PairStack();
+		else if (stack.contains(x, y))
 			return true; // comparison is already in progress
 		stack.push(x, y);
 		try {
