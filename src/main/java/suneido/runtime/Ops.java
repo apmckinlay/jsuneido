@@ -477,6 +477,7 @@ public final class Ops {
 		else
 			return "\"" + s.replace("\"", "\\\"") + "\"";
 	}
+
 	public static String display(Object[] a) {
 		if (a.length == 0)
 			return "()";
