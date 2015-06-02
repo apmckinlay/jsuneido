@@ -144,12 +144,12 @@ public class Suneido {
 	private static void startServer() {
 		HttpServerMonitor.run(cmdlineoptions.serverPort + 1);
 		openDbms();
+		DbmsServer.run(cmdlineoptions.serverPort, cmdlineoptions.timeoutMin);
 		try {
 			Compiler.eval("Init()");
 		} catch (Throwable e) {
 			Errlog.fatal("error during init", e);
 		}
-		DbmsServer.run(cmdlineoptions.serverPort, cmdlineoptions.timeoutMin);
 	}
 
 	private static Database db;

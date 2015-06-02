@@ -61,6 +61,10 @@ public class ServerBySelect {
 		inetAddress = serverSocket.getInetAddress();
 		selector = Selector.open();
 		registerChannel(serverChannel, SelectionKey.OP_ACCEPT);
+		new Thread(() -> loop()).start();
+	}
+
+	private void loop() {
 		while (true) {
 			try {
 				int nready = selector.select(SELECT_TIMEOUT_MS);
