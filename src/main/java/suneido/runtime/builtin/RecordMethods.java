@@ -9,10 +9,7 @@ import java.util.Map;
 import suneido.SuContainer;
 import suneido.SuException;
 import suneido.SuRecord;
-import suneido.runtime.ArgsIterator;
-import suneido.runtime.BuiltinMethods;
-import suneido.runtime.Ops;
-import suneido.runtime.Params;
+import suneido.runtime.*;
 
 /** {@link SuRecord} delegates invoke to here */
 public class RecordMethods {
@@ -20,6 +17,15 @@ public class RecordMethods {
 			new BuiltinMethods("record", RecordMethods.class, "Records");
 
 	private RecordMethods() {
+	}
+
+	public static Object Base(Object self) {
+		return Builtins.get("Record");
+	}
+
+	@Params("value")
+	public static Boolean BaseQ(Object self, Object a) {
+		return a == Builtins.get("Record") || a == Builtins.get("Object");
 	}
 
 	public static Object Clear(Object self) {
