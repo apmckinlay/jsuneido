@@ -6,6 +6,7 @@ package suneido.immudb;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Arrays;
 
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.UnsignedInts;
@@ -28,8 +29,13 @@ abstract class Storage {
 	static final int ALIGN = (1 << SHIFT); // must be power of 2
 	private static final int MASK = ALIGN - 1;
 	final int CHUNK_SIZE;
-	private final int MAX_CHUNKS = 512; // unsigned int max * align / chunk size
-	protected final ByteBuffer[] chunks = new ByteBuffer[MAX_CHUNKS];
+	/** INIT_CHUNKS should be the max for database chunk size & align
+	 * i.e. unsigned int max * align / chunk size
+	 * so that chunks never grows, to avoid concurrency issues.
+	 * (map is not synchronized)
+	 * Ok to grow for temp index storage since it's not concurrent */
+	protected final int INIT_CHUNKS = 512;
+	protected ByteBuffer[] chunks = new ByteBuffer[INIT_CHUNKS];
 	protected volatile long storSize = 0;
 	private volatile long protect = 0;
 
@@ -154,6 +160,8 @@ abstract class Storage {
 	protected ByteBuffer map(long offset) {
 		assert 0 <= offset && offset < storSize;
 		int chunk = offsetToChunk(offset);
+		if (chunk >= chunks.length)
+			growChunks(chunk);
 		if (chunks[chunk] == null) {
 			chunks[chunk] = get(chunk);
 			chunks[chunk].order(ByteOrder.BIG_ENDIAN);
@@ -163,6 +171,10 @@ abstract class Storage {
 
 	protected int offsetToChunk(long offset) {
 		return (int) (offset / CHUNK_SIZE);
+	}
+
+	private void growChunks(int chunk) {
+		chunks = Arrays.copyOf(chunks, (3 * chunk) / 2);
 	}
 
 	protected abstract ByteBuffer get(int chunk);
@@ -208,7 +220,7 @@ abstract class Storage {
 
 	/** @return Number of bytes from adr to current offset */
 	long sizeFrom(int adr) {
-		long size = storSize;
+		long size = storSize; // read once to avoid concurrency issues
 		return adr == 0 ? size : size - adrToOffset(adr);
 	}
 
@@ -218,7 +230,7 @@ abstract class Storage {
 	}
 
 	boolean isValidPos(long pos) {
-		long size = storSize;
+		long size = storSize; // read once to avoid concurrency issues
 		if (pos < 0)
 			pos += size;
 		return 0 <= pos && pos < size;
