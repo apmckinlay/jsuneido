@@ -41,6 +41,7 @@ class Transactions {
 	private static final int MAX_OVERLAPPING = 200;
 	static int MAX_UPDATE_TRAN_DURATION_SEC = 10;
 	private volatile boolean exclusive = false;
+	private final Deque<UpdateTransaction> commitLog = new ArrayDeque<>();
 
 	long clock() {
 		return clock.incrementAndGet();
@@ -83,6 +84,18 @@ class Transactions {
 
 	/** return the set of transactions that committed since asof */
 	synchronized Set<UpdateTransaction> getOverlapping(long asof) {
+		Set<UpdateTransaction> result = getOverlapping2(asof);
+		HashSet<UpdateTransaction> fromLog = new HashSet<>();
+		for (UpdateTransaction t : commitLog)
+			if (t.commitTime() > asof)
+				fromLog.add(t);
+			else
+				break;
+		assert result.equals(fromLog);
+		return result;
+	}
+
+	Set<UpdateTransaction> getOverlapping2(long asof) {
 		if (overlapping.isEmpty())
 			return Collections.emptySet();
 		boolean inclusive = true;
@@ -107,6 +120,10 @@ class Transactions {
 			cleanOverlapping();
 			if (! utrans.isEmpty())
 				overlapping.add((UpdateTransaction) t);
+			commitLog.addFirst((UpdateTransaction) t);
+			while (commitLog.getLast().stopwatch.elapsed(TimeUnit.SECONDS)
+					> 2 * MAX_UPDATE_TRAN_DURATION_SEC)
+				commitLog.removeLast();
 		}
 	}
 

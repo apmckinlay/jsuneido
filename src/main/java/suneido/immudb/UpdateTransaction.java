@@ -327,6 +327,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 				tran.dstor.alloc(Shorts.BYTES + Ints.BYTES));
 		buf.putShort(REMOVE);
 		buf.putInt(act);
+		assert deletes.contains(act);
 	}
 
 	private void updateAction(TIntIntHashMap updates, int from, int to) {
