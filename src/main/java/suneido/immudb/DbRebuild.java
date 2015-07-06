@@ -5,13 +5,13 @@
 package suneido.immudb;
 
 import static suneido.util.Util.capitalize;
-import gnu.trove.map.hash.TIntObjectHashMap;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import gnu.trove.map.hash.TIntObjectHashMap;
 import suneido.immudb.Bootstrap.TN;
 import suneido.util.FileUtils;
 
@@ -56,8 +56,10 @@ class DbRebuild {
 		System.out.println("Checking...");
 		check = new Check(dstor, istor);
 		try {
-			if (check.fullcheck())
+			if (check.fullcheck()) {
+				new File(newFilename).delete();
 				return "database appears OK, no rebuild done";
+			}
 			lastOkDate = check.lastOkDate();
 			if (lastOkDate == null)
 				System.out.println("No usable indexes");

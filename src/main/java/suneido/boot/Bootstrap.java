@@ -15,13 +15,13 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.ObjIntConsumer;
 
+import com.google.common.base.Joiner;
+
 import suneido.SuInternalError;
 import suneido.Suneido;
 import suneido.debug.DebugUtil;
 import suneido.util.Errlog;
 import suneido.util.LineBufferingByteConsumer;
-
-import com.google.common.base.Joiner;
 
 /**
  * <p>
@@ -72,7 +72,7 @@ public final class Bootstrap {
 			// Process the debug option
 			if (DEBUG_OPTION_ON.equals(debugOption)) {
 				final StderrEchoer stderrEchoer = new StderrEchoer();
-				try (LineBufferingByteConsumer stderrConsumer = 
+				try (LineBufferingByteConsumer stderrConsumer =
 						new LineBufferingByteConsumer(stderrEchoer)) {
 					// Start a new JVM, collecting the exit code. Echo the new
 					// process's stdout to our stdout, but filter out phrases
@@ -81,8 +81,8 @@ public final class Bootstrap {
 					// whether error messages printed to stderr indicate a fatal
 					// for the new JVM startup that we can recover from by
 					// falling back to running Suneido from this JVM.
-					int exitCode = runSuneidoInNewJVM(args, true, 
-							(byte[] b, int n) -> { System.out.write(b, 0, n); }, 
+					int exitCode = runSuneidoInNewJVM(args, true,
+							(byte[] b, int n) -> { System.out.write(b, 0, n); },
 							stderrConsumer);
 					if (0 != exitCode) {
 						if (!stderrEchoer.fatalErrors.isEmpty()) {
@@ -167,8 +167,8 @@ public final class Bootstrap {
 	public static int runSuneidoInNewJVM(String[] args,
 			boolean isFullDebugging, ObjIntConsumer<byte[]> stdoutConsumer,
 			ObjIntConsumer<byte[]> stderrConsumer) {
-		final ProcessBuilder builder = runSuneidoInNewJVMBuilder(args,
-				isFullDebugging);
+		String[] allArgs = runSuneidoInNewJVMArgs(args, isFullDebugging);
+		ProcessBuilder builder = new ProcessBuilder(allArgs);
 		builder.redirectInput(Redirect.INHERIT);
 		if (null == stdoutConsumer) {
 			builder.redirectOutput(Redirect.INHERIT);
@@ -235,12 +235,18 @@ public final class Bootstrap {
 		// due to a duplicate port. Another reason is there's no point loading
 		// agents unless needed. Also strip out any attempt to set the JDWP
 		// debug port property.
+		// 20150706 apm - also strip out vfprintf, abort, and exit
+		// which are added by the JNI JVM invocation api
+		// which appears to be used by the Windows service launcher
 		for (final String jvmArgument : jvmArguments) {
 			if (!jvmArgument.startsWith("-agent")
 					&& !jvmArgument.startsWith("-D"
 							+ DebugUtil.JDWP_PORT_PROP_NAME)
 					&& !jvmArgument.startsWith("-D"
-							+ DebugUtil.JDWP_FORCE_PROP_NAME)) {
+							+ DebugUtil.JDWP_FORCE_PROP_NAME)
+					&& !jvmArgument.equals("vfprintf")
+					&& !jvmArgument.equals("abort")
+					&& !jvmArgument.equals("exit")) {
 				result.add(jvmArgument);
 			}
 		}
@@ -275,8 +281,7 @@ public final class Bootstrap {
 		return result;
 	}
 
-	private static ProcessBuilder runSuneidoInNewJVMBuilder(String[] args,
-			boolean isFullDebugging) {
+	public static String[] runSuneidoInNewJVMArgs(String[] args, boolean isFullDebugging) {
 		final ArrayList<String> jvmArgs = getJVMArguments();
 		// Start the JVM with the appropriate agent if full debugging support is
 		// required.
@@ -293,8 +298,7 @@ public final class Bootstrap {
 		}
 		// Create the full process builder argument list.
 		String[] allArgs = makeJavaArgs(makeJavaCmd(), jvmArgs, args);
-		// Return the process builder.
-		return new ProcessBuilder(allArgs);
+		return allArgs;
 	}
 
 	private static Thread asynchronouslyConsume(
@@ -373,18 +377,18 @@ public final class Bootstrap {
 	 * argument is intended to be an option.
 	 */
 	public static final char OPTION_INDICATOR = '-';
-	
+
 	/**
 	 * On the command line, marks the end of options.
 	 */
 	public static final String OPTIONS_END = "--";
-	
+
 	/**
 	 * On the command line, indicates that the next argument is one of
 	 * {@link #DEBUG_OPTION_ON} or {@link #DEBUG_OPTION_OFF}.
 	 */
 	public static final String DEBUG_OPTION = "-debug";
-	
+
 	/**
 	 * <p>
 	 * On the command line, indicates that full debugging support should be
@@ -427,7 +431,7 @@ public final class Bootstrap {
 	 * @see #DEBUG_OPTION_OFF
 	 */
 	public static final String DEBUG_OPTION_ON = "on";
-	
+
 	/**
 	 * <p>
 	 * On the command-line, indicates that no extra debugging support should be

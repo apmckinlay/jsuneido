@@ -12,14 +12,14 @@ import java.io.FileOutputStream;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 
+import com.google.common.base.Stopwatch;
+
 import suneido.intfc.database.Database;
 import suneido.intfc.database.DatabasePackage;
 import suneido.intfc.database.DatabasePackage.Status;
 import suneido.util.Errlog;
 import suneido.util.FileUtils;
 import suneido.util.Jvm;
-
-import com.google.common.base.Stopwatch;
 
 public class DbTools {
 	private static final String SEPARATOR = "!!";
@@ -188,14 +188,16 @@ public class DbTools {
 
 	public static void rebuildOrExit(DatabasePackage dbpkg, String dbFilename) {
 		System.out.println("Rebuilding " + dbFilename + " ...");
-		String tempfile = FileUtils.tempfile().toString();
-		if (! Jvm.runWithNewJvm("-rebuild:" + dbFilename + SEPARATOR + tempfile))
-			Errlog.fatal("Rebuild FAILED");
-		if (! new File(tempfile + "d").isFile())
+		File tempfile = FileUtils.tempfile();
+		String cmd = "-rebuild:" + dbFilename + SEPARATOR + tempfile;
+		if (! Jvm.runWithNewJvm(cmd))
+			Errlog.fatal("Rebuild FAILED " + Jvm.runWithNewJvmCmd(cmd));
+		if (! tempfile.isFile())
 			return; // assume db was ok, rebuild not needed
 		if (! Jvm.runWithNewJvm("-check:" + tempfile))
 			Errlog.fatal("Rebuild ABORTED - check failed after rebuild");
-		dbpkg.renameDbWithBackup(tempfile, dbFilename);
+		dbpkg.renameDbWithBackup(tempfile.toString(), dbFilename);
+		tempfile.delete();
 	}
 
 	/** called in the new jvm */
