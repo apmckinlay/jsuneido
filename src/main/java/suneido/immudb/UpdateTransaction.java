@@ -236,17 +236,21 @@ class UpdateTransaction extends ReadWriteTransaction {
 	}
 
 	protected void checkForConflicts() {
+		// for each overlapping transaction
 		Set<UpdateTransaction> overlapping = trans.getOverlapping(asof);
 		for (UpdateTransaction t : overlapping) {
 			assert t != this;
 			TIntIterator iter = t.deletes.iterator();
 			while (iter.hasNext()) {
 				int del = iter.next();
+				// check if it deleted from an index range that we read
 				readValidation(del);
+				// check if we deleted the same record
 				checkForWriteConflict(del);
 			}
 			iter = t.inserts.iterator();
 			while (iter.hasNext())
+				// check if it inserted into an index range that we read
 				readValidation(iter.next());
 		}
 	}
