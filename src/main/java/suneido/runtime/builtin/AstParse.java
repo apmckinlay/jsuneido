@@ -7,10 +7,7 @@ package suneido.runtime.builtin;
 import java.lang.ref.SoftReference;
 
 import suneido.SuContainer;
-import suneido.SuValue;
 import suneido.compiler.AstNode;
-import suneido.compiler.AstSetsDynamic;
-import suneido.runtime.BuiltinMethods;
 import suneido.runtime.Ops;
 import suneido.runtime.Params;
 import suneido.runtime.VirtualContainer;
@@ -24,10 +21,7 @@ public class AstParse {
 		return new AstWrapper(ast);
 	}
 
-	// needs to be public for BuiltinMethods
-	public static class AstWrapper extends VirtualContainer {
-		private static final BuiltinMethods methods =
-				new BuiltinMethods("AstNode", AstWrapper.class);
+	private static class AstWrapper extends VirtualContainer {
 		final AstNode node;
 		SoftReference<SuContainer> ob = new SoftReference<>(null);
 
@@ -63,21 +57,8 @@ public class AstParse {
 		}
 
 		@Override
-		public SuValue lookup(String method) {
-			SuValue m = methods.getMethod(method);
-			return (m != null) ? m : super.lookup(method);
-		}
-
-		@SuppressWarnings("unused")
-		public static Object SetsDynamicQ(Object self) {
-			AstWrapper a = (AstWrapper) self;
-			return AstSetsDynamic.check(a.node);
-		}
-
-		@Override
 		public String toString() {
 			return ob.get() == null ? "AstNode" : super.toString();
 		}
-
 	}
 }
