@@ -26,6 +26,7 @@ public class ThreadFunction {
 		public Callable(Object callable) {
 			// runs in the parent thread
 			this.callable = callable;
+			// NOTE: getting token here will keep parent connection alive
 			token = TheDbms.dbms().token();
 			// token may be empty if parent not authorized
 		}
