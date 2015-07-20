@@ -578,7 +578,7 @@ public class AstCompile {
 	private void continueStatement(ClassGen cg, AstNode ast,
 			Labels labels) {
 		putLineNumber(cg, ast);
-		if (labels != null)
+		if (labels != null && labels.cont != null) // switch sets cont = null
 			cg.jump(labels.cont);
 		else
 			cg.blockThrow("CONTINUE_EXCEPTION");
@@ -687,7 +687,9 @@ public class AstCompile {
 
 	private void switchStatement(ClassGen cg, AstNode ast, Labels outerLabels) {
 		Labels labels = new Labels(cg);
-		if (outerLabels != null)
+		if (outerLabels == null)
+			labels.cont = null;
+		else
 			labels.cont = outerLabels.cont;
 		expression(cg, ast.first());
 		int temp = cg.storeTemp();
