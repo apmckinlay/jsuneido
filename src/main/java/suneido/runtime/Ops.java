@@ -15,15 +15,15 @@ import java.util.*;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import com.google.common.base.CharMatcher;
+import com.google.common.base.Splitter;
+
 import suneido.*;
 import suneido.jsdi.Buffer;
 import suneido.runtime.builtin.NumberMethods;
 import suneido.runtime.builtin.StringMethods;
 import suneido.util.RegexCache;
 import suneido.util.StringIterator;
-
-import com.google.common.base.CharMatcher;
-import com.google.common.base.Splitter;
 
 @ThreadSafe // all static methods
 public final class Ops {
@@ -233,7 +233,12 @@ public final class Ops {
 	private static Object cat2(Object x, Object y) {
 		if (x instanceof Concats)
 			return ((Concats) x).append(y);
-		return cat(toStr(x), toStr(y));
+		Object result = cat(toStr(x), toStr(y));
+		if (x instanceof Except)
+			return Except.As(x, result);
+		if (y instanceof Except)
+			return Except.As(y, result);
+		return result;
 	}
 
 	public static boolean isString(Object x) {
