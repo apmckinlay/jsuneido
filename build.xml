@@ -160,12 +160,13 @@
 			will lose their internalness -->
 
 	<target name="compile" depends="when,dirs">
+		<!-- specifying debug="true" without debuglevel
+			should result in -g i.e. all debug info vars,file,line -->
 		<javac srcdir="${main.srcdir}" destdir="${main.dstdir.classes}"
 				classpathref="main.classpath"
 				includeAntRuntime="false"
 				target="1.8"
 				debug="true"
-				debuglevel="vars"
 		>
 			<!--  Exclude JDBC stuff. Not currently implemented. -->
 			<exclude name="**/jdbc/**"/>
