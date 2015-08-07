@@ -13,12 +13,12 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+
 import suneido.SuException;
 import suneido.intfc.database.Transaction;
 import suneido.util.Errlog;
-
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 
 /**
  * Manages transactions.
@@ -85,13 +85,19 @@ class Transactions {
 	/** return the set of transactions that committed since asof */
 	synchronized Set<UpdateTransaction> getOverlapping(long asof) {
 		Set<UpdateTransaction> result = getOverlapping2(asof);
-		HashSet<UpdateTransaction> fromLog = new HashSet<>();
+		Set<UpdateTransaction> fromLog = new HashSet<>();
 		for (UpdateTransaction t : commitLog)
 			if (t.commitTime() > asof)
 				fromLog.add(t);
 			else
 				break;
-		assert result.equals(fromLog);
+		if (! result.equals(fromLog)) {
+			Set<UpdateTransaction> onlyFromLog = Sets.difference(fromLog, result);
+			Set<UpdateTransaction> onlyOverlap = Sets.difference(result, fromLog);
+			Errlog.errlog("onlyFromLog " + onlyFromLog +
+					" onlyOverlap " + onlyOverlap);
+			throw new AssertionError("ERROR: overlapping doesn't match commitLog");
+		}
 		return result;
 	}
 
