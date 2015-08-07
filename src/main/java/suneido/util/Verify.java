@@ -11,7 +11,7 @@ public class Verify {
 
 	public static void verify(boolean arg, String msg) {
 		if (! arg) {
-			RuntimeException e = new RuntimeException("verify failed " + msg);
+			RuntimeException e = new RuntimeException("ERROR: verify failed: " + msg);
 // DbmsServerBySelect also prints exceptions
 // but NOT RuntimeException or SuException
 System.err.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) + " ");
