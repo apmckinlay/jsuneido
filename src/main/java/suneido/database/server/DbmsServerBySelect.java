@@ -9,6 +9,7 @@ import static suneido.util.ByteBuffers.stringToBuffer;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -17,13 +18,12 @@ import java.util.concurrent.ThreadFactory;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+
 import suneido.SuException;
 import suneido.Suneido;
 import suneido.util.NetworkOutput;
-import suneido.util.Print;
 import suneido.util.ServerBySelect;
-
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
  * Uses {@link suneido.util.ServerBySelect}
@@ -172,7 +172,8 @@ public class DbmsServerBySelect {
 			} catch (Throwable e) {
 				Class<? extends Throwable> c = e.getClass();
 				if (c != RuntimeException.class && c != SuException.class) {
-					Print.timestamp();
+					System.err.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").
+							format(new Date()) + " ");
 					e.printStackTrace();
 				}
 				output = stringToBuffer("ERR " + escape(e.toString()) + "\r\n");
