@@ -89,7 +89,7 @@ abstract class Storage {
 
 	private static boolean allZero(ByteBuffer buf) {
 		while (buf.remaining() > 0)
-			if (buf.getLong() != 0)
+			if (buf.get() != 0)
 				return false;
 		return true;
 	}

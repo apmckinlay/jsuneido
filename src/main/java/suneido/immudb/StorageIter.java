@@ -112,7 +112,7 @@ class StorageIter {
 	void advance() {
 		do
 			advance2();
-		while (date == 0 && ! eof());
+		while (date == 0 && notFinished());
 	}
 
 	void advance2() {
