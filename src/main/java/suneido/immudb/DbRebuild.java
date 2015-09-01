@@ -88,7 +88,7 @@ class DbRebuild {
 				: Database.open(newFilename);
 		assert db != null;
 		try {
-			if (check.dIter.notFinished())
+			if (! check.dIter.finished())
 				System.out.println("Reprocessing remaining data...");
 			reprocess(db);
 		} finally {
@@ -124,7 +124,7 @@ class DbRebuild {
 	void reprocess(Database db) {
 		long lastOkSize = check.dOkSize();
 		StorageIter dIter = new StorageIter(dstor, Storage.offsetToAdr(check.dOkSize()));
-		while (dIter.notFinished()) {
+		while (! dIter.finished()) {
 			new Proc(db, dstor, dIter.adr()).process();
 			lastOkDate = dIter.date();
 			lastOkSize = dIter.sizeInc();

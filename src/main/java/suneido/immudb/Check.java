@@ -137,7 +137,7 @@ class Check {
 		dIter = new StorageIter(dstor, dAdr).upTo(dUpTo).checkType();
 		iIter = new StorageIter(istor, iAdr).upTo(iUpTo);
 		PersistInfo iInfo = null;
-		while (dIter.notFinished() && iIter.notFinished()) {
+		while (! dIter.finished() && ! iIter.finished()) {
 			if (iInfo == null)
 				iInfo = info(istor, iIter.adr(), iIter.size());
 			if (iInfo.lastcksum == dIter.cksum() && iInfo.lastadr == dIter.adr()) {
@@ -154,9 +154,7 @@ class Check {
 			else // diter has gone past iIter with no match - no point continuing
 				break;
 		}
-		return dIter.status() == StorageIter.Status.OK &&
-				iIter.status() == StorageIter.Status.OK &&
-				dIter.eof() && iIter.eof();  // matched all the way to the end
+		return dIter.finished() && iIter.finished();  // matched all the way to the end
 	}
 
 	String status() {
