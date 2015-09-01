@@ -21,7 +21,7 @@ public class StorageIterTest {
 		add(16);
 		StorageIter iter = new StorageIter(stor);
 		int n = 0;
-		for (; ! iter.finished(); iter.advance2())
+		for (; iter.notFinished(); iter.advance2())
 			++n;
 		assertEquals(StorageIter.Status.OK, iter.status());
 		assertEquals(4, n);

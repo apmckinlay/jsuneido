@@ -162,8 +162,8 @@ class StorageIter {
 		return cksum == cs.getValue();
 	}
 
-	public boolean finished() {
-		return eof() && status == Status.OK;
+	public boolean notFinished() {
+		return ! eof() && status == Status.OK;
 	}
 
 	@Override
