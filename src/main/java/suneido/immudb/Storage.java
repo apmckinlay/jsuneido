@@ -8,7 +8,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
-import com.google.common.primitives.Longs;
 import com.google.common.primitives.UnsignedInts;
 
 /**
@@ -81,12 +80,9 @@ abstract class Storage {
 		offset += align(length);
 		if (offset < storSize) {
 			ByteBuffer buf = buf(offset);
-			if (buf.getLong() == 0) {
-				int remaining = Longs.BYTES + buf.remaining();
-				if (allZero(buf))
-					offset += remaining;
-				// else don't skip
-			}
+			int remaining = buf.remaining();
+			if (allZero(buf))
+				offset += remaining; // skip trailing chunk padding
 		}
 		return offsetToAdr(offset);
 	}
