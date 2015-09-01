@@ -73,7 +73,8 @@ class DbCheck {
 			println("tables...");
 			if (check_data_and_indexes())
 				status = Status.OK;
-		}
+		} else
+			print(check.status());
 		print(details);
 		println(status + " " + lastCommit(status));
 		return status;

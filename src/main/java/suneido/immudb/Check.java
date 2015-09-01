@@ -154,7 +154,20 @@ class Check {
 			else // diter has gone past iIter with no match - no point continuing
 				break;
 		}
-		return dIter.eof() && iIter.eof();  // matched all the way to the end
+		return dIter.status() == StorageIter.Status.OK &&
+				iIter.status() == StorageIter.Status.OK &&
+				dIter.eof() && iIter.eof();  // matched all the way to the end
+	}
+
+	String status() {
+		String status = "";
+		if (dIter.status() != StorageIter.Status.OK)
+			status += "dbd " + dIter.status() + "\n";
+		if (iIter.status() != StorageIter.Status.OK)
+			status += "dbi " + iIter.status() + "\n";
+		if (status.equals("") &&  (! dIter.eof() || ! iIter.eof()))
+			status += "dbd and dbi did not match all the way to end\n";
+		return status;
 	}
 
 	/** The date/time of the last data commit where data and indexes matched */
