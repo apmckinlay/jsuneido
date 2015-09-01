@@ -45,6 +45,7 @@ class StorageIter {
 	}
 
 	/** used by dump */
+	// NOTE: first block must have checksum to get past seek in constructor
 	StorageIter dontChecksum() {
 		verifyChecksums = false;
 		return this;
@@ -110,7 +111,7 @@ class StorageIter {
 	/** skips aborted commits */
 	void advance() {
 		do
-			seek(stor.advance(adr, size));
+			advance2();
 		while (date == 0 && ! eof());
 	}
 
