@@ -29,7 +29,7 @@ public abstract class Dbms {
 	public abstract List<Integer> tranlist();
 	public abstract SuDate timestamp();
 	public abstract String check();
-	public abstract void dump(String filename);
+	public abstract String dump(String filename);
 	public abstract void copy(String filename);
 	public abstract Object run(String s);
 	public abstract long size();

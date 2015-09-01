@@ -55,7 +55,7 @@ public class DbmsUnauth extends Dbms {
 	}
 
 	@Override
-	public void dump(String filename) {
+	public String dump(String filename) {
 		throw notauth;
 	}
 

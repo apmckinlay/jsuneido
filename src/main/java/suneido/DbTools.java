@@ -24,8 +24,12 @@ import suneido.util.Jvm;
 public class DbTools {
 	private static final String SEPARATOR = "!!";
 
-	public static void dumpDatabasePrint(DatabasePackage dbpkg, String dbFilename,
+	public static void dumpPrintExit(DatabasePackage dbpkg, String dbFilename,
 			String outputFilename) {
+		if (Status.OK != checkPrint(dbpkg, dbFilename)) {
+			System.out.println("Dump ABORTED - check failed - database CORRUPT");
+			System.exit(-1);
+		}
 		Database db = dbpkg.openReadonly(dbFilename);
 		try {
 			Stopwatch sw = Stopwatch.createStarted();

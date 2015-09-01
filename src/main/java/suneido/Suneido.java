@@ -12,6 +12,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+
 import suneido.compiler.Compiler;
 import suneido.database.server.DbmsServer;
 import suneido.debug.DebugManager;
@@ -23,8 +25,6 @@ import suneido.runtime.ContextLayered;
 import suneido.runtime.Contexts;
 import suneido.util.Errlog;
 import suneido.util.Print;
-
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 public class Suneido {
 	public static DatabasePackage dbpkg = suneido.immudb.DatabasePackage.dbpkg;
@@ -87,7 +87,7 @@ public class Suneido {
 		case DUMP:
 			String dumptablename = cmdlineoptions.actionArg;
 			if (dumptablename == null)
-				DbTools.dumpDatabasePrint(dbpkg, dbFilename, "database.su");
+				DbTools.dumpPrintExit(dbpkg, dbFilename, "database.su");
 			else
 				DbTools.dumpTablePrint(dbpkg, dbFilename, dumptablename);
 			break;

@@ -74,11 +74,15 @@ public class DbmsLocal extends Dbms {
 	}
 
 	@Override
-	public void dump(String filename) {
-		if (filename.equals(""))
+	public String dump(String filename) {
+		if (filename.equals("")) {
+			String check = db.check();
+			if (! check.equals(""))
+				return check;
 			DbTools.dumpDatabase(dbpkg, db, "database.su");
-		else
+		} else
 			DbTools.dumpTable(dbpkg, db, filename);
+		return "";
 	}
 
 	@Override

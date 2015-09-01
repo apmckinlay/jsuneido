@@ -15,6 +15,10 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+
 import suneido.SuContainer;
 import suneido.SuDate;
 import suneido.SuException;
@@ -24,10 +28,6 @@ import suneido.database.query.Query.Dir;
 import suneido.database.query.Row;
 import suneido.intfc.database.Record;
 import suneido.runtime.Pack;
-
-import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 
 /**
  * Client end of client-server connection.
@@ -149,9 +149,9 @@ public class DbmsRemote extends Dbms {
 	}
 
 	@Override
-	public void dump(String filename) {
+	public String dump(String filename) {
 		writeLine("DUMP", filename);
-		ok();
+		return (String) readValue();
 	}
 
 	@Override

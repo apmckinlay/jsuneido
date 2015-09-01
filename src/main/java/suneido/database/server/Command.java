@@ -160,8 +160,8 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
 				NetworkOutput outputQueue) {
-			dbms().dump(bufferToString(line).trim());
-			return ok();
+			return valueResult(outputQueue,
+					dbms().dump(bufferToString(line).trim()));
 		}
 	},
 	EOF { // for testing
