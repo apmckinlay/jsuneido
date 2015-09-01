@@ -65,7 +65,7 @@ class StorageIter {
 		if (eof())
 			return ;
 		ByteBuffer buf = stor.buffer(adr);
-		if (buf.remaining() < MIN_SIZE) {
+		if (buf.remaining() < Storage.ALIGN) {
 			status = Status.FILE_TRUNCATED;
 			return;
 		}
