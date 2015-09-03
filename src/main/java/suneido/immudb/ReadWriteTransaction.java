@@ -4,24 +4,23 @@
 
 package suneido.immudb;
 
-import gnu.trove.iterator.hash.TObjectHashIterator;
-import gnu.trove.map.hash.TIntObjectHashMap;
-import gnu.trove.set.hash.TCustomHashSet;
-import gnu.trove.strategy.HashingStrategy;
-
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.primitives.Ints;
+
+import gnu.trove.iterator.hash.TObjectHashIterator;
+import gnu.trove.map.hash.TIntObjectHashMap;
+import gnu.trove.set.hash.TCustomHashSet;
+import gnu.trove.strategy.HashingStrategy;
 import suneido.SuException;
 import suneido.immudb.Bootstrap.TN;
 import suneido.immudb.IndexedData.Mode;
 import suneido.intfc.database.IndexIter;
 import suneido.util.Errlog;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.primitives.Ints;
 
 /**
  * Abstract base class for {@link UpdateTransaction} and {@link BulkTransaction}
@@ -236,7 +235,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	}
 
 	void abortThrow(String conflict) {
-		conflict = "aborted: " + this + " - " + conflict;
+		conflict = "aborted " + this + " - " + conflict;
 		Errlog.errlog(conflict);
 		abort(conflict);
 		throw new SuException(conflict);
