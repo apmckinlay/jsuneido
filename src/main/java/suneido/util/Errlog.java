@@ -51,4 +51,10 @@ public class Errlog {
 		errlog("UNCAUGHT: " + s + ": " + e, e);
 	}
 
+	/** like assert but just logs, doesn't throw */
+	public static void verify(boolean arg, String msg) {
+		if (! arg)
+			Errlog.errlog("ERROR: " + msg);
+	}
+
 }

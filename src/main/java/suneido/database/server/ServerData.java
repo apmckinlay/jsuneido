@@ -13,6 +13,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 import suneido.TheDbms;
 import suneido.intfc.database.Database;
 import suneido.intfc.database.Transaction;
+import suneido.util.Errlog;
 import suneido.util.NetworkOutput;
 
 /**
@@ -85,7 +86,8 @@ public class ServerData {
 				q.close();
 			queries.remove(qn);
 		}
-		verify(trans.remove(tn) != null);
+		Errlog.verify(trans.remove(tn) != null,
+				"ServerData.endTransaction missing from trans");
 		if (trans.isEmpty())
 			verify(queries.isEmpty());
 	}

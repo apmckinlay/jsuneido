@@ -136,9 +136,11 @@ class Transactions {
 	synchronized void abort(Transaction t) {
 		if (t instanceof ReadWriteTransaction)
 			exclusive = false;
-		verify(trans.remove(t));
+		Errlog.verify(trans.remove(t),
+				"Transactions.abort missing from trans");
 		if (t instanceof UpdateTransaction)
-			verify(utrans.remove(t));
+			Errlog.verify(utrans.remove(t),
+					"Transactions.abort missing from utrans");
 		cleanOverlapping();
 	}
 
