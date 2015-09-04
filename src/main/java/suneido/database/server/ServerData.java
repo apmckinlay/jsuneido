@@ -165,7 +165,7 @@ public class ServerData {
 
 	public void end() {
 		for (Map.Entry<Integer, DbmsTran> e : trans.entrySet())
-			e.getValue().abort();
+			Errlog.run(e.getValue()::abort);
 	}
 
 	public void setNonce(byte[] nonce) {

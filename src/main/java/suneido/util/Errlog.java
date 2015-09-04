@@ -57,4 +57,13 @@ public class Errlog {
 			Errlog.errlog("ERROR: " + msg);
 	}
 
+	/** run the given function, catching and logging any errors */
+	public static void run(Runnable fn) {
+		try {
+			fn.run();
+		} catch (Throwable e) {
+			Errlog.errlog("ERROR: ", e);
+		}
+	}
+
 }
