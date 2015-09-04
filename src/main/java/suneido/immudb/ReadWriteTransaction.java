@@ -270,7 +270,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	// complete ----------------------------------------------------------------
 
 	@Override
-	public String complete() {
+	synchronized public String complete() {
 		if (isAborted())
 			return conflict;
 		assert ! ended;

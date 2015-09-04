@@ -4,25 +4,24 @@
 
 package suneido.immudb;
 
-import gnu.trove.iterator.TIntIterator;
-import gnu.trove.list.array.TIntArrayList;
-import gnu.trove.map.hash.TIntIntHashMap;
-import gnu.trove.set.hash.TIntHashSet;
-
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
-import suneido.immudb.TranIndex.Iter;
-import suneido.intfc.database.IndexIter;
-import suneido.util.Errlog;
-import suneido.util.ThreadConfined;
-
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Shorts;
+
+import gnu.trove.iterator.TIntIterator;
+import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.map.hash.TIntIntHashMap;
+import gnu.trove.set.hash.TIntHashSet;
+import suneido.immudb.TranIndex.Iter;
+import suneido.intfc.database.IndexIter;
+import suneido.util.Errlog;
+import suneido.util.ThreadConfined;
 
 /**
  * Transactions are thread confined
@@ -202,7 +201,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 	// commit ------------------------------------------------------------------
 
 	@Override
-	synchronized protected void commit() {
+	protected void commit() { // synchronized by ReadWriteTransaction.complete
 		buildReads();
 		synchronized(db.commitLock) {
 			if (db.state.schema != dbstate.schema)
