@@ -530,6 +530,8 @@ public class DbmsRemote extends Dbms {
 
 	@Override
 	public boolean use(String library) {
+		if (libraries().contains(library))
+			return false;
 		throw new SuException("can't Use('" + library + "')\n" +
 				"When client-server, only the server can Use");
 	}
