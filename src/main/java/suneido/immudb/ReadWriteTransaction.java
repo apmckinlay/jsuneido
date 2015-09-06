@@ -281,11 +281,16 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 		try {
 			commit();
 			ended = true;
-		} catch(Conflict c) {
-			conflict = c.toString();
-		} finally {
-			if (! ended)
+		} catch (Throwable e) {
+			try {
 				abort();
+			} catch (Throwable e2) {
+				e.addSuppressed(e2);
+			}
+			if (e instanceof Conflict)
+				conflict = e.toString();
+			else
+				throw e;
 		}
 		return conflict;
 	}
