@@ -41,7 +41,16 @@ class Transactions {
 	private static final int MAX_OVERLAPPING = 200;
 	static int MAX_UPDATE_TRAN_DURATION_SEC = 10;
 	private volatile boolean exclusive = false;
-	private final Deque<UpdateTransaction> commitLog = new ArrayDeque<>();
+	private final Deque<LogEntry> commitLog = new ArrayDeque<>();
+
+	private static class LogEntry {
+		int num;
+		long commitTime;
+		LogEntry(int num, long commitTime) {
+			this.num = num;
+			this.commitTime = commitTime;
+		}
+	}
 
 	long clock() {
 		return clock.incrementAndGet();
@@ -82,18 +91,26 @@ class Transactions {
 		exclusive = true;
 	}
 
-	/** return the set of transactions that committed since asof */
+	/**
+	 * return the set of transactions that committed since asof
+	 * called by UpdateTransaction checkForConflicts
+	 */
 	synchronized Set<UpdateTransaction> getOverlapping(long asof) {
 		Set<UpdateTransaction> result = getOverlapping2(asof);
-		Set<UpdateTransaction> fromLog = new HashSet<>();
-		for (UpdateTransaction t : commitLog)
-			if (t.commitTime() > asof)
-				fromLog.add(t);
+		Set<Integer> fromOverlap = new HashSet<>();
+		for (UpdateTransaction t : result)
+			fromOverlap.add(t.num);
+
+		Set<Integer> fromLog = new HashSet<>();
+		for (LogEntry e : commitLog)
+			if (e.commitTime > asof)
+				fromLog.add(e.num);
 			else
 				break;
-		if (! result.equals(fromLog)) {
-			Set<UpdateTransaction> onlyFromLog = Sets.difference(fromLog, result);
-			Set<UpdateTransaction> onlyOverlap = Sets.difference(result, fromLog);
+
+		if (! fromOverlap.equals(fromLog)) {
+			Set<Integer> onlyFromLog = Sets.difference(fromLog, fromOverlap);
+			Set<Integer> onlyOverlap = Sets.difference(fromOverlap, fromLog);
 			Errlog.errlog("onlyFromLog " + onlyFromLog +
 					" onlyOverlap " + onlyOverlap);
 			throw new AssertionError("ERROR: overlapping doesn't match commitLog");
@@ -122,14 +139,12 @@ class Transactions {
 			exclusive = false;
 		verify(trans.remove(t));
 		if (t instanceof UpdateTransaction) {
+			UpdateTransaction ut = (UpdateTransaction) t;
 			verify(utrans.remove(t));
 			cleanOverlapping();
 			if (! utrans.isEmpty())
-				overlapping.add((UpdateTransaction) t);
-			commitLog.addFirst((UpdateTransaction) t);
-			while (commitLog.getLast().stopwatch.elapsed(TimeUnit.SECONDS)
-					> 2 * MAX_UPDATE_TRAN_DURATION_SEC)
-				commitLog.removeLast();
+				overlapping.add(ut);
+			commitLog.addFirst(new LogEntry(ut.num(), ut.commitTime()));
 		}
 	}
 
@@ -153,6 +168,9 @@ class Transactions {
 		while (! overlapping.isEmpty() && overlapping.first().commitTime() <= oldest)
 			overlapping.remove(overlapping.first());
 		assert ! utrans.isEmpty() || overlapping.isEmpty();
+
+		while (! commitLog.isEmpty() && commitLog.getLast().commitTime <= oldest)
+			commitLog.removeLast();
 	}
 
 	// should be called periodically
