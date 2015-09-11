@@ -70,7 +70,10 @@ public class Database extends BuiltinClass {
 
 	@Params("table = ''")
 	public static Object Dump(Object self, Object table) {
-		return TheDbms.dbms().dump(Ops.toStr(table));
+		String result = TheDbms.dbms().dump(Ops.toStr(table));
+		if (! "".equals(result))
+			throw new SuException("Database.Dump failed: " + result);
+		return null;
 	}
 
 	public static Object Check(Object self) {
