@@ -13,15 +13,19 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 import suneido.SuException;
+import suneido.TheDbms;
 import suneido.intfc.database.Transaction;
 import suneido.util.Errlog;
+import suneido.util.Util;
 
 /**
  * Manages transactions.
+ * {@link Database} has an instance.
  * Mostly for {@link UpdateTransactions}
  */
 @ThreadSafe
@@ -41,12 +45,12 @@ class Transactions {
 	private static final int MAX_OVERLAPPING = 200;
 	static int MAX_UPDATE_TRAN_DURATION_SEC = 10;
 	private volatile boolean exclusive = false;
-	private final Deque<LogEntry> commitLog = new ArrayDeque<>();
+	private final Deque<Commit> commits = new ArrayDeque<>();
 
-	private static class LogEntry {
+	private static class Commit {
 		int num;
 		long commitTime;
-		LogEntry(int num, long commitTime) {
+		Commit(int num, long commitTime) {
 			this.num = num;
 			this.commitTime = commitTime;
 		}
@@ -81,6 +85,7 @@ class Transactions {
 			throw new SuException("blocked by exclusive transaction");
 		assert t.asof() > 0;
 		utrans.add(t);
+		logAdd("start", t);
 	}
 
 	synchronized void setExclusive(Transaction t) {
@@ -102,7 +107,7 @@ class Transactions {
 			fromOverlap.add(t.num);
 
 		Set<Integer> fromLog = new HashSet<>();
-		for (LogEntry e : commitLog)
+		for (Commit e : commits)
 			if (e.commitTime > asof)
 				fromLog.add(e.num);
 			else
@@ -113,11 +118,14 @@ class Transactions {
 			Set<Integer> onlyOverlap = Sets.difference(fromOverlap, fromLog);
 			Errlog.errlog("onlyFromLog " + onlyFromLog +
 					" onlyOverlap " + onlyOverlap);
+			logDump();
 			throw new AssertionError("ERROR: overlapping doesn't match commitLog");
 		}
 		return result;
 	}
 
+	// this is the actual code
+	// the above is just cross checking to track down a bug
 	Set<UpdateTransaction> getOverlapping2(long asof) {
 		if (overlapping.isEmpty())
 			return Collections.emptySet();
@@ -144,7 +152,8 @@ class Transactions {
 			cleanOverlapping();
 			if (! utrans.isEmpty())
 				overlapping.add(ut);
-			commitLog.addFirst(new LogEntry(ut.num(), ut.commitTime()));
+			commits.addFirst(new Commit(ut.num(), ut.commitTime()));
+			logAdd("commit", t);
 		}
 	}
 
@@ -153,10 +162,12 @@ class Transactions {
 			exclusive = false;
 		Errlog.verify(trans.remove(t),
 				"Transactions.abort missing from trans");
-		if (t instanceof UpdateTransaction)
+		if (t instanceof UpdateTransaction) {
 			Errlog.verify(utrans.remove(t),
 					"Transactions.abort missing from utrans");
-		cleanOverlapping();
+			cleanOverlapping();
+			logAdd("abort", t);
+		}
 	}
 
 	/**
@@ -169,8 +180,8 @@ class Transactions {
 			overlapping.remove(overlapping.first());
 		assert ! utrans.isEmpty() || overlapping.isEmpty();
 
-		while (! commitLog.isEmpty() && commitLog.getLast().commitTime <= oldest)
-			commitLog.removeLast();
+		while (! commits.isEmpty() && commits.getLast().commitTime <= oldest)
+			commits.removeLast();
 	}
 
 	// should be called periodically
@@ -222,5 +233,60 @@ class Transactions {
 	synchronized int finalSize() {
 		return overlapping.size();
 	}
+
+	// stuff to keep a history log of transactions
+	// to dump when there is a problem
+
+	private final Deque<LogEntry> log = new ArrayDeque<>();
+	private final int LOGSIZE = 100;
+	private final int TSLIMIT = 16;
+
+	private void logAdd(String type, Transaction t) {
+		String uts = (utrans.size() > TSLIMIT) ? ""
+			: "\n  uts: " + Joiner.on(", ").
+					join(utrans.stream().map(Transaction::num).iterator());
+		String ots = (utrans.size() > TSLIMIT) ? ""
+			: "\n  ots: " + Joiner.on(", ").
+					join(overlapping.stream().map(Transaction::num).iterator());
+		log.addLast(new LogEntry(type, t.num(), uts, ots));
+		if (utrans.isEmpty())
+			log.clear();
+		else
+			while (log.size() > LOGSIZE)
+				log.removeFirst();
+	}
+
+	private void logDump() {
+		if (log.isEmpty())
+			return;
+		System.err.println("Transactions Log:");
+		log.forEach(System.err::println);
+	}
+
+	private static class LogEntry {
+		String type;
+		int num;
+		Date date;
+		String sessionid;
+		String uts;
+		String ots;
+
+		LogEntry(String type, int num, String uts, String ots) {
+			this.type = type;
+			this.num = num;
+			this.date = new Date();
+			this.sessionid = (TheDbms.dbms() == null) ? "" : TheDbms.dbms().sessionid();
+			this.uts = uts;
+			this.ots = ots;
+		}
+
+		@Override
+		public String toString() {
+			return Joiner.on(" ")
+					.join(Util.displayDate(date), sessionid, type, num, uts, ots);
+		}
+	}
+
+
 
 }
