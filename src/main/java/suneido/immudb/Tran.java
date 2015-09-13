@@ -8,13 +8,14 @@ import static suneido.immudb.Storage.sizeToInt;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
+import com.google.common.base.MoreObjects;
+import com.google.common.primitives.Ints;
+
 import suneido.immudb.DbHashTrie.Entry;
 import suneido.immudb.DbHashTrie.IntEntry;
 import suneido.immudb.DbHashTrie.StoredIntEntry;
 import suneido.immudb.DbHashTrie.Translator;
-
-import com.google.common.base.MoreObjects;
-import com.google.common.primitives.Ints;
+import suneido.util.Errlog;
 
 /**
  * Low level "context" for Transactions.
@@ -63,7 +64,7 @@ class Tran implements Translator {
 	 * and the checksum and size at the end (tail).
 	 * The checksum includes the head and a zero tail.
 	 * The size includes the head and the tail
-	 * @return The checksum of the commit
+	 * @return The checksum and address of the commit
 	 */
 	StoreInfo endStore() {
 		assert head_adr != 0;
@@ -77,7 +78,11 @@ class Tran implements Translator {
 			dstor.protectAll(); // can't output outside tran
 
 			return new StoreInfo(cksum, head_adr);
+		} catch (Throwable e) {
+			Errlog.errlog("ERROR in endStore", e);
+			throw e;
 		} finally {
+			//BUG? if exception, this will defeat abortIncompleteStore
 			head_adr = 0;
 		}
 	}
