@@ -13,15 +13,12 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 import suneido.SuException;
-import suneido.TheDbms;
 import suneido.intfc.database.Transaction;
 import suneido.util.Errlog;
-import suneido.util.Util;
 
 /**
  * Manages transactions.
@@ -45,16 +42,6 @@ class Transactions {
 	private static final int MAX_OVERLAPPING = 200;
 	static int MAX_UPDATE_TRAN_DURATION_SEC = 10;
 	private volatile boolean exclusive = false;
-	private final Deque<Commit> commits = new ArrayDeque<>();
-
-	private static class Commit {
-		int num;
-		long commitTime;
-		Commit(int num, long commitTime) {
-			this.num = num;
-			this.commitTime = commitTime;
-		}
-	}
 
 	long clock() {
 		return clock.incrementAndGet();
@@ -85,7 +72,6 @@ class Transactions {
 			throw new SuException("blocked by exclusive transaction");
 		assert t.asof() > 0;
 		utrans.add(t);
-		logAdd("start", t);
 	}
 
 	synchronized void setExclusive(Transaction t) {
@@ -100,33 +86,7 @@ class Transactions {
 	 * return the set of transactions that committed since asof
 	 * called by UpdateTransaction checkForConflicts
 	 */
-	synchronized Set<UpdateTransaction> getOverlapping(long asof) {
-		Set<UpdateTransaction> result = getOverlapping2(asof);
-		Set<Integer> fromOverlap = new HashSet<>();
-		for (UpdateTransaction t : result)
-			fromOverlap.add(t.num);
-
-		Set<Integer> fromLog = new HashSet<>();
-		for (Commit e : commits)
-			if (e.commitTime > asof)
-				fromLog.add(e.num);
-			else
-				break;
-
-		if (! fromOverlap.equals(fromLog)) {
-			Set<Integer> onlyFromLog = Sets.difference(fromLog, fromOverlap);
-			Set<Integer> onlyOverlap = Sets.difference(fromOverlap, fromLog);
-			Errlog.errlog("onlyFromLog " + onlyFromLog +
-					" onlyOverlap " + onlyOverlap);
-			logDump();
-			throw new AssertionError("ERROR: overlapping doesn't match commitLog");
-		}
-		return result;
-	}
-
-	// this is the actual code
-	// the above is just cross checking to track down a bug
-	Set<UpdateTransaction> getOverlapping2(long asof) {
+	Set<UpdateTransaction> getOverlapping(long asof) {
 		if (overlapping.isEmpty())
 			return Collections.emptySet();
 		boolean inclusive = true;
@@ -147,13 +107,10 @@ class Transactions {
 			exclusive = false;
 		verify(trans.remove(t));
 		if (t instanceof UpdateTransaction) {
-			UpdateTransaction ut = (UpdateTransaction) t;
 			verify(utrans.remove(t));
 			cleanOverlapping();
 			if (! utrans.isEmpty())
-				overlapping.add(ut);
-			commits.addFirst(new Commit(ut.num(), ut.commitTime()));
-			logAdd("commit", t);
+				overlapping.add((UpdateTransaction) t);
 		}
 	}
 
@@ -166,7 +123,6 @@ class Transactions {
 			Errlog.verify(utrans.remove(t),
 					"Transactions.abort missing from utrans");
 			cleanOverlapping();
-			logAdd("abort", t);
 		}
 	}
 
@@ -179,9 +135,6 @@ class Transactions {
 		while (! overlapping.isEmpty() && overlapping.first().commitTime() <= oldest)
 			overlapping.remove(overlapping.first());
 		assert ! utrans.isEmpty() || overlapping.isEmpty();
-
-		while (! commits.isEmpty() && commits.getLast().commitTime <= oldest)
-			commits.removeLast();
 	}
 
 	// should be called periodically
@@ -233,60 +186,5 @@ class Transactions {
 	synchronized int finalSize() {
 		return overlapping.size();
 	}
-
-	// stuff to keep a history log of transactions
-	// to dump when there is a problem
-
-	private final Deque<LogEntry> log = new ArrayDeque<>();
-	private final int LOGSIZE = 100;
-	private final int TSLIMIT = 16;
-
-	private void logAdd(String type, Transaction t) {
-		String uts = (utrans.size() > TSLIMIT) ? ""
-			: "\n  uts: " + Joiner.on(", ").
-					join(utrans.stream().map(Transaction::num).iterator());
-		String ots = (utrans.size() > TSLIMIT) ? ""
-			: "\n  ots: " + Joiner.on(", ").
-					join(overlapping.stream().map(Transaction::num).iterator());
-		log.addLast(new LogEntry(type, t.num(), uts, ots));
-		if (utrans.isEmpty())
-			log.clear();
-		else
-			while (log.size() > LOGSIZE)
-				log.removeFirst();
-	}
-
-	private void logDump() {
-		if (log.isEmpty())
-			return;
-		System.err.println("Transactions Log:");
-		log.forEach(System.err::println);
-	}
-
-	private static class LogEntry {
-		String type;
-		int num;
-		Date date;
-		String sessionid;
-		String uts;
-		String ots;
-
-		LogEntry(String type, int num, String uts, String ots) {
-			this.type = type;
-			this.num = num;
-			this.date = new Date();
-			this.sessionid = (TheDbms.dbms() == null) ? "" : TheDbms.dbms().sessionid();
-			this.uts = uts;
-			this.ots = ots;
-		}
-
-		@Override
-		public String toString() {
-			return Joiner.on(" ")
-					.join(Util.displayDate(date), sessionid, type, num, uts, ots);
-		}
-	}
-
-
 
 }
