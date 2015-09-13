@@ -125,7 +125,13 @@ class DbRebuild {
 		long lastOkSize = check.dOkSize();
 		StorageIter dIter = new StorageIter(dstor, Storage.offsetToAdr(check.dOkSize()));
 		while (dIter.notFinished()) {
-			new Proc(db, dstor, dIter.adr()).process();
+			try {
+				new Proc(db, dstor, dIter.adr()).process();
+			} catch(Throwable e) {
+				System.err.println("offset: " + Storage.adrToOffset(dIter.adr()));
+				System.err.println(e);
+				throw e;
+			}
 			lastOkDate = dIter.date();
 			lastOkSize = dIter.sizeInc();
 			dIter.advance();
