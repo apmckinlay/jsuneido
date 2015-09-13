@@ -9,14 +9,14 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.nio.ByteBuffer;
 
-import suneido.runtime.Ops;
+import suneido.util.Util;
 
 /** for debugging - prints info about file contents */
 public class Dump {
 
 	public static void dump() {
 		Database db = Database.openReadonly("suneido.db");
-	    db.dump(false);
+	    db.dump(true);
 	    db.close();
 	    System.err.println("dumped suneido.dbd to dump-data.txt and "
 	    		+ "suneido.dbi to dump-index.txt");
@@ -64,7 +64,7 @@ public class Dump {
 			assert iter.status() == StorageIter.Status.OK : "CORRUPT!";
 			System.out.println(Storage.adrToOffset(iter.adr()) + ":" +
 					" size " + iter.size() +
-					" date " + Ops.display(iter.date()) +
+					" date " + Util.displayDate(iter.date()) +
 					" checksum " + Integer.toHexString(iter.cksum()) +
 					(iter.verifyChecksum() ? "" : " CHECKSUM MISMATCH") +
 					"\n\t" + Check.info(istor, iter.adr(), iter.size()));
@@ -81,9 +81,9 @@ public class Dump {
 			System.out.println(Storage.adrToOffset(iter.adr()) + ":" +
 					" type " + type +
 					" size " + iter.size() +
-					" date " + Ops.display(iter.date()) +
+					" date " + (iter.date() == null ? "ABORTED" : Util.displayDate(iter.date())) +
 					" checksum " + Integer.toHexString(iter.cksum()) +
-					(iter.verifyChecksum() ? "" : " CHECKSUM MISMATCH"));
+					(iter.date() == null || iter.verifyChecksum() ? "" : " CHECKSUM MISMATCH"));
 			if (detail)
 				new Proc(dstor, iter.adr()).process();
 		}
@@ -92,10 +92,6 @@ public class Dump {
 	private static class Proc extends CommitProcessor {
 		Proc(Storage stor, int adr) {
 			super(stor, adr);
-		}
-		@Override
-		void type(char c) {
-			System.out.println("type " + c);
 		}
 		@Override
 		void remove(DataRecord r) {
@@ -107,7 +103,7 @@ public class Dump {
 		}
 		@Override
 		void after() {
-			System.out.println("--------------------------");
+			System.out.println("===");
 		}
 		@Override
 		void update(DataRecord from, DataRecord to) {
