@@ -5,16 +5,18 @@
 package suneido.util;
 
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
-
-import suneido.runtime.Ops;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+
+import suneido.runtime.Ops;
 
 /**
  * Miscellaneous functions.
@@ -493,5 +495,12 @@ public class Util {
 		public String toString() {
 			return "Range(" + left + "," + right + ")";
 		}
+	}
+
+	@GuardedBy("this")
+	private static SimpleDateFormat datefmt = new SimpleDateFormat("yyyyMMdd.HHmmssSSS");
+
+	synchronized public static String displayDate(Date date){
+		return date == null ? "null" : datefmt.format(date);
 	}
 }
