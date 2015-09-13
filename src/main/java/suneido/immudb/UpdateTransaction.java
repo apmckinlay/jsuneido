@@ -245,7 +245,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 				// check if it deleted from an index range that we read
 				readValidation(del);
 				// check if we deleted the same record
-				checkForWriteConflict(del);
+				checkForDeleteConflict(del);
 			}
 			iter = t.inserts.iterator();
 			while (iter.hasNext())
@@ -274,7 +274,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 		return new RecordBuilder().addFields(r, colNums).arrayRec();
 	}
 
-	private void checkForWriteConflict(int del) {
+	private void checkForDeleteConflict(int del) {
 		if (deletes.contains(del))
 			throw new Conflict("delete");
 	}
@@ -404,12 +404,13 @@ class UpdateTransaction extends ReadWriteTransaction {
 			OverlayIndex oti = (OverlayIndex) idx;
 			updated = ! oti.removedKeys.isEmpty();
 			for (BtreeKey key : oti.removedKeys)
-				global.remove(key);
+				if (! global.remove(key))
+					throw new Conflict("missing key");
 			local = oti.local();
 		}
 		Btree.Iter iter = local.iterator();
 		for (iter.next(); ! iter.eof(); iter.next()) {
-			if (false == global.add(translate(iter.cur()), index.isKey, index.unique))
+			if (! global.add(translate(iter.cur()), index.isKey, index.unique))
 				throw new Conflict("duplicate key");
 			updated = true;
 		}
