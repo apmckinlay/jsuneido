@@ -14,17 +14,20 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.util.regex.Pattern;
 
+import com.google.common.base.Charsets;
+import com.google.common.base.Strings;
+
 import suneido.*;
 import suneido.compiler.Compiler;
 import suneido.compiler.Doesc;
 import suneido.runtime.BuiltinMethods;
 import suneido.runtime.Ops;
 import suneido.runtime.Params;
-import suneido.util.*;
+import suneido.util.Regex;
 import suneido.util.Regex.Result;
-
-import com.google.common.base.Charsets;
-import com.google.common.base.Strings;
+import suneido.util.RegexCache;
+import suneido.util.Tabs;
+import suneido.util.Util;
 
 public class StringMethods extends BuiltinMethods {
 	public static final StringMethods singleton = new StringMethods();
@@ -306,8 +309,10 @@ public class StringMethods extends BuiltinMethods {
 			return Boolean.FALSE;
 		if (c == 'e' || c == 'E') {
 			c = sget(s, ++i);
-			if (c == '-')
+			if (c == '-' || c == '+')
 				c = sget(s, ++i);
+			if (! Character.isDigit(c))
+				return false;
 			while (Character.isDigit(c))
 				c = sget(s, ++i);
 		}
