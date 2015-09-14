@@ -86,7 +86,7 @@ class Transactions {
 	 * return the set of transactions that committed since asof
 	 * called by UpdateTransaction checkForConflicts
 	 */
-	Set<UpdateTransaction> getOverlapping(long asof) {
+	synchronized Set<UpdateTransaction> getOverlapping(long asof) {
 		if (overlapping.isEmpty())
 			return Collections.emptySet();
 		boolean inclusive = true;
