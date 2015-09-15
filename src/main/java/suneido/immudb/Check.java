@@ -11,6 +11,8 @@ import javax.annotation.concurrent.Immutable;
 
 import com.google.common.base.MoreObjects;
 
+import suneido.util.Errlog;
+
 /**
  * Check database integrity.<p>
  * Used by {@link DbCheck} and {@link DbRebuild}.<p>
@@ -64,7 +66,12 @@ class Check {
 	 * @return true if the entire database appears valid
 	 */
 	boolean fullcheck() {
-		return checkFrom(Storage.FIRST_ADR, Storage.FIRST_ADR);
+		try {
+			return checkFrom(Storage.FIRST_ADR, Storage.FIRST_ADR);
+		} catch (Throwable e) {
+			Errlog.errlog("ERROR in fullcheck", e);
+			return false;
+		}
 	}
 
 	/** check the last FAST_NPERSISTS persists */
@@ -76,8 +83,8 @@ class Check {
 			int adr = findLast(FAST_NPERSISTS);
 			return (adr == CORRUPT) ? false
 					: (adr == EMPTY) ? true : checkFrom(lastadr, adr);
-		} catch (RuntimeException e) {
-			System.out.println(e);
+		} catch (Throwable e) {
+			Errlog.errlog("ERROR in fastcheck", e);
 			return false;
 		}
 	}
