@@ -15,7 +15,6 @@ import suneido.immudb.DbHashTrie.Entry;
 import suneido.immudb.DbHashTrie.IntEntry;
 import suneido.immudb.DbHashTrie.StoredIntEntry;
 import suneido.immudb.DbHashTrie.Translator;
-import suneido.util.Errlog;
 
 /**
  * Low level "context" for Transactions.
@@ -49,9 +48,9 @@ class Tran implements Translator {
 	}
 
 	void startStore() {
+		assert head_adr == 0;
 		intrefs.startStore();
-		if (head_adr == 0)
-			allowStore();
+		allowStore();
 	}
 
 	void allowStore() {
@@ -68,31 +67,23 @@ class Tran implements Translator {
 	 */
 	StoreInfo endStore() {
 		assert head_adr != 0;
-		try {
-			int tail_adr = dstor.alloc(TAIL_SIZE);
-			int size = sizeToInt(dstor.sizeFrom(head_adr));
-			dstor.buffer(head_adr).putInt(size).putInt(datetime());
+		int tail_adr = dstor.alloc(TAIL_SIZE);
+		int size = sizeToInt(dstor.sizeFrom(head_adr));
+		dstor.buffer(head_adr).putInt(size).putInt(datetime());
 
-			int cksum = dstor.checksum(head_adr);
-			dstor.buffer(tail_adr).putInt(cksum).putInt(size);
-			dstor.protectAll(); // can't output outside tran
+		int cksum = dstor.checksum(head_adr);
+		dstor.buffer(tail_adr).putInt(cksum).putInt(size);
+		dstor.protectAll(); // can't output outside tran
 
-			return new StoreInfo(cksum, head_adr);
-		} catch (Throwable e) {
-			Errlog.errlog("ERROR in endStore", e);
-			throw e;
-		} finally {
-			//BUG? if exception, this will defeat abortIncompleteStore
-			head_adr = 0;
+		return new StoreInfo(cksum, head_adr);
 		}
-	}
 
 	/**
 	 * Abort a store by writing a zero date in the header.
 	 * Don't bother calculating checksum, just store zero.
 	 */
 	void abortIncompleteStore() {
-		if (head_adr == 0)
+		if (head_adr == 0) // didn't start store
 			return;
 		int tail_adr = dstor.alloc(TAIL_SIZE);
 		int size = sizeToInt(dstor.sizeFrom(head_adr));

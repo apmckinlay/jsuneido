@@ -4,8 +4,6 @@
 
 package suneido.immudb;
 
-import static suneido.util.Verify.verify;
-
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -105,9 +103,11 @@ class Transactions {
 	synchronized void commit(Transaction t) {
 		if (t instanceof ReadWriteTransaction)
 			exclusive = false;
-		verify(trans.remove(t));
+		Errlog.verify(trans.remove(t),
+				"Transactions.commit missing from trans");
 		if (t instanceof UpdateTransaction) {
-			verify(utrans.remove(t));
+			Errlog.verify(utrans.remove(t),
+					"Transactions.commit missing from utrans");
 			cleanOverlapping();
 			if (! utrans.isEmpty())
 				overlapping.add((UpdateTransaction) t);

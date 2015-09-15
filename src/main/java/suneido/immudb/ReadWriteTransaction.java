@@ -24,6 +24,9 @@ import suneido.util.Errlog;
 
 /**
  * Abstract base class for {@link UpdateTransaction} and {@link BulkTransaction}
+ * NOTE: no synchronization in this class, must be handled by subclasses.
+ * BulkTransaction is exclusive so it doesn't need any.
+ * UpdateTransaction does its own synchronization.
  */
 abstract class ReadWriteTransaction extends ReadTransaction {
 	private String conflict = null;
@@ -270,7 +273,8 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	// complete ----------------------------------------------------------------
 
 	@Override
-	synchronized public String complete() {
+	// overrides ReadTransaction.complete
+	public String complete() {
 		if (isAborted())
 			return conflict;
 		assert ! ended;

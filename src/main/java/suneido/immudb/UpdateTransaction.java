@@ -174,6 +174,12 @@ class UpdateTransaction extends ReadWriteTransaction {
 
 	// -------------------------------------------------------------------------
 
+	@Override
+	// just adds synchronized to ReadWriteTransaction.complete
+	synchronized public String complete() {
+		return super.complete();
+	}
+
 	private boolean isCommitted() {
 		return commitTime != Long.MAX_VALUE;
 	}
@@ -194,6 +200,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 	}
 
 	@Override
+	// just adds synchronized to ReadWriteTransaction.abort
 	synchronized public void abort() {
 		super.abort();
 	}
@@ -212,8 +219,9 @@ class UpdateTransaction extends ReadWriteTransaction {
 				updateBtrees();
 				updateDbInfo();
 				finish();
-			} finally {
+			} catch (Throwable e) {
 				tran.abortIncompleteStore();
+				throw e;
 			}
 		}
 		if (writeCount > WARN_WRITES_PER_TRANSACTION)
@@ -450,11 +458,15 @@ class UpdateTransaction extends ReadWriteTransaction {
 	 * An exception part way through this will be bad.
 	 */
 	private void finish() {
-		Tran.StoreInfo info = tran.endStore();
-		db.setState(db.state.dbinfoadr, dbinfo, schema, info.cksum, info.adr);
-		commitTime = trans.clock();
-		trans.commit(this);
-		// db.persist(); // for testing - persist after every transaction
+		try {
+			Tran.StoreInfo info = tran.endStore();
+			db.setState(db.state.dbinfoadr, dbinfo, schema, info.cksum, info.adr);
+			commitTime = trans.clock();
+			trans.commit(this);
+			// db.persist(); // for testing - persist after every transaction
+		} catch (Throwable e) {
+			Errlog.fatal("error in UpdateTransaction.finish", e);
+		}
 	}
 
 	// end of commit =========================================================
