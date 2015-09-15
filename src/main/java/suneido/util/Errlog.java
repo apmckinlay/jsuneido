@@ -9,20 +9,23 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 public class Errlog {
 	private static Supplier<String> extra = () -> "";
+	private static AtomicInteger count = new AtomicInteger(); // for tests
 
 	public static void setExtra(Supplier<String> extra) {
 		Errlog.extra = extra;
 	}
 
-	public static synchronized void errlog(String s) {
+	public static void errlog(String s) {
 		Errlog.errlog(s, null);
 	}
 
 	public static synchronized void errlog(String s, Throwable err) {
+		count.incrementAndGet();
 		System.out.println(s);
 		try (FileWriter fw = new FileWriter("error.log", true)) {
 			fw.append(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
@@ -64,6 +67,11 @@ public class Errlog {
 		} catch (Throwable e) {
 			Errlog.errlog("ERROR: ", e);
 		}
+	}
+
+	/** for tests */
+	public static int count() {
+		return count.get();
 	}
 
 }
