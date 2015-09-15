@@ -208,7 +208,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 	// commit ------------------------------------------------------------------
 
 	@Override
-	protected void commit() { // synchronized by ReadWriteTransaction.complete
+	protected void commit() {
 		buildReads();
 		synchronized(db.commitLock) {
 			if (db.state.schema != dbstate.schema)

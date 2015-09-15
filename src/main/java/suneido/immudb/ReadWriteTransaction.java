@@ -20,7 +20,6 @@ import suneido.SuException;
 import suneido.immudb.Bootstrap.TN;
 import suneido.immudb.IndexedData.Mode;
 import suneido.intfc.database.IndexIter;
-import suneido.util.Errlog;
 
 /**
  * Abstract base class for {@link UpdateTransaction} and {@link BulkTransaction}
@@ -239,7 +238,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 
 	void abortThrow(String conflict) {
 		conflict = "aborted " + this + " - " + conflict;
-		Errlog.errlog(conflict);
+		System.out.println(conflict);
 		abort(conflict);
 		throw new SuException(conflict);
 	}
