@@ -85,7 +85,7 @@ class DbRebuild {
 		copyGoodPrefix();
 		Database db = (check.dOkSize() == 0)
 				? Database.create(newFilename)
-				: Database.open(newFilename);
+				: Database.openWithoutCheck(newFilename);
 		assert db != null;
 		try {
 			if (check.dIter.notFinished())

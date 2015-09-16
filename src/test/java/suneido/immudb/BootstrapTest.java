@@ -17,10 +17,10 @@ public class BootstrapTest {
 	public void test() {
 		HeapStorage dstor = new HeapStorage();
 		HeapStorage istor = new HeapStorage();
-		Database db = Database.create(dstor, istor);
+		Database db = Database.create("", dstor, istor);
 		check(db);
 
-		db = Database.open(dstor, istor);
+		db = Database.open("", dstor, istor);
 		check(db);
 	}
 

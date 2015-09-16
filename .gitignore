@@ -4,6 +4,7 @@ target/*
 jsuneido.jar
 *.dbd
 *.dbi
+*.dbc
 *.go
 *.tmp
 *.su

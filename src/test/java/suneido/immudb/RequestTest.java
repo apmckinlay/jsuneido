@@ -28,7 +28,7 @@ public class RequestTest {
 	private static final ServerData serverData = new ServerData();
 	HeapStorage dstor = new HeapStorage();
 	HeapStorage istor = new HeapStorage();
-	Database db = Database.create(dstor, istor);
+	Database db = Database.create("", dstor, istor);
 
 	@Before
 	public void setup() {

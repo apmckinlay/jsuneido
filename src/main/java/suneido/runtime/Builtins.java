@@ -6,16 +6,16 @@ package suneido.runtime;
 
 import java.util.Map;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+
 import suneido.SuContainer;
 import suneido.jsdi.Buffer;
 import suneido.jsdi.ThunkManager;
 import suneido.jsdi.com.COMobject;
 import suneido.runtime.builtin.*;
 import suneido.util.Errlog;
-
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 
 public class Builtins {
 	static final ImmutableMap<String, Object> builtins;
@@ -61,7 +61,6 @@ public class Builtins {
 			.put("Display", function(Display.class))
 			.put("Div", function(Div.class))
 			.put("Dll?", function(DllQ.class))
-			.put("Dump", function(Dump.class))
 			.put("DoWithoutTriggers", function(DoWithoutTriggers.class))
 			.put("Eq", function(Eq.class))
 			.put("ExePath", function(ExePath.class))

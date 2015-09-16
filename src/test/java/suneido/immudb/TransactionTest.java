@@ -22,7 +22,7 @@ import suneido.intfc.database.Transaction;
 public class TransactionTest {
 	private final Storage stor = new HeapStorage();
 	private final Storage istor = new HeapStorage();
-	private Database db = Database.create(stor, istor);
+	private Database db = Database.create("", stor, istor);
 
 	@Test
 	public void create() {

@@ -6,6 +6,7 @@ package suneido.immudb;
 
 import static suneido.intfc.database.DatabasePackage.nullObserver;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.ExecutionException;
@@ -25,36 +26,38 @@ import suneido.intfc.database.DatabasePackage.Status;
  * Uses {@link CheckTable}
  */
 class DbCheck {
+	final String filename;
 	final Storage dstor;
 	final Storage istor;
 	final Observer ob;
 	Date last_good_commit;
 	String details = "";
 
-	static Status check(String dbFilename, Observer ob) {
-		Storage dstor = new MmapFile(dbFilename + "d", "r");
-		Storage istor = new MmapFile(dbFilename + "i", "r");
+	static Status check(String filename, Observer ob) {
+		Storage dstor = new MmapFile(filename + "d", "r");
+		Storage istor = new MmapFile(filename + "i", "r");
 		try {
-			return check(dstor, istor, ob);
+			return check(filename, dstor, istor, ob);
 		} finally {
 			dstor.close();
 			istor.close();
 		}
 	}
 
-	static Status check(Storage dstor, Storage istor) {
-		return check(dstor, istor, nullObserver);
+	static Status check(String filename, Storage dstor, Storage istor) {
+		return check(filename, dstor, istor, nullObserver);
 	}
-	static Status check(Storage dstor, Storage istor, Observer ob) {
-		return new DbCheck(dstor, istor, ob).check();
+	static Status check(String filename, Storage dstor, Storage istor, Observer ob) {
+		return new DbCheck(filename, dstor, istor, ob).check();
 	}
-	static Status check(Storage dstor, Storage istor, int dUpTo, int iUpTo,
-			Observer ob) {
+	static Status check(String filename, Storage dstor, Storage istor,
+			int dUpTo, int iUpTo, Observer ob) {
 		Check check = new Check(dstor, istor).upTo(dUpTo, iUpTo);
-		return new DbCheck(dstor, istor, ob).check(check);
+		return new DbCheck(filename, dstor, istor, ob).check(check);
 	}
 
-	DbCheck(Storage dstor, Storage istor, Observer ob) {
+	DbCheck(String filename, Storage dstor, Storage istor, Observer ob) {
+		this.filename = filename;
 		this.dstor = dstor;
 		this.istor = istor;
 		this.ob = ob;
@@ -77,6 +80,11 @@ class DbCheck {
 			print(check.status());
 		print(details);
 		println(status + " " + lastCommit(status));
+		if (! filename.equals(""))
+			if (status == Status.OK)
+				DbGood.create(filename + "c", dstor.sizeFrom(0));
+			else
+				new File(filename + "c").delete(); // force full check
 		return status;
 	}
 
@@ -93,7 +101,7 @@ class DbCheck {
 	protected boolean check_data_and_indexes() {
 		ExecutorService executor = Executors.newFixedThreadPool(N_THREADS);
 		ExecutorCompletionService<String> ecs = new ExecutorCompletionService<>(executor);
-		Database db = Database.openWithoutCheck(dstor, istor);
+		Database db = Database.openWithoutCheck("", dstor, istor);
 		try {
 			int ntables = submitTasks(ecs, db);
 			int nbad = getResults(executor, ecs, ntables);
