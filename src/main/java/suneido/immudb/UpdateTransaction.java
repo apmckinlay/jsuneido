@@ -18,6 +18,7 @@ import gnu.trove.iterator.TIntIterator;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.set.hash.TIntHashSet;
+import suneido.immudb.DbRebuild.RebuildTransaction;
 import suneido.immudb.TranIndex.Iter;
 import suneido.intfc.database.IndexIter;
 import suneido.util.Errlog;
@@ -229,7 +230,8 @@ class UpdateTransaction extends ReadWriteTransaction {
 					") writes (output/update/delete) in one transaction " + this);
 		long secs = stopwatch.elapsed(TimeUnit.SECONDS);
 		if (secs > WARN_UPDATE_TRAN_DURATION_SEC &&
-				! (this instanceof SchemaTransaction)) {
+				! (this instanceof SchemaTransaction) &&
+				! (this instanceof RebuildTransaction)) {
 			String msg = ": long duration update transaction " + this +
 								" (" + secs + " seconds)";
 			if (secs < Transactions.MAX_UPDATE_TRAN_DURATION_SEC + 2)

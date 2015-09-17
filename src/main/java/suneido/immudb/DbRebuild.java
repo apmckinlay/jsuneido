@@ -317,7 +317,7 @@ class DbRebuild {
 	} // end of Proc
 
 	/** no foreign keys or triggers */
-	private static class RebuildTransaction extends UpdateTransaction {
+	static class RebuildTransaction extends UpdateTransaction {
 		RebuildTransaction(Database db) {
 			super(db.trans.nextNum(false), db);
 		}
