@@ -6,9 +6,9 @@ package suneido.compiler;
 
 import java.util.Set;
 
-import suneido.util.Stack;
-
 import com.google.common.collect.Sets;
+
+import suneido.util.Stack;
 
 /**
  * Determine if a function shares variables with blocks.
@@ -41,7 +41,6 @@ final class AstSharesVars {
 			root = ast;
 			outerVars = AstVariables.vars(ast);
 			outerVars.add("this");
-//System.out.println("\nouter vars: " + vars);
 		}
 
 		@Override

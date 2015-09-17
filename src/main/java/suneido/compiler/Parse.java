@@ -5,6 +5,7 @@
 package suneido.compiler;
 
 import static suneido.compiler.Token.NEWLINE;
+
 import suneido.SuException;
 
 public class Parse<T, G> {
@@ -92,7 +93,6 @@ public class Parse<T, G> {
 		default:
 		}
 		token = lexer.next();
-		// System.out.println(token + " " + lexer.getValue());
 	}
 
 	protected void matchNonNegativeInteger() {
