@@ -177,11 +177,13 @@ public class DbTools {
 		try {
 			Database dstdb = dbpkg.create(tempfile);
 			try {
+				System.out.printf("size before: %,d%n", srcdb.size());
 				System.out.println("Compacting...");
 				Stopwatch sw = Stopwatch.createStarted();
 				int n = dbpkg.compact(srcdb, dstdb);
 				System.out.println("Compacted " + n + " tables in " + dbFilename +
 						" in " + sw);
+				System.out.printf("size after: %,d%n", dstdb.size());
 			} finally {
 				dstdb.close();
 			}
