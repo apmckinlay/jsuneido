@@ -115,7 +115,7 @@ class Database implements suneido.intfc.database.Database {
 	}
 
 	private static boolean fullCheck(Storage dstor, Storage istor) {
-		Errlog.errlog("WARNING: full check required - database not shut down properly?");
+		Errlog.warn("full check required - database not shut down properly?");
 		return new Check(dstor, istor).fullcheck();
 	}
 

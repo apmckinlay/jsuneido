@@ -140,7 +140,7 @@ public final class InternetProtocol {
 			addLines(w, HTML_AFTER);
 			w.close();
 		} catch (Exception e2) {
-			Errlog.errlog("Can't make HTML stack trace", e2);
+			Errlog.error("Can't make HTML stack trace", e2);
 		}
 		return os.toByteArray();
 	}

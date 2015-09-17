@@ -71,10 +71,9 @@ public class Suneido {
 			break;
 		case SERVER:
 			TheDbms.setPort(cmdlineoptions.serverPort);
-			if (! System.getProperty("java.vm.name").contains("Server VM"))
-				System.out.println("WARNING: Server VM is recommended");
 			Print.timestamped("starting server");
 			startServer();
+			Errlog.setExtra(TheDbms::sessionid);
 			break;
 		case CLIENT:
 			TheDbms.remote(cmdlineoptions.actionArg, cmdlineoptions.serverPort);
@@ -83,6 +82,7 @@ public class Suneido {
 				Repl.repl2();
 			else
 				Compiler.eval("Init()");
+			Errlog.setExtra(TheDbms::sessionid);
 			break;
 		case DUMP:
 			String dumptablename = cmdlineoptions.actionArg;
@@ -157,7 +157,7 @@ public class Suneido {
 	public static void openDbms() {
 		db = dbpkg.open(dbpkg.dbFilename());
 		if (db == null) {
-			Errlog.errlog("database corrupt, rebuilding");
+			Errlog.error("database corrupt, rebuilding");
 			tryToCloseMemoryMappings();
 			DbTools.rebuildOrExit(dbpkg, dbpkg.dbFilename());
 			db = dbpkg.open(dbpkg.dbFilename());
@@ -167,10 +167,8 @@ public class Suneido {
 		TheDbms.set(db);
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> Suneido.db.close()));
 		// need to catch exceptions else scheduler will stop running task
-		scheduleAtFixedRate(() -> Errlog.run(db::limitOutstandingTransactions),
-				1, TimeUnit.SECONDS);
-		scheduleAtFixedRate(() -> Errlog.run(db::force), 1, TimeUnit.MINUTES);
-		Errlog.setExtra(TheDbms::sessionid);
+		scheduleAtFixedRate(db::limitOutstandingTransactions, 1, TimeUnit.SECONDS);
+		scheduleAtFixedRate(db::force, 1, TimeUnit.MINUTES);
 	}
 
 	public static String sessionid() {
@@ -216,7 +214,7 @@ public class Suneido {
 	}
 
 	public static void scheduleAtFixedRate(Runnable fn, long delay, TimeUnit unit) {
-		scheduler.scheduleAtFixedRate(fn, delay, delay, unit);
+		scheduler.scheduleAtFixedRate(() -> Errlog.run(fn), delay, delay, unit);
 	}
 
 }

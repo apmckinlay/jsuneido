@@ -69,7 +69,7 @@ class Check {
 		try {
 			return checkFrom(Storage.FIRST_ADR, Storage.FIRST_ADR);
 		} catch (Throwable e) {
-			Errlog.errlog("ERROR in fullcheck", e);
+			Errlog.error("fullcheck", e);
 			return false;
 		}
 	}
@@ -84,7 +84,7 @@ class Check {
 			return (adr == CORRUPT) ? false
 					: (adr == EMPTY) ? true : checkFrom(lastadr, adr);
 		} catch (Throwable e) {
-			Errlog.errlog("ERROR in fastcheck", e);
+			Errlog.error("fastcheck", e);
 			return false;
 		}
 	}

@@ -87,7 +87,7 @@ public final class Bootstrap {
 					if (0 != exitCode) {
 						if (!stderrEchoer.fatalErrors.isEmpty()) {
 							for (String fatal : stderrEchoer.fatalErrors) {
-								Errlog.errlog("bootstrapper can't start new JVM: "
+								Errlog.error("bootstrapper can't start new JVM: "
 										+ fatal);
 							}
 							runSuneidoInThisJVM(args); // Fall back
@@ -96,7 +96,7 @@ public final class Bootstrap {
 						}
 					}
 				} catch (SuInternalError e) {
-					Errlog.errlog("bootstrapper can't start new JVM", e);
+					Errlog.error("bootstrapper can't start new JVM", e);
 					runSuneidoInThisJVM(args); // Fall back
 				}
 			} else {
@@ -308,7 +308,7 @@ public final class Bootstrap {
 					try {
 						synchronouslyConsume(consumer, inputStream);
 					} catch (IOException e) {
-						Errlog.errlog(
+						Errlog.error(
 								"caught IOException in asynchronous stream consumer thread",
 								e);
 					}

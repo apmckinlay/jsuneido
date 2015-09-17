@@ -87,7 +87,7 @@ public final class NativeLibrary {
 		try {
 			result = findLibrary(libraryName);
 		} catch (IOException e) {
-			Errlog.errlog("error while searching for " + libraryName, e);
+			Errlog.error("error while searching for " + libraryName, e);
 		}
 		// Failed to find it for any reason? Return null.
 		if (null == result) {
@@ -108,11 +108,11 @@ public final class NativeLibrary {
 			try {
 				libraryDir.mkdirs();
 			} catch (SecurityException e) {
-				Errlog.errlog(errMsg, e);
+				Errlog.error(errMsg, e);
 				return null;
 			}
 			if (!libraryDir.isDirectory()) {
-				Errlog.errlog(errMsg + ": " + libraryDir);
+				Errlog.error(errMsg + ": " + libraryDir);
 				return null;
 			}
 		}
@@ -122,7 +122,7 @@ public final class NativeLibrary {
 		try {
 			FileUtils.copy(result.file, libraryFile);
 		} catch (IOException e) {
-			Errlog.errlog(
+			Errlog.error(
 					"can't persist " + libraryFile + " to " + libraryDir, e);
 			return null;
 		}

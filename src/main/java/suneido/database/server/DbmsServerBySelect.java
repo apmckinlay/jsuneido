@@ -9,7 +9,6 @@ import static suneido.util.ByteBuffers.stringToBuffer;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -22,6 +21,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import suneido.SuException;
 import suneido.Suneido;
+import suneido.util.Errlog;
 import suneido.util.NetworkOutput;
 import suneido.util.ServerBySelect;
 
@@ -45,7 +45,7 @@ public class DbmsServerBySelect {
 		try {
 			server.run(port);
 		} catch (IOException e) {
-			e.printStackTrace();
+			Errlog.error("IOException in ServerBySelect.run", e);
 		}
 	}
 
@@ -171,11 +171,8 @@ public class DbmsServerBySelect {
 				output = cmd.execute(line, extra, outputQueue);
 			} catch (Throwable e) {
 				Class<? extends Throwable> c = e.getClass();
-				if (c != RuntimeException.class && c != SuException.class) {
-					System.err.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").
-							format(new Date()) + " ");
-					e.printStackTrace();
-				}
+				if (c != RuntimeException.class && c != SuException.class)
+					Errlog.error("DbmsServerBySelect.run", e);
 				output = stringToBuffer("ERR " + escape(e.toString()) + "\r\n");
 			}
 			line = null;

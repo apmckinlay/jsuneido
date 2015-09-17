@@ -279,7 +279,7 @@ final class JDWPAgentClient {
 	}
 
 	private void errlog(String detail, Throwable cause) {
-		Errlog.errlog(errorMessage(detail, cause), cause);
+		Errlog.error(errorMessage(detail, cause), cause);
 	}
 
 	private StackInfo convertRepoIndirectToDirect(ObjectReference repoIndirect) {
@@ -561,7 +561,7 @@ final class JDWPAgentClient {
 					vm = null;
 				}
 			} catch (Throwable t) {
-				Errlog.errlog(t.getMessage(), t);
+				Errlog.error(t.getMessage(), t);
 			}
 		}
 

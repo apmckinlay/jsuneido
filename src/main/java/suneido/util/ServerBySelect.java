@@ -71,7 +71,7 @@ public class ServerBySelect {
 				handleWriters();
 				closeIdleConnections();
 			} catch (Throwable e) {
-				Errlog.errlog("error in server loop", e);
+				Errlog.error("error in server loop", e);
 			}
 		}
 	}
@@ -226,7 +226,7 @@ public class ServerBySelect {
 
 	private static void errorClose(SelectionKey key, Exception e) {
 		Info info = (Info) key.attachment();
-		Errlog.errlog(info.handler + " io failed so closing", e);
+		Errlog.error(info.handler + " io failed so closing", e);
 		close(key);
 	}
 

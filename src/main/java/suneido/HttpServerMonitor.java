@@ -10,11 +10,12 @@ import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.List;
 
-import suneido.database.server.DbmsServer;
-
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+
+import suneido.database.server.DbmsServer;
+import suneido.util.Errlog;
 
 public class HttpServerMonitor {
 
@@ -23,7 +24,7 @@ public class HttpServerMonitor {
 		try {
 			server = HttpServer.create(new InetSocketAddress(port),	0);
 		} catch (IOException e) {
-			e.printStackTrace();
+			Errlog.error("HttpServerMonitor.run", e);
 			return;
 		}
 		server.createContext("/", new MyHandler());

@@ -7,9 +7,9 @@ package suneido;
 import java.io.*;
 
 import suneido.compiler.Compiler;
-import suneido.debug.CallstackProvider;
 import suneido.jsdi.JSDI;
 import suneido.runtime.Ops;
+import suneido.util.Errlog;
 
 /*
  -agentlib:hprof=cpu=samples,interval=1,depth=6,cutoff=.01
@@ -73,11 +73,7 @@ public class Repl {
 				if (result != null)
 					out.println(" => " + Ops.display(result));
 			} catch (Throwable e) {
-				if (e instanceof CallstackProvider) {
-					((CallstackProvider)e).printCallstack(out);
-				} else {
-					e.printStackTrace(out);
-				}
+				Errlog.error("Repl", e);
 			}
 		} // repl: while (true)
 		out.println("bye");

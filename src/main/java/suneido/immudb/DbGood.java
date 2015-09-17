@@ -34,7 +34,7 @@ public class DbGood {
 		try {
 			Files.write(Paths.get(filename), hash(size));
 		} catch (Throwable e) {
-			Errlog.errlog("ERROR in DbGood.create", e);
+			Errlog.error("DbGood.create", e);
 		}
 	}
 
@@ -45,7 +45,7 @@ public class DbGood {
 						hash(size),
 						Files.readAllBytes(Paths.get(filename)));
 		} catch (Throwable e) {
-			Errlog.errlog("ERROR in DbGood.check", e);
+			Errlog.error("DbGood.check", e);
 			return false;
 		}
 	}

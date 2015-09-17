@@ -225,15 +225,17 @@ class UpdateTransaction extends ReadWriteTransaction {
 			}
 		}
 		if (writeCount > WARN_WRITES_PER_TRANSACTION)
-			Errlog.errlog("WARNING: excessive writes (" + writeCount +
+			Errlog.warn("excessive writes (" + writeCount +
 					") writes (output/update/delete) in one transaction " + this);
 		long secs = stopwatch.elapsed(TimeUnit.SECONDS);
 		if (secs > WARN_UPDATE_TRAN_DURATION_SEC &&
 				! (this instanceof SchemaTransaction)) {
-			String type = (secs < Transactions.MAX_UPDATE_TRAN_DURATION_SEC + 2)
-					? "WARNING" : "ERROR";
-			Errlog.errlog(type + ": long duration update transaction " + this +
-					" (" + secs + " seconds)");
+			String msg = ": long duration update transaction " + this +
+								" (" + secs + " seconds)";
+			if (secs < Transactions.MAX_UPDATE_TRAN_DURATION_SEC + 2)
+				Errlog.warn(msg);
+			else
+				Errlog.error(msg);
 		}
 	}
 
@@ -465,7 +467,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 			trans.commit(this);
 			// db.persist(); // for testing - persist after every transaction
 		} catch (Throwable e) {
-			Errlog.fatal("error in UpdateTransaction.finish", e);
+			Errlog.fatal("ERROR in UpdateTransaction.finish", e);
 		}
 	}
 

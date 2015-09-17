@@ -13,6 +13,7 @@ import java.util.Date;
 
 import gnu.trove.map.hash.TIntObjectHashMap;
 import suneido.immudb.Bootstrap.TN;
+import suneido.util.Errlog;
 import suneido.util.FileUtils;
 
 class DbRebuild {
@@ -72,7 +73,7 @@ class DbRebuild {
 			return "Last good commit " +
 					new SimpleDateFormat("yyyy-MM-dd HH:mm").format(lastOkDate);
 		} catch (Exception e) {
-			e.printStackTrace(System.out);
+			Errlog.error("DbRebuild", e);
 			return null;
 		} finally {
 			dstor.close();

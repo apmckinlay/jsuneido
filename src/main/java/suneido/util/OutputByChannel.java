@@ -69,7 +69,7 @@ public class OutputByChannel implements NetworkOutput {
 		try {
 			channel.close();
 		} catch (IOException e) {
-			e.printStackTrace();
+			Errlog.error("OutputByChannel.close", e);
 		}
 	}
 

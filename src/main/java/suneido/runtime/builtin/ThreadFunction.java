@@ -39,7 +39,7 @@ public class ThreadFunction {
 				TheDbms.setAuthToken(token);
 				Ops.call(callable);
 			} catch (Throwable e ) {
-				Errlog.uncaught("in thread", e);
+				Errlog.error("Thread uncaught", e);
 			}
 		}
 

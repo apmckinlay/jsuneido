@@ -14,6 +14,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
+import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+
 import suneido.SuException;
 import suneido.SuValue;
 import suneido.TheDbms;
@@ -21,9 +24,6 @@ import suneido.runtime.*;
 import suneido.util.Errlog;
 import suneido.util.ServerBySocket;
 import suneido.util.ServerBySocket.HandlerFactory;
-
-import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
  * Thread per connection socket server.
@@ -190,7 +190,7 @@ public class SocketServer extends SuClass {
 			try {
 				super.lookup("Run").eval0(this);
 			} catch (Exception e) {
-				Errlog.errlog("exception in SocketServer", e);
+				Errlog.error("SocketServer", e);
 			} finally {
 				socket.close();
 				TheDbms.closeIfIdle();

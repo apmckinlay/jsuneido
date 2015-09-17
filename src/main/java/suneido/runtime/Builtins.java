@@ -156,7 +156,7 @@ public class Builtins {
 			Class.forName("org.apache.lucene.analysis.standard.StandardAnalyzer");
 			return Lucene.singleton;
 		} catch (ClassNotFoundException e) {
-			Errlog.errlog("ERROR: lucene not found");
+			Errlog.error("lucene not found");
 			return NoLucene.singleton;
 		}
 	}

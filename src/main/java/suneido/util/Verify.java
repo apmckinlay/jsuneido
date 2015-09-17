@@ -4,9 +4,6 @@
 
 package suneido.util;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 public class Verify {
 
 	public static void verify(boolean arg, String msg) {
@@ -14,8 +11,7 @@ public class Verify {
 			RuntimeException e = new RuntimeException("ERROR: verify failed: " + msg);
 			// DbmsServerBySelect also prints exceptions
 			// but NOT RuntimeException or SuException
-			System.err.print(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) + " ");
-			e.printStackTrace();
+			Errlog.error("", e);
 			throw e;
 		}
 	}

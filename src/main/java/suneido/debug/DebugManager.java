@@ -63,7 +63,7 @@ public final class DebugManager {
 		if (testIf_jsdebugAgent_Available() || startJDWPAgent())
 			return DebugModel.ON;
 		else {
-			Errlog.errlog("unable to initialize 'all' debugging - "
+			Errlog.error("unable to initialize 'all' debugging - "
 					+ "falling back to 'stack' debugging");
 			return DebugModel.OFF;
 		}
@@ -101,7 +101,7 @@ public final class DebugManager {
 				jdwpAgentClient = new JDWPAgentClient(jdwpClientPort);
 				jdwpAgentClient.start();
 			} catch (Throwable t) {
-				Errlog.errlog("can't start JDWP client: " + t.getMessage(), t);
+				Errlog.error("can't start JDWP client: " + t.getMessage(), t);
 				jdwpAgentState = AGENT_NOT_AVAILABLE;
 				return false;
 			}
@@ -179,7 +179,7 @@ public final class DebugManager {
 			try {
 				return new CallstackAll(newStackInfo(), throwable);
 			} catch (Throwable newException) {
-				Errlog.errlog("exception building callstack", newException);
+				Errlog.error("exception building callstack", newException);
 			}
 			// Deliberately fall through from the exception to build a
 			// minimalist CallstackNone.

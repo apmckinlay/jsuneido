@@ -173,7 +173,7 @@ class Transactions {
 
 	private static void abort(UpdateTransaction t, String msg) {
 		t.abortIfNotComplete(msg);
-		Errlog.errlog("aborted " + t + " - " + msg);
+		Errlog.info("aborted " + t + " - " + msg);
 	}
 
 	synchronized List<Integer> tranlist() {
