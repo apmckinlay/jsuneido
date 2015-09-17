@@ -14,7 +14,6 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import suneido.DbTools;
 import suneido.intfc.database.DatabasePackage.Observer;
 import suneido.intfc.database.DatabasePackage.Status;
 
@@ -159,8 +158,8 @@ class DbCheck {
 		ob.print(s + "\n");
 	}
 
-	public static void main(String[] args) {
-		DbTools.checkPrint(DatabasePackage.dbpkg, "suneido.db");
-	}
+//	public static void main(String[] args) {
+//		DbTools.checkPrint(DatabasePackage.dbpkg, "suneido.db");
+//	}
 
 }

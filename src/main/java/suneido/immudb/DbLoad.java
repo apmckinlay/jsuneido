@@ -4,23 +4,17 @@
 
 package suneido.immudb;
 
-import static suneido.Suneido.dbpkg;
 import static suneido.util.FileUtils.fullRead;
 import static suneido.util.FileUtils.getline;
 import static suneido.util.FileUtils.readInt;
 import static suneido.util.Verify.verify;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.ReadableByteChannel;
 
-import suneido.DbTools;
-import suneido.Suneido;
 import suneido.database.query.Request;
-
-import com.google.common.base.Stopwatch;
 
 class DbLoad {
 
@@ -150,15 +144,15 @@ class DbLoad {
 		//System.out.print(s);
 	}
 
-	public static void main(String[] args) throws IOException  {
-		Stopwatch sw = Stopwatch.createStarted();
-		Database db = (Database) dbpkg.create(dbpkg.dbFilename());
-		@SuppressWarnings("resource")
-		ReadableByteChannel fin = new FileInputStream("database.su").getChannel();
-		loadDatabase(db, fin);
-		db.close();
-		System.out.println(sw);
-		DbTools.checkPrint(Suneido.dbpkg, dbpkg.dbFilename());
-	}
+//	public static void main(String[] args) throws IOException  {
+//		Stopwatch sw = Stopwatch.createStarted();
+//		Database db = (Database) dbpkg.create(dbpkg.dbFilename());
+//		@SuppressWarnings("resource")
+//		ReadableByteChannel fin = new FileInputStream("database.su").getChannel();
+//		loadDatabase(db, fin);
+//		db.close();
+//		System.out.println(sw);
+//		DbTools.checkPrint(Suneido.dbpkg, dbpkg.dbFilename());
+//	}
 
 }

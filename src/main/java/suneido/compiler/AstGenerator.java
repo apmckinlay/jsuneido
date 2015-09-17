@@ -370,13 +370,14 @@ public class AstGenerator extends Generator<AstNode> {
 		return list;
 	}
 
-	public static void main(String[] args) {
-		String s = "function () { 10.Times() { } }";
-		Lexer lexer = new Lexer(s);
-		AstGenerator generator = new AstGenerator();
-		ParseConstant<AstNode, Generator<AstNode>> pc =
-				new ParseConstant<AstNode, Generator<AstNode>>(lexer, generator);
-		AstNode ast = pc.parse();
-		System.out.println(ast);
-	}
+//	public static void main(String[] args) {
+//		String s = "function () { 10.Times() { } }";
+//		Lexer lexer = new Lexer(s);
+//		AstGenerator generator = new AstGenerator();
+//		ParseConstant<AstNode, Generator<AstNode>> pc =
+//				new ParseConstant<AstNode, Generator<AstNode>>(lexer, generator);
+//		AstNode ast = pc.parse();
+//		System.out.println(ast);
+//	}
+
 }

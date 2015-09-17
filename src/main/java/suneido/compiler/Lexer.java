@@ -342,15 +342,15 @@ public class Lexer implements Doesc.Src {
 
 	@Override
 	public void move(int d) {
-		si += d;		
+		si += d;
 	}
 
-	public static void main(String[] args) {
-		Lexer lexer = new Lexer("function (.param, _param) { }");
-		while (lexer.hasNext()) {
-			Token token = lexer.next();
-			System.out.println(token);
-		}
-	}
-	
+//	public static void main(String[] args) {
+//		Lexer lexer = new Lexer("function (.param, _param) { }");
+//		while (lexer.hasNext()) {
+//			Token token = lexer.next();
+//			System.out.println(token);
+//		}
+//	}
+
 }

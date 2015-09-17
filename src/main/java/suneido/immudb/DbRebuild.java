@@ -332,13 +332,13 @@ class DbRebuild {
 		}
 	}
 
-	public static void main(String[] args) {
-		String dbname = "suneido.db";
-		String result = rebuild(dbname, dbname + "rb");
-		if (result == null)
-			System.out.println("Rebuild " + dbname + ": FAILED");
-		else
-			System.out.println("Rebuild " + dbname + ": " + result);
-	}
+//	public static void main(String[] args) {
+//		String dbname = "suneido.db";
+//		String result = rebuild(dbname, dbname + "rb");
+//		if (result == null)
+//			System.out.println("Rebuild " + dbname + ": FAILED");
+//		else
+//			System.out.println("Rebuild " + dbname + ": " + result);
+//	}
 
 }

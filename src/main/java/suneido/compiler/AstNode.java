@@ -171,10 +171,10 @@ public class AstNode {
 		visitor.bottomUp(this);
 	}
 
-	public static void main(String[] args) {
-		System.out.println(new AstNode(Token.ADD,
-				new AstNode(Token.IDENTIFIER, "x"),
-				new AstNode(Token.NUMBER, "123")));
-	}
+//	public static void main(String[] args) {
+//		System.out.println(new AstNode(Token.ADD,
+//				new AstNode(Token.IDENTIFIER, "x"),
+//				new AstNode(Token.NUMBER, "123")));
+//	}
 
 }

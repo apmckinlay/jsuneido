@@ -34,8 +34,8 @@ public class Verify {
 				"expected " + expected + " got: " + actual);
 	}
 
-	public static void main(String[] args) {
-		verify(false, "testing");
-	}
+//	public static void main(String[] args) {
+//		verify(false, "testing");
+//	}
 
 }

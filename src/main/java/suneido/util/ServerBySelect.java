@@ -4,8 +4,6 @@
 
 package suneido.util;
 
-import static suneido.util.ByteBuffers.stringToBuffer;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -322,46 +320,46 @@ public class ServerBySelect {
 
 	//==========================================================================
 
-	public static void main(String[] args) {
-		ServerBySelect server = new ServerBySelect(new EchoHandlerFactory());
-		try {
-			server.run(1234);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	static class EchoHandler implements Handler {
-		private static ByteBuffer hello = stringToBuffer("EchoServer\r\n");
-		NetworkOutput outputQueue;
-
-		EchoHandler(NetworkOutput outputQueue) {
-			this.outputQueue = outputQueue;
-		}
-
-		@Override
-		public void start() {
-			hello.rewind();
-			outputQueue.add(hello);
-			outputQueue.write();
-		}
-
-		@Override
-		public void moreInput(ByteBuffer buf) {
-			ByteBuffer output = ByteBuffer.allocate(buf.remaining());
-			output.put(buf).rewind();
-			outputQueue.add(output);
-		}
-
-		@Override
-		public void close() {
-		}
-	}
-	static class EchoHandlerFactory implements HandlerFactory {
-		@Override
-		public Handler newHandler(NetworkOutput outputQueue, String address) {
-			return new EchoHandler(outputQueue);
-		}
-	}
+//	public static void main(String[] args) {
+//		ServerBySelect server = new ServerBySelect(new EchoHandlerFactory());
+//		try {
+//			server.run(1234);
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//	}
+//
+//	static class EchoHandler implements Handler {
+//		private static ByteBuffer hello = stringToBuffer("EchoServer\r\n");
+//		NetworkOutput outputQueue;
+//
+//		EchoHandler(NetworkOutput outputQueue) {
+//			this.outputQueue = outputQueue;
+//		}
+//
+//		@Override
+//		public void start() {
+//			hello.rewind();
+//			outputQueue.add(hello);
+//			outputQueue.write();
+//		}
+//
+//		@Override
+//		public void moreInput(ByteBuffer buf) {
+//			ByteBuffer output = ByteBuffer.allocate(buf.remaining());
+//			output.put(buf).rewind();
+//			outputQueue.add(output);
+//		}
+//
+//		@Override
+//		public void close() {
+//		}
+//	}
+//	static class EchoHandlerFactory implements HandlerFactory {
+//		@Override
+//		public Handler newHandler(NetworkOutput outputQueue, String address) {
+//			return new EchoHandler(outputQueue);
+//		}
+//	}
 
 }

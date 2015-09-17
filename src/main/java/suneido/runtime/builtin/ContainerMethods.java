@@ -12,9 +12,11 @@ import static suneido.util.Util.array;
 import java.math.BigDecimal;
 import java.util.*;
 
-import suneido.*;
+import suneido.SuContainer;
 import suneido.SuContainer.IterResult;
 import suneido.SuContainer.IterWhich;
+import suneido.SuException;
+import suneido.SuValue;
 import suneido.runtime.*;
 import suneido.util.Util.Range;
 
@@ -415,10 +417,6 @@ public final class ContainerMethods {
 
 	public static SuCallable lookup(String method) {
 		return methods.lookup(method);
-	}
-
-	public static void main(String[] args) {
-		System.out.println(IterateMethods.singleton);
 	}
 
 }

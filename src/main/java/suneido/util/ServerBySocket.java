@@ -5,8 +5,6 @@
 package suneido.util;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.Executor;
@@ -53,47 +51,47 @@ public class ServerBySocket {
 
 	//==========================================================================
 
-	static class EchoHandlerFactory implements HandlerFactory {
-		@Override
-		public Runnable newHandler(Socket socket) throws IOException {
-			return new EchoHandler(socket);
-		}
-	}
-
-	static class EchoHandler implements Runnable {
-		private final Socket socket;
-		private final InputStream in;
-		private final OutputStream out;
-		private final byte[] buf = new byte[128];
-
-		EchoHandler(Socket socket) throws IOException {
-			this.socket = socket;
-			in = socket.getInputStream();
-			out = socket.getOutputStream();
-		}
-
-		@Override
-		public void run() {
-			try {
-				out.write("EchoServer\r\n".getBytes());
-				int n;
-				while (-1 != (n = in.read(buf))) {
-					out.write(buf, 0, n);
-				}
-				socket.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-
-	public static void main(String[] args) {
-		ServerBySocket server = new ServerBySocket(new EchoHandlerFactory());
-		try {
-			server.run(1234);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+//	static class EchoHandlerFactory implements HandlerFactory {
+//		@Override
+//		public Runnable newHandler(Socket socket) throws IOException {
+//			return new EchoHandler(socket);
+//		}
+//	}
+//
+//	static class EchoHandler implements Runnable {
+//		private final Socket socket;
+//		private final InputStream in;
+//		private final OutputStream out;
+//		private final byte[] buf = new byte[128];
+//
+//		EchoHandler(Socket socket) throws IOException {
+//			this.socket = socket;
+//			in = socket.getInputStream();
+//			out = socket.getOutputStream();
+//		}
+//
+//		@Override
+//		public void run() {
+//			try {
+//				out.write("EchoServer\r\n".getBytes());
+//				int n;
+//				while (-1 != (n = in.read(buf))) {
+//					out.write(buf, 0, n);
+//				}
+//				socket.close();
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
+//		}
+//	}
+//
+//	public static void main(String[] args) {
+//		ServerBySocket server = new ServerBySocket(new EchoHandlerFactory());
+//		try {
+//			server.run(1234);
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//	}
 
 }

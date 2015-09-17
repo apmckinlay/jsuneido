@@ -66,9 +66,9 @@ public class AstVariables {
 		return (i == 0) ? name : uncapitalize(name.substring(i));
 	}
 
-	public static void main(String[] args) {
-		AstNode ast = Compiler.parse("function (@x) { a + b }");
-		System.out.println(vars(ast));
-	}
+//	public static void main(String[] args) {
+//		AstNode ast = Compiler.parse("function (@x) { a + b }");
+//		System.out.println(vars(ast));
+//	}
 
 }

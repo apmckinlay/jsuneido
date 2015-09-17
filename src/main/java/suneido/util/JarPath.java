@@ -21,8 +21,8 @@ public class JarPath {
 		return path;
 	}
 
-	public static void main(String[] args) {
-		System.out.println(jarPath());
-	}
+//	public static void main(String[] args) {
+//		System.out.println(jarPath());
+//	}
 
 }

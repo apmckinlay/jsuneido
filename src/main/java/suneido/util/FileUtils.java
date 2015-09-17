@@ -130,13 +130,13 @@ public class FileUtils {
 		}
 	}
 
-	public static void main(String[] args) {
-		try {
-			copy("../suneido.db", "../suneido.db.copy");
-			System.out.println("copied successfully");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+//	public static void main(String[] args) {
+//		try {
+//			copy("../suneido.db", "../suneido.db.copy");
+//			System.out.println("copied successfully");
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//	}
 
 }

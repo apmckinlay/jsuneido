@@ -20,8 +20,8 @@ public class Jvm {
 		return Joiner.on(" ").join(args);
 	}
 
-	public static void main(String[] args) {
-		System.out.println("success? " + runWithNewJvm("-load:fred"));
-	}
+//	public static void main(String[] args) {
+//		System.out.println("success? " + runWithNewJvm("-load:fred"));
+//	}
 
 }

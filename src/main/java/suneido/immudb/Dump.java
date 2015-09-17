@@ -112,9 +112,9 @@ public class Dump {
 		}
 	}
 
-	public static void main(String[] args) throws FileNotFoundException {
-		dump();
-//		ending(db.dstor, db.istor, false);
-	}
+//	public static void main(String[] args) throws FileNotFoundException {
+//		dump();
+////		ending(db.dstor, db.istor, false);
+//	}
 
 }

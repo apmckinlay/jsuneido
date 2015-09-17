@@ -4,14 +4,10 @@
 
 package suneido.immudb;
 
-import static suneido.Suneido.dbpkg;
-
 import java.util.List;
 
 import suneido.database.query.Request;
 import suneido.intfc.database.IndexIter;
-
-import com.google.common.base.Stopwatch;
 
 class DbCompact {
 	private final Database oldDB;
@@ -94,12 +90,12 @@ class DbCompact {
 		}
 	}
 
-	public static void main(String[] args) throws InterruptedException {
-		Database dbin = (Database) dbpkg.openReadonly("/test/sample/suneido.db");
-		Database dbout = (Database) dbpkg.create("immu.compact");
-		Stopwatch sw = Stopwatch.createStarted();
-		int n = compact(dbin, dbout);
-		System.out.println("compacted " + n + " tables " + "in " + sw);
-	}
+//	public static void main(String[] args) throws InterruptedException {
+//		Database dbin = (Database) dbpkg.openReadonly("/test/sample/suneido.db");
+//		Database dbout = (Database) dbpkg.create("immu.compact");
+//		Stopwatch sw = Stopwatch.createStarted();
+//		int n = compact(dbin, dbout);
+//		System.out.println("compacted " + n + " tables " + "in " + sw);
+//	}
 
 }
