@@ -5,7 +5,6 @@
 package suneido;
 
 import suneido.debug.DebugModel;
-import suneido.util.Errlog;
 
 /*
  * WARNING: setting debug from here doesn't work properly
@@ -30,7 +29,6 @@ public class CommandLineOptions {
 	public String impersonate = WhenBuilt.when();
 	private static final int DEFAULT_TIMEOUT = 4 * 60; // 4 hours
 	public int timeoutMin = DEFAULT_TIMEOUT;
-	public boolean snapshotIsolation = false;
 	public int max_update_tran_sec = 0;
 	public int max_writes_per_tran = 0;
 	public boolean jsdi = true;
@@ -106,8 +104,6 @@ public class CommandLineOptions {
 					error("impersonate requires value");
 			} else if (arg.equals("-timeout") || arg.equals("-to"))
 				timeoutMin = getIntArg();
-			else if (arg.equals("-si"))
-				Errlog.errlog("WARNING: -si option is no longer used");
 			else if (arg.equals("-ut"))
 				max_update_tran_sec = getIntArg();
 			else if (arg.equals("-mw"))
