@@ -158,12 +158,14 @@ public class Suneido {
 		db = dbpkg.open(dbpkg.dbFilename());
 		if (db == null) {
 			Errlog.error("database corrupt, rebuilding");
+			HttpServerMonitor.rebuilding();
 			tryToCloseMemoryMappings();
 			DbTools.rebuildOrExit(dbpkg, dbpkg.dbFilename());
 			db = dbpkg.open(dbpkg.dbFilename());
 			if (db == null)
 				Errlog.fatal("could not open database after rebuild");
 		}
+		HttpServerMonitor.running();
 		TheDbms.set(db);
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> Suneido.db.close()));
 		// need to catch exceptions else scheduler will stop running task

@@ -12,6 +12,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.base.MoreObjects;
 
+import suneido.HttpServerMonitor;
 import suneido.SuException;
 import suneido.immudb.DbHashTrie.Entry;
 import suneido.immudb.DbHashTrie.IntEntry;
@@ -116,7 +117,11 @@ class Database implements suneido.intfc.database.Database {
 
 	private static boolean fullCheck(Storage dstor, Storage istor) {
 		Errlog.warn("full check required - database not shut down properly?");
-		return new Check(dstor, istor).fullcheck();
+		HttpServerMonitor.checking();
+		boolean ok = new Check(dstor, istor).fullcheck();
+		//BUG: if check fails, then rebuild will do another redundant check
+		HttpServerMonitor.running();
+		return ok;
 	}
 
 	static Database openWithoutCheck(String filename) {
