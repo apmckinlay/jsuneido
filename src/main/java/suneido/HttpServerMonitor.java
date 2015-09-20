@@ -20,9 +20,10 @@ import suneido.util.Errlog;
 
 public class HttpServerMonitor {
 	private final static int RUNNING = 0;
-	private final static int CHECKING = 1;
-	private final static int REBUILDING = 2;
-	private static AtomicInteger mode = new AtomicInteger(CHECKING);
+	private final static int CORRUPT = 2;
+	private final static int CHECKING = 3;
+	private final static int REBUILDING = 4;
+	private static AtomicInteger mode = new AtomicInteger(RUNNING);
 
 	public static void run(int port) {
 		HttpServer server;
@@ -78,6 +79,7 @@ public class HttpServerMonitor {
 			case REBUILDING:
 				return "<h2>Rebuilding database ...</h2>\r\n";
 			case RUNNING:
+			case CORRUPT:
 			default:
 				return status();
 			}
@@ -87,6 +89,9 @@ public class HttpServerMonitor {
 			List<String> conns = DbmsServer.connections();
 			Collections.sort(conns);
 			StringBuilder sb = new StringBuilder();
+			if (mode.get() == CORRUPT)
+				sb.append("<h2>DATABASE DAMAGE DETECTED - "
+						+ "OPERATING IN READ-ONLY MODE</h2>");
 	       	sb.append("<p>Built: ")
 	       		.append(WhenBuilt.when())
 	       		.append("</p>\r\n"

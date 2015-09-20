@@ -270,6 +270,8 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	}
 
 	// complete ----------------------------------------------------------------
+	
+	static boolean locked = false;
 
 	@Override
 	// overrides ReadTransaction.complete
@@ -277,7 +279,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 		if (isAborted())
 			return conflict;
 		assert ! ended;
-		if (onlyReads) {
+		if (onlyReads || locked) {
 			abort();
 			return null;
 		}
