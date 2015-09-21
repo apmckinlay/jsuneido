@@ -50,6 +50,10 @@ public class HttpServerMonitor {
 		mode.set(REBUILDING);
 	}
 
+	public static void corrupt() {
+		mode.set(CORRUPT);
+	}
+
 	private static class MyHandler implements HttpHandler {
 		@Override
 		public void handle(HttpExchange t) throws IOException {
@@ -75,9 +79,9 @@ public class HttpServerMonitor {
 		private static String getBody() {
 			switch (HttpServerMonitor.mode.get()) {
 			case CHECKING:
-				return "<h2>Checking database ...<h2>\r\n";
+				return "<h2 style=\"color: red;\">Checking database ...<h2>\r\n";
 			case REBUILDING:
-				return "<h2>Rebuilding database ...</h2>\r\n";
+				return "<h2 style=\"color: red;\">Rebuilding database ...</h2>\r\n";
 			case RUNNING:
 			case CORRUPT:
 			default:
@@ -90,7 +94,7 @@ public class HttpServerMonitor {
 			Collections.sort(conns);
 			StringBuilder sb = new StringBuilder();
 			if (mode.get() == CORRUPT)
-				sb.append("<h2>DATABASE DAMAGE DETECTED - "
+				sb.append("<h2 style=\"color: red;\">DATABASE DAMAGE DETECTED - "
 						+ "OPERATING IN READ-ONLY MODE</h2>");
 	       	sb.append("<p>Built: ")
 	       		.append(WhenBuilt.when())
