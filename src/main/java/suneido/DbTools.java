@@ -218,7 +218,7 @@ public class DbTools {
 		if (result == null)
 			System.exit(-1);
 		else {
-			Errlog.error("Rebuild " + dbFilename + ": " + result);
+			Errlog.warn("Rebuilt " + dbFilename + ": " + result);
 			System.out.println("Rebuild SUCCEEDED in " + sw);
 		}
 	}
