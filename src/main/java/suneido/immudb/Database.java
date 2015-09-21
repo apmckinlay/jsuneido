@@ -11,6 +11,7 @@ import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
 
 import suneido.HttpServerMonitor;
 import suneido.SuException;
@@ -345,6 +346,8 @@ class Database implements suneido.intfc.database.Database {
 
 	@Override
 	public List<Integer> tranlist() {
+		if (trans.isLocked())
+			return ImmutableList.of(Integer.valueOf(0));
 		return trans.tranlist();
 	}
 
