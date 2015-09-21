@@ -127,6 +127,8 @@ public class DbTools {
 			tablename = tablename.substring(0, tablename.length() - 3);
 		Database db = dbpkg.dbExists(dbFilename)
 				? dbpkg.open(dbFilename) : dbpkg.create(dbFilename);
+		if (db == null)
+			throw new RuntimeException("can't open database");
 		try {
 			@SuppressWarnings("resource")
 			ReadableByteChannel fin = new FileInputStream(tablename + ".su").getChannel();
@@ -138,7 +140,7 @@ public class DbTools {
 				fin.close();
 			}
 		} catch (Exception e) {
-			throw new RuntimeException("load table failed", e);
+			throw new RuntimeException("load " + tablename + " failed", e);
 		} finally {
 			db.close();
 		}
