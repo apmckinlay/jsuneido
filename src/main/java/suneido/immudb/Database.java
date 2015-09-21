@@ -170,6 +170,7 @@ class Database implements suneido.intfc.database.Database {
 	}
 
 	@Override
+	/** @return "" if successful, otherwise an error message */
 	public String check() {
 		int dUpTo, iUpTo;
 		synchronized (commitLock) {
@@ -179,8 +180,11 @@ class Database implements suneido.intfc.database.Database {
 		}
 		StringObserver so = new StringObserver();
 		Status status = DbCheck.check(filename, dstor, istor, dUpTo, iUpTo, so);
-		if (status != Status.OK)
-			corrupt = true;
+		if (status != Status.OK) {
+			HttpServerMonitor.corrupt();
+			corrupt = true; // prevent writing dbc file
+			trans.lock(); // silently abort all transactions
+		}
 		return status == Status.OK ? "" : so.toString();
 	}
 

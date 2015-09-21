@@ -40,6 +40,7 @@ class Transactions {
 	private static final int MAX_OVERLAPPING = 200;
 	static int MAX_UPDATE_TRAN_DURATION_SEC = 10;
 	private volatile boolean exclusive = false;
+	private volatile boolean locked = false;
 
 	long clock() {
 		return clock.incrementAndGet();
@@ -185,6 +186,14 @@ class Transactions {
 
 	synchronized int finalSize() {
 		return overlapping.size();
+	}
+
+	synchronized void lock() {
+		locked = true;
+	}
+
+	synchronized boolean isLocked() {
+		return locked;
 	}
 
 }
