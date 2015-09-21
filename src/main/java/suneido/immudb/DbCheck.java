@@ -88,10 +88,12 @@ class DbCheck {
 	}
 
 	String lastCommit(Status status) {
+		String lgc = last_good_commit == null
+				? "not found"
+				: new SimpleDateFormat("yyyy-MM-dd HH:mm").format(last_good_commit);
 		return status == Status.UNRECOVERABLE
 			? "Unrecoverable"
-			: "Last " + (status == Status.CORRUPTED ? "good " : "")	+ "commit "
-					+ new SimpleDateFormat("yyyy-MM-dd HH:mm").format(last_good_commit);
+			: "Last " + (status == Status.CORRUPTED ? "good " : "")	+ "commit " + lgc;
 	}
 
 	private static final int BAD_LIMIT = 10;
