@@ -183,7 +183,7 @@ public class DbmsLocal extends Dbms {
 	@Override
 	public void log(String s) {
 		String sessionId = ServerData.forThread().getSessionId();
-		Errlog.error(sessionId + ": " + s);
+		Errlog.bare(sessionId + ": " + s);
 	}
 
 	@Override

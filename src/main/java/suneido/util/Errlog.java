@@ -22,6 +22,10 @@ public class Errlog {
 		Errlog.extra = extra;
 	}
 
+	public static void bare(String s) {
+		log("", s, null);
+	}
+
 	public static void info(String s) {
 		log("INFO", s, null);
 	}
@@ -63,15 +67,17 @@ public class Errlog {
 	}
 
 	private static synchronized void log(String prefix, String s, Throwable e) {
+		if (! prefix.isEmpty())
+			prefix = prefix + ": ";
 		count.incrementAndGet();
-		System.out.println(prefix + ": " +
+		System.out.println(prefix +
 				s + (s.isEmpty() ? "" : " ") +
 				(e == null ? "" : e));
 		try (FileWriter fw = new FileWriter("error.log", true)) {
 			fw.append(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()))
 				.append(" ")
 				.append(extra.get())
-				.append(prefix + ": " + s)
+				.append(prefix + s)
 				.append("\n");
 			if (e != null) {
 				PrintWriter out = new PrintWriter(fw);
