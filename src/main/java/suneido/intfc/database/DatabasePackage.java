@@ -18,6 +18,7 @@ public interface DatabasePackage {
 	Database open(String filename);
 	Database openReadonly(String filename);
 
+	/** Creates an empty in-memory database */
 	Database testdb();
 
 	RecordBuilder recordBuilder();
