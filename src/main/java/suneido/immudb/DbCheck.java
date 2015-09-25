@@ -72,7 +72,6 @@ class DbCheck {
 		boolean ok = check.fullcheck();
 		last_good_commit = check.lastOkDate();
 		if (ok) {
-			println("tables...");
 			if (check_data_and_indexes())
 				status = Status.OK;
 		} else
@@ -100,6 +99,7 @@ class DbCheck {
 	private static final int N_THREADS = Runtime.getRuntime().availableProcessors();
 
 	protected boolean check_data_and_indexes() {
+		println("indexes...");
 		ExecutorService executor = Executors.newFixedThreadPool(N_THREADS);
 		ExecutorCompletionService<String> ecs = new ExecutorCompletionService<>(executor);
 		Database db = Database.openWithoutCheck("", dstor, istor);
@@ -137,7 +137,7 @@ class DbCheck {
 				errors = ecs.take().get();
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
-				errors = "checkTable interrruped\n";
+				errors = "checkTable interrupted\n";
 			} catch (ExecutionException e) {
 				errors = "checkTable " + e;
 			}
