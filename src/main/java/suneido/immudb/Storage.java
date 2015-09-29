@@ -21,7 +21,7 @@ import com.google.common.primitives.UnsignedInts;
  * <li>therefore maximum file size is unsigned int max * ALIGN (32gb)
  * <li>blocks should not start with (long) 0 since that is used to detect padding
  */
-abstract class Storage {
+abstract class Storage implements AutoCloseable {
 	static final int FIRST_ADR = 1;
 	protected static final int SHIFT = 3;
 	private static final long MAX_SIZE = 0xffffffffL << SHIFT;
@@ -240,7 +240,8 @@ abstract class Storage {
 	void force() {
 	}
 
-	void close() {
+	@Override
+	public void close() {
 	}
 
 }
