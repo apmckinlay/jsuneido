@@ -24,7 +24,7 @@ import suneido.util.Errlog;
 import suneido.util.FileUtils;
 
 @ThreadSafe
-class Database implements suneido.intfc.database.Database {
+class Database implements suneido.intfc.database.Database, AutoCloseable {
 	final Transactions trans = new Transactions();
 	final String filename;
 	final Storage dstor;
