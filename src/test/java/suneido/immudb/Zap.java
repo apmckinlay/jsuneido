@@ -14,12 +14,14 @@ public class Zap {
 
 	public static void main(String[] args) {
 		String filename = "suneido.dbi";
-		MmapFile mmf = new MmapFile(filename, "rw");
-		final int N = -200000; // negative for end relative
-		ByteBuffer buf = mmf.rbuffer(N);
-		buf.putLong(~0L);
-		mmf.close();
-		System.out.println("zapped " + filename + " at " + N);
+		try (MmapFile mmf = new MmapFile(filename, "rw")) {
+			long offset = -56; // negative for end relative
+			ByteBuffer buf = offset < 0
+					? mmf.rbuffer(offset)
+					: mmf.buffer(Storage.offsetToAdr(offset));
+			buf.putLong(~0L);
+			System.out.println("zapped " + filename + " at " + offset);
+		}
 	}
 
 }
