@@ -159,7 +159,7 @@ public class DbRebuildTest extends TestBase {
 	private void rebuild() {
 		db.close();
 		db = null;
-		assertNotNull(dbpkg.forceRebuild(filename, outfilename));
+		assertNotNull(dbpkg.rebuildFromData(filename, outfilename));
 		assertEquals(Status.OK, dbpkg.check(outfilename, nullObserver));
 	}
 

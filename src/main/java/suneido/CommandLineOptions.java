@@ -18,7 +18,7 @@ public class CommandLineOptions {
 
 	public enum Action {
 		REPL, SERVER, DUMP, LOAD, CHECK, VERSION, REBUILD, COMPACT, DBDUMP, HELP,
-		ERROR, TESTCLIENT, TESTSERVER, CLIENT, LOAD2, COMPACT2, REBUILD2
+		ERROR, TESTCLIENT, TESTSERVER, CLIENT, LOAD2, COMPACT2, REBUILD2, REBUILD3
 	}
 
 	public Action action;
@@ -81,6 +81,9 @@ public class CommandLineOptions {
 				setAction(Action.REBUILD);
 			else if (arg.startsWith("-rebuild:")) {
 				setAction(Action.REBUILD2);
+				actionArg = arg.substring(9);
+			} else if (arg.startsWith("-rebuild-")) {
+				setAction(Action.REBUILD3);
 				actionArg = arg.substring(9);
 			} else if (arg.equals("-compact"))
 				setAction(Action.COMPACT);

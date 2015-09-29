@@ -111,6 +111,9 @@ public class Suneido {
 		case REBUILD2:
 			DbTools.rebuild2(dbpkg, cmdlineoptions.actionArg);
 			break;
+		case REBUILD3:
+			DbTools.rebuild3(dbpkg, cmdlineoptions.actionArg);
+			break;
 		case COMPACT:
 			DbTools.compactPrintExit(dbpkg, dbFilename);
 			break;

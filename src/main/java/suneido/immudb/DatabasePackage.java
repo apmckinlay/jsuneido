@@ -103,8 +103,8 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 	}
 
 	@Override
-	public String forceRebuild(String dbFilename, String tempfilename) {
-		return DbRebuild.forceRebuild(dbFilename, tempfilename);
+	public String rebuildFromData(String dbFilename, String tempfilename) {
+		return DbRebuild.rebuildFromData(dbFilename, tempfilename);
 	}
 
 	@Override
