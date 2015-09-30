@@ -4,6 +4,9 @@
 
 package suneido.database.server;
 
+import static suneido.Trace.trace;
+import static suneido.Trace.tracing;
+import static suneido.Trace.Type.CLIENTSERVER;
 import static suneido.util.ByteBuffers.stringToBuffer;
 
 import java.io.IOException;
@@ -21,6 +24,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import suneido.SuException;
 import suneido.Suneido;
+import suneido.util.ByteBuffers;
 import suneido.util.Errlog;
 import suneido.util.NetworkOutput;
 import suneido.util.ServerBySelect;
@@ -101,6 +105,9 @@ public class DbmsServerBySelect {
 				line = getLine(buf);
 				if (line == null)
 					return;
+				if (tracing(CLIENTSERVER))
+					trace(CLIENTSERVER, serverData.getSessionId() +
+							" " + ByteBuffers.bufferToString(line).trim());
 //System.out.print("> " + ByteBuffers.bufferToString(line));
 				linelen = line.remaining();
 				cmd = getCmd(line);
