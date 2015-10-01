@@ -145,16 +145,15 @@ public abstract class Query {
 		}
 
 		double cost = Math.min(cost1, cost2);
-		if (!freeze)
-			return cost;
-
-		if (cost >= IMPOSSIBLE)
-			cost = IMPOSSIBLE;
-		else if (cost1 <= cost2)
-			optimize1(index, needs, firstneeds, is_cursor, true);
-		else { // cost2 < cost1
-			tempindex = index;
-			optimize1(noFields, tempindex_needs, firstneeds, is_cursor, true);
+		if (freeze) {
+			if (cost >= IMPOSSIBLE)
+				cost = IMPOSSIBLE;
+			else if (cost1 <= cost2)
+				optimize1(index, needs, firstneeds, is_cursor, true);
+			else { // cost2 < cost1
+				tempindex = index;
+				optimize1(noFields, tempindex_needs, firstneeds, is_cursor, true);
+			}
 		}
 		return cost;
 	}
