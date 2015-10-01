@@ -145,10 +145,10 @@ public abstract class Query {
 		}
 
 		double cost = Math.min(cost1, cost2);
+		if (cost >= IMPOSSIBLE)
+			return IMPOSSIBLE;
 		if (freeze) {
-			if (cost >= IMPOSSIBLE)
-				cost = IMPOSSIBLE;
-			else if (cost1 <= cost2)
+			if (cost1 <= cost2)
 				optimize1(index, needs, firstneeds, is_cursor, true);
 			else { // cost2 < cost1
 				tempindex = index;
