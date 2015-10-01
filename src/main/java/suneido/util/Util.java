@@ -14,6 +14,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSet.Builder;
 import com.google.common.collect.Lists;
 
 import suneido.runtime.Ops;
@@ -137,7 +138,12 @@ public class Util {
 	}
 
 	public static <T> ImmutableSet<T> setUnion(Collection<T> x, Collection<T> y) {
-		return new ImmutableSet.Builder<T>().addAll(x).addAll(y).build();
+		Builder<T> builder = new ImmutableSet.Builder<T>();
+		if (x != null)
+			builder.addAll(x);
+		if (y != null)
+			builder.addAll(y);
+		return builder.build();
 	}
 
 	public static <T> ImmutableSet<T> setIntersect(Collection<T> x, Collection<T> y) {
