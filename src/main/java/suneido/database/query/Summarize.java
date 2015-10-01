@@ -5,30 +5,21 @@
 package suneido.database.query;
 
 import static java.util.Arrays.asList;
-import static suneido.util.Util.concat;
-import static suneido.util.Util.difference;
-import static suneido.util.Util.listToParens;
-import static suneido.util.Util.nil;
-import static suneido.util.Util.setDifference;
-import static suneido.util.Util.setUnion;
-import static suneido.util.Util.startsWith;
-import static suneido.util.Util.startsWithSet;
-import static suneido.util.Util.union;
-import static suneido.util.Util.without;
+import static suneido.util.Util.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import suneido.SuInternalError;
-import suneido.SuContainer;
-import suneido.SuException;
-import suneido.intfc.database.Record;
-import suneido.runtime.Ops;
-
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+
+import suneido.SuContainer;
+import suneido.SuException;
+import suneido.SuInternalError;
+import suneido.intfc.database.Record;
+import suneido.runtime.Ops;
 
 public class Summarize extends Query1 {
 	final List<String> by;
@@ -210,7 +201,7 @@ public class Summarize extends Query1 {
 	private void iterate_setup() {
 		first = false;
 		hdr = source.header();
-		strategyImp = strategy == Strategy.MAP
+		strategyImp = (strategy == Strategy.MAP)
 			? new SummarizeStrategyMap(this)
 			: new SummarizeStrategySeq(this);
 	}
