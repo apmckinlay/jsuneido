@@ -131,6 +131,8 @@ public abstract class Query {
 		double tempindex_cost = nrecords() * keysize * WRITE_FACTOR // write index
 				+ nrecords() * keysize // read index
 				+ 4000; // minimum fixed cost
+		//TODO first pass to build index should be optimize1(noFields, index, noFields
+		//TODO unless index meets all needs add cost of reading data a second time
 		cost2 = no_index_cost + tempindex_cost;
 		verify(cost2 >= 0);
 		if (tracing(QUERYOPT)) {
