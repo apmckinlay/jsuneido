@@ -55,7 +55,7 @@ public class Intersect extends Compatible {
 			}
 			ki = ki2;
 			source.optimize(index, needs1, needs1_k, is_cursor, true);
-			source2.optimize(ki, needs2, noNeeds, is_cursor, true);
+			source2.optimize(ki2, needs2, noNeeds, is_cursor, true);
 		}
 		return cost;
 	}

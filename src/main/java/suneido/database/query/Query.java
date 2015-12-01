@@ -98,6 +98,11 @@ public abstract class Query {
 		return this;
 	}
 
+	/**
+	 * freeze is used to lock in the final strategy.
+	 * The call with freeze = true should be with exactly the same arguments
+	 * as the call that gave the lowest cost.
+	 */
 	double optimize(List<String> index, Set<String> needs,
 			Set<String> firstneeds, boolean is_cursor, boolean freeze) {
 		if (tracing(QUERYOPT)) {
