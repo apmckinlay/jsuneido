@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -43,6 +44,7 @@ import suneido.util.ServerBySocket.HandlerFactory;
  */
 public class SocketServer extends SuClass {
 	public static final SocketServer singleton = new SocketServer();
+	private static final AtomicInteger nconn = new AtomicInteger();
 
 	private SocketServer() {
 		super("builtin", "SocketServer", null,
@@ -188,6 +190,7 @@ public class SocketServer extends SuClass {
 		@Override
 		public void run() {
 			try {
+				setThreadName();
 				super.lookup("Run").eval0(this);
 			} catch (Exception e) {
 				Errlog.error("SocketServer", e);
@@ -201,6 +204,17 @@ public class SocketServer extends SuClass {
 				 * and then if we try to use it again we'll get an error
 				 */
 			}
+		}
+
+		private static void setThreadName() {
+			Thread thread = Thread.currentThread();
+			String name = thread.getName();
+			String sep = " % ";
+			int i = name.indexOf(sep);
+			if (i != -1)
+				name = name.substring(0, i);
+			name += sep + nconn.getAndIncrement();
+			thread.setName(name);
 		}
 
 		@Override
