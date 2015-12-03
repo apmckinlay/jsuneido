@@ -41,8 +41,8 @@ class DbRebuild {
 
 	// for tests
 	DbRebuild(Storage dstor, Storage istor) {
-		this.oldFilename = "infile";
-		this.newFilename = "outfile";
+		this.oldFilename = "";
+		this.newFilename = "";
 		this.dstor = dstor;
 		this.istor = istor;
 	}
@@ -167,9 +167,9 @@ class DbRebuild {
 	// could copy remaining good data and then process in place
 	// but simpler to not copy and to apply normally to new db
 	Date reprocess(Database db, Check check) {
-		Date lastOkDate = null;
+		Date lastOkDate = check.lastOkDate();
 		long lastOkSize = check.dOkSize();
-		StorageIter dIter = new StorageIter(dstor, Storage.offsetToAdr(check.dOkSize()));
+		StorageIter dIter = new StorageIter(dstor, Storage.offsetToAdr(lastOkSize));
 		while (dIter.notFinished()) {
 			try {
 				new Proc(db, check.dOkSize(), dstor, dIter.adr()).process();
@@ -215,7 +215,7 @@ class DbRebuild {
 		@Override
 		void type(char c) {
 			type = c;
-			skip = (commitAdr == Storage.FIRST_ADR); // skip bootstrap commit
+			skip = (commitAdr == stor.FIRST_ADR); // skip bootstrap commit
 			if (type == 'u')
 				ut = new RebuildTransaction(db);
 			else if (type == 'b')

@@ -11,14 +11,15 @@ import com.google.common.primitives.Ints;
  * @see StorageIter
  */
 public class StorageIterReverse {
-	private static final int MIN_SIZE = Tran.HEAD_SIZE + Tran.TAIL_SIZE;
+	private static long MIN_SIZE;
 	private final Storage stor;
 	private final long fileSize;
-	private long rpos = 0;
+	private long rpos = 0; // <= 0
 
 	StorageIterReverse(Storage stor) {
 		this.stor = stor;
 		fileSize = stor.sizeFrom(0);
+		MIN_SIZE = Storage.adrToOffset(stor.FIRST_ADR) + Tran.HEAD_SIZE + Tran.TAIL_SIZE;
 	}
 
 	boolean hasPrev() {
@@ -26,9 +27,10 @@ public class StorageIterReverse {
 	}
 
 	int prev() {
+		// skip zero end of chunk padding
 		long size;
 		while (true) {
-			size = Storage.intToSize(stor.rbuffer(rpos - Ints.BYTES).getInt());
+			size = stor.intToSize(stor.rbuffer(rpos - Ints.BYTES).getInt());
 			if (size != 0)
 				break;
 			rpos -= Ints.BYTES;

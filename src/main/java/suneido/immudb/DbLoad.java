@@ -146,13 +146,13 @@ class DbLoad {
 
 //	public static void main(String[] args) throws IOException  {
 //		Stopwatch sw = Stopwatch.createStarted();
-//		Database db = (Database) dbpkg.create(dbpkg.dbFilename());
+//		Database db = (Database) Suneido.dbpkg.create(Suneido.dbpkg.dbFilename());
 //		@SuppressWarnings("resource")
 //		ReadableByteChannel fin = new FileInputStream("database.su").getChannel();
 //		loadDatabase(db, fin);
 //		db.close();
 //		System.out.println(sw);
-//		DbTools.checkPrint(Suneido.dbpkg, dbpkg.dbFilename());
+//		DbTools.checkPrint(Suneido.dbpkg, Suneido.dbpkg.dbFilename());
 //	}
 
 }

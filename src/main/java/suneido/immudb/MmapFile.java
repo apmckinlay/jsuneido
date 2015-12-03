@@ -32,6 +32,9 @@ class MmapFile extends Storage {
 	private final long starting_file_size;
 	private int last_force;
 	private volatile boolean open = false;
+	static final byte[] MAGIC = { 's', 'n', 'd', 'o' };
+	static final int VERSION = 1;
+	private final int version;
 
 	/** @param mode Must be "r" or "rw" */
 	MmapFile(String filename, String mode) {
@@ -61,16 +64,38 @@ class MmapFile extends Storage {
 			throw new SuException("can't open/create " + file, e);
 		}
 		fc = fin.getChannel();
+		if (mode.equals("rw"))
+			lock();
+		open = true;
+		findEnd();
+		version = getVersion();
+		starting_file_size = storSize;
+		last_force = offsetToChunk(storSize);
+	}
+
+	private void lock() {
 		try {
-			if (mode == "rw" && fc.tryLock() == null)
+			if (fc.tryLock() == null)
 				throw new SuException("can't lock database file");
 		} catch (IOException e) {
 			throw new SuException("can't lock database file");
 		}
-		open = true;
-		findEnd();
-		starting_file_size = storSize;
-		last_force = offsetToChunk(storSize);
+	}
+
+	private int getVersion() {
+		if (storSize == 0) { // newly created file
+			storSize = 8;
+			ByteBuffer buf = buf(0);
+			buf.put(MAGIC).putInt(VERSION);
+			FIRST_ADR = 2;
+			return VERSION;
+		} else {
+			ByteBuffer buf = buf(0);
+			byte[] magic = new byte[4];
+			buf.get(magic);
+			FIRST_ADR = (version == 0) ? 1 : 2;
+			return (Arrays.equals(magic, MAGIC)) ? buf.getInt() : 0;
+		}
 	}
 
 	/** handle zero padding caused by memory mapping */
@@ -133,6 +158,23 @@ class MmapFile extends Storage {
 		} catch (IOException e) {
 			// ignore
 		}
+	}
+
+	@Override
+	int sizeToInt(long size) {
+		if (version > 0) {
+			assert (size & MASK) == 0;
+			size = size >>> SHIFT;
+		}
+		return super.sizeToInt(size);
+	}
+
+	@Override
+	long intToSize(int sizeInt) {
+		long size = super.intToSize(sizeInt);
+		if (version > 0)
+			size = size << SHIFT;
+		return size;
 	}
 
 	@Override

@@ -22,11 +22,11 @@ import com.google.common.primitives.UnsignedInts;
  * <li>blocks should not start with (long) 0 since that is used to detect padding
  */
 abstract class Storage implements AutoCloseable {
-	static final int FIRST_ADR = 1;
+	protected int FIRST_ADR = 1; // should not be changed after construction
 	protected static final int SHIFT = 3;
 	private static final long MAX_SIZE = 0xffffffffL << SHIFT;
 	static final int ALIGN = (1 << SHIFT); // must be power of 2
-	private static final int MASK = ALIGN - 1;
+	protected static final int MASK = ALIGN - 1;
 	final int CHUNK_SIZE;
 	/** INIT_CHUNKS should be the max for database chunk size & align
 	 * i.e. unsigned int max * align / chunk size
@@ -114,6 +114,7 @@ abstract class Storage implements AutoCloseable {
 
 	int rposToAdr(long rpos) {
 		assert rpos < 0;
+		assert -rpos <= storSize;
 		return offsetToAdr(storSize + rpos);
 	}
 
@@ -141,7 +142,7 @@ abstract class Storage implements AutoCloseable {
 		protect = Integer.MAX_VALUE;
 	}
 
-	private ByteBuffer buf(long offset) {
+	protected ByteBuffer buf(long offset) {
 		ByteBuffer buf = map(offset);
 		buf = (offset < protect) ? buf.asReadOnlyBuffer() : buf.duplicate();
 		buf.position((int) (offset % CHUNK_SIZE));
@@ -191,13 +192,13 @@ abstract class Storage implements AutoCloseable {
 	 * This is a problem if a table or index > 4gb
 	 * because load puts entire table / index into one commit.
 	 */
-	static int sizeToInt(long size) {
+	int sizeToInt(long size) {
 		assert size < 0x100000000L; // unsigned int max
 		return (int) size;
 	}
 
 	/** convert an unsigned int to a long size */
-	static long intToSize(int size) {
+	long intToSize(int size) {
 		return UnsignedInts.toLong(size);
 	}
 

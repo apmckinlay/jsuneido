@@ -4,8 +4,6 @@
 
 package suneido.immudb;
 
-import static suneido.immudb.Storage.sizeToInt;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 import com.google.common.base.MoreObjects;
@@ -68,11 +66,11 @@ class Tran implements Translator {
 	StoreInfo endStore() {
 		assert head_adr != 0;
 		int tail_adr = dstor.alloc(TAIL_SIZE);
-		int size = sizeToInt(dstor.sizeFrom(head_adr));
-		dstor.buffer(head_adr).putInt(size).putInt(datetime());
+		int sizeInt = dstor.sizeToInt(dstor.sizeFrom(head_adr));
+		dstor.buffer(head_adr).putInt(sizeInt).putInt(datetime());
 
 		int cksum = dstor.checksum(head_adr);
-		dstor.buffer(tail_adr).putInt(cksum).putInt(size);
+		dstor.buffer(tail_adr).putInt(cksum).putInt(sizeInt);
 		dstor.protectAll(); // can't output outside tran
 
 		return new StoreInfo(cksum, head_adr);
@@ -86,9 +84,9 @@ class Tran implements Translator {
 		if (head_adr == 0) // didn't start store
 			return;
 		int tail_adr = dstor.alloc(TAIL_SIZE);
-		int size = sizeToInt(dstor.sizeFrom(head_adr));
-		dstor.buffer(head_adr).putInt(size).putInt(0); // zero date
-		dstor.buffer(tail_adr).putInt(0).putInt(size); // zero checksum
+		int sizeInt = dstor.sizeToInt(dstor.sizeFrom(head_adr));
+		dstor.buffer(head_adr).putInt(sizeInt).putInt(0); // zero date
+		dstor.buffer(tail_adr).putInt(0).putInt(sizeInt); // zero checksum
 		dstor.protectAll(); // can't output outside tran
 		head_adr = 0;
 	}

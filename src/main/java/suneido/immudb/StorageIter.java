@@ -36,7 +36,7 @@ class StorageIter {
 	private int upTo = Integer.MAX_VALUE;
 
 	StorageIter(Storage stor) {
-		this(stor, Storage.FIRST_ADR);
+		this(stor, stor.FIRST_ADR);
 	}
 
 	StorageIter(Storage stor, int adr) {
@@ -70,7 +70,7 @@ class StorageIter {
 			status = Status.FILE_TRUNCATED;
 			return;
 		}
-		size = Storage.intToSize(buf.getInt());
+		size = stor.intToSize(buf.getInt());
 		if (size < MIN_SIZE) {
 			status = Status.BAD_SIZE;
 			return;
@@ -83,7 +83,7 @@ class StorageIter {
 		}
 		ByteBuffer endbuf = stor.buffer(end);
 		cksum = endbuf.getInt();
-		long endsize = Storage.intToSize(endbuf.getInt());
+		long endsize = stor.intToSize(endbuf.getInt());
 		if (endsize != size) {
 			status = Status.SIZE_MISMATCH;
 			return;

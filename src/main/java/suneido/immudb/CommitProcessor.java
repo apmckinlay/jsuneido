@@ -19,7 +19,7 @@ import com.google.common.primitives.Shorts;
  * Used by @DbRebuild,
  */
 abstract class CommitProcessor {
-	private final Storage stor;
+	protected final Storage stor;
 	protected final int commitAdr;
 	private int adr;
 	private DataRecord addrec;

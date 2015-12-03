@@ -5,17 +5,16 @@
 package suneido.immudb;
 
 import static suneido.immudb.Storage.align;
-import static suneido.immudb.Storage.sizeToInt;
 
 import java.nio.ByteBuffer;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.primitives.Ints;
 
 import suneido.immudb.DbHashTrie.Entry;
 import suneido.immudb.DbHashTrie.IntEntry;
 import suneido.immudb.DbHashTrie.StoredIntEntry;
 import suneido.immudb.DbHashTrie.Translator;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.primitives.Ints;
 
 /**
  * Save dbinfo and btrees to storage (periodically).
@@ -99,7 +98,7 @@ class Persist {
 		ending(dbinfoadr, schema.maxTblnum, lastcksum, lastadr);
 
 		int tail_adr = istor.alloc(TAIL_SIZE);
-		int size = sizeToInt(istor.sizeFrom(head_adr));
+		int size = istor.sizeToInt(istor.sizeFrom(head_adr));
 		istor.buffer(head_adr).putInt(size).putInt(Tran.datetime());
 
 		int cksum = istor.checksum(head_adr);
@@ -144,9 +143,9 @@ class Persist {
 		ending(dbstate.dbinfoadr, dbstate.schema.maxTblnum,
 				dbstate.lastcksum, dbstate.lastadr);
 		int tail_adr = istor.alloc(TAIL_SIZE);
-		int size = sizeToInt(istor.sizeFrom(head_adr));
-		istor.buffer(head_adr).putInt(size).putInt(0);
-		istor.buffer(tail_adr).putInt(0).putInt(size);
+		int sizeInt = istor.sizeToInt(istor.sizeFrom(head_adr));
+		istor.buffer(head_adr).putInt(sizeInt).putInt(0);
+		istor.buffer(tail_adr).putInt(0).putInt(sizeInt);
 		istor.protectAll();
 	}
 
