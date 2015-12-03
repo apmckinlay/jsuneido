@@ -38,7 +38,6 @@ abstract class Storage implements AutoCloseable {
 	protected volatile long storSize = 0;
 	private volatile long protect = 0;
 
-
 	Storage(int chunkSize) {
 		CHUNK_SIZE = align(chunkSize);
 	}
