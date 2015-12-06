@@ -69,6 +69,7 @@ class MmapFile extends Storage {
 		open = true;
 		findEnd();
 		version = getVersion();
+		FIRST_ADR = (version == 0) ? 1 : 2;
 		starting_file_size = storSize;
 		last_force = offsetToChunk(storSize);
 	}
@@ -87,13 +88,11 @@ class MmapFile extends Storage {
 			storSize = 8;
 			ByteBuffer buf = buf(0);
 			buf.put(MAGIC).putInt(VERSION);
-			FIRST_ADR = 2;
 			return VERSION;
 		} else {
 			ByteBuffer buf = buf(0);
 			byte[] magic = new byte[4];
 			buf.get(magic);
-			FIRST_ADR = (version == 0) ? 1 : 2;
 			return (Arrays.equals(magic, MAGIC)) ? buf.getInt() : 0;
 		}
 	}
