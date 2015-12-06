@@ -86,7 +86,7 @@ public class DbTools {
 
 	public static void loadDatabasePrint(DatabasePackage dbpkg, String dbFilename,
 			String filename) {
-		String tempfile = FileUtils.tempfile().toString();
+		String tempfile = FileUtils.tempfile("d", "i", "c").toString();
 		if (! Jvm.runWithNewJvm("-load:" + filename + SEPARATOR + tempfile))
 			Errlog.fatal("Load FAILED");
 		if (! Jvm.runWithNewJvm("-check:" + tempfile))
@@ -163,7 +163,7 @@ public class DbTools {
 	public static void compactPrintExit(DatabasePackage dbpkg, String dbFilename) {
 		if (! Jvm.runWithNewJvm("-check:" + dbFilename))
 			Errlog.fatal("Compact ABORTED - check failed before compact - database CORRUPT");
-		String tempfile = FileUtils.tempfile().toString();
+		String tempfile = FileUtils.tempfile("d", "i", "c").toString();
 		if (! Jvm.runWithNewJvm("-compact:" + dbFilename + SEPARATOR + tempfile))
 			Errlog.fatal("Compact FAILED");
 		if (! Jvm.runWithNewJvm("-check:" + tempfile))
