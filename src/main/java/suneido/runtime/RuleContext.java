@@ -18,12 +18,7 @@ import suneido.SuContainer;
 @ThreadSafe
 public class RuleContext {
 	private static final ThreadLocal<Deque<Rule>> activeRules =
-			new ThreadLocal<Deque<Rule>>() {
-				@Override
-				public Deque<Rule> initialValue() {
-					return new ArrayDeque<>();
-				}
-			};
+			ThreadLocal.withInitial(ArrayDeque::new);
 
 	public static void push(SuContainer rec, Object member) {
 		activeRules.get().push(new Rule(rec, member));

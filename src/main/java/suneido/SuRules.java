@@ -9,10 +9,10 @@ import java.util.*;
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 
+import com.google.common.collect.*;
+
 import suneido.util.CommaStringBuilder;
 import suneido.util.Util;
-
-import com.google.common.collect.*;
 
 /**
  * Used by {@link SuRecordNew} to implements rules.
@@ -220,12 +220,7 @@ return ! invalid.contains(field);
 	@ThreadSafe
 	private static class RuleContext {
 		private static final ThreadLocal<Deque<Rule>> activeRules =
-				new ThreadLocal<Deque<Rule>>() {
-					@Override
-					public Deque<Rule> initialValue() {
-						return new ArrayDeque<>();
-					}
-				};
+				ThreadLocal.withInitial(ArrayDeque::new);
 
 		static void push(SuRules rec, Object field) {
 			activeRules.get().push(new Rule(rec, field));

@@ -61,13 +61,8 @@ public class ServerData {
 	 * this is set by {@link DbmsServer} since it is per connection,
 	 * not really per thread, initialValue is for tests
 	 */
-	public static final ThreadLocal<ServerData> threadLocal
-		= new ThreadLocal<ServerData>() {
-				@Override
-				public ServerData initialValue() {
-					return new ServerData();
-				}
-			};
+	public static final ThreadLocal<ServerData> threadLocal =
+			ThreadLocal.withInitial(ServerData::new);
 	public static ServerData forThread() {
 		return threadLocal.get();
 	}

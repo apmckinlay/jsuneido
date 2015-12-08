@@ -13,6 +13,9 @@ import java.util.*;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
+import com.google.common.base.Objects;
+import com.google.common.collect.*;
+
 import suneido.database.query.Header;
 import suneido.database.query.Row;
 import suneido.database.server.DbmsTran;
@@ -23,9 +26,6 @@ import suneido.runtime.builtin.RecordMethods;
 import suneido.runtime.builtin.SuTransaction;
 import suneido.util.CommaStringBuilder;
 import suneido.util.Util;
-
-import com.google.common.base.Objects;
-import com.google.common.collect.*;
 
 @NotThreadSafe
 public abstract class SuRecordOld extends SuContainer {
@@ -362,12 +362,7 @@ public abstract class SuRecordOld extends SuContainer {
 	}
 
 	public static final ThreadLocal<List<ActiveObserver>> activeObservers =
-			new ThreadLocal<List<ActiveObserver>>() {
-				@Override
-				public List<ActiveObserver> initialValue() {
-					return new ArrayList<>();
-				}
-			};
+			ThreadLocal.withInitial(ArrayList::new);
 
 	/**
 	 * Calls observers for the specified field,
