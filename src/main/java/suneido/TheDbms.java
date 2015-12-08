@@ -21,8 +21,7 @@ public class TheDbms {
 	private static String ip = null;
 	private static int port = 3147;
 	private static DbmsLocal localDbms;
-	private static final ThreadLocal<DbmsRemote> remoteDbms =
-			new ThreadLocal<>();
+	private static final ThreadLocal<DbmsRemote> remoteDbms = new ThreadLocal<>();
 	private static final Set<DbmsRemote> dbmsRemotes =
 			Collections.synchronizedSet(new HashSet<DbmsRemote>());
 	private static final ThreadLocal<byte[]> authToken = new ThreadLocal<>();
