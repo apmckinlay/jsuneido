@@ -13,11 +13,11 @@ import suneido.SuException;
 
 /** runtime support for dynamic _variables */
 public class Dynamic {
-	private final static Deque<Map<String,Object>> stack =
-			new ArrayDeque<>();
+	private final static ThreadLocal<Deque<Map<String,Object>>> stack =
+			ThreadLocal.withInitial(ArrayDeque::new);
 
 	public static void put(String name, Object value) {
-		stack.peek().put(name, value);
+		stack.get().peek().put(name, value);
 	}
 
 	public static Object get(String name) {
@@ -28,7 +28,7 @@ public class Dynamic {
 	}
 
 	static Object getOrNull(String name) {
-		for (Map<String,Object> map : stack) {
+		for (Map<String,Object> map : stack.get()) {
 			Object value = map.get(name);
 			if (value != null)
 				return value;
@@ -38,12 +38,12 @@ public class Dynamic {
 
 	/** called at the start of functions that set dynamic variables */
 	public static void push() {
-		stack.push(new HashMap<String,Object>());
+		stack.get().push(new HashMap<String,Object>());
 	}
 
 	/** called at the end of functions that set dynamic variables */
 	public static void pop() {
-		stack.pop();
+		stack.get().pop();
 	}
 
 }
