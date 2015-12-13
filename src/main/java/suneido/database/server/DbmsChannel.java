@@ -22,7 +22,7 @@ import suneido.util.Errlog;
 import suneido.util.Tr;
 
 /**
- * Channel input/output for {@link DbmsRemote}
+ * Channel input/output for {@link DbmsRemote} client
  */
 @NotThreadSafe
 public class DbmsChannel {
@@ -78,8 +78,10 @@ public class DbmsChannel {
 	private void tryRead(ByteBuffer buf) {
 		try {
 			if (-1 == channel.read(buf))
-				Errlog.fatal("lost connection");
+				Errlog.fatal("lost connection (read returned -1)");
 		} catch (IOException e) {
+			if (e.toString().contains("forcibly closed"))
+				Errlog.fatal("lost connection (forcibly closed)");
 			throw new SuException("error", e);
 		}
 	}
@@ -140,14 +142,7 @@ public class DbmsChannel {
 
 	public void write(String s) {
 		writeBuf(s);
-		wbuf.flip();
-		try {
-			channel.write(wbuf);
-		} catch (IOException e) {
-			throw new SuException("error", e);
-		} finally {
-			wbuf.clear();
-		}
+		writeWithCatch(() -> channel.write(wbuf));
 	}
 
 	public void writeLineBuf(String cmd, String s) {
@@ -164,16 +159,26 @@ public class DbmsChannel {
 	}
 
 	public void write(ByteBuffer buf) {
-		wbuf.flip();
 		wbufs[0] = wbuf;
 		wbufs[1] = buf;
+		writeWithCatch(() -> channel.write(wbufs));
+	}
+
+	private void writeWithCatch(IoRunnable fn) {
+		wbuf.flip();
 		try {
-			channel.write(wbufs);
+			fn.run();
 		} catch (IOException e) {
+			if (e.toString().contains("forcibly closed"))
+				Errlog.fatal("lost connection (forcibly closed)");
 			throw new SuException("error", e);
 		} finally {
 			wbuf.clear();
 		}
+	}
+
+	private static interface IoRunnable {
+		void run() throws IOException;
 	}
 
 	public void close() {
