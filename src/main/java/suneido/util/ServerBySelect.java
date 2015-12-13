@@ -41,7 +41,7 @@ public class ServerBySelect {
 	private static final int IDLE_CHECK_INTERVAL_MS = ONE_MINUTE_IN_MS;
 	private final Set<SelectionKey> needWrite
 			= new ConcurrentSkipListSet<>(new IdentityComparator());
-	private long lastIdleCheck = 0;
+	private long lastIdleCheck = System.currentTimeMillis();
 
 	public ServerBySelect(HandlerFactory handlerFactory) {
 		this(handlerFactory, 0);
@@ -214,6 +214,8 @@ public class ServerBySelect {
 
 	private static boolean channelWrite(SelectionKey key) {
 		SocketChannel channel = (SocketChannel) key.channel();
+		if (! channel.isOpen())
+			return true;
 		Info info = (Info) key.attachment();
 		try {
 			channel.write(info.writeBufs);
@@ -226,7 +228,7 @@ public class ServerBySelect {
 
 	private static void errorClose(SelectionKey key, Exception e) {
 		Info info = (Info) key.attachment();
-		Errlog.error(info.handler + " io failed so closing", e);
+		Print.timestamped("io failed so closing " + info.handler, e);
 		close(key);
 	}
 
@@ -291,8 +293,11 @@ public class ServerBySelect {
 		if (idleTimeoutMs == 0)
 			return;
 		long t = System.currentTimeMillis();
-		if (t - lastIdleCheck < IDLE_CHECK_INTERVAL_MS)
+		long d = t - lastIdleCheck;
+		if (d < IDLE_CHECK_INTERVAL_MS)
 			return;
+		if (d > 4 * IDLE_CHECK_INTERVAL_MS)
+			Errlog.error("closeIdleConnections has not run for " + d + " ms");
 		lastIdleCheck = t;
 		for (SelectionKey key : selector.keys()) {
 			Info info = (Info) key.attachment();

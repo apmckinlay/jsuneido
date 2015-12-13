@@ -21,4 +21,9 @@ public class Print {
 		System.out.println(s);
 	}
 
+	public static void timestamped(String s, Throwable e) {
+		timestamped(s);
+		e.printStackTrace(System.out);
+	}
+
 }
