@@ -17,7 +17,8 @@ public class MmapFileTest {
 
 	@Test(expected = RuntimeException.class)
 	public void cant_open() {
-		new MmapFile("must_not_exist", "r");
+		try (MmapFile mmf = new MmapFile("must_not_exist", "r")) {
+		}
 	}
 
 	@Test
