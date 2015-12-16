@@ -8,8 +8,9 @@ import suneido.TheDbms;
 
 public class ServerPort {
 
-	public static int ServerPort() {
-		return TheDbms.serverPort();
+	public static Object ServerPort() {
+		int port = TheDbms.serverPort();
+		return port == 0 ? "" : port;
 	}
 
 }

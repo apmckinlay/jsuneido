@@ -19,7 +19,7 @@ import suneido.util.Util;
 public class TheDbms {
 	private static final long IDLE_TIMEOUT_MS = 5 * 60 * 1000; // 5 min
 	private static String ip = null;
-	private static int port = 3147;
+	private static int port = 0;
 	private static DbmsLocal localDbms;
 	private static final ThreadLocal<DbmsRemote> remoteDbms = new ThreadLocal<>();
 	private static final Set<DbmsRemote> dbmsRemotes =
