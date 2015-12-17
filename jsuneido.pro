@@ -28,6 +28,8 @@
 
 -dontwarn java.lang.invoke.MethodHandle
 -dontwarn com.google.common.util.concurrent.ServiceManager
+-dontwarn com.google.j2objc.annotations.Weak
+-dontwarn org.codehaus.mojo.animal_sniffer.IgnoreJRERequirement
 
 -keepattributes *Annotation*
 
