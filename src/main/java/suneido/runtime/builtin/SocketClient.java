@@ -94,9 +94,11 @@ public class SocketClient extends SuValue {
 				nr += r;
 			} while (nr < n);
 		} catch (SocketTimeoutException e) {
-			throw new SuException("socket Read lost connection or timeout", e);
+			if (nr == 0)
+				throw new SuException("socket Read lost connection or timeout", e);
 		} catch (IOException e) {
-			throw new SuException("socket Read failed", e);
+			if (nr == 0)
+				throw new SuException("socket Read failed", e);
 		}
 		if (nr == 0)
 			throw new SuException("socket Read lost connection or timeout");
