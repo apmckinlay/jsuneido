@@ -155,7 +155,8 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	}
 	private void checkNotEnded(String op) {
 		if (ended)
-			throw new SuException(this + " " + op + " on ended transaction");
+			throw new SuException("can't " + op + " ended transaction" +
+					(conflict == null ? "" : " (" + conflict + ")"));
 	}
 	protected void checkNotSystemTable(int tblnum, String op) {
 		if (tblnum <= TN.VIEWS)
