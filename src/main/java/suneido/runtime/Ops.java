@@ -536,12 +536,16 @@ public final class Ops {
 				? new SuException(e.toString(), ((Except) e).getThrowable(), true)
 				: new SuException(toStr(e));
 	}
+
+	/** calls are generated via AstCompile.needNullCheck */
 	public static void throwUninitializedVariable() {
 		throw new SuException("uninitialized variable");
 	}
+	/** calls are generated via AstCompile.needNullCheck */
 	public static void throwNoReturnValue() {
 		throw new SuException("no return value");
 	}
+	/** calls are generated via AstCompile.needNullCheck */
 	public static void throwNoValue() {
 		throw new SuException("no value");
 	}

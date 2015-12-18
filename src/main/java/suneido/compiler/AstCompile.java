@@ -787,8 +787,8 @@ public class AstCompile {
 			cg.returnValue();
 		} else {
 			expression(cg, ast.first());
-			// special case - returning call does not do null check
 			putLineNumber(cg, ast);
+			// special case - returning call does not do null check
 			if (ast.first().token != Token.CALL)
 				addNullCheck(cg, ast.first());
 			cg.returnValue();
