@@ -164,7 +164,7 @@ public class CompileTest {
 		test("a ? b : x;;",
 				"a, bool, IFFALSE L1, b, GOTO L2, L1, x, L2, POP");
 		test("a ? b : x",
-				"a, bool, IFFALSE L1, b, GOTO L2, L1, x, L2, null?, ARETURN");
+				"a, bool, IFFALSE L1, b, GOTO L2, L1, x, L2, ARETURN");
 		test("a ? b() : c();;",
 				"a, bool, IFFALSE L1, b, call, GOTO L2, L1, c, call, L2, POP");
 		test("(a = b) ? (b = 123) : (c = 456)",

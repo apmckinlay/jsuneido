@@ -534,9 +534,7 @@ public class AstCompile {
 		default:
 			expression(cg, ast, last ? null : ExprOption.POP);
 			if (last) {
-				// special case - returning call does not do null check
-				if (ast.token != Token.CALL)
-					addNullCheck(cg, ast);
+				returnNullCheck(cg, ast);
 				cg.areturn();
 			}
 			return; // skip last handling below
@@ -546,6 +544,12 @@ public class AstCompile {
 			cg.aconst_null();
 			cg.areturn();
 		}
+	}
+
+	private static void returnNullCheck(ClassGen cg, AstNode expr) {
+		// special case - returning call or ?: does not do null check
+		if (expr.token != Token.CALL && expr.token != Token.Q_MARK)
+			addNullCheck(cg, expr);
 	}
 
 	private static void addNullCheck(ClassGen cg, AstNode ast) {
@@ -781,16 +785,15 @@ public class AstCompile {
 	}
 
 	private void returnStatement(ClassGen cg, AstNode ast) {
-		if (ast.first() == null) {
+		AstNode expr = ast.first();
+		if (expr == null) {
 			putLineNumber(cg, ast);
 			cg.aconst_null();
 			cg.returnValue();
 		} else {
-			expression(cg, ast.first());
+			expression(cg, expr);
 			putLineNumber(cg, ast);
-			// special case - returning call does not do null check
-			if (ast.first().token != Token.CALL)
-				addNullCheck(cg, ast.first());
+			returnNullCheck(cg, expr);
 			cg.returnValue();
 		}
 	}
