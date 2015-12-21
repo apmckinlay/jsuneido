@@ -547,6 +547,7 @@ public class AstCompile {
 	}
 
 	private static void returnNullCheck(ClassGen cg, AstNode expr) {
+		expr = stripRvalue(expr);
 		// special case - returning call or ?: does not do null check
 		if (expr.token != Token.CALL && expr.token != Token.Q_MARK)
 			addNullCheck(cg, expr);
@@ -559,6 +560,7 @@ public class AstCompile {
 	}
 
 	private static String needNullCheck(ClassGen cg, AstNode ast) {
+		ast = stripRvalue(ast);
 		if (isLocal(ast) && !cg.neverNull(ast.value))
 			return "UninitializedVariable";
 		else if (ast.token == Token.CALL)
@@ -569,6 +571,12 @@ public class AstCompile {
 				return "NoValue";
 		}
 		return null;
+	}
+
+	private static AstNode stripRvalue(AstNode expr) {
+		while (expr.token == Token.RVALUE)
+			expr = expr.first();
+		return expr;
 	}
 
 	private void breakStatement(ClassGen cg, AstNode ast, Labels labels) {
