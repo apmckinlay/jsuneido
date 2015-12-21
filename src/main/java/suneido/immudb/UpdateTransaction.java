@@ -49,8 +49,6 @@ class UpdateTransaction extends ReadWriteTransaction {
 	private final TIntArrayList actions = new TIntArrayList();
 	private int writeCount = 0;
 	static int MAX_WRITES_PER_TRANSACTION = 10000;
-	final static int WARN_WRITES_PER_TRANSACTION = 5000;
-	final static int WARN_UPDATE_TRAN_DURATION_SEC = 5;
 	protected static final short UPDATE = (short) 0;
 	protected static final short REMOVE = (short) -1;
 	protected static final short END = (short) -2;
@@ -210,6 +208,8 @@ class UpdateTransaction extends ReadWriteTransaction {
 
 	@Override
 	protected void commit() {
+		checkLimits();
+		Stopwatch sw = Stopwatch.createStarted();
 		buildReads();
 		synchronized(db.commitLock) {
 			if (db.state.schema != dbstate.schema)
@@ -225,15 +225,21 @@ class UpdateTransaction extends ReadWriteTransaction {
 				throw e;
 			}
 		}
-		if (writeCount > WARN_WRITES_PER_TRANSACTION)
+		long secs = sw.elapsed(TimeUnit.SECONDS);
+		if (secs > Transactions.MAX_UPDATE_TRAN_DURATION_SEC/2)
+			Errlog.warn("long duration commit (" + secs + " secs)");
+	}
+
+	private void checkLimits() {
+		if (writeCount > MAX_WRITES_PER_TRANSACTION/2)
 			Errlog.warn("excessive writes (" + writeCount +
 					") writes (output/update/delete) in one transaction " + this);
 		long secs = stopwatch.elapsed(TimeUnit.SECONDS);
-		if (secs > WARN_UPDATE_TRAN_DURATION_SEC &&
+		if (secs > Transactions.MAX_UPDATE_TRAN_DURATION_SEC/2 &&
 				! (this instanceof SchemaTransaction) &&
 				! (this instanceof RebuildTransaction)) {
-			String msg = ": long duration update transaction " + this +
-								" (" + secs + " seconds)";
+			String msg = "long duration update transaction " + this +
+								" (" + secs + " secs)";
 			if (secs < Transactions.MAX_UPDATE_TRAN_DURATION_SEC + 2)
 				Errlog.warn(msg);
 			else
