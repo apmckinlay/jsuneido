@@ -9,11 +9,12 @@ import static suneido.compiler.Token.*;
 
 import java.util.Set;
 
+import com.google.common.collect.Sets;
+
 import suneido.SuException;
+import suneido.SuInternalError;
 import suneido.compiler.ParseFunction.Context;
 import suneido.database.query.ParseQuery;
-
-import com.google.common.collect.Sets;
 
 public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	boolean EQ_as_IS = false;
@@ -406,12 +407,12 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 				keyword = generator.string(identifier);
 				expr = generator.identifier(identifier, lineNumber);
 			} else {
-				if (lookAhead() == COLON) {
+				if (isKeyword()) {
 					if (! keywords.add(lexer.getValue()))
 						throw new SuException("duplicate argument name: " +
 								lexer.getValue());
 					keyword = keyword();
-				} else if (keyword != null)
+				} else if (keywords.size() > 0)
 					syntaxError("un-named arguments must come before named arguments");
 
 				Token ahead = lookAhead();
@@ -428,14 +429,18 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		match(closing);
 		return args;
 	}
+	private boolean isKeyword() {
+		return (token == STRING || token == IDENTIFIER || token == NUMBER) &&
+				lookAhead() == COLON;
+	}
 	private T keyword() {
-		T keyword = null;
+		T keyword;
 		if (token == STRING || token == IDENTIFIER)
 			keyword = generator.string(lexer.getValue());
 		else if (token == NUMBER)
 			keyword = generator.number(lexer.getValue());
 		else
-			syntaxError("invalid keyword");
+			throw new SuInternalError("invalid keyword");
 		match();
 		match(COLON);
 		return keyword;
