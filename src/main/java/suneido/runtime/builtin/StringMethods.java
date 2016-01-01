@@ -216,6 +216,11 @@ public class StringMethods extends BuiltinMethods {
 		}
 
 		@Override
+		public String typeName() {
+			return "StringIter";
+		}
+
+		@Override
 		public SuValue lookup(String method) {
 			return IterateMethods.singleton.lookup(method);
 		}
@@ -241,6 +246,10 @@ public class StringMethods extends BuiltinMethods {
 		@Override
 		public String typeName() {
 			return "StringIter";
+		}
+
+		public static Object Iter(Object self) {
+			return self;
 		}
 	}
 

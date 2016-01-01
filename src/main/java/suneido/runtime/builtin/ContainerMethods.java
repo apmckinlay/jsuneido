@@ -266,6 +266,10 @@ public final class ContainerMethods {
 			iter.iter = iter.c.iterator();
 			return null;
 		}
+
+		public static Object Iter(Object self) {
+			return self;
+		}
 	}
 
 	@Params("string = ''")
