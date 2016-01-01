@@ -243,11 +243,6 @@ public class StringMethods extends BuiltinMethods {
 					iter.seq.charAt(iter.index++)) : self;
 		}
 
-		@Override
-		public String typeName() {
-			return "StringIter";
-		}
-
 		public static Object Iter(Object self) {
 			return self;
 		}
