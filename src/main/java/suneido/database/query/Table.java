@@ -85,7 +85,8 @@ public class Table extends Query {
 			// assume this means we only have to read 75% of data
 			cost2 = .75 * totalSize() + // cost of reading data
 					idx2.size; // cost of reading index
-		if (!nil(needs) && null != (idx3 = match(idxs, index, noFields)))
+		// if nil(allneeds) then this is unnecessary - same as idx1 case
+		if (!nil(allneeds) && null != (idx3 = match(idxs, index, noFields)))
 			cost3 = totalSize() + // cost of reading data
 					idx3.size; // cost of reading index
 
