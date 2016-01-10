@@ -78,11 +78,11 @@ public class Suneido {
 		case CLIENT:
 			TheDbms.remote(cmdlineoptions.actionArg, cmdlineoptions.serverPort);
 			scheduleAtFixedRate(TheDbms.closer, 30, TimeUnit.SECONDS);
+			Errlog.setExtra(TheDbms::sessionid);
 			if ("".equals(cmdlineoptions.remainder))
 				Repl.repl2();
 			else
 				Compiler.eval("Init()");
-			Errlog.setExtra(TheDbms::sessionid);
 			break;
 		case DUMP:
 			String dumptablename = cmdlineoptions.actionArg;
