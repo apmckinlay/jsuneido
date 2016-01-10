@@ -47,6 +47,11 @@ public class Errlog {
 	}
 
 	public static void fatal(String s, Throwable e) {
+		try {
+			Thread.sleep(10); // give other thread a chance to exit gracefully
+		} catch (InterruptedException e1) {
+			Thread.currentThread().interrupt();
+		}
 		log("FATAL ERROR", s, e);
 		System.exit(-1);
 	}
@@ -67,16 +72,19 @@ public class Errlog {
 	}
 
 	private static synchronized void log(String prefix, String s, Throwable e) {
+		count.incrementAndGet();
 		if (! prefix.isEmpty())
 			prefix = prefix + ": ";
-		count.incrementAndGet();
-		System.out.println(prefix +
+		String sid = extra.get();
+		if (! sid.isEmpty())
+			sid = sid + " ";
+		System.out.println(sid + prefix +
 				s + (s.isEmpty() ? "" : " ") +
 				(e == null ? "" : e));
 		try (FileWriter fw = new FileWriter("error.log", true)) {
 			fw.append(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()))
 				.append(" ")
-				.append(extra.get())
+				.append(sid)
 				.append(prefix + s)
 				.append("\n");
 			if (e != null) {
