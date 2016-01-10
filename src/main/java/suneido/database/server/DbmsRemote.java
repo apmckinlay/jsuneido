@@ -37,7 +37,7 @@ public class DbmsRemote extends Dbms {
 	public final Thread owner = Thread.currentThread();
 	public volatile long idleSince = 0; // used by TheDbms.closeIfIdle
 	DbmsChannel io;
-	private String sessionid;
+	private String sessionid = "(opening)";
 
 	public DbmsRemote(String ip, int port) {
 		io = new DbmsChannel(ip, port);

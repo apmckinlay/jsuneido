@@ -25,6 +25,8 @@ public class TheDbms {
 	private static final Set<DbmsRemote> dbmsRemotes =
 			Collections.synchronizedSet(new HashSet<DbmsRemote>());
 	private static final ThreadLocal<byte[]> authToken = new ThreadLocal<>();
+	private static final ThreadLocal<String> lastSessionId =
+			ThreadLocal.withInitial(() -> "");
 
 	public static Dbms dbms() {
 		if (ip == null)
@@ -50,10 +52,8 @@ public class TheDbms {
 
 	// used by errlog to avoid opening db just to get sessionid
 	public static String sessionid() {
-		if (ip == null)
-			return "";
 		DbmsRemote dbms = remoteDbms.get();
-		return dbms == null ? "" : dbms.sessionid();
+		return dbms == null ? lastSessionId.get() : dbms.sessionid();
 	}
 
 	// used when starting a client
@@ -99,6 +99,7 @@ public class TheDbms {
 			dr.idleSince = t;
 		else if (t - dr.idleSince > IDLE_TIMEOUT_MS) {
 			dbmsRemotes.remove(dr);
+			lastSessionId.set(remoteDbms.get().sessionid() + "(closed)");
 			remoteDbms.set(null);
 			dr.close();
 		}

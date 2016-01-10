@@ -81,7 +81,7 @@ public class DbmsChannel {
 				Errlog.fatal("lost connection (read returned -1)");
 		} catch (IOException e) {
 			if (e.toString().contains("forcibly closed"))
-				Errlog.fatal("lost connection (forcibly closed)");
+				Errlog.fatal("lost connection (forcibly closed) read");
 			throw new SuException("error", e);
 		}
 	}
@@ -170,7 +170,7 @@ public class DbmsChannel {
 			fn.run();
 		} catch (IOException e) {
 			if (e.toString().contains("forcibly closed"))
-				Errlog.fatal("lost connection (forcibly closed)");
+				Errlog.fatal("lost connection (forcibly closed) write");
 			throw new SuException("error", e);
 		} finally {
 			wbuf.clear();
