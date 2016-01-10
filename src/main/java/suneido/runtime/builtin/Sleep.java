@@ -6,7 +6,6 @@ package suneido.runtime.builtin;
 
 import suneido.runtime.Ops;
 import suneido.runtime.Params;
-import suneido.util.Errlog;
 
 public class Sleep {
 
@@ -16,7 +15,7 @@ public class Sleep {
 		try {
 			Thread.sleep(n);
 		} catch (InterruptedException e) {
-			Errlog.error("Sleep", e);
+			Thread.currentThread().interrupt();
 		}
 		return null;
 	}
