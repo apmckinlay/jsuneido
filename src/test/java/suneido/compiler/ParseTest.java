@@ -10,6 +10,10 @@ public class ParseTest {
 
 	@Test
 	public void test() {
+		code("a = 123; Print(b: [:a])",
+				"(EQ (IDENTIFIER=a) (NUMBER=123)) (CALL (IDENTIFIER=Print) "
+				+ "(LIST (ARG (STRING=b) (CALL (IDENTIFIER=Record) "
+				+ "(LIST (ARG (STRING=a) (IDENTIFIER=a)))))))");
 		code("123",
 			"(NUMBER=123)");
 		code("foo",
@@ -245,6 +249,11 @@ public class ParseTest {
 			"(SUBSCRIPT (IDENTIFIER=s) (RANGETO (IDENTIFIER=from) (IDENTIFIER=to)))");
 		code("a in (b, c)",
 			"(IN (IDENTIFIER=a) (LIST (IDENTIFIER=b) (IDENTIFIER=c)))");
+
+		code("a = 123; Print(b: [:a])",
+				"(EQ (IDENTIFIER=a) (NUMBER=123)) (CALL (IDENTIFIER=Print) "
+				+ "(LIST (ARG (STRING=b) (CALL (IDENTIFIER=Record) "
+				+ "(LIST (ARG (STRING=a) (IDENTIFIER=a)))))))");
 	}
 
 	private static void code(String code, String expected) {

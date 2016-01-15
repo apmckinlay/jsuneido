@@ -415,9 +415,8 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 				} else if (keywords.size() > 0)
 					syntaxError("un-named arguments must come before named arguments");
 
-				Token ahead = lookAhead();
 				boolean trueDefault = (keyword != null &&
-						(token == COMMA || token == closing || ahead == COLON));
+						(token == COMMA || token == closing || isKeyword()));
 
 				expr = trueDefault
 						? generator.boolTrue(lexer.getLineNumber())
