@@ -297,7 +297,8 @@ public class ServerBySelect {
 		if (d < IDLE_CHECK_INTERVAL_MS)
 			return;
 		if (d > 4 * IDLE_CHECK_INTERVAL_MS)
-			Errlog.error("closeIdleConnections has not run for " + d + " ms");
+			Errlog.error("closeIdleConnections has not run for " + d + " ms" +
+					"idleTimeoutMs is " + idleTimeoutMs);
 		lastIdleCheck = t;
 		for (SelectionKey key : selector.keys()) {
 			Info info = (Info) key.attachment();
