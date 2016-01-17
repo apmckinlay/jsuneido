@@ -9,7 +9,7 @@ import suneido.runtime.Ops;
 import suneido.runtime.Params;
 import suneido.util.Errlog;
 
-public class ThreadFunction {
+public class SuThread {
 
 	@Params("callable")
 	public static Object ThreadFunction(Object fn) {

@@ -135,7 +135,7 @@ public class Builtins {
 			.put("Synchronized", function(Synchronized.class))
 			.put("System", function(SystemFunction.class))
 			.put("SystemMemory", function(SystemMemory.class))
-			.put("Thread", function(ThreadFunction.class))
+			.put("Thread", function(SuThread.class))
 			.put("ThreadCount", function(ThreadCount.class))
 			.put("Timestamp", function(Timestamp.class))
 			.put("Trace", function(SuTrace.class))
