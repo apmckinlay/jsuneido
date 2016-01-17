@@ -4,17 +4,39 @@
 
 package suneido.runtime.builtin;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
+import suneido.SuContainer;
+import suneido.SuException;
+import suneido.Suneido;
 import suneido.TheDbms;
+import suneido.runtime.Args;
+import suneido.runtime.BuiltinClass;
+import suneido.runtime.FunctionSpec;
 import suneido.runtime.Ops;
-import suneido.runtime.Params;
 import suneido.util.Errlog;
 
-public class SuThread {
+public class SuThread extends BuiltinClass {
+	public static final SuThread singleton = new SuThread();
+	private final AtomicInteger count = new AtomicInteger(0);
 
-	@Params("callable")
-	public static Object ThreadFunction(Object fn) {
-		Thread thread = new Thread(new Callable(fn));
+	private SuThread() {
+		super(SuThread.class);
+	}
+
+	@Override
+	protected Object newInstance(Object... args) {
+		throw new SuException("cannot create instances of Thread");
+	}
+
+	private static final FunctionSpec callableFS = new FunctionSpec("callable");
+
+	@Override
+	public Object call(Object... args) {
+		args = Args.massage(callableFS, args);
+		Thread thread = new Thread(Suneido.threadGroup, new Callable(args[0]));
 		thread.setDaemon(true); // so it won't stop Suneido exiting
+		thread.setName("Thread-" + count.getAndIncrement());
 		thread.start();
 		return null;
 	}
@@ -42,7 +64,23 @@ public class SuThread {
 				Errlog.error("Thread uncaught", e);
 			}
 		}
+	}
 
+	public static Object Count(Object self) {
+		return Suneido.threadGroup.activeCount();
+	}
+
+	public static Object List(Object self) {
+		Thread[] threads;
+		int n;
+		do {
+			threads = new Thread[Thread.activeCount() + 4];
+			n = Suneido.threadGroup.enumerate(threads);
+		} while (n >= threads.length);
+		SuContainer list = new SuContainer(threads.length);
+		for (int i = 0; i < n; ++i)
+			list.put(threads[i].getName(), threads[i].getState().toString());
+		return list;
 	}
 
 }

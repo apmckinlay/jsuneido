@@ -39,6 +39,7 @@ public class Suneido {
 			CommandLineOptions.parse(); // for tests
 	public static Contexts contexts = new Contexts();
 	public static ContextLayered context = new ContextLayered(contexts);
+	public static ThreadGroup threadGroup = new ThreadGroup("Suneido");
 
 	public static void main(String[] args) {
 		ClassLoader.getSystemClassLoader().setPackageAssertionStatus("suneido", true);

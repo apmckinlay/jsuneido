@@ -20,31 +20,34 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import suneido.SuException;
 import suneido.SuValue;
+import suneido.Suneido;
 import suneido.TheDbms;
 import suneido.runtime.*;
 import suneido.util.Errlog;
 import suneido.util.ServerBySocket;
-import suneido.util.ServerBySocket.HandlerFactory;
 
 /**
- * Thread per connection socket server.
- * A user defined class derives from SocketServer.
- * The server is started by "calling" the class.
- * A "master" instance is created
- * and any arguments are passed to the New of the class.
- * The master instance is duplicated (shallow copy) for each connection
- * and Run is called.
+ * Thread per connection socket server. A user defined class derives from
+ * SocketServer. The server is started by "calling" the class. A "master"
+ * instance is created and any arguments are passed to the New of the class. The
+ * master instance is duplicated (shallow copy) for each connection and Run is
+ * called.
  * <p>
  * Uses {@link SocketClient} for actual IO
  * <p>
- * WARNING: Since it is thread per connection
- * you should not use shared mutable data structures.<p>
+ * WARNING: Since it is thread per connection you should not use shared mutable
+ * data structures.
+ * <p>
  * Note: the name and exit parameters are not used on jSuneido.
+ * <p>
+ * Listener is run in a new thread.
+ * Connections use a thread pool shared with all listeners.
+ *
  * @see ServerBySocket
  */
 public class SocketServer extends SuClass {
 	public static final SocketServer singleton = new SocketServer();
-	private static final AtomicInteger nconn = new AtomicInteger();
+	private static final AtomicInteger count = new AtomicInteger(0);
 
 	private SocketServer() {
 		super("builtin", "SocketServer", null,
@@ -59,9 +62,10 @@ public class SocketServer extends SuClass {
 	public static Object CallClass(Object self, Object... args) {
 		args = convert(args);
 		int port = Ops.toInt(getPort(self, args));
-		Thread thread = new Thread(
-				new Listener(port, new Instance((SuClass) self, args)));
+		Thread thread = new Thread(Suneido.threadGroup,
+				new Listener(port, new Master((SuClass) self, args)));
 		thread.setDaemon(true);
+		thread.setName("SocketServer-" + count.getAndIncrement());
 		thread.start();
 		return null;
 	}
@@ -133,68 +137,67 @@ public class SocketServer extends SuClass {
 	private static class Listener implements Runnable {
 		private static final ThreadFactory threadFactory =
 				new ThreadFactoryBuilder()
+					.setThreadFactory(r -> new Thread(Suneido.threadGroup, r))
 					.setDaemon(true)
-					.setNameFormat("SocketServer-thread-%d")
 					.build();
 		private static final ExecutorService executor =
 				Executors.newCachedThreadPool(threadFactory);
-		final Instance master;
-		final int port;
+		private final AtomicInteger nconn = new AtomicInteger(0);
+		private final Master master;
+		private final int port;
 
-		Listener(int port, Instance master) {
+		Listener(int port, Master master) {
 			this.port = port;
 			this.master = master;
 		}
 
 		@Override
 		public void run() {
-			ServerBySocket server =
-					new ServerBySocket(executor, new ListenerHandlerFactory());
+			ServerBySocket server = new ServerBySocket(executor,
+					socket -> master.dup(socket, nconn.getAndIncrement()));
 			try {
 				server.run(port);
 			} catch (IOException e) {
 				throw new SuException("SocketServer failed", e);
 			}
 		}
+	}
 
-		private class ListenerHandlerFactory implements HandlerFactory {
-			@Override
-			public Runnable newHandler(Socket socket) throws IOException {
-				return Instance.dup(master, socket);
+	public static class Master extends SuInstance {
+		Master(SuClass serverClass, Object[] args) {
+			super(serverClass);
+			super.lookup("New").eval(this, args);
+		}
+		Instance dup(Socket socket, int nconn) {
+			try {
+				return new Instance(this, socket, nconn);
+			} catch (IOException e) {
+				throw new SuException("SocketServer failed", e);
 			}
 		}
 	}
 
 	// needs to be public for builtin methods to work
 	public static class Instance extends SuInstance implements Runnable {
-		SocketClient socket;
+		final SocketClient socket;
+		final int nconn;
+		final String name = Thread.currentThread().getName();
 
-		Instance(SuClass serverClass, Object[] args) {
-			super(serverClass);
-			super.lookup("New").eval(this, args);
-		}
-
-		Instance(Instance orig, Socket socket) throws IOException {
-			super(orig);
+		Instance(Master master, Socket socket, int nconn) throws IOException {
+			super(master);
 			this.socket = new SocketClient(socket);
-		}
-
-		static Instance dup(Instance orig, Socket socket) {
-			try {
-				return new Instance(orig, socket);
-			} catch (IOException e) {
-				throw new SuException("SocketServer failed", e);
-			}
+			this.nconn = nconn;
 		}
 
 		@Override
 		public void run() {
 			try {
-				setThreadName();
+				Thread.currentThread().setName(name + "-connection-" + nconn);
 				super.lookup("Run").eval0(this);
 			} catch (Exception e) {
 				Errlog.error("SocketServer", e);
 			} finally {
+				Thread.currentThread().setName("SocketServer-thread-pool");
 				socket.close();
 				TheDbms.closeIfIdle();
 				/*
@@ -204,17 +207,6 @@ public class SocketServer extends SuClass {
 				 * and then if we try to use it again we'll get an error
 				 */
 			}
-		}
-
-		private static void setThreadName() {
-			Thread thread = Thread.currentThread();
-			String name = thread.getName();
-			String sep = " % ";
-			int i = name.indexOf(sep);
-			if (i != -1)
-				name = name.substring(0, i);
-			name += sep + nconn.getAndIncrement();
-			thread.setName(name);
 		}
 
 		@Override
