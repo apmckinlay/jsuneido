@@ -118,6 +118,9 @@ public class SocketClient extends SuValue {
 		StringBuilder sb = new StringBuilder();
 		while (true) {
 			int c = input.read();
+// TODO test this - should prevent returning "" for eof
+//			if (c == -1 && sb.length() == 0)
+//				throw new SuException("socket Readline lost connection or timeout");
 			if (c == '\n' || c == -1)
 				break ;
 			if (sb.length() < Util.MAX_LINE)
