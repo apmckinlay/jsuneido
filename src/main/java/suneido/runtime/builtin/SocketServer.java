@@ -25,6 +25,7 @@ import suneido.TheDbms;
 import suneido.runtime.*;
 import suneido.util.Errlog;
 import suneido.util.ServerBySocket;
+import suneido.util.Util;
 
 /**
  * Thread per connection socket server. A user defined class derives from
@@ -59,11 +60,21 @@ public class SocketServer extends SuClass {
 		throw new SuException("cannot create instances of SocketServer");
 	}
 
+	private static class Info {
+		String name;
+		int port;
+	}
+
 	public static Object CallClass(Object self, Object... args) {
-		args = convert(args);
-		int port = Ops.toInt(getPort(self, args));
+		Info info = new Info();
+		SuClass c = (SuClass) self;
+		if (info.name == null)
+			info.name = Ops.toStr(c.get1(c, "Name"));
+		if (info.port == 0)
+			info.port = Ops.toInt(c.get1(c, "Port"));
+		args = convert(args, info);
 		Thread thread = new Thread(Suneido.threadGroup,
-				new Listener(port, new Master((SuClass) self, args)));
+				new Listener(info, new Master((SuClass) self, args)));
 		thread.setDaemon(true);
 		thread.setName("SocketServer-" + count.getAndIncrement());
 		thread.start();
@@ -71,7 +82,7 @@ public class SocketServer extends SuClass {
 	}
 
 	/** @return An args array with name, port, and exit as named args (if present) */
-	static Object[] convert(Object[] args) {
+	static Object[] convert(Object[] args, Info info) {
 		if (args.length == 0)
 			return args;
 		List<Object> list2 = Lists.newArrayList();
@@ -79,11 +90,13 @@ public class SocketServer extends SuClass {
 		ArgsIterator iter = new ArgsIterator(args);
 		Object x = iter.next();
 		if (! (x instanceof Map.Entry)) {
+			info.name = Ops.toStr(x);
 			addNamed(list2, "name", x);
 			if (! iter.hasNext())
 				return list2.toArray();
 			x = iter.next();
 			if (! (x instanceof Map.Entry)) {
+				info.port = Ops.toInt(x);
 				addNamed(list2, "port", x);
 				if (! iter.hasNext())
 					return list2.toArray();
@@ -103,7 +116,13 @@ public class SocketServer extends SuClass {
 			else {
 				@SuppressWarnings("rawtypes")
 				Map.Entry e = (Map.Entry) x;
-				addNamed(list, e.getKey(), e.getValue());
+				Object key = e.getKey();
+				Object val = e.getValue();
+				addNamed(list, key, val);
+				if (key.equals("name"))
+					info.name = Ops.toStr(val);
+				else if (key.equals("port"))
+					info.port = Ops.toInt(val);
 			}
 			if (! iter.hasNext())
 				break;
@@ -120,20 +139,6 @@ public class SocketServer extends SuClass {
 		list.add(value);
 	}
 
-	private static Object getPort(Object self, Object[] args) {
-		ArgsIterator iter = new ArgsIterator(args);
-		while (iter.hasNext()) {
-			Object x = iter.next();
-			if (x instanceof Map.Entry) {
-				@SuppressWarnings("rawtypes")
-				Map.Entry e = (Map.Entry) x;
-				if (e.getKey().equals("port"))
-					return e.getValue();
-			}
-		}
-		return Ops.get(self, "Port");
-	}
-
 	private static class Listener implements Runnable {
 		private static final ThreadFactory threadFactory =
 				new ThreadFactoryBuilder()
@@ -144,19 +149,20 @@ public class SocketServer extends SuClass {
 				Executors.newCachedThreadPool(threadFactory);
 		private final AtomicInteger nconn = new AtomicInteger(0);
 		private final Master master;
-		private final int port;
+		private final Info info;
 
-		Listener(int port, Master master) {
-			this.port = port;
+		Listener(Info info, Master master) {
+			this.info = info;
 			this.master = master;
 		}
 
 		@Override
 		public void run() {
+			SuThread.extraName(info.name);
 			ServerBySocket server = new ServerBySocket(executor,
 					socket -> master.dup(socket, nconn.getAndIncrement()));
 			try {
-				server.run(port);
+				server.run(info.port);
 			} catch (IOException e) {
 				throw new SuException("SocketServer failed", e);
 			}
@@ -181,18 +187,23 @@ public class SocketServer extends SuClass {
 	public static class Instance extends SuInstance implements Runnable {
 		final SocketClient socket;
 		final int nconn;
-		final String name = Thread.currentThread().getName();
+		final String name;
+		final String extra;
 
 		Instance(Master master, Socket socket, int nconn) throws IOException {
 			super(master);
 			this.socket = new SocketClient(socket);
 			this.nconn = nconn;
+			String s = Thread.currentThread().getName();
+			this.name = Util.beforeFirst(s, " ");
+			this.extra = Util.afterFirst(s, " ");
 		}
 
 		@Override
 		public void run() {
 			try {
-				Thread.currentThread().setName(name + "-connection-" + nconn);
+				Thread.currentThread().setName(
+						name + "-connection-" + nconn + " " + extra);
 				super.lookup("Run").eval0(this);
 			} catch (Exception e) {
 				Errlog.error("SocketServer", e);

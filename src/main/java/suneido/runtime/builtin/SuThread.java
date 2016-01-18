@@ -10,11 +10,9 @@ import suneido.SuContainer;
 import suneido.SuException;
 import suneido.Suneido;
 import suneido.TheDbms;
-import suneido.runtime.Args;
-import suneido.runtime.BuiltinClass;
-import suneido.runtime.FunctionSpec;
-import suneido.runtime.Ops;
+import suneido.runtime.*;
 import suneido.util.Errlog;
+import suneido.util.Util;
 
 public class SuThread extends BuiltinClass {
 	public static final SuThread singleton = new SuThread();
@@ -81,6 +79,21 @@ public class SuThread extends BuiltinClass {
 		for (int i = 0; i < n; ++i)
 			list.put(threads[i].getName(), threads[i].getState().toString());
 		return list;
+	}
+
+	@Params("name=null")
+	public static Object Name(Object self, Object arg) {
+		return extraName(arg == null ? null : Ops.toStr(arg));
+	}
+
+	public static Object extraName(String extra) {
+		Thread t = Thread.currentThread();
+		String name = t.getName();
+		if (extra != null) {
+			name = Util.beforeFirst(name, " ") + " " + extra;
+			t.setName(name);
+		}
+		return name;
 	}
 
 }
