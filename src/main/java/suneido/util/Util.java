@@ -41,6 +41,18 @@ public class Util {
 		return s.substring(0, 1).toLowerCase() + s.substring(1);
 	}
 
+	/** @return original string if sub not found */
+	public static String beforeFirst(String s, String sub) {
+		int i = s.indexOf(sub);
+		return (i == -1) ? s : s.substring(0, i);
+	}
+
+	/** @return "" if sub not found */
+	public static String afterFirst(String s, String sub) {
+		int i = s.indexOf(sub);
+		return (i == -1) ? "" : s.substring(i + sub.length());
+	}
+
 	/***
 	 * Return the contents of a StringBuilder with any trailing returns removed.
 	 * <p>
