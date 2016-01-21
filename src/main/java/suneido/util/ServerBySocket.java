@@ -35,7 +35,6 @@ public class ServerBySocket {
 	public void run(int port) throws IOException {
 		@SuppressWarnings("resource")
 		ServerSocket serverSocket = new ServerSocket(port);
-		serverSocket.setReuseAddress(true);
 		while (true) {
 			Socket clientSocket = serverSocket.accept();
 			// disable Nagle since we don't have gathering write
