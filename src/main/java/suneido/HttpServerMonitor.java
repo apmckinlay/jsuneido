@@ -7,15 +7,19 @@ package suneido;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
+import com.google.common.base.Joiner;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
 import suneido.database.server.DbmsServer;
+import suneido.runtime.builtin.SuThread;
 import suneido.util.Errlog;
 
 public class HttpServerMonitor {
@@ -59,15 +63,15 @@ public class HttpServerMonitor {
 		public void handle(HttpExchange t) throws IOException {
 			String response =
 					"<html>\r\n"
-	       			+ "<head>\r\n"
-	       			+ "<title>Suneido Server Monitor</title>\r\n"
-	       			+ "<meta http-equiv=\"refresh\" content=\"5\" />\r\n"
-	       			+ "</head>\r\n"
-	       			+ "<body>\r\n"
-	       			+ "<h1>Suneido Server Monitor</h1>\r\n"
-	       			+ getBody()
-	       			+ "</body>\r\n"
-	       			+ "</html>\r\n";
+					+ "<head>\r\n"
+					+ "<title>Suneido Server Monitor</title>\r\n"
+					+ "<meta http-equiv=\"refresh\" content=\"5\" />\r\n"
+					+ "</head>\r\n"
+					+ "<body>\r\n"
+					+ "<h1>Suneido Server Monitor</h1>\r\n"
+					+ getBody()
+					+ "</body>\r\n"
+					+ "</html>\r\n";
 			t.sendResponseHeaders(200, response.length());
 			try (OutputStream os = t.getResponseBody()) {
 				os.write(response.getBytes());
@@ -90,36 +94,41 @@ public class HttpServerMonitor {
 		}
 
 		private static String status() {
-			List<String> conns = DbmsServer.connections();
-			Collections.sort(conns);
 			StringBuilder sb = new StringBuilder();
 			if (mode.get() == CORRUPT)
 				sb.append("<h2 style=\"color: red;\">DATABASE DAMAGE DETECTED - "
-						+ "OPERATING IN READ-ONLY MODE</h2>");
-	       	sb.append("<p>Built: ")
-	       		.append(WhenBuilt.when())
-	       		.append("</p>\r\n"
-	       			+ "<p>Heap Size: ")
-	   			.append(mb(Runtime.getRuntime().totalMemory()))
-	       		.append("mb</p>\r\n"
-	       			+ "<p>Transactions: ")
-	   			.append(TheDbms.dbms().tranlist().size())
-	       		.append("</p>\r\n"
-	       			+ "<p>Cursors: ")
-	   			.append(TheDbms.dbms().cursors())
-	       		.append("</p>\r\n"
-	       			+ "<p>Database Size: ")
-	 	  		.append(mb(TheDbms.dbms().size()))
-	       		.append("mb</p>\r\n"
-	       			+ "<p>Connections: (")
-		   		.append(conns.size())
-	       		.append(") ");
-       		String sep = "";
-       		for (String s : conns) {
-       			sb.append(sep).append(s);
-       			sep = " + ";
-       		}
-	       	sb.append("</p>\r\n");
+						+ "OPERATING IN READ-ONLY MODE</h2>\r\n");
+			sb.append("<p>Built: ")
+					.append(WhenBuilt.when())
+					.append("</p>\r\n");
+			sb.append("<p>Heap Size: ")
+					.append(mb(Runtime.getRuntime().totalMemory()))
+					.append("mb</p>\r\n");
+			sb.append("<p>Transactions: ")
+					.append(TheDbms.dbms().tranlist().size())
+					.append("</p>\r\n");
+			sb.append("<p>Cursors: ")
+					.append(TheDbms.dbms().cursors())
+					.append("</p>\r\n");
+			sb.append("<p>Database Size: ")
+					.append(mb(TheDbms.dbms().size()))
+					.append("mb</p>\r\n");
+
+			sb.append("<p>Connections: ");
+			List<String> conns = DbmsServer.connections();
+			Collections.sort(conns);
+			Joiner.on(", ").appendTo(sb, conns);
+			sb.append("</p>\r\n");
+
+			sb.append("<p>Threads: ");
+			sb.append(Arrays.asList(SuThread.list()).stream()
+					.map(Thread::getName)
+					.filter(s -> ! s.contains("-connection-") &&
+							! s.contains("-thread-pool"))
+					.sorted()
+					.collect(Collectors.joining(", ")))
+					.append("</p>\r\n");
+
 			return sb.toString();
 		}
 

@@ -4,6 +4,7 @@
 
 package suneido.runtime.builtin;
 
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import suneido.SuContainer;
@@ -69,16 +70,21 @@ public class SuThread extends BuiltinClass {
 	}
 
 	public static Object List(Object self) {
+		Thread[] threads = list();
+		SuContainer list = new SuContainer(threads.length);
+		for (Thread t : threads)
+			list.put(t.getName(), t.getState().toString());
+		return list;
+	}
+
+	public static Thread[] list() {
 		Thread[] threads;
 		int n;
 		do {
 			threads = new Thread[Thread.activeCount() + 4];
 			n = Suneido.threadGroup.enumerate(threads);
 		} while (n >= threads.length);
-		SuContainer list = new SuContainer(threads.length);
-		for (int i = 0; i < n; ++i)
-			list.put(threads[i].getName(), threads[i].getState().toString());
-		return list;
+		return Arrays.copyOf(threads, n);
 	}
 
 	@Params("name=null")
