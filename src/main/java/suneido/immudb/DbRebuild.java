@@ -169,7 +169,8 @@ class DbRebuild {
 	Date reprocess(Database db, Check check) {
 		Date lastOkDate = check.lastOkDate();
 		long lastOkSize = check.dOkSize();
-		StorageIter dIter = new StorageIter(dstor, Storage.offsetToAdr(lastOkSize));
+		StorageIter dIter = new StorageIter(dstor,
+				lastOkSize == 0 ? dstor.FIRST_ADR : Storage.offsetToAdr(lastOkSize));
 		while (dIter.notFinished()) {
 			try {
 				new Proc(db, check.dOkSize(), dstor, dIter.adr()).process();
