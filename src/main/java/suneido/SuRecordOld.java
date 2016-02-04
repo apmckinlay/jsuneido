@@ -93,7 +93,7 @@ public abstract class SuRecordOld extends SuContainer {
 	}
 
 	@Override
-	public void clear() {
+	public synchronized void clear() {
 		super.clear();
 		hdr = null;
 		tran = null;
@@ -128,12 +128,12 @@ public abstract class SuRecordOld extends SuContainer {
 	}
 
 	@Override
-	public String toString() {
+	public synchronized String toString() {
 		return toString("[", "]");
 	}
 
 	@Override
-	public void pack(ByteBuffer buf) {
+	public synchronized void pack(ByteBuffer buf) {
 		super.pack(buf, Pack.Tag.RECORD);
 	}
 
@@ -142,7 +142,7 @@ public abstract class SuRecordOld extends SuContainer {
 	}
 
 	@Override
-	public void put(Object key, Object value) {
+	public synchronized void put(Object key, Object value) {
 		invalid.remove(key); // before get
 		if (containsKey(key)) {
 			Object old = super.get(key);
@@ -155,7 +155,7 @@ public abstract class SuRecordOld extends SuContainer {
 	}
 
 	@Override
-	public boolean delete(Object key) {
+	public synchronized boolean delete(Object key) {
 		boolean result = super.delete(key);
 		if (result) {
 			invalidateDependents(key);
@@ -165,7 +165,7 @@ public abstract class SuRecordOld extends SuContainer {
 	}
 
 	@Override
-	public boolean erase(Object key) {
+	public synchronized boolean erase(Object key) {
 		boolean result = super.erase(key);
 		if (result) {
 			invalidateDependents(key);
@@ -188,14 +188,14 @@ public abstract class SuRecordOld extends SuContainer {
 	}
 
 	/** called by Suneido record.Invalidate */
-	public void invalidate(Object member) {
+	public synchronized void invalidate(Object member) {
 		assert invalidated.isEmpty();
 		invalidate1(member);
 		callObservers(member);
 	}
 
 	@Override
-	public Object get(Object key) {
+	public synchronized Object get(Object key) {
 		RuleContext.Rule ar = RuleContext.top();
 		if (ar != null && ar.rec == this)
 			addDependency(ar.member, key);
@@ -249,7 +249,7 @@ public abstract class SuRecordOld extends SuContainer {
 	}
 
 	@Override
-	public Record toDbRecord(Header hdr) {
+	public synchronized Record toDbRecord(Header hdr) {
 		List<String> fldsyms = hdr.output_fldsyms();
 		Map<Object, Set<Object>> deps = getDeps(hdr, fldsyms);
 		// PERF don't add trailing empty fields
@@ -290,14 +290,14 @@ public abstract class SuRecordOld extends SuContainer {
 		return deps;
 	}
 
-	public void update(SuContainer ob) {
+	public synchronized void update(SuContainer ob) {
 		ck_modify("Update");
 		Record newrec = ob.toDbRecord(hdr);
 		recadr = tran.getTransaction().update(recadr, newrec);
 		verify(recadr != 0);
 	}
 
-	public void delete() {
+	public synchronized void delete() {
 		ck_modify("Delete");
 		tran.getTransaction().erase(recadr);
 	}
@@ -319,19 +319,19 @@ public abstract class SuRecordOld extends SuContainer {
 		return "Record";
 	}
 
-	public boolean isNew() {
+	public synchronized boolean isNew() {
 		return status == Status.NEW;
 	}
 
-	public SuTransaction getTransaction() {
+	public synchronized SuTransaction getTransaction() {
 		return tran;
 	}
 
-	public void addObserver(Object observer) {
+	public synchronized void addObserver(Object observer) {
 		observers.add(observer);
 	}
 
-	public void removeObserver(Object observer) {
+	public synchronized void removeObserver(Object observer) {
 		observers.remove(observer);
 	}
 
@@ -368,7 +368,7 @@ public abstract class SuRecordOld extends SuContainer {
 	 * Calls observers for the specified field,
 	 * and then for any other invalidated fields.
 	 */
-	public void callObservers(Object member) {
+	public synchronized void callObservers(Object member) {
 		callObservers2(member);
 		invalidated.remove(member);
 		// can't iterate normally because of potential concurrent modification
@@ -403,7 +403,7 @@ public abstract class SuRecordOld extends SuContainer {
 		}
 	}
 
-	public String getdeps(String field) {
+	public synchronized String getdeps(String field) {
 		CommaStringBuilder deps = new CommaStringBuilder();
 		for (Object key : dependencies.keySet())
 			if (dependencies.get(key).contains(field))
@@ -411,7 +411,7 @@ public abstract class SuRecordOld extends SuContainer {
 		return deps.toString();
 	}
 
-	public void setdeps(String field, String deps) {
+	public synchronized void setdeps(String field, String deps) {
 		for (String d : Util.commaSplitter(deps))
 			addDependency(field, d);
 	}
@@ -424,7 +424,7 @@ public abstract class SuRecordOld extends SuContainer {
 		return super.lookup(method);
 	}
 
-	public void attachRule(String field, Object rule) {
+	public synchronized void attachRule(String field, Object rule) {
 		attachedRules.put(field, rule);
 	}
 

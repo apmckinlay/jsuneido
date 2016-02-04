@@ -35,9 +35,7 @@ import com.google.common.collect.Iterables;
 /**
  * Suneido's single container type.
  * Combines an extendible array plus a hash map.
- * vec and map are synchronized for partial thread safety
  */
-@NotThreadSafe // i.e. objects/records should be thread contained
 public class SuContainer extends SuValue
 		implements Comparable<SuContainer>, Iterable<Object> {
 	public final List<Object> vec;
@@ -69,8 +67,8 @@ public class SuContainer extends SuValue
 	}
 
 	public SuContainer(int vecCapacity) {
-		vec = Collections.synchronizedList(new ArrayList<>(vecCapacity));
-		map = Collections.synchronizedMap(new CanonicalMap());
+		vec = new ArrayList<>(vecCapacity);
+		map = new CanonicalMap();
 	}
 
 	public SuContainer() {
@@ -123,26 +121,26 @@ public class SuContainer extends SuValue
 		return c;
 	}
 
-	public Object vecGet(int i) {
+	public synchronized Object vecGet(int i) {
 		return vec.get(i);
 	}
-	public Object mapGet(Object key) {
+	public synchronized Object mapGet(Object key) {
 		return map.get(key);
 	}
-	public Set<Map.Entry<Object, Object>> mapEntrySet() {
+	public synchronized Set<Map.Entry<Object, Object>> mapEntrySet() {
 		return map.entrySet();
 	}
-	public Set<Object> mapKeySet() {
+	public synchronized Set<Object> mapKeySet() {
 		return map.keySet();
 	}
 
-	public void add(Object value) {
+	public synchronized void add(Object value) {
 		checkReadonly();
 		vec.add(value);
 		migrate();
 	}
 
-	public void addAll(Iterable<?> iterable) {
+	public synchronized void addAll(Iterable<?> iterable) {
 		Iterables.addAll(vec, iterable);
 	}
 
@@ -153,14 +151,12 @@ public class SuContainer extends SuValue
 
 	private void migrate() {
 		Object x;
-		// FIXME: concurrency issue -- this should all be wrapped in synchronized...
 		while (null != (x = map.remove(vec.size())))
 			vec.add(x);
 	}
 
-	public void insert(int at, Object value) {
+	public synchronized void insert(int at, Object value) {
 		checkReadonly();
-		// FIXME: concurrency issue -- modification between size check and get??
 		if (0 <= at && at <= vec.size()) {
 			vec.add(at, value);
 			migrate();
@@ -168,21 +164,20 @@ public class SuContainer extends SuValue
 			put(at, value);
 	}
 
-	public void merge(SuContainer c) {
+	public synchronized void merge(SuContainer c) {
 		vec.addAll(c.vec);
 		map.putAll(c.map);
 		migrate();
 	}
 
 	@Override
-	public void put(Object key, Object value) {
+	public synchronized void put(Object key, Object value) {
 		preset(key, value);
 	}
 
-	public void preset(Object key, Object value) {
+	public synchronized void preset(Object key, Object value) {
 		checkReadonly();
 		int i = index(key);
-		// FIXME: concurrency issue -- modification between size check and get??
 		if (0 <= i && i < vec.size())
 			vec.set(i, value);
 		else if (i == vec.size())
@@ -197,7 +192,7 @@ public class SuContainer extends SuValue
 	}
 
 	@Override
-	public Object get(Object key) {
+	public synchronized Object get(Object key) {
 		if (key instanceof Range)
 			return ((Range) key).sublist(this);
 		else
@@ -214,11 +209,11 @@ public class SuContainer extends SuValue
 	 * @see #getDefault(int, Object)
 	 * @see #getIfPresent(int)
 	 */
-	public Object get(int at) {
+	public synchronized Object get(int at) {
 		return getDefault(at, defval);
 	}
 
-	public Object getDefault(Object key, Object defval) {
+	public synchronized Object getDefault(Object key, Object defval) {
 		Object x = getIfPresent(key);
 		if (x != null)
 			return x;
@@ -242,7 +237,7 @@ public class SuContainer extends SuValue
 	 * @see #get(int)
 	 * @see #getIfPresent(int)
 	 */
-	public Object getDefault(int at, Object defval) {
+	public synchronized Object getDefault(int at, Object defval) {
 		Object x = getIfPresent(at);
 		if (x != null)
 			return x;
@@ -255,8 +250,7 @@ public class SuContainer extends SuValue
 		return defval;
 	}
 
-	public Object getIfPresent(Object key) {
-		// FIXME: concurrency issue -- modification between size check and get??
+	public synchronized Object getIfPresent(Object key) {
 		int i = index(key);
 		return (0 <= i && i < vec.size()) ? vec.get(i) : map.get(key);
 	}
@@ -271,7 +265,7 @@ public class SuContainer extends SuValue
 	 * @see #get(int)
 	 * @see #getDefault(int, Object)
 	 */
-	public Object getIfPresent(int at) {
+	public synchronized Object getIfPresent(int at) {
 		synchronized (vec) {
 			if (0 <= at && at < vec.size())
 				return vec.get(at);
@@ -279,24 +273,21 @@ public class SuContainer extends SuValue
 		return map.isEmpty() ? null : map.get(at);
 	}
 
-	public boolean containsKey(Object key) {
-		// FIXME: concurrency issue -- modification between size check and get??
+	public synchronized boolean containsKey(Object key) {
 		int i = index(key);
 		return (0 <= i && i < vec.size()) || map.containsKey(key);
 	}
 
-	public int size() {
+	public synchronized int size() {
 		return vec.size() + map.size();
 	}
 
 	@Override
-	public String toString() {
+	public synchronized String toString() {
 		return toString("#(", ")");
 	}
 
 	protected String toString(String before, String after) {
-		// FIXME: Concurrency issue when iterating over synchronized list ...
-		//        should wrap in synchronized block...
 		StringBuilder sb = new StringBuilder(before);
 		for (Object x : vec)
 			sb.append(Ops.display(x)).append(", ");
@@ -336,7 +327,7 @@ public class SuContainer extends SuValue
 	}
 
 	@Override
-	public int hashCodeContrib() {
+	public synchronized int hashCodeContrib() {
 		return 31 * 31 * vec.size() + 31 * map.size()
 				+ SuContainer.class.hashCode();
 	}
@@ -372,7 +363,7 @@ public class SuContainer extends SuValue
 	}
 
 	@Override
-	public boolean equals(Object value) {
+	public synchronized boolean equals(Object value) {
 		if (value == this)
 			return true;
 		return equals2(this, value, null);
@@ -404,7 +395,7 @@ public class SuContainer extends SuValue
 	}
 
 	// public since also called by SuInstance.equals2
-	public static boolean equals3(Object x, Object y, PairStack stack) {
+	public synchronized static boolean equals3(Object x, Object y, PairStack stack) {
 		if (x == y)
 			return true;
 		if (x instanceof SuInstance && y instanceof SuInstance)
@@ -414,7 +405,7 @@ public class SuContainer extends SuValue
 	}
 
 	@Override
-	public int compareTo(SuContainer that) {
+	public synchronized int compareTo(SuContainer that) {
 		if (this == that)
 			return 0;
 		return compare2(that, new PairStack());
@@ -441,7 +432,7 @@ public class SuContainer extends SuValue
 		return (cy == null) ? Ops.cmp(x, y) : cx.compare2(cy, stack);
 	}
 
-	public boolean delete(Object key) {
+	public synchronized boolean delete(Object key) {
 		checkReadonly();
 		if (null != map.remove(key))
 			return true;
@@ -453,7 +444,7 @@ public class SuContainer extends SuValue
 			return false;
 	}
 
-	public boolean erase(Object key) {
+	public synchronized boolean erase(Object key) {
 		checkReadonly();
 		if (null != map.remove(key))
 			return true;
@@ -469,7 +460,7 @@ public class SuContainer extends SuValue
 		return true;
 	}
 
-	public void clear() {
+	public synchronized void clear() {
 		checkReadonly();
 		vec.clear();
 		map.clear();
@@ -480,15 +471,15 @@ public class SuContainer extends SuValue
 		return x instanceof Integer ? (Integer) x : -1;
 	}
 
-	public int vecSize() {
+	public synchronized int vecSize() {
 		return vec.size();
 	}
-	public int mapSize() {
+	public synchronized int mapSize() {
 		return map.size();
 	}
 
 	@Override
-	public int packSize(int nest) {
+	public synchronized int packSize(int nest) {
 		checkNest(++nest);
 		int ps = 1;
 		if (size() == 0)
@@ -515,7 +506,7 @@ public class SuContainer extends SuValue
 	}
 
 	@Override
-	public void pack(ByteBuffer buf) {
+	public synchronized void pack(ByteBuffer buf) {
 		pack(buf, Pack.Tag.OBJECT);
 	}
 
@@ -567,7 +558,7 @@ public class SuContainer extends SuValue
 		return Pack.unpack(buf2);
 	}
 
-	public void setReadonly() {
+	public synchronized void setReadonly() {
 		if (readonly)
 			return;
 		readonly = true;
@@ -580,11 +571,11 @@ public class SuContainer extends SuValue
 				((SuContainer) x).setReadonly();
 	}
 
-	public boolean getReadonly() {
+	public synchronized boolean getReadonly() {
 		return readonly;
 	}
 
-	public Object slice(int i) {
+	public synchronized Object slice(int i) {
 		SuContainer c = new SuContainer();
 		c.vec.addAll(vec.subList(i, vec.size()));
 		c.map.putAll(map);
@@ -594,19 +585,19 @@ public class SuContainer extends SuValue
 	public static enum IterWhich { LIST, NAMED, ALL };
 
 	@Override
-	public Iterator<Object> iterator() {
+	public synchronized Iterator<Object> iterator() {
 		return iterator(IterWhich.ALL, IterResult.VALUE);
 	}
 
 	@SuppressWarnings("unchecked")
-	public Iterator<Object> iterator(IterWhich iterWhich, IterResult iterResult) {
+	public synchronized Iterator<Object> iterator(IterWhich iterWhich, IterResult iterResult) {
 		return new Iter(
 				iterWhich == IterWhich.NAMED ? nullIter : vec.iterator(),
 				iterWhich == IterWhich.LIST ? nullIter : map.entrySet().iterator(),
 				iterResult);
 	}
 
-	public Iterable<Object> iterable(IterWhich iterWhich, IterResult iterResult) {
+	public synchronized Iterable<Object> iterable(IterWhich iterWhich, IterResult iterResult) {
 		if (iterWhich == IterWhich.ALL && iterResult == IterResult.VALUE)
 			return this;
 		else
@@ -682,27 +673,23 @@ public class SuContainer extends SuValue
 		}
 	}
 
-	public Object find(Object value) {
-		// FIXME: Concurrency issue -- modification between size() and get()
+	public synchronized Object find(Object value) {
 		for (int i = 0; i < vec.size(); ++i)
 			if (Ops.is_(value, vec.get(i)))
 				return i;
-		// FIXME: Concurrency issue -- iteration generally
 		for (Map.Entry<Object, Object> e : map.entrySet())
 			if (Ops.is_(value, e.getValue()))
 				return e.getKey();
 		return null;
 	}
 
-	public void reverse() {
+	public synchronized void reverse() {
 		checkReadonly();
-		// TODO: Possible concurrency issue -- is Collections.reverse() thread-safe?
 		Collections.reverse(vec);
 	}
 
-	public void sort(final Object fn) {
+	public synchronized void sort(final Object fn) {
 		checkReadonly();
-		// TODO: Possible concurrency issue -- is Collections.sort() thread-safe?
 		if (fn == Boolean.FALSE)
 			Collections.sort(vec, Ops.comp);
 		else
@@ -711,7 +698,7 @@ public class SuContainer extends SuValue
 							: Ops.call(fn, y, x) == Boolean.TRUE ? 1 : 0);
 	}
 
-	public int lowerBound(Object value, final Object fn) {
+	public synchronized int lowerBound(Object value, final Object fn) {
 		if (fn == Boolean.FALSE)
 			return Util.lowerBound(vec, value, Ops.comp);
 		else
@@ -719,7 +706,7 @@ public class SuContainer extends SuValue
 					Ops.call(fn, x, y) == Boolean.TRUE ? -1 : 1);
 	}
 
-	public int upperBound(Object value, final Object fn) {
+	public synchronized int upperBound(Object value, final Object fn) {
 		if (fn == Boolean.FALSE)
 			return Util.upperBound(vec, value, Ops.comp);
 		else
@@ -727,7 +714,7 @@ public class SuContainer extends SuValue
 					Ops.call(fn, x, y) == Boolean.TRUE ? -1 : 1);
 	}
 
-	public Util.Range equalRange(Object value, final Object fn) {
+	public synchronized Util.Range equalRange(Object value, final Object fn) {
 		if (fn == Boolean.FALSE)
 			return Util.equalRange(vec, value, Ops.comp);
 		else
@@ -735,7 +722,7 @@ public class SuContainer extends SuValue
 					Ops.call(fn, x, y) == Boolean.TRUE ? -1 : 1);
 	}
 
-	public Record toDbRecord(Header hdr) {
+	public synchronized Record toDbRecord(Header hdr) {
 		RecordBuilder rec = dbpkg.recordBuilder();
 		Object x;
 		String ts = hdr.timestamp_field();
@@ -751,7 +738,7 @@ public class SuContainer extends SuValue
 		return rec.build();
 	}
 
-	public void setDefault(Object value) {
+	public synchronized void setDefault(Object value) {
 		defval = value;
 	}
 
@@ -765,7 +752,7 @@ public class SuContainer extends SuValue
 		return "Object";
 	}
 
-	public boolean isEmpty() {
+	public synchronized boolean isEmpty() {
 		return vec.isEmpty() && map.isEmpty();
 	}
 
@@ -774,7 +761,7 @@ public class SuContainer extends SuValue
 		return ContainerMethods.lookup(method);
 	}
 
-	public SuContainer subList(int from, int to) {
+	public synchronized SuContainer subList(int from, int to) {
 		return new SuContainer(vec.subList(from, to));
 	}
 
