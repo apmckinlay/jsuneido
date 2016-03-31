@@ -9,8 +9,6 @@ import static suneido.jsdi.marshall.MarshallPlan.StorageCategory.INDIRECT;
 import static suneido.jsdi.marshall.ReturnTypeGroup.DOUBLE;
 import static suneido.jsdi.marshall.ReturnTypeGroup.INTEGER;
 
-import java.util.Arrays;
-
 import suneido.SuInternalError;
 import suneido.jsdi.DllInterface;
 import suneido.jsdi.marshall.MarshallPlan.StorageCategory;
@@ -330,12 +328,12 @@ enum NativeCall64 {
 	// TESTING
 	//
 
-	public static void main(String[] args) {
-		for (int rtIndex = 0; rtIndex < 4; ++rtIndex) {
-			System.out.println("rtindex " + rtIndex + "...");
-			System.out.println("\t" + Arrays.toString(ordinaryCallMap[rtIndex]));
-		}
-	}
+//	public static void main(String[] args) {
+//		for (int rtIndex = 0; rtIndex < 4; ++rtIndex) {
+//			System.out.println("rtindex " + rtIndex + "...");
+//			System.out.println("\t" + Arrays.toString(ordinaryCallMap[rtIndex]));
+//		}
+//	}
 
 	//
 	// NATIVE METHODS

@@ -15,7 +15,7 @@ public class Sleep {
 		try {
 			Thread.sleep(n);
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			Thread.currentThread().interrupt();
 		}
 		return null;
 	}

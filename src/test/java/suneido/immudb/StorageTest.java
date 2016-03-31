@@ -23,4 +23,10 @@ public class StorageTest {
 		assertEquals(12345678, stor.buffer(adr3b).getInt());
 	}
 
+	@Test
+	public void test_grow() {
+		for (int i = 0; i < stor.INIT_CHUNKS * 3; ++i)
+			stor.buffer(stor.alloc(40)).putInt(12345678);
+	}
+
 }

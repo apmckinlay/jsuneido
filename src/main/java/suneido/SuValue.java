@@ -116,12 +116,12 @@ public class SuValue implements Packable {
 
 	@Override
 	public int packSize(int nest) {
-		throw new SuException(typeName() + " cannot be stored");
+		throw new SuException("can't pack " + typeName());
 	}
 
 	@Override
 	public void pack(ByteBuffer buf) {
-		throw new SuException(typeName() + " cannot be stored");
+		throw new SuException("can't pack " + typeName());
 	}
 
 	public SuContainer toContainer() {

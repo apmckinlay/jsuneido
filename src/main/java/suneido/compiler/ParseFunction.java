@@ -379,9 +379,9 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 	static final Context LOOP = new Context(true, true);
 	static final Context NORMAL = new Context(false, false);
 
-	public static void main(String[] args) {
-		AstNode ast = Compiler.parse("function (.a, _b, ._c) { a + b }");
-		System.out.println(ast);
-	}
+//	public static void main(String[] args) {
+//		AstNode ast = Compiler.parse("function (.a, _b, ._c) { a + b }");
+//		System.out.println(ast);
+//	}
 
 }

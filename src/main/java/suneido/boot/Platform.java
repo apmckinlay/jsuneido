@@ -112,7 +112,8 @@ public enum Platform {
 	// TESTING
 	//
 
-	public static void main(String[] args) {
-		System.out.println(getPlatform());
-	}
+//	public static void main(String[] args) {
+//		System.out.println(getPlatform());
+//	}
+
 }

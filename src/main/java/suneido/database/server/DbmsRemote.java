@@ -15,6 +15,10 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+
 import suneido.SuContainer;
 import suneido.SuDate;
 import suneido.SuException;
@@ -25,10 +29,6 @@ import suneido.database.query.Row;
 import suneido.intfc.database.Record;
 import suneido.runtime.Pack;
 
-import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-
 /**
  * Client end of client-server connection.
  * ({@link DbmsServer} is the server side.)
@@ -37,7 +37,7 @@ public class DbmsRemote extends Dbms {
 	public final Thread owner = Thread.currentThread();
 	public volatile long idleSince = 0; // used by TheDbms.closeIfIdle
 	DbmsChannel io;
-	private String sessionid;
+	private String sessionid = "(opening)";
 
 	public DbmsRemote(String ip, int port) {
 		io = new DbmsChannel(ip, port);
@@ -149,9 +149,9 @@ public class DbmsRemote extends Dbms {
 	}
 
 	@Override
-	public void dump(String filename) {
+	public String dump(String filename) {
 		writeLine("DUMP", filename);
-		ok();
+		return (String) readValue();
 	}
 
 	@Override
@@ -375,6 +375,18 @@ public class DbmsRemote extends Dbms {
 			return readRecord(true);
 		}
 
+		@Override
+		public int readCount() {
+			writeLine("READCOUNT", "T" + tn);
+			return readInt('C');
+		}
+
+		@Override
+		public int writeCount() {
+			writeLine("WRITECOUNT", "T" + tn);
+			return readInt('C');
+		}
+
 	}
 
 	private void writeRecord(String cmd, Record rec) {
@@ -518,6 +530,8 @@ public class DbmsRemote extends Dbms {
 
 	@Override
 	public boolean use(String library) {
+		if (libraries().contains(library))
+			return false;
 		throw new SuException("can't Use('" + library + "')\n" +
 				"When client-server, only the server can Use");
 	}
@@ -530,11 +544,38 @@ public class DbmsRemote extends Dbms {
 
 	@Override
 	public void disableTrigger(String table) {
-//		throw new SuException("When client-server, only the server can DoWithoutTriggers");
 	}
 
 	@Override
 	public void enableTrigger(String table) {
+	}
+
+	@Override
+	public byte[] nonce() {
+		writeLine("NONCE");
+		ByteBuffer buf = io.read(Auth.NONCE_SIZE);
+		byte[] bytes = new byte[Auth.NONCE_SIZE];
+		buf.get(bytes);
+		return bytes;
+	}
+
+	@Override
+	public byte[] token() {
+		writeLine("TOKEN");
+		ByteBuffer buf = io.read(Auth.TOKEN_SIZE);
+		byte[] bytes = new byte[Auth.TOKEN_SIZE];
+		buf.get(bytes);
+		return bytes;
+	}
+
+	@Override
+	public boolean auth(String data) {
+		if ("".equals(data))
+			return false;
+		// NOTE: data could contain newlines
+		writeLineBuf("AUTH", "D" + data.length());
+		io.write(data);
+		return io.readLine().equals("t");
 	}
 
 }

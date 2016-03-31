@@ -12,7 +12,6 @@ import java.nio.ByteOrder;
 import java.nio.channels.WritableByteChannel;
 import java.util.List;
 
-import suneido.DbTools;
 import suneido.intfc.database.IndexIter;
 
 class DbDump {
@@ -121,9 +120,9 @@ class DbDump {
 		out.write(stringToBuffer(s));
 	}
 
-	public static void main(String[] args) {
-		DbTools.dumpDatabasePrint(DatabasePackage.dbpkg, "immu.compact", "immu.su");
-//		dumpTablePrint("test");
-	}
+//	public static void main(String[] args) {
+//		DbTools.dumpPrintExit(DatabasePackage.dbpkg, "immu.compact", "immu.su");
+////		dumpTablePrint("test");
+//	}
 
 }

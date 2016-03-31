@@ -10,19 +10,23 @@ import java.util.List;
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
 
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
+
+import suneido.HttpServerMonitor;
 import suneido.SuException;
 import suneido.immudb.DbHashTrie.Entry;
 import suneido.immudb.DbHashTrie.IntEntry;
 import suneido.intfc.database.DatabasePackage.Status;
 import suneido.intfc.database.DatabasePackage.StringObserver;
 import suneido.runtime.Triggers;
+import suneido.util.Errlog;
 import suneido.util.FileUtils;
 
-import com.google.common.base.MoreObjects;
-
 @ThreadSafe
-class Database implements suneido.intfc.database.Database {
+class Database implements suneido.intfc.database.Database, AutoCloseable {
 	final Transactions trans = new Transactions();
+	final String filename;
 	final Storage dstor;
 	final Storage istor;
 	private final Triggers triggers = new Triggers();
@@ -30,24 +34,30 @@ class Database implements suneido.intfc.database.Database {
 	/** only updated when holding commitLock */
 	volatile State state;
 	private State lastPersistState;
+	private boolean corrupt = false;
+	private static enum Ck { CHECK, NOCHECK };
 
 	// create
 
 	static Database create(String dbfilename) {
 		FileUtils.deleteIfExisting(dbfilename + "d");
 		FileUtils.deleteIfExisting(dbfilename + "i");
-		return create(new MmapFile(dbfilename + "d", "rw"),
+		return create(dbfilename,
+				new MmapFile(dbfilename + "d", "rw"),
 				new MmapFile(dbfilename + "i", "rw"));
 	}
 
-	static Database create(Storage dstor, Storage istor) {
-		Database db = new Database(dstor, istor, DbHashTrie.empty(istor), new Tables());
+	static Database create(String filename, Storage dstor, Storage istor) {
+		Database db = new Database(filename, dstor, istor,
+				DbHashTrie.empty(istor), new Tables());
 		Bootstrap.create(db.schemaTransaction());
 		db.persist();
 		return db;
 	}
 
-	private Database(Storage dstor, Storage istor, DbHashTrie dbinfo, Tables schema) {
+	private Database(String filename, Storage dstor, Storage istor,
+			DbHashTrie dbinfo, Tables schema) {
+		this.filename = filename;
 		this.dstor = dstor;
 		this.istor = istor;
 		state = lastPersistState = new State(0, dbinfo, schema, 0, 0);
@@ -65,34 +75,66 @@ class Database implements suneido.intfc.database.Database {
 	}
 
 	static Database open(String filename, String mode) {
+		return open(filename, mode, Ck.CHECK);
+	}
+
+	static Database open(String filename, String mode, Ck ck) {
 		// prevent empty files from being created
 		if (! new File(filename + "d").exists() ||
 				! new File(filename + "i").exists())
 			throw new SuException("missing database files");
 		try {
-			return open(new MmapFile(filename + "d", mode),
+			return open(filename, ck,
+					new MmapFile(filename + "d", mode),
 					new MmapFile(filename + "i", mode));
 		} catch (Throwable e) {
 			throw new SuException("error opening database", e);
 		}
 	}
 
-	static Database open(Storage dstor, Storage istor) {
-		if (dstor.sizeFrom(0) == 0 || istor.sizeFrom(0) == 0)
-			throw new SuException("invalid empty database file");
-		if (! new Check(dstor, istor).fastcheck()) {
-			dstor.close();
-			istor.close();
-			return null;
+	static Database open(String filename, Storage dstor, Storage istor) {
+		return open(filename, Ck.CHECK, dstor, istor);
+	}
+
+	static Database open(String filename, Ck ck, Storage dstor, Storage istor) {
+		if (ck == Ck.CHECK) {
+			if (dstor.sizeFrom(0) == 0 || istor.sizeFrom(0) == 0)
+				throw new SuException("invalid empty database file");
+			if (! openCheck(filename, dstor, istor)) {
+				dstor.close();
+				istor.close();
+				return null;
+			}
 		}
-		return openWithoutCheck(dstor, istor);
+		return openWithoutCheck(filename, dstor, istor);
 	}
 
-	static Database openWithoutCheck(Storage dstor, Storage istor) {
-		return new Database(dstor, istor);
+	private static boolean openCheck(String filename, Storage dstor, Storage istor) {
+		return filename.equals("") ||
+				DbGood.check(filename + "c", dstor.sizeFrom(0))
+					? new Check(dstor, istor).fastcheck()
+					: fullCheck(dstor, istor);
 	}
 
-	private Database(Storage dstor, Storage istor) {
+	private static boolean fullCheck(Storage dstor, Storage istor) {
+		Errlog.warn("full check required - database not shut down properly?");
+		HttpServerMonitor.checking();
+		boolean ok = new Check(dstor, istor).fullcheck();
+		//BUG: if check fails, then rebuild will do another redundant check
+		HttpServerMonitor.running();
+		return ok;
+	}
+
+	static Database openWithoutCheck(String filename) {
+		return open(filename, "rw", Ck.NOCHECK);
+	}
+
+	static Database openWithoutCheck(String filename, Storage dstor, Storage istor) {
+		return new Database(filename, dstor, istor);
+	}
+
+	private Database(String filename, Storage dstor, Storage istor) {
+		this.filename = filename;
 		this.dstor = dstor;
 		this.istor = istor;
 		int dbinfoadr = Persist.dbinfoadr(istor);
@@ -125,7 +167,7 @@ class Database implements suneido.intfc.database.Database {
 	@Override
 	public Database reopen() {
 		persist();
-		return Database.open(dstor, istor);
+		return Database.open(filename, dstor, istor);
 	}
 
 	@Override
@@ -137,7 +179,12 @@ class Database implements suneido.intfc.database.Database {
 			iUpTo = istor.upTo();
 		}
 		StringObserver so = new StringObserver();
-		Status status = DbCheck.check(dstor, istor, dUpTo, iUpTo, so);
+		Status status = DbCheck.check(filename, dstor, istor, dUpTo, iUpTo, so);
+		if (status != Status.OK) {
+			HttpServerMonitor.corrupt();
+			corrupt = true; // prevent writing dbc file
+			trans.lock(); // silently abort all transactions from now on
+		}
 		return status == Status.OK ? "" : so.toString();
 	}
 
@@ -269,11 +316,15 @@ class Database implements suneido.intfc.database.Database {
 
 	@Override
 	public void close() {
+		long size;
 		synchronized (commitLock) {
 			persist();
+			size = dstor.sizeFrom(0);
 			dstor.close();
 			istor.close();
 		}
+		if (! corrupt && ! filename.equals(""))
+			DbGood.create(filename + "c", size);
 	}
 
 	@Override
@@ -294,6 +345,8 @@ class Database implements suneido.intfc.database.Database {
 
 	@Override
 	public List<Integer> tranlist() {
+		if (trans.isLocked())
+			return ImmutableList.of(Integer.valueOf(0));
 		return trans.tranlist();
 	}
 
@@ -309,7 +362,6 @@ class Database implements suneido.intfc.database.Database {
 
 	@Override
 	public void force() {
-		//System.out.println("PERSIST");
 		dstor.force();
 		persist();
 		istor.force();

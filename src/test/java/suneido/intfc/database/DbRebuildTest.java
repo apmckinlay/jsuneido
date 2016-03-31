@@ -27,7 +27,7 @@ public class DbRebuildTest extends TestBase {
 
 	@Before
 	public void create() {
-		File file = FileUtils.tempfile();
+		File file = FileUtils.tempfile("d", "i", "c");
 		filename = file.toString();
 		outfilename = filename + ".out";
 		db = dbpkg.create(filename);
@@ -159,7 +159,7 @@ public class DbRebuildTest extends TestBase {
 	private void rebuild() {
 		db.close();
 		db = null;
-		assertNotNull(dbpkg.forceRebuild(filename, outfilename));
+		assertNotNull(dbpkg.rebuildFromData(filename, outfilename));
 		assertEquals(Status.OK, dbpkg.check(outfilename, nullObserver));
 	}
 

@@ -4,8 +4,6 @@
 
 package suneido.util;
 
-import static suneido.util.ByteBuffers.stringToBuffer;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -43,7 +41,7 @@ public class ServerBySelect {
 	private static final int IDLE_CHECK_INTERVAL_MS = ONE_MINUTE_IN_MS;
 	private final Set<SelectionKey> needWrite
 			= new ConcurrentSkipListSet<>(new IdentityComparator());
-	private long lastIdleCheck = 0;
+	private long lastIdleCheck = System.currentTimeMillis();
 
 	public ServerBySelect(HandlerFactory handlerFactory) {
 		this(handlerFactory, 0);
@@ -61,6 +59,10 @@ public class ServerBySelect {
 		inetAddress = serverSocket.getInetAddress();
 		selector = Selector.open();
 		registerChannel(serverChannel, SelectionKey.OP_ACCEPT);
+		new Thread(() -> loop()).start();
+	}
+
+	private void loop() {
 		while (true) {
 			try {
 				int nready = selector.select(SELECT_TIMEOUT_MS);
@@ -69,7 +71,7 @@ public class ServerBySelect {
 				handleWriters();
 				closeIdleConnections();
 			} catch (Throwable e) {
-				Errlog.errlog("error in server loop", e);
+				Errlog.error("error in server loop", e);
 			}
 		}
 	}
@@ -212,6 +214,8 @@ public class ServerBySelect {
 
 	private static boolean channelWrite(SelectionKey key) {
 		SocketChannel channel = (SocketChannel) key.channel();
+		if (! channel.isOpen())
+			return true;
 		Info info = (Info) key.attachment();
 		try {
 			channel.write(info.writeBufs);
@@ -224,7 +228,7 @@ public class ServerBySelect {
 
 	private static void errorClose(SelectionKey key, Exception e) {
 		Info info = (Info) key.attachment();
-		Errlog.errlog(info.handler + " io failed so closing", e);
+		Print.timestamped("io failed so closing " + info.handler, e);
 		close(key);
 	}
 
@@ -289,8 +293,12 @@ public class ServerBySelect {
 		if (idleTimeoutMs == 0)
 			return;
 		long t = System.currentTimeMillis();
-		if (t - lastIdleCheck < IDLE_CHECK_INTERVAL_MS)
+		long d = t - lastIdleCheck;
+		if (d < IDLE_CHECK_INTERVAL_MS)
 			return;
+		if (d > 4 * IDLE_CHECK_INTERVAL_MS)
+			Errlog.error("closeIdleConnections has not run for " + d + " ms" +
+					"idleTimeoutMs is " + idleTimeoutMs);
 		lastIdleCheck = t;
 		for (SelectionKey key : selector.keys()) {
 			Info info = (Info) key.attachment();
@@ -318,46 +326,46 @@ public class ServerBySelect {
 
 	//==========================================================================
 
-	public static void main(String[] args) {
-		ServerBySelect server = new ServerBySelect(new EchoHandlerFactory());
-		try {
-			server.run(1234);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	static class EchoHandler implements Handler {
-		private static ByteBuffer hello = stringToBuffer("EchoServer\r\n");
-		NetworkOutput outputQueue;
-
-		EchoHandler(NetworkOutput outputQueue) {
-			this.outputQueue = outputQueue;
-		}
-
-		@Override
-		public void start() {
-			hello.rewind();
-			outputQueue.add(hello);
-			outputQueue.write();
-		}
-
-		@Override
-		public void moreInput(ByteBuffer buf) {
-			ByteBuffer output = ByteBuffer.allocate(buf.remaining());
-			output.put(buf).rewind();
-			outputQueue.add(output);
-		}
-
-		@Override
-		public void close() {
-		}
-	}
-	static class EchoHandlerFactory implements HandlerFactory {
-		@Override
-		public Handler newHandler(NetworkOutput outputQueue, String address) {
-			return new EchoHandler(outputQueue);
-		}
-	}
+//	public static void main(String[] args) {
+//		ServerBySelect server = new ServerBySelect(new EchoHandlerFactory());
+//		try {
+//			server.run(1234);
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//	}
+//
+//	static class EchoHandler implements Handler {
+//		private static ByteBuffer hello = stringToBuffer("EchoServer\r\n");
+//		NetworkOutput outputQueue;
+//
+//		EchoHandler(NetworkOutput outputQueue) {
+//			this.outputQueue = outputQueue;
+//		}
+//
+//		@Override
+//		public void start() {
+//			hello.rewind();
+//			outputQueue.add(hello);
+//			outputQueue.write();
+//		}
+//
+//		@Override
+//		public void moreInput(ByteBuffer buf) {
+//			ByteBuffer output = ByteBuffer.allocate(buf.remaining());
+//			output.put(buf).rewind();
+//			outputQueue.add(output);
+//		}
+//
+//		@Override
+//		public void close() {
+//		}
+//	}
+//	static class EchoHandlerFactory implements HandlerFactory {
+//		@Override
+//		public Handler newHandler(NetworkOutput outputQueue, String address) {
+//			return new EchoHandler(outputQueue);
+//		}
+//	}
 
 }

@@ -22,7 +22,7 @@ public final class Seq extends BuiltinClass {
 	@Override
 	public Object newInstance(Object... args) {
 		args = Args.massage(initFS, args);
-		return new SuSequence(new SuSeq(args[0], args[1], args[2]));
+		return new Sequence(new SuSeq(args[0], args[1], args[2]));
 	}
 
 	private static class SuSeq implements Iterable<Object> {

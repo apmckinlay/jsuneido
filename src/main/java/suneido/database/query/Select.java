@@ -18,20 +18,18 @@ import static suneido.intfc.database.Record.MIN_FIELD;
 import static suneido.util.ByteBuffers.bufferUcompare;
 import static suneido.util.Util.*;
 import static suneido.util.Verify.verify;
-import gnu.trove.set.hash.TIntHashSet;
 
 import java.nio.ByteBuffer;
 import java.util.*;
 
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableSet;
+
+import gnu.trove.set.hash.TIntHashSet;
 import suneido.SuException;
 import suneido.compiler.Token;
-import suneido.database.query.expr.And;
-import suneido.database.query.expr.BinOp;
-import suneido.database.query.expr.Constant;
-import suneido.database.query.expr.Expr;
-import suneido.database.query.expr.Identifier;
-import suneido.database.query.expr.In;
-import suneido.database.query.expr.Multi;
+import suneido.database.query.expr.*;
 import suneido.database.server.DbmsTranLocal;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.RecordBuilder;
@@ -40,10 +38,6 @@ import suneido.runtime.Ops;
 import suneido.runtime.Pack;
 import suneido.util.ByteBuffers;
 import suneido.util.CommaStringBuilder;
-
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableSet;
 
 public class Select extends Query1 {
 	private Multi expr;
@@ -291,6 +285,7 @@ public class Select extends Query1 {
 		return false;
 	}
 
+	// If source is a Table, then it bypasses (does NOT call) source.optimize
 	@Override
 	double optimize2(List<String> index, Set<String> needs,
 			Set<String> firstneeds, boolean is_cursor, boolean freeze) {

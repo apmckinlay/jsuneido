@@ -4,6 +4,9 @@
 
 package suneido.database.server;
 
+import static suneido.Trace.trace;
+import static suneido.Trace.tracing;
+import static suneido.Trace.Type.CLIENTSERVER;
 import static suneido.util.ByteBuffers.stringToBuffer;
 
 import java.io.IOException;
@@ -17,13 +20,14 @@ import java.util.concurrent.ThreadFactory;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+
 import suneido.SuException;
 import suneido.Suneido;
+import suneido.util.ByteBuffers;
+import suneido.util.Errlog;
 import suneido.util.NetworkOutput;
-import suneido.util.Print;
 import suneido.util.ServerBySelect;
-
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
  * Uses {@link suneido.util.ServerBySelect}
@@ -45,7 +49,7 @@ public class DbmsServerBySelect {
 		try {
 			server.run(port);
 		} catch (IOException e) {
-			e.printStackTrace();
+			Errlog.error("IOException in ServerBySelect.run", e);
 		}
 	}
 
@@ -101,7 +105,10 @@ public class DbmsServerBySelect {
 				line = getLine(buf);
 				if (line == null)
 					return;
-//System.out.print("> " + Util.bufferToString(line));
+				if (tracing(CLIENTSERVER))
+					trace(CLIENTSERVER, serverData.getSessionId() +
+							" " + ByteBuffers.bufferToString(line).trim());
+//System.out.print("> " + ByteBuffers.bufferToString(line));
 				linelen = line.remaining();
 				cmd = getCmd(line);
 				line = line.slice();
@@ -171,10 +178,8 @@ public class DbmsServerBySelect {
 				output = cmd.execute(line, extra, outputQueue);
 			} catch (Throwable e) {
 				Class<? extends Throwable> c = e.getClass();
-				if (c != RuntimeException.class && c != SuException.class) {
-					Print.timestamp();
-					e.printStackTrace();
-				}
+				if (c != RuntimeException.class && c != SuException.class)
+					Errlog.error("DbmsServerBySelect.run", e);
 				output = stringToBuffer("ERR " + escape(e.toString()) + "\r\n");
 			}
 			line = null;

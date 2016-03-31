@@ -14,6 +14,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import suneido.DbTools;
 import suneido.SuContainer;
 import suneido.SuDate;
+import suneido.SuException;
 import suneido.compiler.Compiler;
 import suneido.database.query.CompileQuery;
 import suneido.database.query.Query.Dir;
@@ -73,11 +74,15 @@ public class DbmsLocal extends Dbms {
 	}
 
 	@Override
-	public void dump(String filename) {
-		if (filename.equals(""))
+	public String dump(String filename) {
+		if (filename.equals("")) {
+			String check = db.check();
+			if (! check.equals(""))
+				return check;
 			DbTools.dumpDatabase(dbpkg, db, "database.su");
-		else
+		} else
 			DbTools.dumpTable(dbpkg, db, filename);
+		return "";
 	}
 
 	@Override
@@ -177,8 +182,7 @@ public class DbmsLocal extends Dbms {
 
 	@Override
 	public void log(String s) {
-		String sessionId = ServerData.forThread().getSessionId();
-		Errlog.errlog(sessionId + ": " + s);
+		Errlog.bare(s);
 	}
 
 	@Override
@@ -199,6 +203,25 @@ public class DbmsLocal extends Dbms {
 	@Override
 	public void enableTrigger(String table) {
 		db.enableTrigger(table);
+	}
+
+	@Override
+	public byte[] nonce() {
+		throw new SuException("nonce only allowed on clients");
+	}
+
+	@Override
+	public boolean auth(String data) {
+		throw new SuException("auth only allowed on clients");
+	}
+
+	@Override
+	public byte[] token() {
+		return Auth.token();
+	}
+
+	Database getDb() {
+		return db;
 	}
 
 }

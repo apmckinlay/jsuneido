@@ -4,6 +4,8 @@
 
 package suneido.util;
 
+import com.google.common.base.Joiner;
+
 import suneido.boot.Bootstrap;
 
 public class Jvm {
@@ -13,8 +15,13 @@ public class Jvm {
 				null, null);
 	}
 
-	public static void main(String[] args) {
-		System.out.println("success? " + runWithNewJvm("-load:fred"));
+	public static String runWithNewJvmCmd(String cmd) {
+		String[] args = Bootstrap.runSuneidoInNewJVMArgs(new String[] { cmd }, false);
+		return Joiner.on(" ").join(args);
 	}
+
+//	public static void main(String[] args) {
+//		System.out.println("success? " + runWithNewJvm("-load:fred"));
+//	}
 
 }

@@ -15,15 +15,15 @@ import java.util.*;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import com.google.common.base.CharMatcher;
+import com.google.common.base.Splitter;
+
 import suneido.*;
 import suneido.jsdi.Buffer;
 import suneido.runtime.builtin.NumberMethods;
 import suneido.runtime.builtin.StringMethods;
 import suneido.util.RegexCache;
 import suneido.util.StringIterator;
-
-import com.google.common.base.CharMatcher;
-import com.google.common.base.Splitter;
 
 @ThreadSafe // all static methods
 public final class Ops {
@@ -115,14 +115,14 @@ public final class Ops {
 
 		if (xClass == SuRecord.class)
 			xClass = SuContainer.class;
-		if (xClass == SuSequence.class) {
-			((SuSequence) x).instantiate();
+		if (xClass == Sequence.class) {
+			((Sequence) x).instantiate();
 			xClass = SuContainer.class;
 		}
 		if (yClass == SuRecord.class)
 			yClass = SuContainer.class;
-		if (yClass == SuSequence.class) {
-			((SuSequence) y).instantiate();
+		if (yClass == Sequence.class) {
+			((Sequence) y).instantiate();
 			yClass = SuContainer.class;
 		}
 		if (x instanceof CharSequence) {
@@ -233,11 +233,15 @@ public final class Ops {
 	private static Object cat2(Object x, Object y) {
 		if (x instanceof Concats)
 			return ((Concats) x).append(y);
-		return cat(toStr(x), toStr(y));
+		Object result = cat(toStr(x), toStr(y));
+		if (x instanceof Except)
+			return Except.As(x, result);
+		if (y instanceof Except)
+			return Except.As(y, result);
+		return result;
 	}
 
 	public static boolean isString(Object x) {
-		// TODO: change to single check for instanceof CharSequence?
 		return x instanceof CharSequence;
 	}
 
@@ -323,7 +327,7 @@ public final class Ops {
 		//       how is it even possible to get a Short/Byte number??). From the
 		//       point of view of efficiency, it makes sense to move the
 		//       Float/Double negation branches further up since they are much
-		//       more likely to be taken t han the Short/Byte branches.
+		//       more likely to be taken than the Short/Byte branches.
 		if (x instanceof Float)
 			return -(Float) x;
 		if (x instanceof Double)
@@ -478,6 +482,7 @@ public final class Ops {
 		else
 			return "\"" + s.replace("\"", "\\\"") + "\"";
 	}
+
 	public static String display(Object[] a) {
 		if (a.length == 0)
 			return "()";
@@ -531,12 +536,16 @@ public final class Ops {
 				? new SuException(e.toString(), ((Except) e).getThrowable(), true)
 				: new SuException(toStr(e));
 	}
+
+	/** calls are generated via AstCompile.needNullCheck */
 	public static void throwUninitializedVariable() {
 		throw new SuException("uninitialized variable");
 	}
+	/** calls are generated via AstCompile.needNullCheck */
 	public static void throwNoReturnValue() {
 		throw new SuException("no return value");
 	}
+	/** calls are generated via AstCompile.needNullCheck */
 	public static void throwNoValue() {
 		throw new SuException("no value");
 	}
@@ -637,7 +646,7 @@ public final class Ops {
 		if (x instanceof SuValue)
 			((SuValue) x).put(member, value);
 		else
-			throw new SuException(typeName(x) + " does not support put");
+			throw new SuException(typeName(x) + " does not support put (" + member + ")");
 	}
 
 	public static Object get(Object x, Object member) {
@@ -656,7 +665,7 @@ public final class Ops {
 			; // fall thru to error
 		else if (isString(member))
 			return getProperty(x, member.toString());
-		throw new SuException(typeName(x) + " does not support get " + x + "." + member);
+		throw new SuException(typeName(x) + " does not support get (" + member + ")");
 	}
 
 	private static Object getProperty(Object x, String member) {

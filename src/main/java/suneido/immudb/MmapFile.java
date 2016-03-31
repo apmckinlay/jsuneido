@@ -25,12 +25,16 @@ import suneido.SuException;
  */
 @ThreadSafe
 class MmapFile extends Storage {
+	private static final int MMAP_CHUNK_SIZE = 64 * 1024 * 1024;
 	private final FileChannel.MapMode mode;
 	private final RandomAccessFile fin;
 	private final FileChannel fc;
 	private final long starting_file_size;
 	private int last_force;
 	private volatile boolean open = false;
+	static final byte[] MAGIC = { 's', 'n', 'd', 'o' };
+	static final int VERSION = 1;
+	private final int version;
 
 	/** @param mode Must be "r" or "rw" */
 	MmapFile(String filename, String mode) {
@@ -39,7 +43,7 @@ class MmapFile extends Storage {
 
 	/** @param mode Must be "r" or "rw" */
 	MmapFile(File file, String mode) {
-		super(64 * 1024 * 1024);
+		super(MMAP_CHUNK_SIZE);
 		switch (mode) {
 		case "r":
 			if (!file.canRead())
@@ -60,10 +64,37 @@ class MmapFile extends Storage {
 			throw new SuException("can't open/create " + file, e);
 		}
 		fc = fin.getChannel();
+		if (mode.equals("rw"))
+			lock();
 		open = true;
 		findEnd();
+		version = getVersion();
+		FIRST_ADR = (version == 0) ? 1 : 2;
 		starting_file_size = storSize;
 		last_force = offsetToChunk(storSize);
+	}
+
+	private void lock() {
+		try {
+			if (fc.tryLock() == null)
+				throw new SuException("can't lock database file");
+		} catch (IOException e) {
+			throw new SuException("can't lock database file");
+		}
+	}
+
+	private int getVersion() {
+		if (storSize == 0) { // newly created file
+			storSize = 8;
+			ByteBuffer buf = buf(0);
+			buf.put(MAGIC).putInt(VERSION);
+			return VERSION;
+		} else {
+			ByteBuffer buf = buf(0);
+			byte[] magic = new byte[4];
+			buf.get(magic);
+			return (Arrays.equals(magic, MAGIC)) ? buf.getInt() : 0;
+		}
 	}
 
 	/** handle zero padding caused by memory mapping */
@@ -71,7 +102,8 @@ class MmapFile extends Storage {
 		storSize = fileLength();
 		if (storSize == 0)
 			return;
-		assert storSize % ALIGN == 0;
+		if (0 != (storSize % ALIGN))
+			return; // not aligned
 		ByteBuffer buf = map(storSize - 1);
 		int i = (int) ((storSize - 1) % CHUNK_SIZE) + 1;
 		assert ALIGN >= 8;
@@ -128,7 +160,24 @@ class MmapFile extends Storage {
 	}
 
 	@Override
-	void close() {
+	int sizeToInt(long size) {
+		if (version > 0) {
+			assert (size & MASK) == 0;
+			size = size >>> SHIFT;
+		}
+		return super.sizeToInt(size);
+	}
+
+	@Override
+	long intToSize(int sizeInt) {
+		long size = super.intToSize(sizeInt);
+		if (version > 0)
+			size = size << SHIFT;
+		return size;
+	}
+
+	@Override
+	public void close() {
 		open = false;
 		force();
 		Arrays.fill(chunks, null); // might help gc

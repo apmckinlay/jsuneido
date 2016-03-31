@@ -5,22 +5,29 @@
 package suneido.util;
 
 import java.nio.ByteBuffer;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
-
-import suneido.runtime.Ops;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSet.Builder;
 import com.google.common.collect.Lists;
+
+import suneido.runtime.Ops;
 
 /**
  * Miscellaneous functions.
  */
 @ThreadSafe
 public class Util {
+	/** Readline limit for SuFile, SocketClient, and RunPiped.
+	 * Should be consistent with cSuneido.
+	 */
+	public static final int MAX_LINE = 4000;
 
 	public static boolean isCapitalized(String s) {
 		return Character.isUpperCase(s.charAt(0));
@@ -32,6 +39,18 @@ public class Util {
 
 	public static String uncapitalize(String s) {
 		return s.substring(0, 1).toLowerCase() + s.substring(1);
+	}
+
+	/** @return original string if sub not found */
+	public static String beforeFirst(String s, String sub) {
+		int i = s.indexOf(sub);
+		return (i == -1) ? s : s.substring(0, i);
+	}
+
+	/** @return "" if sub not found */
+	public static String afterFirst(String s, String sub) {
+		int i = s.indexOf(sub);
+		return (i == -1) ? "" : s.substring(i + sub.length());
 	}
 
 	/***
@@ -131,7 +150,12 @@ public class Util {
 	}
 
 	public static <T> ImmutableSet<T> setUnion(Collection<T> x, Collection<T> y) {
-		return new ImmutableSet.Builder<T>().addAll(x).addAll(y).build();
+		Builder<T> builder = new ImmutableSet.Builder<T>();
+		if (x != null)
+			builder.addAll(x);
+		if (y != null)
+			builder.addAll(y);
+		return builder.build();
 	}
 
 	public static <T> ImmutableSet<T> setIntersect(Collection<T> x, Collection<T> y) {
@@ -489,5 +513,12 @@ public class Util {
 		public String toString() {
 			return "Range(" + left + "," + right + ")";
 		}
+	}
+
+	@GuardedBy("this")
+	private static SimpleDateFormat datefmt = new SimpleDateFormat("yyyyMMdd.HHmmssSSS");
+
+	synchronized public static String displayDate(Date date){
+		return date == null ? "null" : datefmt.format(date);
 	}
 }

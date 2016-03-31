@@ -9,15 +9,15 @@ import static suneido.SuInternalError.unreachable;
 import static suneido.Trace.trace;
 import static suneido.Trace.tracing;
 import static suneido.Trace.Type.TABLE;
-import static suneido.util.Util.listToCommas;
-import static suneido.util.Util.listToParens;
-import static suneido.util.Util.nil;
-import static suneido.util.Util.startsWith;
+import static suneido.util.Util.*;
 import static suneido.util.Verify.verify;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 import suneido.Suneido;
 import suneido.intfc.database.IndexIter;
@@ -26,9 +26,6 @@ import suneido.intfc.database.RecordBuilder;
 import suneido.intfc.database.Transaction;
 import suneido.util.CommaStringBuilder;
 import suneido.util.Util;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 
 public class Table extends Query {
 	private final String table;
@@ -78,8 +75,9 @@ public class Table extends Query {
 		double cost2 = IMPOSSIBLE;
 		double cost3 = IMPOSSIBLE;
 
+		Set<String> allneeds = setUnion(needs, firstneeds);
 		Idx idx1, idx2 = null, idx3 = null;
-		if (null != (idx1 = match(idxs, index, needs)))
+		if (null != (idx1 = match(idxs, index, allneeds)))
 			// index found that meets all needs
 			cost1 = idx1.size; // cost of reading index
 		if (!nil(firstneeds) && null != (idx2 = match(idxs, index, firstneeds)))
@@ -87,7 +85,8 @@ public class Table extends Query {
 			// assume this means we only have to read 75% of data
 			cost2 = .75 * totalSize() + // cost of reading data
 					idx2.size; // cost of reading index
-		if (!nil(needs) && null != (idx3 = match(idxs, index, noFields)))
+		// if nil(allneeds) then this is unnecessary - same as idx1 case
+		if (!nil(allneeds) && null != (idx3 = match(idxs, index, noFields)))
 			cost3 = totalSize() + // cost of reading data
 					idx3.size; // cost of reading index
 
@@ -101,15 +100,18 @@ public class Table extends Query {
 					"\tidx3 " + idx3 + " cost3 " + cost3);
 
 		if (cost1 <= cost2 && cost1 <= cost3) {
-			idx = (idx1 == null) ? null : idx1.index;
+			if (freeze)
+				idx = (idx1 == null) ? null : idx1.index;
 			return cost1;
 		} else if (cost2 <= cost1 && cost2 <= cost3) {
-			assert idx2 != null;
-			idx = idx2.index; // suppress warning
+			assert idx2 != null; // suppress warning
+			if (freeze)
+				idx = idx2.index;
 			return cost2;
 		} else {
 			assert idx3 != null; // suppress warning
-			idx = idx3.index;
+			if (freeze)
+				idx = idx3.index;
 			return cost3;
 		}
 	}

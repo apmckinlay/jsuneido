@@ -17,6 +17,7 @@ import java.util.Set;
 
 import suneido.SuException;
 import suneido.intfc.database.Fkmode;
+import suneido.intfc.database.Transaction.Blocking;
 
 /**
  * Coordinates index updates for a table.
@@ -105,9 +106,9 @@ class IndexedData {
 	}
 
 	/** @return the address of the from record */
-	int update(Record from, Record to) {
+	int update(Record from, Record to, Blocking blocking) {
 		for (AnIndex index : indexes)
-			index.fkeyHandleUpdate(from, to);
+			index.fkeyHandleUpdate(from, to, blocking);
 
 		int fromAdr = from.address();
 		if (fromAdr == 0)
@@ -218,7 +219,7 @@ class IndexedData {
 		void fkeyHandleRemove(Record rec) {
 		}
 
-		void fkeyHandleUpdate(Record oldrec, Record newrec) {
+		void fkeyHandleUpdate(Record oldrec, Record newrec, Blocking blocking) {
 		}
 	}
 
@@ -246,13 +247,11 @@ class IndexedData {
 		}
 
 		void fkeyAddBlock(Record key, String action) {
-			if (fksrc == null || fksrc.mode != Fkmode.BLOCK)
+			if (fksrc == null || isEmptyKey(key))
 				return;
-			if (isEmptyKey(key))
-				return;
-			Table fktbl = t.getTable(fksrc.tablename);
-			if (fktbl == null ||
-					! t.exists(fktbl.num, fktbl.namesToNums(fksrc.columns), key))
+			Table fksrctbl = t.getTable(fksrc.tablename);
+			if (fksrctbl == null ||
+					! t.exists(fksrctbl.num, fksrctbl.namesToNums(fksrc.columns), key))
 				throw new SuException(action + " record blocked by foreign key to "
 						+ fksrc.tablename + " " + key);
 		}
@@ -285,12 +284,13 @@ class IndexedData {
 		}
 
 		@Override
-		void fkeyHandleUpdate(Record oldrec, Record newrec) {
+		void fkeyHandleUpdate(Record oldrec, Record newrec, Blocking blocking) {
 			Record oldkey = searchKey(oldrec);
 			Record newkey = searchKey(newrec);
 			if (oldkey.equals(newkey))
 				return;
-			fkeyAddBlock(newkey, "update(add)");
+			if (blocking == Blocking.BLOCK)
+				fkeyAddBlock(newkey, "update(add)");
 			for (ForeignKeyTarget fk : fkdsts) {
 				fkeyRemoveBlock(fk, oldkey, "update(remove)");
 				fkeyCascadeUpdate(fk, oldkey, newkey);

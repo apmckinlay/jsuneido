@@ -1,3 +1,7 @@
+/* Copyright 2014 (c) Suneido Software Corp. All rights reserved.
+ * Licensed under GPLv2.
+ */
+
 package suneido.runtime;
 
 /**
@@ -15,13 +19,13 @@ package suneido.runtime;
  * @author Victor Schappert
  * @since 20140914
  */
-abstract class SuBuiltinMethod0 extends SuBuiltinMethod {
+public abstract class SuBuiltinMethod0 extends SuBuiltinMethod {
 
 	//
 	// CONSTRUCTORS
 	//
 
-	SuBuiltinMethod0(String name) {
+	public SuBuiltinMethod0(String name) {
 		super(name, FunctionSpec.NO_PARAMS);
 	}
 

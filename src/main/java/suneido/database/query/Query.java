@@ -16,12 +16,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
+
 import suneido.SuException;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.RecordBuilder;
 import suneido.intfc.database.Transaction;
-
-import com.google.common.collect.ImmutableSet;
 
 /**
  * Base class for query operation classes.
@@ -98,6 +98,11 @@ public abstract class Query {
 		return this;
 	}
 
+	/**
+	 * freeze is used to lock in the final strategy.
+	 * The call with freeze = true should be with exactly the same arguments
+	 * as the call that gave the lowest cost.
+	 */
 	double optimize(List<String> index, Set<String> needs,
 			Set<String> firstneeds, boolean is_cursor, boolean freeze) {
 		if (tracing(QUERYOPT)) {
@@ -125,34 +130,37 @@ public abstract class Query {
 		// tempindex
 		double cost2 = IMPOSSIBLE;
 		int keysize = index.size() * columnsize() * 2; // *2 for index overhead
-		double no_index_cost = optimize1(noFields, needs,
-				nil(firstneeds) ? firstneeds : setUnion(firstneeds, index),
+		Set<String> tempindex_needs = setUnion(needs, index);
+		double no_index_cost = optimize1(noFields, tempindex_needs, firstneeds,
 				is_cursor, false);
 		double tempindex_cost = nrecords() * keysize * WRITE_FACTOR // write index
 				+ nrecords() * keysize // read index
 				+ 4000; // minimum fixed cost
+		//TODO first pass to build index should be optimize1(noFields, index, noFields
+		//TODO unless index meets all needs add cost of reading data a second time
 		cost2 = no_index_cost + tempindex_cost;
 		verify(cost2 >= 0);
 		if (tracing(QUERYOPT)) {
 			trace(QUERYOPT, "END " + this + "\n"
-					+ "\twith " + index + " cost1 " + cost1 + "\n"
-					+ "\twith TEMPINDEX cost2 " + cost2
-					+ " (" + no_index_cost + " + " + tempindex_cost + ")"
-					+ " nrecords " + nrecords() + " keysize " + keysize);
+					+ "\t" + (cost1 <= cost2 ? ">>> " : "")
+						+ "with " + index + " cost " + cost1 + "\n"
+					+ "\t" + (cost1 <= cost2 ? "" : ">>> ")
+						+ "with TEMPINDEX cost " + cost2
+						+ " (" + no_index_cost + " + " + tempindex_cost + ")"
+						+ " nrecords " + nrecords() + " keysize " + keysize);
 			trace(QUERYOPT, "--------------------------------------------");
 		}
 
 		double cost = Math.min(cost1, cost2);
-		if (!freeze)
-			return cost;
-
 		if (cost >= IMPOSSIBLE)
-			cost = IMPOSSIBLE;
-		else if (cost1 <= cost2)
-			optimize1(index, needs, firstneeds, is_cursor, true);
-		else { // cost2 < cost1
-			tempindex = index;
-			optimize1(noFields, needs, ImmutableSet.copyOf(index), is_cursor, true);
+			return IMPOSSIBLE;
+		if (freeze) {
+			if (cost1 <= cost2)
+				optimize1(index, needs, firstneeds, is_cursor, true);
+			else { // cost2 < cost1
+				tempindex = index;
+				optimize1(noFields, tempindex_needs, firstneeds, is_cursor, true);
+			}
 		}
 		return cost;
 	}

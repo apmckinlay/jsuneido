@@ -4,6 +4,7 @@ target/*
 jsuneido.jar
 *.dbd
 *.dbi
+*.dbc
 *.go
 *.tmp
 *.su
@@ -11,3 +12,11 @@ jsuneido.jar
 *.exe
 *.bat
 *.dll
+.DS_Store
+/nbproject/*
+nb-build.xml
+manifest.mf
+hunspell/*
+outfilec
+nightlychecktimes.txt
+clindex_suneidoc/*

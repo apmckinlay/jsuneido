@@ -8,13 +8,13 @@ import java.nio.ByteBuffer;
 import java.util.Set;
 import java.util.TreeMap;
 
+import com.google.common.collect.Maps;
+
 import suneido.SuException;
 import suneido.immudb.Bootstrap.TN;
 import suneido.immudb.IndexedData.Mode;
 import suneido.intfc.database.IndexIter;
 import suneido.util.ThreadConfined;
-
-import com.google.common.collect.Maps;
 
 /**
  * Effectively immutable, but indexes are cached.
@@ -274,8 +274,8 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	private void end() {
 		if (ended)
 			return;
-		trans.abort(this);
 		ended = true;
+		trans.abort(this);
 	}
 
 	@Override
@@ -284,13 +284,14 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	}
 
 	@Override
-	public int updateRecord(int recadr, suneido.intfc.database.Record rec) {
+	public int updateRecord(int recadr, suneido.intfc.database.Record rec,
+			Blocking blocking) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public int updateRecord(int tblnum, suneido.intfc.database.Record oldrec,
-			suneido.intfc.database.Record newrec) {
+			suneido.intfc.database.Record newrec, Blocking blocking) {
 		throw new UnsupportedOperationException();
 	}
 

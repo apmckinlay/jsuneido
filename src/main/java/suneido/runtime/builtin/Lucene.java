@@ -151,11 +151,11 @@ public class Lucene extends BuiltinClass {
 		}
 	}
 
-	@Params("dir, query, block, limit = 10")
+	@Params("dir, query, limit, block")
 	public static Object Search(Object self, Object a, Object b, Object c, Object d) {
 		String path = Ops.toStr(a);
 		String queryStr = Ops.toStr(b);
-		int limit = Ops.toInt(d);
+		int limit = Ops.toInt(c);
 		try (FSDirectory dir = FSDirectory.open(new File(path));
 				IndexReader ir = DirectoryReader.open(dir)) {
 			IndexSearcher searcher = new IndexSearcher(ir);
@@ -167,7 +167,7 @@ public class Lucene extends BuiltinClass {
 			for (ScoreDoc hit : hits) {
 				Document doc = searcher.doc(hit.doc);
 				String key = doc.get("key");
-				Ops.call1(c, key);
+				Ops.call1(d, key);
 			}
 			return null;
 		} catch (Exception e) {

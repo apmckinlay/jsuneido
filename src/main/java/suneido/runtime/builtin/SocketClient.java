@@ -6,7 +6,10 @@ package suneido.runtime.builtin;
 
 import static suneido.util.Util.array;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
@@ -23,7 +26,7 @@ public class SocketClient extends SuValue {
 	private static final BuiltinMethods methods = new BuiltinMethods(SocketClient.class);
 	private final Socket socket;
 	private final InputStream input;
-	private final DataOutputStream output;
+	private final OutputStream output;
 
 	// args must already be massaged
 	private SocketClient(Object... args) {
@@ -41,7 +44,7 @@ public class SocketClient extends SuValue {
 			socket.setSoTimeout(timeout);
 			socket.setTcpNoDelay(true); // disable nagle
 			input = new BufferedInputStream(socket.getInputStream());
-			output = new DataOutputStream(socket.getOutputStream());
+			output = socket.getOutputStream();
 		} catch (IOException e) {
 			throw new SuException("socket open failed", e);
 		}
@@ -50,8 +53,8 @@ public class SocketClient extends SuValue {
 	SocketClient(Socket socket) throws IOException {
 		this.socket = socket;
 		socket.setTcpNoDelay(true); // disable nagle
-		input = new DataInputStream(socket.getInputStream());
-		output = new DataOutputStream(socket.getOutputStream());
+		input = new BufferedInputStream(socket.getInputStream());
+		output = socket.getOutputStream();
 	}
 
 	@Override
@@ -91,9 +94,11 @@ public class SocketClient extends SuValue {
 				nr += r;
 			} while (nr < n);
 		} catch (SocketTimeoutException e) {
-			throw new SuException("socket Read lost connection or timeout", e);
+			if (nr == 0)
+				throw new SuException("socket Read lost connection or timeout", e);
 		} catch (IOException e) {
-			throw new SuException("socket Read failed", e);
+			if (nr == 0)
+				throw new SuException("socket Read failed", e);
 		}
 		if (nr == 0)
 			throw new SuException("socket Read lost connection or timeout");
@@ -113,9 +118,12 @@ public class SocketClient extends SuValue {
 		StringBuilder sb = new StringBuilder();
 		while (true) {
 			int c = input.read();
+// TODO test this - should prevent returning "" for eof
+//			if (c == -1 && sb.length() == 0)
+//				throw new SuException("socket Readline lost connection or timeout");
 			if (c == '\n' || c == -1)
 				break ;
-			if (sb.length() < 2000) // max should be consistent with cSuneido
+			if (sb.length() < Util.MAX_LINE)
 				sb.append((char) c);
 		}
 		return Util.toLine(sb);

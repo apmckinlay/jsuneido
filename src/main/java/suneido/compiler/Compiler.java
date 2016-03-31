@@ -23,13 +23,19 @@ import suneido.runtime.Ops;
  * <li>
  * {@link ParseConstant}</li>
  * <li>
- * {@link ParseFunction}</li>
+ * {@link ParseFunction} - used by ParseConstant</li>
  * <li>
- * {@link ParseExpression}</li>
+ * {@link ParseExpression} - used by ParseFunction</li>
  * <li>
- * {@link ParseStruct}</li>
+ * {@link ParseStruct} - used by ParseConstant</li>
  * <li>
- * {@link AstGenerator} - generates an AST, based on calls from parsers</li>
+ * {@link ParseDll} - used by ParseConstant</li>
+ * <li>
+ * {@link ParseCallback} - used by ParseConstant</li>
+ * <li>
+ * {@link Generator} - interface, called by parsers with results
+ * <li>
+ * {@link AstGenerator} - implementation of Generator to create AST</li>
  * <li>
  * {@link AstNode} - make up the AST</li>
  * <li>
@@ -86,14 +92,14 @@ public class Compiler {
 		return Ops.call0(compile("", "eval", "function () { " + s + "\n}", context));
 	}
 
-//	public static void main(String[] args) throws IOException {
+//	public static void main(String[] args) /*throws IOException*/ {
 ////		String s = Files.toString(new java.io.File("tmp.txt"), Charsets.UTF_8);
 ////		String s = "function () { c = class { New(.P) { } A() { .P } }; i = c(123); i.A() }";
 ////		String s = "function () { _p = 123; function(_p = 0){ p }(); }";
-//		String s = "class { Meth() { 123 } }";
+//		String s = "function () { x=1;Print([:x]) }";
 //		PrintWriter pw = new PrintWriter(System.out);
 ////		Object f =
-//				compile("Test", s, pw);
+//				compile("Test", s, pw, false);
 //		//System.out.println(" => " + Ops.call0(f));
 //		//System.out.println(" => " + Ops.call1(f, "hello"));
 //	}

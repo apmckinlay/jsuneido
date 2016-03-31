@@ -106,7 +106,8 @@ public class SuFile extends SuValue {
 						break ;
 				if (c == '\n')
 					break ;
-				sb.append((char) c);
+				if (sb.length() < Util.MAX_LINE)
+					sb.append((char) c);
 			}
 			return Util.toLine(sb);
 		} catch (IOException e) {

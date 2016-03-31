@@ -4,12 +4,10 @@
 
 package suneido.util;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -167,7 +165,7 @@ public final class FileFinder {
 
 	/**
 	 * Constructs a file finder.
-	 * 
+	 *
 	 * @param searchSystemLibraryPath
 	 *            Whether the {@link SearchStage#SYSTEM_LIBARY_PATH} search
 	 *            stage should be run
@@ -256,7 +254,7 @@ public final class FileFinder {
 	 * enumerated in {@link SearchStage} in the order they appear in the
 	 * enumeration.
 	 * </p>
-	 * 
+	 *
 	 * <ul>
 	 * <li>
 	 * The properties examined during
@@ -271,7 +269,7 @@ public final class FileFinder {
 	 * Whether or not {@link SearchStage#SYSTEM_LIBARY_PATH} is run is dependent
 	 * on this class' system library search flag.</li>
 	 * </ul>
-	 * 
+	 *
 	 * @param name
 	 *            File name to search for
 	 * @return Result of the search
@@ -590,60 +588,61 @@ public final class FileFinder {
 	// TEST
 	//
 
-	public static void main(String[] args) throws IOException {
-		final int NAME = 0;
-		final int PROPERTY = 1;
-		final int RELPATH = 2;
-		int state = NAME;
-		final FileFinder f = new FileFinder(false);
-		final ArrayList<String> names = new ArrayList<String>();
-		final int N = args.length;
-		for (int k = 0; k < N; ++k) {
-			final String arg = args[k];
-			if ("-s".equals(arg)) {
-				f.setSearchSystemLibraryPath(true);
-				state = NAME;
-			} else if ("-p".equals(arg)) {
-				state = PROPERTY;
-			} else if ("-r".equals(arg)) {
-				state = RELPATH;
-			} else if ("-n".equals(arg)) {
-				state = NAME;
-			} else {
-				switch (state) {
-				case NAME:
-					names.add(arg);
-					break;
-				case PROPERTY:
-					f.addSearchPathPropertyNames(arg);
-					break;
-				case RELPATH:
-					f.addRelPaths(arg);
-					break;
-				default:
-					throw new RuntimeException("bad state");
-				}
-			}
-		}
-		if (names.isEmpty()) {
-			BufferedReader br = new BufferedReader(new InputStreamReader(
-					System.in));
-			String name;
-			while (null != (name = br.readLine())) {
-				names.add(name);
-			}
-		}
-		for (final String name : names) {
-			System.out.println("searching for '" + name + "'...");
-			final SearchResult r = f.find(name, (SearchResult x) -> {
-				if (SearchStage.RELPATH_RELATIVE_TO_CLASSPATH == x.stage) {
-					// Clean up the temporary
-					x.file.deleteOnExit();
-				}
-				System.out.println("    => " + x);
-				return true;
-			});
-			System.out.println("    FIRST => " + r);
-		}
-	}
+//	public static void main(String[] args) throws IOException {
+//		final int NAME = 0;
+//		final int PROPERTY = 1;
+//		final int RELPATH = 2;
+//		int state = NAME;
+//		final FileFinder f = new FileFinder(false);
+//		final ArrayList<String> names = new ArrayList<String>();
+//		final int N = args.length;
+//		for (int k = 0; k < N; ++k) {
+//			final String arg = args[k];
+//			if ("-s".equals(arg)) {
+//				f.setSearchSystemLibraryPath(true);
+//				state = NAME;
+//			} else if ("-p".equals(arg)) {
+//				state = PROPERTY;
+//			} else if ("-r".equals(arg)) {
+//				state = RELPATH;
+//			} else if ("-n".equals(arg)) {
+//				state = NAME;
+//			} else {
+//				switch (state) {
+//				case NAME:
+//					names.add(arg);
+//					break;
+//				case PROPERTY:
+//					f.addSearchPathPropertyNames(arg);
+//					break;
+//				case RELPATH:
+//					f.addRelPaths(arg);
+//					break;
+//				default:
+//					throw new RuntimeException("bad state");
+//				}
+//			}
+//		}
+//		if (names.isEmpty()) {
+//			BufferedReader br = new BufferedReader(new InputStreamReader(
+//					System.in));
+//			String name;
+//			while (null != (name = br.readLine())) {
+//				names.add(name);
+//			}
+//		}
+//		for (final String name : names) {
+//			System.out.println("searching for '" + name + "'...");
+//			final SearchResult r = f.find(name, (SearchResult x) -> {
+//				if (SearchStage.RELPATH_RELATIVE_TO_CLASSPATH == x.stage) {
+//					// Clean up the temporary
+//					x.file.deleteOnExit();
+//				}
+//				System.out.println("    => " + x);
+//				return true;
+//			});
+//			System.out.println("    FIRST => " + r);
+//		}
+//	}
+
 }

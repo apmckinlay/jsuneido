@@ -8,7 +8,7 @@
 			+ jsuneido-arch-win32-x86.jar : full jSuneido, JSDI, jsdebug, win32-x86 only
 			+ jsuneido-arch-win32-amd64.jar : full jSuneido, JSDI, jsdebug, win32-amd64 only
 			+ jsuneido-arch-linux-amd64.jar : lean jSuneido with jsdebug for linux-amd64
-			+ jsuneido-all.jar : full jSuneido with all architecture-specific libraries
+			+ jsuneido-full.jar : full jSuneido with all architecture-specific libraries
 	-->
 
 	<!--                      -->
@@ -26,8 +26,8 @@
 	<property name="main.dstdir.raw-jars" value="target/jar/raw"/>
 
 	<path id="main.classpath">
-		<pathelement location="${lib.dir}/asm-all-5.0.3.jar"/>
-		<pathelement location="${lib.dir}/guava-18.0.jar"/>
+		<pathelement location="${lib.dir}/asm-all-5.0.4.jar"/>
+		<pathelement location="${lib.dir}/guava-19.0.jar"/>
 		<pathelement location="${lib.dir}/jsr305-1.3.9.jar"/>
 		<pathelement location="${lib.dir}/${lib.lucene-core}"/>
 		<pathelement location="${lib.dir}/${lib.lucene-analyzers-common}"/>
@@ -160,12 +160,13 @@
 			will lose their internalness -->
 
 	<target name="compile" depends="when,dirs">
+		<!-- specifying debug="true" without debuglevel
+			should result in -g i.e. all debug info vars,file,line -->
 		<javac srcdir="${main.srcdir}" destdir="${main.dstdir.classes}"
 				classpathref="main.classpath"
 				includeAntRuntime="false"
 				target="1.8"
 				debug="true"
-				debuglevel="vars"
 		>
 			<!--  Exclude JDBC stuff. Not currently implemented. -->
 			<exclude name="**/jdbc/**"/>

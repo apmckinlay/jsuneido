@@ -4,26 +4,25 @@
 
 package suneido.immudb;
 
-import gnu.trove.iterator.TIntIterator;
-import gnu.trove.list.array.TIntArrayList;
-import gnu.trove.map.hash.TIntIntHashMap;
-import gnu.trove.set.hash.TIntHashSet;
-
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.base.Stopwatch;
+import com.google.common.collect.Maps;
+import com.google.common.primitives.Ints;
+import com.google.common.primitives.Shorts;
+
+import gnu.trove.iterator.TIntIterator;
+import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.map.hash.TIntIntHashMap;
+import gnu.trove.set.hash.TIntHashSet;
+import suneido.immudb.DbRebuild.RebuildTransaction;
 import suneido.immudb.TranIndex.Iter;
 import suneido.intfc.database.IndexIter;
 import suneido.util.Errlog;
 import suneido.util.ThreadConfined;
-
-import com.google.common.base.Stopwatch;
-import com.google.common.collect.Maps;
-import com.google.common.primitives.Ints;
-import com.google.common.primitives.Longs;
-import com.google.common.primitives.Shorts;
 
 /**
  * Transactions are thread confined
@@ -50,8 +49,6 @@ class UpdateTransaction extends ReadWriteTransaction {
 	private final TIntArrayList actions = new TIntArrayList();
 	private int writeCount = 0;
 	static int MAX_WRITES_PER_TRANSACTION = 10000;
-	final static int WARN_WRITES_PER_TRANSACTION = 5000;
-	final static int WARN_UPDATE_TRAN_DURATION_SEC = 5;
 	protected static final short UPDATE = (short) 0;
 	protected static final short REMOVE = (short) -1;
 	protected static final short END = (short) -2;
@@ -61,6 +58,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 	UpdateTransaction(int num, Database db) {
 		super(num, db);
 		asof = db.trans.clock();
+		trans.addUpdateTran(this); // must be after setting asof
 	}
 
 	@Override
@@ -83,9 +81,10 @@ class UpdateTransaction extends ReadWriteTransaction {
 	}
 
 	@Override
-	protected int updateRecord2(int tblnum, DataRecord from, DataRecord to) {
+	protected int updateRecord2(int tblnum, DataRecord from, DataRecord to,
+			Blocking blocking) {
 		to.address(tran.refToInt(to));
-		int fromadr = super.updateRecord2(tblnum, from, to);
+		int fromadr = super.updateRecord2(tblnum, from, to, blocking);
 		addAction(UPDATE);
 		actions.add(fromadr);
 		actions.add(to.address());
@@ -120,7 +119,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 				int j = Ints.indexOf(colNums, i);
 				rb.add(j == -1 ? oldrec.get(i) : newkey.get(j));
 			}
-			updateRecord(tblnum, oldrec, rb.build());
+			updateRecord(tblnum, oldrec, rb.build(), Blocking.NO_BLOCK);
 		}
 	}
 
@@ -174,6 +173,12 @@ class UpdateTransaction extends ReadWriteTransaction {
 
 	// -------------------------------------------------------------------------
 
+	@Override
+	// just adds synchronized to ReadWriteTransaction.complete
+	synchronized public String complete() {
+		return super.complete();
+	}
+
 	private boolean isCommitted() {
 		return commitTime != Long.MAX_VALUE;
 	}
@@ -194,6 +199,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 	}
 
 	@Override
+	// just adds synchronized to ReadWriteTransaction.abort
 	synchronized public void abort() {
 		super.abort();
 	}
@@ -201,7 +207,9 @@ class UpdateTransaction extends ReadWriteTransaction {
 	// commit ------------------------------------------------------------------
 
 	@Override
-	synchronized protected void commit() {
+	protected void commit() {
+		checkLimits();
+		Stopwatch sw = Stopwatch.createStarted();
 		buildReads();
 		synchronized(db.commitLock) {
 			if (db.state.schema != dbstate.schema)
@@ -212,18 +220,31 @@ class UpdateTransaction extends ReadWriteTransaction {
 				updateBtrees();
 				updateDbInfo();
 				finish();
-			} finally {
+			} catch (Throwable e) {
 				tran.abortIncompleteStore();
+				throw e;
 			}
 		}
-		if (writeCount > WARN_WRITES_PER_TRANSACTION)
-			Errlog.errlog("WARNING: excessive writes (" + writeCount +
+		long secs = sw.elapsed(TimeUnit.SECONDS);
+		if (secs > Transactions.MAX_UPDATE_TRAN_DURATION_SEC/2)
+			Errlog.warn("long duration commit (" + secs + " secs)");
+	}
+
+	private void checkLimits() {
+		if (writeCount > MAX_WRITES_PER_TRANSACTION/2)
+			Errlog.warn("excessive writes (" + writeCount +
 					") writes (output/update/delete) in one transaction " + this);
 		long secs = stopwatch.elapsed(TimeUnit.SECONDS);
-		if (secs > WARN_UPDATE_TRAN_DURATION_SEC &&
-				! (this instanceof SchemaTransaction))
-			Errlog.errlog("WARNING: long duration transaction " + this +
-					" (" + secs + " seconds)");
+		if (secs > Transactions.MAX_UPDATE_TRAN_DURATION_SEC/2 &&
+				! (this instanceof SchemaTransaction) &&
+				! (this instanceof RebuildTransaction)) {
+			String msg = "long duration update transaction " + this +
+								" (" + secs + " secs)";
+			if (secs < Transactions.MAX_UPDATE_TRAN_DURATION_SEC + 2)
+				Errlog.warn(msg);
+			else
+				Errlog.error(msg);
+		}
 	}
 
 	private void buildReads() {
@@ -232,17 +253,21 @@ class UpdateTransaction extends ReadWriteTransaction {
 	}
 
 	protected void checkForConflicts() {
+		// for each overlapping transaction
 		Set<UpdateTransaction> overlapping = trans.getOverlapping(asof);
 		for (UpdateTransaction t : overlapping) {
 			assert t != this;
 			TIntIterator iter = t.deletes.iterator();
 			while (iter.hasNext()) {
 				int del = iter.next();
+				// check if it deleted from an index range that we read
 				readValidation(del);
-				checkForWriteConflict(del);
+				// check if we deleted the same record
+				checkForDeleteConflict(del);
 			}
 			iter = t.inserts.iterator();
 			while (iter.hasNext())
+				// check if it inserted into an index range that we read
 				readValidation(iter.next());
 		}
 	}
@@ -267,7 +292,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 		return new RecordBuilder().addFields(r, colNums).arrayRec();
 	}
 
-	private void checkForWriteConflict(int del) {
+	private void checkForDeleteConflict(int del) {
 		if (deletes.contains(del))
 			throw new Conflict("delete");
 	}
@@ -323,6 +348,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 				tran.dstor.alloc(Shorts.BYTES + Ints.BYTES));
 		buf.putShort(REMOVE);
 		buf.putInt(act);
+		assert deletes.contains(act);
 	}
 
 	private void updateAction(TIntIntHashMap updates, int from, int to) {
@@ -396,12 +422,13 @@ class UpdateTransaction extends ReadWriteTransaction {
 			OverlayIndex oti = (OverlayIndex) idx;
 			updated = ! oti.removedKeys.isEmpty();
 			for (BtreeKey key : oti.removedKeys)
-				global.remove(key);
+				if (! global.remove(key))
+					throw new Conflict("missing key");
 			local = oti.local();
 		}
 		Btree.Iter iter = local.iterator();
 		for (iter.next(); ! iter.eof(); iter.next()) {
-			if (false == global.add(translate(iter.cur()), index.isKey, index.unique))
+			if (! global.add(translate(iter.cur()), index.isKey, index.unique))
 				throw new Conflict("duplicate key");
 			updated = true;
 		}
@@ -441,11 +468,15 @@ class UpdateTransaction extends ReadWriteTransaction {
 	 * An exception part way through this will be bad.
 	 */
 	private void finish() {
-		Tran.StoreInfo info = tran.endStore();
-		db.setState(db.state.dbinfoadr, dbinfo, schema, info.cksum, info.adr);
-		commitTime = trans.clock();
-		trans.commit(this);
-		// db.persist(); // for testing - persist after every transaction
+		try {
+			Tran.StoreInfo info = tran.endStore();
+			db.setState(db.state.dbinfoadr, dbinfo, schema, info.cksum, info.adr);
+			commitTime = trans.clock();
+			trans.commit(this);
+			// db.persist(); // for testing - persist after every transaction
+		} catch (Throwable e) {
+			Errlog.fatal("ERROR in UpdateTransaction.finish", e);
+		}
 	}
 
 	// end of commit =========================================================
@@ -458,11 +489,21 @@ class UpdateTransaction extends ReadWriteTransaction {
 		return commitTime;
 	}
 
+	@Override
+	public int readCount() {
+		return reads.values().stream().mapToInt(tr -> tr.readCount()).sum();
+	}
+
+	@Override
+	public int writeCount() {
+		return writeCount;
+	}
+
 	// needed for PriorityQueue's in Transactions
 	static final Comparator<UpdateTransaction> byCommit =
-			(t1, t2) -> Longs.compare(t1.commitTime, t2.commitTime);
+			(t1, t2) -> Long.compare(t1.commitTime, t2.commitTime);
 	static final Comparator<UpdateTransaction> byAsof =
-			(t1, t2) -> Longs.compare(t1.asof, t2.asof);
+			(t1, t2) -> Long.compare(t1.asof, t2.asof);
 
 	@Override
 	public String toString() {

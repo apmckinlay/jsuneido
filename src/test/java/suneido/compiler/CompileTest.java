@@ -18,15 +18,7 @@ import org.objectweb.asm.Type;
 
 import suneido.SuException;
 import suneido.Suneido;
-import suneido.runtime.Args;
-import suneido.runtime.BlockReturnException;
-import suneido.runtime.Except;
-import suneido.runtime.FunctionSpec;
-import suneido.runtime.Ops;
-import suneido.runtime.SuClosure;
-import suneido.runtime.SuClosure0;
-import suneido.runtime.SuCallable;
-import suneido.runtime.SuClass;
+import suneido.runtime.*;
 import suneido.runtime.builtin.ObjectClass;
 import suneido.runtime.builtin.RecordClass;
 
@@ -172,7 +164,7 @@ public class CompileTest {
 		test("a ? b : x;;",
 				"a, bool, IFFALSE L1, b, GOTO L2, L1, x, L2, POP");
 		test("a ? b : x",
-				"a, bool, IFFALSE L1, b, GOTO L2, L1, x, L2, null?, ARETURN");
+				"a, bool, IFFALSE L1, b, GOTO L2, L1, x, L2, ARETURN");
 		test("a ? b() : c();;",
 				"a, bool, IFFALSE L1, b, call, GOTO L2, L1, c, call, L2, POP");
 		test("(a = b) ? (b = 123) : (c = 456)",
@@ -462,7 +454,7 @@ public class CompileTest {
 	public void test_super() {
 		assertThrew(() -> {
 			test("a = super.y", "");
-		}, SuException.class, "syntax error at line 1.*: invalid use of super"); 
+		}, SuException.class, "syntax error at line 1.*: invalid use of super");
 
 		test("super.Fn()", "this, self, 'Fn', superInvoke, ARETURN");
 	}

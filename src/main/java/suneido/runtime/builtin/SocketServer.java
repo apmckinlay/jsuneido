@@ -13,36 +13,42 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
-
-import suneido.SuException;
-import suneido.SuValue;
-import suneido.TheDbms;
-import suneido.runtime.*;
-import suneido.util.Errlog;
-import suneido.util.ServerBySocket;
-import suneido.util.ServerBySocket.HandlerFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
+import suneido.SuException;
+import suneido.SuValue;
+import suneido.Suneido;
+import suneido.TheDbms;
+import suneido.runtime.*;
+import suneido.util.Errlog;
+import suneido.util.ServerBySocket;
+import suneido.util.Util;
+
 /**
- * Thread per connection socket server.
- * A user defined class derives from SocketServer.
- * The server is started by "calling" the class.
- * A "master" instance is created
- * and any arguments are passed to the New of the class.
- * The master instance is duplicated (shallow copy) for each connection
- * and Run is called.
+ * Thread per connection socket server. A user defined class derives from
+ * SocketServer. The server is started by "calling" the class. A "master"
+ * instance is created and any arguments are passed to the New of the class. The
+ * master instance is duplicated (shallow copy) for each connection and Run is
+ * called.
  * <p>
  * Uses {@link SocketClient} for actual IO
  * <p>
- * WARNING: Since it is thread per connection
- * you should not use shared mutable data structures.<p>
+ * WARNING: Since it is thread per connection you should not use shared mutable
+ * data structures.
+ * <p>
  * Note: the name and exit parameters are not used on jSuneido.
+ * <p>
+ * Listener is run in a new thread.
+ * Connections use a thread pool shared with all listeners.
+ *
  * @see ServerBySocket
  */
 public class SocketServer extends SuClass {
 	public static final SocketServer singleton = new SocketServer();
+	private static final AtomicInteger count = new AtomicInteger(0);
 
 	private SocketServer() {
 		super("builtin", "SocketServer", null,
@@ -54,18 +60,29 @@ public class SocketServer extends SuClass {
 		throw new SuException("cannot create instances of SocketServer");
 	}
 
+	private static class Info {
+		String name;
+		int port;
+	}
+
 	public static Object CallClass(Object self, Object... args) {
-		args = convert(args);
-		int port = Ops.toInt(getPort(self, args));
-		Thread thread = new Thread(
-				new Listener(port, new Instance((SuClass) self, args)));
+		Info info = new Info();
+		SuClass c = (SuClass) self;
+		if (info.name == null)
+			info.name = Ops.toStr(c.get1(c, "Name"));
+		if (info.port == 0)
+			info.port = Ops.toInt(c.get1(c, "Port"));
+		args = convert(args, info);
+		Thread thread = new Thread(Suneido.threadGroup,
+				new Listener(info, new Master((SuClass) self, args)));
 		thread.setDaemon(true);
+		thread.setName("SocketServer-" + count.getAndIncrement());
 		thread.start();
 		return null;
 	}
 
 	/** @return An args array with name, port, and exit as named args (if present) */
-	static Object[] convert(Object[] args) {
+	static Object[] convert(Object[] args, Info info) {
 		if (args.length == 0)
 			return args;
 		List<Object> list2 = Lists.newArrayList();
@@ -73,11 +90,13 @@ public class SocketServer extends SuClass {
 		ArgsIterator iter = new ArgsIterator(args);
 		Object x = iter.next();
 		if (! (x instanceof Map.Entry)) {
+			info.name = Ops.toStr(x);
 			addNamed(list2, "name", x);
 			if (! iter.hasNext())
 				return list2.toArray();
 			x = iter.next();
 			if (! (x instanceof Map.Entry)) {
+				info.port = Ops.toInt(x);
 				addNamed(list2, "port", x);
 				if (! iter.hasNext())
 					return list2.toArray();
@@ -97,7 +116,13 @@ public class SocketServer extends SuClass {
 			else {
 				@SuppressWarnings("rawtypes")
 				Map.Entry e = (Map.Entry) x;
-				addNamed(list, e.getKey(), e.getValue());
+				Object key = e.getKey();
+				Object val = e.getValue();
+				addNamed(list, key, val);
+				if (key.equals("name"))
+					info.name = Ops.toStr(val);
+				else if (key.equals("port"))
+					info.port = Ops.toInt(val);
 			}
 			if (! iter.hasNext())
 				break;
@@ -114,84 +139,76 @@ public class SocketServer extends SuClass {
 		list.add(value);
 	}
 
-	private static Object getPort(Object self, Object[] args) {
-		ArgsIterator iter = new ArgsIterator(args);
-		while (iter.hasNext()) {
-			Object x = iter.next();
-			if (x instanceof Map.Entry) {
-				@SuppressWarnings("rawtypes")
-				Map.Entry e = (Map.Entry) x;
-				if (e.getKey().equals("port"))
-					return e.getValue();
-			}
-		}
-		return Ops.get(self, "Port");
-	}
-
 	private static class Listener implements Runnable {
 		private static final ThreadFactory threadFactory =
 				new ThreadFactoryBuilder()
+					.setThreadFactory(r -> new Thread(Suneido.threadGroup, r))
 					.setDaemon(true)
-					.setNameFormat("SocketServer-thread-%d")
 					.build();
 		private static final ExecutorService executor =
 				Executors.newCachedThreadPool(threadFactory);
-		final Instance master;
-		final int port;
+		private final AtomicInteger nconn = new AtomicInteger(0);
+		private final Master master;
+		private final Info info;
 
-		Listener(int port, Instance master) {
-			this.port = port;
+		Listener(Info info, Master master) {
+			this.info = info;
 			this.master = master;
 		}
 
 		@Override
 		public void run() {
-			ServerBySocket server =
-					new ServerBySocket(executor, new ListenerHandlerFactory());
+			SuThread.extraName(info.name);
+			ServerBySocket server = new ServerBySocket(executor,
+					socket -> master.dup(socket, nconn.getAndIncrement()));
 			try {
-				server.run(port);
+				server.run(info.port);
 			} catch (IOException e) {
 				throw new SuException("SocketServer failed", e);
 			}
 		}
+	}
 
-		private class ListenerHandlerFactory implements HandlerFactory {
-			@Override
-			public Runnable newHandler(Socket socket) throws IOException {
-				return Instance.dup(master, socket);
+	public static class Master extends SuInstance {
+		Master(SuClass serverClass, Object[] args) {
+			super(serverClass);
+			super.lookup("New").eval(this, args);
+		}
+		Instance dup(Socket socket, int nconn) {
+			try {
+				return new Instance(this, socket, nconn);
+			} catch (IOException e) {
+				throw new SuException("SocketServer failed", e);
 			}
 		}
 	}
 
 	// needs to be public for builtin methods to work
 	public static class Instance extends SuInstance implements Runnable {
-		SocketClient socket;
+		final SocketClient socket;
+		final int nconn;
+		final String name;
+		final String extra;
 
-		Instance(SuClass serverClass, Object[] args) {
-			super(serverClass);
-			super.lookup("New").eval(this, args);
-		}
-
-		Instance(Instance orig, Socket socket) throws IOException {
-			super(orig);
+		Instance(Master master, Socket socket, int nconn) throws IOException {
+			super(master);
 			this.socket = new SocketClient(socket);
-		}
-
-		static Instance dup(Instance orig, Socket socket) {
-			try {
-				return new Instance(orig, socket);
-			} catch (IOException e) {
-				throw new SuException("SocketServer failed", e);
-			}
+			this.nconn = nconn;
+			String s = Thread.currentThread().getName();
+			this.name = Util.beforeFirst(s, " ");
+			this.extra = Util.afterFirst(s, " ");
 		}
 
 		@Override
 		public void run() {
 			try {
+				Thread.currentThread().setName(
+						name + "-connection-" + nconn + " " + extra);
 				super.lookup("Run").eval0(this);
 			} catch (Exception e) {
-				Errlog.errlog("exception in SocketServer", e);
+				Errlog.error("SocketServer", e);
 			} finally {
+				Thread.currentThread().setName("SocketServer-thread-pool");
 				socket.close();
 				TheDbms.closeIfIdle();
 				/*

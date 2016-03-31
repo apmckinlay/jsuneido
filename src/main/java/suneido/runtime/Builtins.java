@@ -6,16 +6,16 @@ package suneido.runtime;
 
 import java.util.Map;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+
 import suneido.SuContainer;
 import suneido.jsdi.Buffer;
 import suneido.jsdi.ThunkManager;
 import suneido.jsdi.com.COMobject;
 import suneido.runtime.builtin.*;
 import suneido.util.Errlog;
-
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 
 public class Builtins {
 	static final ImmutableMap<String, Object> builtins;
@@ -34,6 +34,7 @@ public class Builtins {
 			.put("And", function(And.class))
 			.put("AssertionError",
 						function(suneido.runtime.builtin.AssertionError.class))
+			.put("AstParse", function(AstParse.class))
 			.put("Boolean?", function(BooleanQ.class))
 			.put("Buffer", Buffer.clazz)
 			.put("Buffer?", function(BufferQ.class))
@@ -60,7 +61,6 @@ public class Builtins {
 			.put("Display", function(Display.class))
 			.put("Div", function(Div.class))
 			.put("Dll?", function(DllQ.class))
-			.put("Dump", function(Dump.class))
 			.put("DoWithoutTriggers", function(DoWithoutTriggers.class))
 			.put("Eq", function(Eq.class))
 			.put("ExePath", function(ExePath.class))
@@ -117,6 +117,7 @@ public class Builtins {
 			.put("Scanner", Scanner.clazz)
 			.put("Scheduled", function(Scheduled.class))
 			.put("Seq", new Seq())
+			.put("Sequence", function(SuSequence.class))
 			.put("ServerEval", function(ServerEval.class))
 			.put("ServerIP", function(ServerIP.class))
 			.put("ServerPort", function(ServerPort.class))
@@ -134,7 +135,7 @@ public class Builtins {
 			.put("Synchronized", function(Synchronized.class))
 			.put("System", function(SystemFunction.class))
 			.put("SystemMemory", function(SystemMemory.class))
-			.put("Thread", function(ThreadFunction.class))
+			.put("Thread", SuThread.singleton)
 			.put("ThreadCount", function(ThreadCount.class))
 			.put("Timestamp", function(Timestamp.class))
 			.put("Trace", function(SuTrace.class))
@@ -155,7 +156,7 @@ public class Builtins {
 			Class.forName("org.apache.lucene.analysis.standard.StandardAnalyzer");
 			return Lucene.singleton;
 		} catch (ClassNotFoundException e) {
-			Errlog.errlog("ERROR: lucene not found");
+			Errlog.error("lucene not found");
 			return NoLucene.singleton;
 		}
 	}

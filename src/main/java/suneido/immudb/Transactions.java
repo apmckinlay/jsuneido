@@ -4,8 +4,6 @@
 
 package suneido.immudb;
 
-import static suneido.util.Verify.verify;
-
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -13,33 +11,36 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+
 import suneido.SuException;
 import suneido.intfc.database.Transaction;
 import suneido.util.Errlog;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
-
 /**
  * Manages transactions.
+ * {@link Database} has an instance.
  * Mostly for {@link UpdateTransactions}
  */
 @ThreadSafe
 class Transactions {
-	private final AtomicLong clock = new AtomicLong();
+	private final AtomicLong clock = new AtomicLong(1); // zero is reserved
 	private final AtomicInteger nextNum = new AtomicInteger();
 	/** all active transactions (read and update), for Database.Transactions() */
 	private final Set<Transaction> trans = Sets.newHashSet();
-	/** active update transactions */
-	private final PriorityQueue<UpdateTransaction> utrans =
-			new PriorityQueue<>(MAX_OVERLAPPING, UpdateTransaction.byAsof);
-	/** committed read-write transactions that overlap outstanding transactions */
+	/** active update transactions by asof (when they started)
+	 *  used to track oldest active update transaction */
+	private final TreeSet<UpdateTransaction> utrans =
+			new TreeSet<>(UpdateTransaction.byAsof);
+	/** committed update transactions that overlap active transactions */
 	private final TreeSet<UpdateTransaction> overlapping =
 			new TreeSet<>(UpdateTransaction.byCommit);
 	private static final long FUTURE = Long.MAX_VALUE;
 	private static final int MAX_OVERLAPPING = 200;
 	static int MAX_UPDATE_TRAN_DURATION_SEC = 10;
 	private volatile boolean exclusive = false;
+	private volatile boolean locked = false;
 
 	long clock() {
 		return clock.incrementAndGet();
@@ -62,23 +63,28 @@ class Transactions {
 	}
 
 	synchronized void add(Transaction t) {
-		if (t instanceof UpdateTransaction) {
-			if (exclusive)
-				throw new SuException("blocked by exclusive transaction");
-			utrans.add((UpdateTransaction) t);
-		}
 		trans.add(t);
+	}
+
+	synchronized void addUpdateTran(UpdateTransaction t) {
+		if (exclusive)
+			throw new SuException("blocked by exclusive transaction");
+		assert t.asof() > 0;
+		utrans.add(t);
 	}
 
 	synchronized void setExclusive(Transaction t) {
 		if ((t instanceof BulkTransaction)
 				? ! utrans.isEmpty()
-				: utrans.size() != 1 || utrans.peek() != t)
+				: utrans.size() != 1 || utrans.first() != t)
 			throw new SuException("cannot make transaction exclusive");
 		exclusive = true;
 	}
 
-	/** return the set of transactions that committed since asof */
+	/**
+	 * return the set of transactions that committed since asof
+	 * called by UpdateTransaction checkForConflicts
+	 */
 	synchronized Set<UpdateTransaction> getOverlapping(long asof) {
 		if (overlapping.isEmpty())
 			return Collections.emptySet();
@@ -96,11 +102,13 @@ class Transactions {
 	}
 
 	synchronized void commit(Transaction t) {
-		if (t instanceof ReadWriteTransaction) 
+		if (t instanceof ReadWriteTransaction)
 			exclusive = false;
-		verify(trans.remove(t));
+		Errlog.verify(trans.remove(t),
+				"Transactions.commit missing from trans");
 		if (t instanceof UpdateTransaction) {
-			verify(utrans.remove(t));
+			Errlog.verify(utrans.remove(t),
+					"Transactions.commit missing from utrans");
 			cleanOverlapping();
 			if (! utrans.isEmpty())
 				overlapping.add((UpdateTransaction) t);
@@ -108,12 +116,15 @@ class Transactions {
 	}
 
 	synchronized void abort(Transaction t) {
-		if (t instanceof ReadWriteTransaction) 
+		if (t instanceof ReadWriteTransaction)
 			exclusive = false;
-		verify(trans.remove(t));
-		if (t instanceof UpdateTransaction)
-			verify(utrans.remove(t));
-		cleanOverlapping();
+		Errlog.verify(trans.remove(t),
+				"Transactions.abort missing from trans");
+		if (t instanceof UpdateTransaction) {
+			Errlog.verify(utrans.remove(t),
+					"Transactions.abort missing from utrans");
+			cleanOverlapping();
+		}
 	}
 
 	/**
@@ -121,7 +132,7 @@ class Transactions {
 	 * i.e. commitTime before the oldest outstanding update transaction.
 	 */
 	private void cleanOverlapping() {
-		long oldest = utrans.isEmpty() ? FUTURE : utrans.peek().asof();
+		long oldest = utrans.isEmpty() ? FUTURE : utrans.first().asof();
 		while (! overlapping.isEmpty() && overlapping.first().commitTime() <= oldest)
 			overlapping.remove(overlapping.first());
 		assert ! utrans.isEmpty() || overlapping.isEmpty();
@@ -138,7 +149,7 @@ class Transactions {
 		synchronized (this) {
 			if (overlapping.size() <= MAX_OVERLAPPING)
 				return;
-			t = utrans.peek();
+			t = utrans.first();
 		}
 		// abort outside synchronized to avoid deadlock
 		abort(t, "too many concurrent update transactions");
@@ -152,9 +163,8 @@ class Transactions {
 			synchronized (this) {
 				if (utrans.isEmpty())
 					return;
-				t = utrans.peek();
-				if (t.stopwatch == null ||
-						t.stopwatch.elapsed(TimeUnit.SECONDS) < MAX_UPDATE_TRAN_DURATION_SEC)
+				t = utrans.first();
+				if (t.stopwatch.elapsed(TimeUnit.SECONDS) < MAX_UPDATE_TRAN_DURATION_SEC)
 					return;
 			}
 			// abort outside synchronized to avoid deadlock
@@ -164,7 +174,7 @@ class Transactions {
 
 	private static void abort(UpdateTransaction t, String msg) {
 		t.abortIfNotComplete(msg);
-		Errlog.errlog("aborted " + t + " - " + msg);
+		Errlog.info("aborted " + t + " - " + msg);
 	}
 
 	synchronized List<Integer> tranlist() {
@@ -176,6 +186,14 @@ class Transactions {
 
 	synchronized int finalSize() {
 		return overlapping.size();
+	}
+
+	synchronized void lock() {
+		locked = true;
+	}
+
+	synchronized boolean isLocked() {
+		return locked;
 	}
 
 }

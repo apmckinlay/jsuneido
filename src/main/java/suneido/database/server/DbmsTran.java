@@ -26,4 +26,7 @@ public interface DbmsTran {
 	boolean isReadonly();
 
 	boolean isEnded();
+
+	int readCount();
+	int writeCount();
 }

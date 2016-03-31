@@ -10,6 +10,10 @@ import java.util.*;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
+import suneido.TheDbms;
+import suneido.intfc.database.Database;
+import suneido.intfc.database.Transaction;
+import suneido.util.Errlog;
 import suneido.util.NetworkOutput;
 
 /**
@@ -31,27 +35,34 @@ public class ServerData {
 	private String sessionId = "127.0.0.1";
 	public final NetworkOutput outputQueue; // for kill
 	public boolean textmode = true;
+	private byte[] nonce = null;
+	public boolean auth;
 
 	/** for tests */
 	public ServerData() {
 		this.outputQueue = null;
+		this.auth = true;
 	}
 
 	public ServerData(NetworkOutput outputQueue) {
 		this.outputQueue = outputQueue;
+
+		Database db = ((DbmsLocal) TheDbms.dbms()).getDb();
+		Transaction t = db.readTransaction();
+		try {
+			auth = ! t.tableExists("users");
+		} finally {
+			t.complete();
+		}
+		auth = true; //TEMPORARY until applications are converted
 	}
 
 	/**
 	 * this is set by {@link DbmsServer} since it is per connection,
 	 * not really per thread, initialValue is for tests
 	 */
-	public static final ThreadLocal<ServerData> threadLocal
-		= new ThreadLocal<ServerData>() {
-				@Override
-				public ServerData initialValue() {
-					return new ServerData();
-				}
-			};
+	public static final ThreadLocal<ServerData> threadLocal =
+			ThreadLocal.withInitial(ServerData::new);
 	public static ServerData forThread() {
 		return threadLocal.get();
 	}
@@ -70,7 +81,8 @@ public class ServerData {
 				q.close();
 			queries.remove(qn);
 		}
-		verify(trans.remove(tn) != null);
+		Errlog.verify(trans.remove(tn) != null,
+				"ServerData.endTransaction missing from trans");
 		if (trans.isEmpty())
 			verify(queries.isEmpty());
 	}
@@ -148,6 +160,17 @@ public class ServerData {
 
 	public void end() {
 		for (Map.Entry<Integer, DbmsTran> e : trans.entrySet())
-			e.getValue().abort();
+			Errlog.run(e.getValue()::abort);
 	}
+
+	public void setNonce(byte[] nonce) {
+		this.nonce = nonce;
+	}
+
+	public byte[] getNonce() {
+		byte[] result = nonce;
+		nonce = null;
+		return result;
+	}
+
 }

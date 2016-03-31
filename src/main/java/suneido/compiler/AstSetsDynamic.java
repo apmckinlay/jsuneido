@@ -24,7 +24,6 @@ public class AstSetsDynamic {
 		boolean topDown(AstNode ast) {
 			switch (ast.token) {
 			// don't process nested classes or functions
-			// but do process blocks
 			case CLASS:
 				return false;
 			case BLOCK:

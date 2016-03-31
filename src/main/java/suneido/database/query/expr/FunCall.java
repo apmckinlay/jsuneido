@@ -64,7 +64,6 @@ public class FunCall extends Multi {
 		}
 		if (result == null)
 			throw new SuException("no return value from " + fname);
-		//System.out.println("Eval " + fname + Ops.display(args) + " => " + result);
 		return result;
 	}
 

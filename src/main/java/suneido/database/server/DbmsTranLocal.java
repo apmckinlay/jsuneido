@@ -5,8 +5,11 @@
 package suneido.database.server;
 
 import suneido.SuException;
-import suneido.database.query.*;
+import suneido.database.query.CompileQuery;
+import suneido.database.query.Query;
 import suneido.database.query.Query.Dir;
+import suneido.database.query.QueryAction;
+import suneido.database.query.Row;
 import suneido.database.server.Dbms.HeaderAndRow;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.Transaction;
@@ -36,7 +39,6 @@ public class DbmsTranLocal implements DbmsTran {
 
 	@Override
 	public DbmsQuery query(String s) {
-		//System.out.println("\t" + s);
 		return new DbmsQueryLocal(CompileQuery.query(t, ServerData.forThread(), s));
 	}
 
@@ -82,6 +84,16 @@ public class DbmsTranLocal implements DbmsTran {
 	@Override
 	public String toString() {
 		return t.toString();
+	}
+
+	@Override
+	public int readCount() {
+		return t.readCount();
+	}
+
+	@Override
+	public int writeCount() {
+		return t.writeCount();
 	}
 
 }

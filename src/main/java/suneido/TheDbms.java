@@ -14,37 +14,46 @@ import suneido.database.server.DbmsLocal;
 import suneido.database.server.DbmsRemote;
 import suneido.intfc.database.Database;
 import suneido.runtime.builtin.SocketServer;
+import suneido.util.Util;
 
 public class TheDbms {
 	private static final long IDLE_TIMEOUT_MS = 5 * 60 * 1000; // 5 min
 	private static String ip = null;
-	private static int port = 3147;
+	private static int port = 0;
 	private static DbmsLocal localDbms;
-	private static final ThreadLocal<DbmsRemote> remoteDbms =
-			new ThreadLocal<>();
+	private static final ThreadLocal<DbmsRemote> remoteDbms = new ThreadLocal<>();
 	private static final Set<DbmsRemote> dbmsRemotes =
 			Collections.synchronizedSet(new HashSet<DbmsRemote>());
+	private static final ThreadLocal<byte[]> authToken = new ThreadLocal<>();
+	private static final ThreadLocal<String> lastSessionId =
+			ThreadLocal.withInitial(() -> "");
 
 	public static Dbms dbms() {
 		if (ip == null)
 			return localDbms;
 		DbmsRemote dbms = remoteDbms.get();
-		if (dbms == null) {
-			dbms = new DbmsRemote(ip, port);
-			dbmsRemotes.add(dbms);
-			dbms.sessionid(dbms.sessionid("") + ":" +
-					Thread.currentThread().getName());
-			remoteDbms.set(dbms);
-		}
+		if (dbms == null)
+			dbms = newDbms();
+		return dbms;
+	}
+
+	private static DbmsRemote newDbms() {
+		DbmsRemote dbms;
+		dbms = new DbmsRemote(ip, port);
+		dbmsRemotes.add(dbms);
+		remoteDbms.set(dbms);
+		dbms.sessionid(dbms.sessionid("") + ":" + Thread.currentThread().getName());
+		// auth will only succeed if parent was authorized
+		byte[] token = authToken.get();
+		if (token != null)
+			dbms.auth(Util.bytesToString(token));
 		return dbms;
 	}
 
 	// used by errlog to avoid opening db just to get sessionid
 	public static String sessionid() {
-		if (ip == null)
-			return "";
 		DbmsRemote dbms = remoteDbms.get();
-		return dbms == null ? "" : dbms.sessionid();
+		return dbms == null ? lastSessionId.get() : dbms.sessionid();
 	}
 
 	// used when starting a client
@@ -76,6 +85,10 @@ public class TheDbms {
 		return localDbms != null || ip != null;
 	}
 
+	public static void setAuthToken(byte[] token) {
+		authToken.set(token);
+	}
+
 	/** used by {@link SocketServer} */
 	public static void closeIfIdle() {
 		DbmsRemote dr = remoteDbms.get();
@@ -86,6 +99,7 @@ public class TheDbms {
 			dr.idleSince = t;
 		else if (t - dr.idleSince > IDLE_TIMEOUT_MS) {
 			dbmsRemotes.remove(dr);
+			lastSessionId.set(remoteDbms.get().sessionid() + "(closed)");
 			remoteDbms.set(null);
 			dr.close();
 		}

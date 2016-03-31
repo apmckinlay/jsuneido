@@ -18,7 +18,8 @@ import com.google.common.base.MoreObjects;
  * @see StorageIterReverse
  */
 class StorageIter {
-	enum Status { OK, SIZE_MISMATCH, CHECKSUM_FAIL, BAD_SIZE, BAD_TYPE };
+	enum Status {
+		OK, SIZE_MISMATCH, CHECKSUM_FAIL, BAD_SIZE, BAD_TYPE, FILE_TRUNCATED };
 	private static final int MIN_SIZE = Tran.HEAD_SIZE + Tran.TAIL_SIZE;
 	private static final byte[] zero_tail = new byte[Tran.TAIL_SIZE];
 	final Storage stor;
@@ -35,7 +36,7 @@ class StorageIter {
 	private int upTo = Integer.MAX_VALUE;
 
 	StorageIter(Storage stor) {
-		this(stor, Storage.FIRST_ADR);
+		this(stor, stor.FIRST_ADR);
 	}
 
 	StorageIter(Storage stor, int adr) {
@@ -44,6 +45,7 @@ class StorageIter {
 	}
 
 	/** used by dump */
+	// NOTE: first block must have checksum to get past seek in constructor
 	StorageIter dontChecksum() {
 		verifyChecksums = false;
 		return this;
@@ -64,7 +66,11 @@ class StorageIter {
 		if (eof())
 			return ;
 		ByteBuffer buf = stor.buffer(adr);
-		size = Storage.intToSize(buf.getInt());
+		if (buf.remaining() < Storage.ALIGN) {
+			status = Status.FILE_TRUNCATED;
+			return;
+		}
+		size = stor.intToSize(buf.getInt());
 		if (size < MIN_SIZE) {
 			status = Status.BAD_SIZE;
 			return;
@@ -77,7 +83,7 @@ class StorageIter {
 		}
 		ByteBuffer endbuf = stor.buffer(end);
 		cksum = endbuf.getInt();
-		long endsize = Storage.intToSize(endbuf.getInt());
+		long endsize = stor.intToSize(endbuf.getInt());
 		if (endsize != size) {
 			status = Status.SIZE_MISMATCH;
 			return;
@@ -105,8 +111,8 @@ class StorageIter {
 	/** skips aborted commits */
 	void advance() {
 		do
-			seek(stor.advance(adr, size));
-		while (date == 0 && ! eof());
+			advance2();
+		while (date == 0 && notFinished());
 	}
 
 	void advance2() {

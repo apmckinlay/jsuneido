@@ -18,6 +18,7 @@ public interface DatabasePackage {
 	Database open(String filename);
 	Database openReadonly(String filename);
 
+	/** Creates an empty in-memory database */
 	Database testdb();
 
 	RecordBuilder recordBuilder();
@@ -56,8 +57,7 @@ public interface DatabasePackage {
 	/** @return null if rebuild fails, otherwise result description */
 	String rebuild(String dbFilename, String tempFilename);
 
-	/** for testing */
-	String forceRebuild(String dbFilename, String tempFilename);
+	String rebuildFromData(String dbFilename, String tempFilename);
 
 	Record minRecord();
 	Record maxRecord();

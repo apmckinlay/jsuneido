@@ -8,9 +8,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
-import javax.annotation.concurrent.ThreadSafe;
-
-import com.google.common.primitives.Longs;
 import com.google.common.primitives.UnsignedInts;
 
 /**
@@ -24,16 +21,22 @@ import com.google.common.primitives.UnsignedInts;
  * <li>therefore maximum file size is unsigned int max * ALIGN (32gb)
  * <li>blocks should not start with (long) 0 since that is used to detect padding
  */
-@ThreadSafe
-abstract class Storage {
-	static final int FIRST_ADR = 1;
+abstract class Storage implements AutoCloseable {
+	protected int FIRST_ADR = 1; // should not be changed after construction
 	protected static final int SHIFT = 3;
 	private static final long MAX_SIZE = 0xffffffffL << SHIFT;
 	static final int ALIGN = (1 << SHIFT); // must be power of 2
-	private static final int MASK = ALIGN - 1;
-	protected ByteBuffer[] chunks = new ByteBuffer[32];
+	protected static final int MASK = ALIGN - 1;
 	final int CHUNK_SIZE;
+	/** INIT_CHUNKS should be the max for database chunk size & align
+	 * i.e. unsigned int max * align / chunk size
+	 * so that chunks never grows, to avoid concurrency issues.
+	 * (map is not synchronized)
+	 * Ok to grow for temp index storage since it's not concurrent */
+	protected final int INIT_CHUNKS = 512;
+	protected ByteBuffer[] chunks = new ByteBuffer[INIT_CHUNKS];
 	protected volatile long storSize = 0;
+	private volatile long protect = 0;
 
 	Storage(int chunkSize) {
 		CHUNK_SIZE = align(chunkSize);
@@ -58,15 +61,7 @@ abstract class Storage {
 		long offset = storSize;
 		storSize += n;
 
-		int chunk = offsetToChunk(offset);
-		if (chunk >= chunks.length)
-			growChunks(chunk);
-
 		return offsetToAdr(offset);
-	}
-
-	private void growChunks(int chunk) {
-		chunks = Arrays.copyOf(chunks, (3 * chunk) / 2);
 	}
 
 	static int align(int n) {
@@ -84,19 +79,16 @@ abstract class Storage {
 		offset += align(length);
 		if (offset < storSize) {
 			ByteBuffer buf = buf(offset);
-			if (buf.getLong() == 0) {
-				int remaining = Longs.BYTES + buf.remaining();
-				if (allZero(buf))
-					offset += remaining;
-				// else don't skip
-			}
+			int remaining = buf.remaining();
+			if (allZero(buf))
+				offset += remaining; // skip trailing chunk padding
 		}
 		return offsetToAdr(offset);
 	}
 
 	private static boolean allZero(ByteBuffer buf) {
 		while (buf.remaining() > 0)
-			if (buf.getLong() != 0)
+			if (buf.get() != 0)
 				return false;
 		return true;
 	}
@@ -122,6 +114,7 @@ abstract class Storage {
 
 	int rposToAdr(long rpos) {
 		assert rpos < 0;
+		assert -rpos <= storSize;
 		return offsetToAdr(storSize + rpos);
 	}
 
@@ -139,8 +132,6 @@ abstract class Storage {
 		return (int) (adrToOffset(adr) % CHUNK_SIZE);
 	}
 
-	private long protect = 0;
-
 	void protect() {
 		assert protect == 0 || protect == Integer.MAX_VALUE;
 		protect = storSize;
@@ -151,7 +142,7 @@ abstract class Storage {
 		protect = Integer.MAX_VALUE;
 	}
 
-	private ByteBuffer buf(long offset) {
+	protected ByteBuffer buf(long offset) {
 		ByteBuffer buf = map(offset);
 		buf = (offset < protect) ? buf.asReadOnlyBuffer() : buf.duplicate();
 		buf.position((int) (offset % CHUNK_SIZE));
@@ -178,6 +169,10 @@ abstract class Storage {
 		return (int) (offset / CHUNK_SIZE);
 	}
 
+	private void growChunks(int chunk) {
+		chunks = Arrays.copyOf(chunks, (3 * chunk) / 2);
+	}
+
 	protected abstract ByteBuffer get(int chunk);
 
 	static int offsetToAdr(long n) {
@@ -197,13 +192,13 @@ abstract class Storage {
 	 * This is a problem if a table or index > 4gb
 	 * because load puts entire table / index into one commit.
 	 */
-	static int sizeToInt(long size) {
+	int sizeToInt(long size) {
 		assert size < 0x100000000L; // unsigned int max
 		return (int) size;
 	}
 
 	/** convert an unsigned int to a long size */
-	static long intToSize(int size) {
+	long intToSize(int size) {
 		return UnsignedInts.toLong(size);
 	}
 
@@ -221,7 +216,8 @@ abstract class Storage {
 
 	/** @return Number of bytes from adr to current offset */
 	long sizeFrom(int adr) {
-		return adr == 0 ? storSize : storSize - adrToOffset(adr);
+		long size = storSize; // read once to avoid concurrency issues
+		return adr == 0 ? size : size - adrToOffset(adr);
 	}
 
 	/** @return a limit address i.e. just past the end of the current data */
@@ -230,9 +226,10 @@ abstract class Storage {
 	}
 
 	boolean isValidPos(long pos) {
+		long size = storSize; // read once to avoid concurrency issues
 		if (pos < 0)
-			pos += storSize;
-		return 0 <= pos && pos < storSize;
+			pos += size;
+		return 0 <= pos && pos < size;
 	}
 
 	boolean isValidAdr(int adr) {
@@ -243,7 +240,8 @@ abstract class Storage {
 	void force() {
 	}
 
-	void close() {
+	@Override
+	public void close() {
 	}
 
 }

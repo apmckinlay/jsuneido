@@ -20,13 +20,16 @@ import suneido.jsdi.*;
 import suneido.jsdi.type.*;
 import suneido.runtime.*;
 
+/**
+ * Compiles an AST (from parsing) into Java classes
+ */
 public class AstCompile {
 	private final PrintWriter pw;
 	private final String library;
 	private final String globalName;
 	private final String sourceFile;
 	private final String sourceCode;
-	/* british pound sign - needs to be valid in identifiers */
+	/* British pound sign - needs to be valid in identifiers */
 	public static final char METHOD_SEPARATOR = '\u00A3';
 	private static final int MAX_DIRECT_ARGS = 4;
 	private String suClassName = null;
@@ -67,7 +70,6 @@ public class AstCompile {
 
 	/**
 	 * Evaluate constant expressions at compile time.
-	 * Only processes the top level of the AST, does not recurse.
 	 * @returns value if ast can be evaluated at compile time, otherwise null
 	 */
 	private Object fold(String name, AstNode ast) {
@@ -107,7 +109,10 @@ public class AstCompile {
 				return Ops.uminus(value);
 			break;
 		case ADD: // unary
-			return fold(ast.first());
+			value = fold(ast.first());
+			if (value != null)
+				return Numbers.toNum(value);
+			break;
 		case AND:
 			for (AstNode expr : ast.children) {
 				value = fold(expr);
@@ -144,8 +149,10 @@ public class AstCompile {
 	}
 
 	private Object foldObject(AstNode ast) {
-		SuContainer c = ast.token == Token.OBJECT ? new SuContainer()
-				: new SuRecord();
+		if (ast.token == Token.OBJECT && ast.children.size() == 0)
+			return SuContainer.EMPTY;
+		SuContainer c = (ast.token == Token.OBJECT)
+				? new SuContainer() : new SuRecord();
 		for (AstNode member : ast.children) {
 			AstNode name = member.first();
 			Object value = fold(member.second());
@@ -242,7 +249,7 @@ public class AstCompile {
 
 	private SuCompiledCallable closure(ClassGen cg, AstNode ast) {
 		// needed to check if child blocks share with this block
-		AstSharesVars.check(ast); // Has side-effects: may modify ast 
+		AstSharesVars.check(ast); // Has side-effects: may modify ast
 		nameBegin(null, CallableType.WRAPPED_BLOCK.compilerNameSuffix());
 		SuCompiledCallable fn = javaClass(ast, BaseClassSet.EVALBASE,
 				CallableType.WRAPPED_BLOCK, cg.locals);
@@ -527,9 +534,7 @@ public class AstCompile {
 		default:
 			expression(cg, ast, last ? null : ExprOption.POP);
 			if (last) {
-				// special case - returning call does not do null check
-				if (ast.token != Token.CALL)
-					addNullCheck(cg, ast);
+				returnNullCheck(cg, ast);
 				cg.areturn();
 			}
 			return; // skip last handling below
@@ -541,6 +546,13 @@ public class AstCompile {
 		}
 	}
 
+	private static void returnNullCheck(ClassGen cg, AstNode expr) {
+		expr = stripRvalue(expr);
+		// special case - returning call or ?: does not do null check
+		if (expr.token != Token.CALL && expr.token != Token.Q_MARK)
+			addNullCheck(cg, expr);
+	}
+
 	private static void addNullCheck(ClassGen cg, AstNode ast) {
 		String error = needNullCheck(cg, ast);
 		if (error != null)
@@ -548,6 +560,7 @@ public class AstCompile {
 	}
 
 	private static String needNullCheck(ClassGen cg, AstNode ast) {
+		ast = stripRvalue(ast);
 		if (isLocal(ast) && !cg.neverNull(ast.value))
 			return "UninitializedVariable";
 		else if (ast.token == Token.CALL)
@@ -558,6 +571,12 @@ public class AstCompile {
 				return "NoValue";
 		}
 		return null;
+	}
+
+	private static AstNode stripRvalue(AstNode expr) {
+		while (expr.token == Token.RVALUE)
+			expr = expr.first();
+		return expr;
 	}
 
 	private void breakStatement(ClassGen cg, AstNode ast, Labels labels) {
@@ -571,7 +590,7 @@ public class AstCompile {
 	private void continueStatement(ClassGen cg, AstNode ast,
 			Labels labels) {
 		putLineNumber(cg, ast);
-		if (labels != null)
+		if (labels != null && labels.cont != null) // switch sets cont = null
 			cg.jump(labels.cont);
 		else
 			cg.blockThrow("CONTINUE_EXCEPTION");
@@ -680,7 +699,9 @@ public class AstCompile {
 
 	private void switchStatement(ClassGen cg, AstNode ast, Labels outerLabels) {
 		Labels labels = new Labels(cg);
-		if (outerLabels != null)
+		if (outerLabels == null)
+			labels.cont = null;
+		else
 			labels.cont = outerLabels.cont;
 		expression(cg, ast.first());
 		int temp = cg.storeTemp();
@@ -772,16 +793,15 @@ public class AstCompile {
 	}
 
 	private void returnStatement(ClassGen cg, AstNode ast) {
-		if (ast.first() == null) {
+		AstNode expr = ast.first();
+		if (expr == null) {
 			putLineNumber(cg, ast);
 			cg.aconst_null();
 			cg.returnValue();
 		} else {
-			expression(cg, ast.first());
-			// special case - returning call does not do null check
+			expression(cg, expr);
 			putLineNumber(cg, ast);
-			if (ast.first().token != Token.CALL)
-				addNullCheck(cg, ast.first());
+			returnNullCheck(cg, expr);
 			cg.returnValue();
 		}
 	}
@@ -1340,8 +1360,11 @@ public class AstCompile {
 			member(cg, ast);
 			return ClassGen.MEMBER_REF;
 		case SUBSCRIPT:
+			AstNode sub = ast.second();
+			if (sub.token == Token.RANGETO || sub.token == Token.RANGELEN)
+				throw new SuException("ranges are read-only");
 			expression(cg, ast.first());
-			expression(cg, ast.second());
+			expression(cg, sub);
 			return ClassGen.MEMBER_REF;
 		default:
 			throw SuInternalError.unhandledEnum(ast.token);

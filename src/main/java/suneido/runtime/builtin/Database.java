@@ -9,6 +9,7 @@ import suneido.SuException;
 import suneido.Suneido;
 import suneido.TheDbms;
 import suneido.runtime.*;
+import suneido.util.Util;
 
 public class Database extends BuiltinClass {
 	public static final Database singleton = new Database();
@@ -67,17 +68,29 @@ public class Database extends BuiltinClass {
 		return Suneido.cmdlineoptions.impersonate = Ops.toStr(a);
 	}
 
-	@Params("table = false")
+	@Params("table = ''")
 	public static Object Dump(Object self, Object table) {
-		if (table == Boolean.FALSE)
-			TheDbms.dbms().dump("");
-		else
-			TheDbms.dbms().dump(Ops.toStr(table));
+		String result = TheDbms.dbms().dump(Ops.toStr(table));
+		if (! "".equals(result))
+			throw new SuException("Database.Dump failed: " + result);
 		return null;
 	}
 
 	public static Object Check(Object self) {
 		return TheDbms.dbms().check();
+	}
+
+	public static Object Nonce(Object self) {
+		return Util.bytesToString(TheDbms.dbms().nonce());
+	}
+
+	public static Object Token(Object self) {
+		return Util.bytesToString(TheDbms.dbms().token());
+	}
+
+	@Params("string")
+	public static Object Auth(Object self, Object a) {
+		return TheDbms.dbms().auth(Ops.toStr(a));
 	}
 
 }

@@ -8,7 +8,7 @@ import static suneido.compiler.Token.*;
 
 import com.google.common.base.CharMatcher;
 
-public class Lexer {
+public class Lexer implements Doesc.Src {
 	private final String source;
 	private int si = 0;
 	private int prev;
@@ -220,7 +220,7 @@ public class Lexer {
 		StringBuilder sb = new StringBuilder();
 		for (; si < source.length() && (c = source.charAt(si)) != quote; ++si)
 			if (c == '\\')
-				sb.append(doesc());
+				sb.append(Doesc.doesc(this));
 			else
 				sb.append(c);
 		if (si < source.length())
@@ -312,38 +312,6 @@ public class Lexer {
 		return token;
 	}
 
-	private char doesc() {
-		++si; // backslash
-		int dig1, dig2, dig3;
-		switch (charAt(si)) {
-		case 'n' :
-			return '\n';
-		case 't' :
-			return '\t';
-		case 'r' :
-			return '\r';
-		case 'x' :
-			if (-1 != (dig1 = Character.digit(charAt(si + 1), 16)) &&
-					-1 != (dig2 = Character.digit(charAt(si + 2), 16))) {
-				si += 2;
-				return (char) (16 * dig1 + dig2);
-			} else
-				return source.charAt(--si);
-		case '\\' :
-		case '"' :
-		case '\'' :
-			return charAt(si);
-		default :
-			if (-1 != (dig1 = Character.digit(charAt(si), 8)) &&
-					-1 != (dig2 = Character.digit(charAt(si + 1), 8)) &&
-					-1 != (dig3 = Character.digit(charAt(si + 2), 8))) {
-				si += 2;
-				return (char) (64 * dig1 + 8 * dig2 + dig3);
-			} else
-				return source.charAt(--si);
-		}
-	}
-
 	private char charAt(int i) {
 		return i < source.length() ? source.charAt(i) : 0;
 	}
@@ -365,12 +333,24 @@ public class Lexer {
 		return source.substring(prev, si);
 	}
 
-	public static void main(String[] args) {
-		Lexer lexer = new Lexer("function (.param, _param) { }");
-		while (lexer.hasNext()) {
-			Token token = lexer.next();
-			System.out.println(token);
-		}
+	// implement Src for Doesc
+
+	@Override
+	public char at(int d) {
+		return charAt(si + d);
 	}
+
+	@Override
+	public void move(int d) {
+		si += d;
+	}
+
+//	public static void main(String[] args) {
+//		Lexer lexer = new Lexer("function (.param, _param) { }");
+//		while (lexer.hasNext()) {
+//			Token token = lexer.next();
+//			System.out.println(token);
+//		}
+//	}
 
 }

@@ -60,6 +60,7 @@ public class SuTransaction extends SuValue {
 	}
 
 	private boolean complete() {
+		checkNotEnded("Complete");
 		conflict = t.complete();
 		return conflict == null;
 	}
@@ -73,6 +74,14 @@ public class SuTransaction extends SuValue {
 		return ((SuTransaction) self).t.isEnded();
 	}
 
+	public static Object ReadCount(Object self) {
+		return ((SuTransaction) self).t.readCount();
+	}
+
+	public static Object WriteCount(Object self) {
+		return ((SuTransaction) self).t.writeCount();
+	}
+
 	private static final FunctionSpec QueryParams =
 			ArgsArraySpec.from("query, block = false");
 
@@ -81,6 +90,7 @@ public class SuTransaction extends SuValue {
 		args = Args.massage(QueryParams, args);
 		String query = Ops.toStr(args[0]) + where;
 		SuTransaction tran = (SuTransaction) self;
+		tran.checkNotEnded("query");
 		if (tracing(QUERY))
 			trace(QUERY, tran + " " + query);
 		if (CompileQuery.isRequest(query)) {
@@ -115,6 +125,8 @@ public class SuTransaction extends SuValue {
 
 	public static Object queryOne(SuTransaction ti, Object[] args, Dir dir,
 			boolean single) {
+		if (ti != null)
+			ti.checkNotEnded("query");
 		String where = queryWhere(args);
 		args = Args.massage(queryOneFS, args);
 		String query = Ops.toStr(args[0]) + where; //TODO insert where before sort
@@ -156,8 +168,7 @@ public class SuTransaction extends SuValue {
 
 	public static Object Rollback(Object self) {
 		SuTransaction tran = (SuTransaction) self;
-		if (tran.t.isEnded())
-			throw new SuException("cannot Rollback completed Transaction");
+		tran.checkNotEnded("Rollback");
 		tran.t.abort();
 		return null;
 	}
@@ -190,6 +201,12 @@ public class SuTransaction extends SuValue {
 
 	public String conflict() {
 		return conflict;
+	}
+
+	private void checkNotEnded(String op) {
+		if (isEnded())
+			throw new SuException("can't " + op + " ended transaction" +
+					(conflict == null ? "" : " (" + conflict + ")"));
 	}
 
 	@Override

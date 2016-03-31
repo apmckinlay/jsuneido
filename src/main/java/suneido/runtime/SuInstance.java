@@ -6,6 +6,7 @@ package suneido.runtime;
 
 import static suneido.runtime.FunctionSpec.NA;
 
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -173,20 +174,26 @@ public class SuInstance extends SuValue {
 		ivars.put(member.toString(), value);
 	}
 
+	public Object classGet(Object member) {
+		return myclass.get2(member);
+	}
+
 	@Override
 	public boolean equals(Object value) {
 		if (value == this)
 			return true;
 		if (! (value instanceof SuInstance))
 			return false;
-		return equals2(this, (SuInstance) value, new PairStack());
+		return equals2(this, (SuInstance) value, null);
 	}
 
 	// avoid infinite recursion from self-reference
 	public static boolean equals2(SuInstance x, SuInstance y, PairStack stack) {
 		if (x.myclass != y.myclass || x.ivars.size() != y.ivars.size())
 			return false;
-		if (stack.contains(x, y))
+		if (stack == null)
+			stack = new PairStack();
+		else if (stack.contains(x, y))
 			return true; // comparison is already in progress
 		stack.push(x, y);
 		try {
@@ -197,6 +204,16 @@ public class SuInstance extends SuValue {
 		} finally {
 			stack.pop();
 		}
+	}
+
+	@Override
+	public void pack(ByteBuffer buf) {
+		throw new SuException("can't pack class instance");
+	}
+
+	@Override
+	public int packSize(int nest) {
+		throw new SuException("can't pack class instance");
 	}
 
 	@Override

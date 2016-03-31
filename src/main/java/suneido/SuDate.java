@@ -650,8 +650,8 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 			return null; // no match
 
 		if (year == NOTSET) {
-			if (month >= Math.max(now.month() - 6, 1) &&
-				month <= Math.min(now.month() + 5, 12))
+			if (month >= Math.max(now.month() - 5, 1) &&
+				month <= Math.min(now.month() + 6, 12))
 				year = now.year();
 			else if (now.month() < 6)
 				year = now.year() - 1;

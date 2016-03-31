@@ -6,6 +6,13 @@ package suneido.compiler;
 
 import static suneido.compiler.ParseFunction.LOOP;
 import static suneido.compiler.Token.*;
+
+import java.util.Set;
+
+import com.google.common.collect.Sets;
+
+import suneido.SuException;
+import suneido.SuInternalError;
 import suneido.compiler.ParseFunction.Context;
 import suneido.database.query.ParseQuery;
 
@@ -78,7 +85,8 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 
 	private T inExpression() {
 		T expr = bitorExpression();
-		if (matchIf(IN)) {
+		Token op = token;
+		if (isIn()) {
 			T exprs = null;
 			match(L_PAREN);
 			while (token != R_PAREN) {
@@ -86,9 +94,18 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 				matchIf(COMMA);
 			}
 			match(R_PAREN);
-			return generator.in(expr, exprs);
+			T e = generator.in(expr, exprs);
+			if (op == NOT)
+				e = generator.unaryExpression(NOT, e);
+			return e;
 		}
 		return expr;
+	}
+
+	private boolean isIn() {
+		if (token == NOT && lookAhead() == IDENTIFIER && ahead.getKeyword() == IN)
+			match();
+		return matchIf(IN);
 	}
 
 	private T bitorExpression() {
@@ -376,35 +393,53 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	private T argumentList(Token closing) {
 		T args = null;
 		T keyword = null;
+		Set<String> keywords = Sets.newHashSet();
 		while (token != closing) {
-			if (lookAhead() == COLON) {
-				keyword = keyword();
-			} else if (keyword != null)
-				syntaxError("un-named arguments must come before named arguments");
-
-			Token ahead = lookAhead();
-			boolean trueDefault = (keyword != null &&
-					(token == COMMA || token == closing || ahead == COLON));
-
-			if (trueDefault) {
-				args = generator.argumentList(args, keyword,
-						generator.boolTrue(lexer.getLineNumber()));
+			T expr;
+			if (token == COLON) {
+				// f(:name) is equivalent to f(name: name)
+				int lineNumber = lexer.getLineNumber();
+				match(COLON);
+				String identifier = lexer.getValue();
+				if (! keywords.add(identifier))
+					throw new SuException("duplicate argument name: " + identifier);
+				match(IDENTIFIER);
+				keyword = generator.string(identifier);
+				expr = generator.identifier(identifier, lineNumber);
 			} else {
-				args = generator.argumentList(args, keyword, expression());
+				if (isKeyword()) {
+					if (! keywords.add(lexer.getValue()))
+						throw new SuException("duplicate argument name: " +
+								lexer.getValue());
+					keyword = keyword();
+				} else if (keywords.size() > 0)
+					syntaxError("un-named arguments must come before named arguments");
+
+				boolean trueDefault = (keyword != null &&
+						(token == COMMA || token == closing || isKeyword()));
+
+				expr = trueDefault
+						? generator.boolTrue(lexer.getLineNumber())
+						: expression();
 			}
+			args = generator.argumentList(args, keyword, expr);
 			matchIf(COMMA);
 		}
 		match(closing);
 		return args;
 	}
+	private boolean isKeyword() {
+		return (token == STRING || token == IDENTIFIER || token == NUMBER) &&
+				lookAhead() == COLON;
+	}
 	private T keyword() {
-		T keyword = null;
+		T keyword;
 		if (token == STRING || token == IDENTIFIER)
 			keyword = generator.string(lexer.getValue());
 		else if (token == NUMBER)
 			keyword = generator.number(lexer.getValue());
 		else
-			syntaxError("invalid keyword");
+			throw new SuInternalError("invalid keyword");
 		match();
 		match(COLON);
 		return keyword;

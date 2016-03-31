@@ -61,14 +61,12 @@ public class FileUtils {
 		}
 	}
 
-	public static File tempfile() {
-		return tempfile(null);
-	}
-
-	public static File tempfile(String suffix) {
+	public static File tempfile(String... extensions) {
 		try {
-			File tmpfile = File.createTempFile("sutmp", suffix, new File("."));
+			File tmpfile = File.createTempFile("sutmp", null, new File("."));
 			tmpfile.deleteOnExit();
+			for (String ext : extensions)
+				new File(tmpfile + ext).deleteOnExit();
 			return tmpfile;
 		} catch (IOException e) {
 			throw new RuntimeException("Can't create temp file", e);
@@ -130,13 +128,13 @@ public class FileUtils {
 		}
 	}
 
-	public static void main(String[] args) {
-		try {
-			copy("../suneido.db", "../suneido.db.copy");
-			System.out.println("copied successfully");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+//	public static void main(String[] args) {
+//		try {
+//			copy("../suneido.db", "../suneido.db.copy");
+//			System.out.println("copied successfully");
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//	}
 
 }

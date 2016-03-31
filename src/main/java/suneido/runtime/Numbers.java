@@ -8,14 +8,14 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
 
-import suneido.SuInternalError;
 import suneido.SuException;
+import suneido.SuInternalError;
 import suneido.runtime.builtin.NumberMethods;
 
 /**
  * static helper methods for working with numbers.<p>
  * Used by {@link Ops} and {@link NumberMethods}
- * 
+ *
  * <p>
  * TODO: There are some problems with how numbers are conceived in JSuneido.
  *       Although *literals* are reduced to 16 decimal digits of precision
@@ -26,8 +26,8 @@ import suneido.runtime.builtin.NumberMethods;
  *       floating around in the system. It appears that there are many useless
  *       branches (<em>eg</em> testing for Short). And indeed, it would be
  *       desirable to eliminate as many unnecessary number types as possible for
- *       the sake of both performance and simplicity. --VCS 20130716 
- * </p> 
+ *       the sake of both performance and simplicity. --VCS 20130716
+ * </p>
  */
 public class Numbers {
 	public static final int PRECISION = 16; // to match cSuneido
@@ -144,7 +144,7 @@ public class Numbers {
 	/** Convert BigDecimal to int or long if possible */
 	public static Number narrow(BigDecimal x) {
 		if (x.signum() == 0)
-			return 0; // TODO: Might it not be cleaner to remove this 'optimization'? 
+			return 0; // TODO: Might it not be cleaner to remove this 'optimization'?
 		else if (integral(x)) {
 			if (isInRange(x, BD_INT_MIN, BD_INT_MAX))
 				return x.intValueExact();
@@ -269,6 +269,13 @@ public class Numbers {
 		return narrow(toBigDecimal(xn).divide(toBigDecimal(yn), MC));
 	}
 
+	/**
+	 * @return The value converted to a Number.
+	 * "" is converted to 0.
+	 * true and false are converted to 1 and 0.
+	 * Converts strings containing integers or BigDecimal.
+	 * The original value is returned if instanceof Number.
+	 */
 	public static Number toNum(Object x) {
 		if (x instanceof Number)
 			return (Number) x;
@@ -279,29 +286,38 @@ public class Numbers {
 		throw new SuException("can't convert " + Ops.typeName(x) + " to number");
 	}
 
+	/**
+	 * Handles hex (0x...) and octal (0...) in addition to integers and BigDecimal
+	 * @return The string converted to a Number
+	 */
 	public static Number stringToNumber(String s) {
-		if (s.startsWith("0x"))
-			return (int) Long.parseLong(s.substring(2), 16);
-		if (s.startsWith("0") && s.indexOf('.') == -1)
-			return (int) Long.parseLong(s, 8);
+		try {
+			if (s.startsWith("0x"))
+				return (int) Long.parseLong(s.substring(2), 16);
+			if (s.startsWith("0") && s.indexOf('.') == -1)
+				return (int) Long.parseLong(s, 8);
+		} catch (NumberFormatException e) {
+			throw new SuException("can't convert to number: " + s);
+		}
 		return Numbers.stringToPlainNumber(s);
 	}
 
 	private static Number stringToPlainNumber(String s) {
 		if (s.length() == 0)
 			return 0;
-		else if (s.indexOf('.') == -1 && s.indexOf('e') == -1
-				&& s.indexOf("E") == -1 && s.length() < 10)
-			return Integer.parseInt(s);
-		else
-			try {
+		try {
+			if (s.indexOf('.') == -1 && s.indexOf('e') == -1
+					&& s.indexOf("E") == -1 && s.length() < 10)
+				return Integer.parseInt(s);
+			else {
 				BigDecimal n = new BigDecimal(s, MC);
 				if (n.compareTo(BigDecimal.ZERO) == 0)
 					return 0;
 				return n;
-			} catch (NumberFormatException e) {
-				throw new SuException("can't convert to number: " + s, e);
 			}
+		} catch (NumberFormatException e) {
+			throw new SuException("can't convert to number: " + s);
+		}
 	}
 
 	static int toIntFromLong(long n) {

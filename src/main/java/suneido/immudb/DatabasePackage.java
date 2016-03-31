@@ -38,7 +38,7 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 
 	@Override
 	public Database testdb() {
-		return Database.create(new HeapStorage(), new HeapStorage());
+		return Database.create("", new HeapStorage(), new HeapStorage());
 	}
 
 	@Override
@@ -103,8 +103,8 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 	}
 
 	@Override
-	public String forceRebuild(String dbFilename, String tempfilename) {
-		return DbRebuild.forceRebuild(dbFilename, tempfilename);
+	public String rebuildFromData(String dbFilename, String tempfilename) {
+		return DbRebuild.rebuildFromData(dbFilename, tempfilename);
 	}
 
 	@Override
@@ -131,6 +131,8 @@ public class DatabasePackage implements suneido.intfc.database.DatabasePackage {
 	public void renameDbWithBackup(String tempfile, String dbFilename) {
 		FileUtils.renameWithBackup(tempfile + "d", dbFilename + "d");
 		FileUtils.renameWithBackup(tempfile + "i", dbFilename + "i");
+		if (new File(tempfile + "c").exists())
+			FileUtils.renameWithBackup(tempfile + "c", dbFilename + "c");
 	}
 
 	@Override

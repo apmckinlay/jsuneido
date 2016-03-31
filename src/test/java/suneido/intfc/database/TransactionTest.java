@@ -5,6 +5,7 @@
 package suneido.intfc.database;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
@@ -19,6 +20,8 @@ public class TransactionTest extends TestBase {
 
 		Transaction t1 = db.readTransaction();
 		getFirst("tables", t1);
+		assertThat(t1.readCount(), equalTo(0)); // read tran doesn't track
+		assertThat(t1.writeCount(), equalTo(0));
 		t1.ck_complete();
 
 		check_all_gone();
@@ -28,12 +31,16 @@ public class TransactionTest extends TestBase {
 		check_all_gone();
 
 		Transaction t2 = db.updateTransaction();
+		assertThat(t2.readCount(), equalTo(0));
+		assertThat(t2.writeCount(), equalTo(0));
 		t2.ck_complete();
 
 		check_all_gone();
 
 		Transaction t3 = db.updateTransaction();
 		readFirst(t3);
+		assertThat(t3.readCount(), equalTo(1));
+		assertThat(t3.writeCount(), equalTo(0));
 		t3.ck_complete();
 	}
 

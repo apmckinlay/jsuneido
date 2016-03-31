@@ -12,6 +12,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+
 import suneido.compiler.Compiler;
 import suneido.database.server.DbmsServer;
 import suneido.debug.DebugManager;
@@ -23,8 +25,6 @@ import suneido.runtime.ContextLayered;
 import suneido.runtime.Contexts;
 import suneido.util.Errlog;
 import suneido.util.Print;
-
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 public class Suneido {
 	public static DatabasePackage dbpkg = suneido.immudb.DatabasePackage.dbpkg;
@@ -39,6 +39,7 @@ public class Suneido {
 			CommandLineOptions.parse(); // for tests
 	public static Contexts contexts = new Contexts();
 	public static ContextLayered context = new ContextLayered(contexts);
+	public static ThreadGroup threadGroup = new ThreadGroup("Suneido");
 
 	public static void main(String[] args) {
 		ClassLoader.getSystemClassLoader().setPackageAssertionStatus("suneido", true);
@@ -71,14 +72,14 @@ public class Suneido {
 			break;
 		case SERVER:
 			TheDbms.setPort(cmdlineoptions.serverPort);
-			if (! System.getProperty("java.vm.name").contains("Server VM"))
-				System.out.println("WARNING: Server VM is recommended");
 			Print.timestamped("starting server");
 			startServer();
+			Errlog.setExtra(TheDbms::sessionid);
 			break;
 		case CLIENT:
 			TheDbms.remote(cmdlineoptions.actionArg, cmdlineoptions.serverPort);
 			scheduleAtFixedRate(TheDbms.closer, 30, TimeUnit.SECONDS);
+			Errlog.setExtra(TheDbms::sessionid);
 			if ("".equals(cmdlineoptions.remainder))
 				Repl.repl2();
 			else
@@ -87,7 +88,7 @@ public class Suneido {
 		case DUMP:
 			String dumptablename = cmdlineoptions.actionArg;
 			if (dumptablename == null)
-				DbTools.dumpDatabasePrint(dbpkg, dbFilename, "database.su");
+				DbTools.dumpPrintExit(dbpkg, dbFilename, "database.su");
 			else
 				DbTools.dumpTablePrint(dbpkg, dbFilename, dumptablename);
 			break;
@@ -110,6 +111,9 @@ public class Suneido {
 			break;
 		case REBUILD2:
 			DbTools.rebuild2(dbpkg, cmdlineoptions.actionArg);
+			break;
+		case REBUILD3:
+			DbTools.rebuild3(dbpkg, cmdlineoptions.actionArg);
 			break;
 		case COMPACT:
 			DbTools.compactPrintExit(dbpkg, dbFilename);
@@ -144,12 +148,12 @@ public class Suneido {
 	private static void startServer() {
 		HttpServerMonitor.run(cmdlineoptions.serverPort + 1);
 		openDbms();
+		DbmsServer.run(cmdlineoptions.serverPort, cmdlineoptions.timeoutMin);
 		try {
 			Compiler.eval("Init()");
 		} catch (Throwable e) {
 			Errlog.fatal("error during init", e);
 		}
-		DbmsServer.run(cmdlineoptions.serverPort, cmdlineoptions.timeoutMin);
 	}
 
 	private static Database db;
@@ -157,18 +161,20 @@ public class Suneido {
 	public static void openDbms() {
 		db = dbpkg.open(dbpkg.dbFilename());
 		if (db == null) {
-			Errlog.errlog("database corrupt, rebuilding");
+			Errlog.error("database corrupt, rebuilding");
+			HttpServerMonitor.rebuilding();
 			tryToCloseMemoryMappings();
 			DbTools.rebuildOrExit(dbpkg, dbpkg.dbFilename());
 			db = dbpkg.open(dbpkg.dbFilename());
 			if (db == null)
 				Errlog.fatal("could not open database after rebuild");
 		}
+		HttpServerMonitor.running();
 		TheDbms.set(db);
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> Suneido.db.close()));
+		// need to catch exceptions else scheduler will stop running task
 		scheduleAtFixedRate(db::limitOutstandingTransactions, 1, TimeUnit.SECONDS);
 		scheduleAtFixedRate(db::force, 1, TimeUnit.MINUTES);
-		Errlog.setExtra(TheDbms::sessionid);
 	}
 
 	public static String sessionid() {
@@ -214,7 +220,7 @@ public class Suneido {
 	}
 
 	public static void scheduleAtFixedRate(Runnable fn, long delay, TimeUnit unit) {
-		scheduler.scheduleAtFixedRate(fn, delay, delay, unit);
+		scheduler.scheduleAtFixedRate(() -> Errlog.run(fn), delay, delay, unit);
 	}
 
 }

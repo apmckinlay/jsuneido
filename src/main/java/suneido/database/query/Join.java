@@ -6,24 +6,17 @@ package suneido.database.query;
 
 import static java.util.Collections.disjoint;
 import static suneido.SuInternalError.unreachable;
-import static suneido.util.Util.addUnique;
-import static suneido.util.Util.intersect;
-import static suneido.util.Util.listToParens;
-import static suneido.util.Util.nil;
-import static suneido.util.Util.setEquals;
-import static suneido.util.Util.setIntersect;
-import static suneido.util.Util.setUnion;
-import static suneido.util.Util.union;
+import static suneido.util.Util.*;
 import static suneido.util.Verify.verify;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
+
 import suneido.SuException;
 import suneido.intfc.database.Record;
-
-import com.google.common.collect.ImmutableSet;
 
 public class Join extends Query2 {
 	List<String> joincols;
@@ -103,6 +96,7 @@ public class Join extends Query2 {
 			return IMPOSSIBLE;
 		if (freeze) {
 			if (cost2 < cost1) {
+				assert can_swap();
 				Query t1 = source;
 				source = source2;
 				source2 = t1;

@@ -43,8 +43,17 @@ public interface Transaction {
 
 	void addRecord(String table, Record r);
 
-	int updateRecord(int recadr, Record rec);
-	int updateRecord(int tblnum, Record oldrec, Record newrec);
+	static enum Blocking { BLOCK, NO_BLOCK };
+
+	int updateRecord(int recadr, Record rec, Blocking blocking);
+	default int updateRecord(int recadr, Record rec) {
+		return updateRecord(recadr, rec, Blocking.BLOCK);
+	}
+
+	int updateRecord(int tblnum, Record oldrec, Record newrec, Blocking blocking);
+	default int updateRecord(int tblnum, Record oldrec, Record newrec) {
+		return updateRecord(tblnum, oldrec, newrec, Blocking.BLOCK);
+	}
 
 	void removeRecord(int recadr);
 	void removeRecord(int tblnum, Record rec);
@@ -68,4 +77,10 @@ public interface Transaction {
 
 	boolean isAborted();
 
+	default int readCount() {
+		return 0;
+	}
+	default int writeCount() {
+		return 0;
+	}
 }

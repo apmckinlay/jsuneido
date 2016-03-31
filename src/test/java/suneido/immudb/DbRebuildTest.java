@@ -288,8 +288,8 @@ public class DbRebuildTest extends TestBase {
 //((Database) db).dump();
 		db.check();
 		db.close();
-		Rebuild rebuild = new Rebuild(dstor, new HeapStorage());
-		rebuild.rebuild();
+		Rebuild rebuild = new Rebuild(dstor, null);
+		rebuild.rebuildFromData();
 		db = rebuild.db;
 		check(values);
 	}
@@ -301,16 +301,9 @@ public class DbRebuildTest extends TestBase {
 			super(dstor, istor);
 		}
 		@Override
-		protected void fix() {
-			db = DatabasePackage.dbpkg.testdb();
-			try {
-				reprocess(db);
-//System.out.println("AFTER ===================================================");
-//db.dump();
-				db.check();
-			} finally {
-				db.close();
-			}
+		protected Database newdb(long dOkSize) {
+			assert dOkSize == 0;
+			return db = DatabasePackage.dbpkg.testdb();
 		}
 	}
 

@@ -47,6 +47,7 @@ public interface Database {
 
 	void checkTransEmpty();
 
+	/** @return "" if successful, otherwise an error message */
 	String check();
 
 }

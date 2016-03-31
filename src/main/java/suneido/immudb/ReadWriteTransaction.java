@@ -4,27 +4,28 @@
 
 package suneido.immudb;
 
-import gnu.trove.iterator.hash.TObjectHashIterator;
-import gnu.trove.map.hash.TIntObjectHashMap;
-import gnu.trove.set.hash.TCustomHashSet;
-import gnu.trove.strategy.HashingStrategy;
-
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.primitives.Ints;
+
+import gnu.trove.iterator.hash.TObjectHashIterator;
+import gnu.trove.map.hash.TIntObjectHashMap;
+import gnu.trove.set.hash.TCustomHashSet;
+import gnu.trove.strategy.HashingStrategy;
 import suneido.SuException;
 import suneido.immudb.Bootstrap.TN;
 import suneido.immudb.IndexedData.Mode;
 import suneido.intfc.database.IndexIter;
-import suneido.util.Errlog;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.primitives.Ints;
 
 /**
  * Abstract base class for {@link UpdateTransaction} and {@link BulkTransaction}
+ * NOTE: no synchronization in this class, must be handled by subclasses.
+ * BulkTransaction is exclusive so it doesn't need any.
+ * UpdateTransaction does its own synchronization.
  */
 abstract class ReadWriteTransaction extends ReadTransaction {
 	private String conflict = null;
@@ -72,35 +73,38 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	// update ------------------------------------------------------------------
 
 	@Override
-	public int updateRecord(int fromadr, suneido.intfc.database.Record to) {
+	public int updateRecord(int fromadr, suneido.intfc.database.Record to,
+			Blocking blocking) {
 		if (fromadr == 1)
 			throw new SuException("can't update the same record multiple times");
 		DataRecord from = tran.getrec(fromadr);
-		updateRecord(from.tblnum(), from, to);
+		updateRecord(from.tblnum(), from, to, blocking);
 		return 1; // don't know record address till commit
 	}
 
 	@Override
 	public int updateRecord(int tblnum,
 			suneido.intfc.database.Record from,
-			suneido.intfc.database.Record r) {
+			suneido.intfc.database.Record r, Blocking blocking) {
 		DataRecord to = truncateRecord(tblnum, r);
-		updateRecord2(tblnum, (DataRecord) from, to);
+		updateRecord2(tblnum, (DataRecord) from, to, blocking);
 		// must be final step - may throw
 		callTrigger(ck_getTable(tblnum), from, to);
 		return 1; // don't know record address till commit
 	}
 
-	protected int updateRecord2(int tblnum, DataRecord from, DataRecord to) {
+	protected int updateRecord2(int tblnum, DataRecord from, DataRecord to,
+			Blocking blocking) {
 		check(tblnum, "update");
 		onlyReads = false;
 		to.tblnum(tblnum);
-		int adr = indexedData(tblnum).update(from, to);
+		int adr = indexedData(tblnum).update(from, to, blocking);
 		updateRowInfo(tblnum, 0, to.bufSize() - from.bufSize());
 		return adr;
 	}
 
 	// used by foreign key cascade
+	// WARNING: does NOT do foreign key checking
 	void updateAll(int tblnum, int[] colNums, Record oldkey, Record newkey) {
 		IndexIter iter = getIndex(tblnum, colNums).iterator(oldkey);
 		for (iter.next(); ! iter.eof(); iter.next()) {
@@ -110,7 +114,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 				int j = Ints.indexOf(colNums, i);
 				rb.add(j == -1 ? oldrec.get(i) : newkey.get(j));
 			}
-			updateRecord(tblnum, oldrec, rb.build());
+			updateRecord(tblnum, oldrec, rb.build(), Blocking.NO_BLOCK);
 		}
 	}
 
@@ -128,6 +132,8 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	}
 
 	protected int removeRecord(int tblnum, Record rec) {
+		if (rec.address() == 1)
+			throw new SuException("can't update the same record multiple times");
 		check(tblnum, "delete");
 		onlyReads = false;
 		int adr = indexedData(tblnum).remove(rec);
@@ -149,7 +155,8 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	}
 	private void checkNotEnded(String op) {
 		if (ended)
-			throw new SuException(this + " " + op + " on ended transaction");
+			throw new SuException("can't " + op + " ended transaction" +
+					(conflict == null ? "" : " (" + conflict + ")"));
 	}
 	protected void checkNotSystemTable(int tblnum, String op) {
 		if (tblnum <= TN.VIEWS)
@@ -231,8 +238,8 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	}
 
 	void abortThrow(String conflict) {
-		conflict = "aborted: " + this + " - " + conflict;
-		Errlog.errlog(conflict);
+		conflict = "aborted " + this + " - " + conflict;
+		System.out.println(conflict);
 		abort(conflict);
 		throw new SuException(conflict);
 	}
@@ -266,22 +273,28 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	// complete ----------------------------------------------------------------
 
 	@Override
+	// overrides ReadTransaction.complete
 	public String complete() {
 		if (isAborted())
 			return conflict;
 		assert ! ended;
-		if (onlyReads) {
+		if (onlyReads || trans.isLocked()) {
 			abort();
 			return null;
 		}
 		try {
 			commit();
 			ended = true;
-		} catch(Conflict c) {
-			conflict = c.toString();
-		} finally {
-			if (! ended)
+		} catch (Throwable e) {
+			try {
 				abort();
+			} catch (Throwable e2) {
+				e.addSuppressed(e2);
+			}
+			if (e instanceof Conflict)
+				conflict = e.toString();
+			else
+				throw e;
 		}
 		return conflict;
 	}

@@ -4,17 +4,15 @@
 
 package suneido.immudb;
 
-import static suneido.immudb.Storage.sizeToInt;
-
 import javax.annotation.concurrent.NotThreadSafe;
+
+import com.google.common.base.MoreObjects;
+import com.google.common.primitives.Ints;
 
 import suneido.immudb.DbHashTrie.Entry;
 import suneido.immudb.DbHashTrie.IntEntry;
 import suneido.immudb.DbHashTrie.StoredIntEntry;
 import suneido.immudb.DbHashTrie.Translator;
-
-import com.google.common.base.MoreObjects;
-import com.google.common.primitives.Ints;
 
 /**
  * Low level "context" for Transactions.
@@ -48,9 +46,9 @@ class Tran implements Translator {
 	}
 
 	void startStore() {
+		assert head_adr == 0;
 		intrefs.startStore();
-		if (head_adr == 0)
-			allowStore();
+		allowStore();
 	}
 
 	void allowStore() {
@@ -63,36 +61,32 @@ class Tran implements Translator {
 	 * and the checksum and size at the end (tail).
 	 * The checksum includes the head and a zero tail.
 	 * The size includes the head and the tail
-	 * @return The checksum of the commit
+	 * @return The checksum and address of the commit
 	 */
 	StoreInfo endStore() {
 		assert head_adr != 0;
-		try {
-			int tail_adr = dstor.alloc(TAIL_SIZE);
-			int size = sizeToInt(dstor.sizeFrom(head_adr));
-			dstor.buffer(head_adr).putInt(size).putInt(datetime());
+		int tail_adr = dstor.alloc(TAIL_SIZE);
+		int sizeInt = dstor.sizeToInt(dstor.sizeFrom(head_adr));
+		dstor.buffer(head_adr).putInt(sizeInt).putInt(datetime());
 
-			int cksum = dstor.checksum(head_adr);
-			dstor.buffer(tail_adr).putInt(cksum).putInt(size);
-			dstor.protectAll(); // can't output outside tran
+		int cksum = dstor.checksum(head_adr);
+		dstor.buffer(tail_adr).putInt(cksum).putInt(sizeInt);
+		dstor.protectAll(); // can't output outside tran
 
-			return new StoreInfo(cksum, head_adr);
-		} finally {
-			head_adr = 0;
+		return new StoreInfo(cksum, head_adr);
 		}
-	}
 
 	/**
 	 * Abort a store by writing a zero date in the header.
 	 * Don't bother calculating checksum, just store zero.
 	 */
 	void abortIncompleteStore() {
-		if (head_adr == 0)
+		if (head_adr == 0) // didn't start store
 			return;
 		int tail_adr = dstor.alloc(TAIL_SIZE);
-		int size = sizeToInt(dstor.sizeFrom(head_adr));
-		dstor.buffer(head_adr).putInt(size).putInt(0); // zero date
-		dstor.buffer(tail_adr).putInt(0).putInt(size); // zero checksum
+		int sizeInt = dstor.sizeToInt(dstor.sizeFrom(head_adr));
+		dstor.buffer(head_adr).putInt(sizeInt).putInt(0); // zero date
+		dstor.buffer(tail_adr).putInt(0).putInt(sizeInt); // zero checksum
 		dstor.protectAll(); // can't output outside tran
 		head_adr = 0;
 	}

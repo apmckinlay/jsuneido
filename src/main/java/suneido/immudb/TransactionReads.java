@@ -35,6 +35,10 @@ class TransactionReads {
 		return list.size() == 0;
 	}
 
+	int readCount() {
+		return list.size();
+	}
+
 	void build() {
 		int i = 0;
 		IndexRange[] a = new IndexRange[list.size()];

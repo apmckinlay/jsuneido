@@ -16,6 +16,7 @@ import suneido.util.ThreadConfined;
  * Changes are made directly to the master btrees (no overlay).
  * Unlike other transactions, data is written prior to commit (not deferred)
  * using loadRecord and saveBtrees.
+ * NOTE: Since it is exclusive it doesn't need synchronization.
  */
 @ThreadConfined
 class BulkTransaction extends ReadWriteTransaction {
@@ -53,7 +54,8 @@ class BulkTransaction extends ReadWriteTransaction {
 	}
 
 	@Override
-	protected int updateRecord2(int tblnum, DataRecord from, DataRecord to) {
+	protected int updateRecord2(int tblnum, DataRecord from, DataRecord to,
+			Blocking blocking) {
 		throw new UnsupportedOperationException("BulkTransaction updateRecord");
 	}
 

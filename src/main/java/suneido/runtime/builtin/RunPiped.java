@@ -76,7 +76,8 @@ public class RunPiped extends SuValue {
 		try {
 			rp.proc.waitFor();
 		} catch (InterruptedException e) {
-			throw new SuException("RunPiped ExitValue failed", e);
+			Thread.currentThread().interrupt();
+			throw new SuException("RunPiped ExitValue", e);
 		}
 		return rp.proc.exitValue();
 	}
@@ -118,7 +119,8 @@ public class RunPiped extends SuValue {
 					break ;
 			if (c == '\n')
 				break ;
-			sb.append((char) c);
+			if (sb.length() < Util.MAX_LINE)
+				sb.append((char) c);
 		}
 		return Util.toLine(sb);
 	}

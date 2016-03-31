@@ -6,23 +6,20 @@ package suneido.runtime.builtin;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static java.text.CharacterIterator.DONE;
 import static suneido.runtime.Ops.toInt;
 import static suneido.util.Tr.tr;
 
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
-import java.text.CharacterIterator;
-import java.text.StringCharacterIterator;
 import java.util.regex.Pattern;
 
-import suneido.SuContainer;
-import suneido.SuException;
-import suneido.SuValue;
-import suneido.Suneido;
-import suneido.TheDbms;
+import com.google.common.base.Charsets;
+import com.google.common.base.Strings;
+
+import suneido.*;
 import suneido.compiler.Compiler;
+import suneido.compiler.Doesc;
 import suneido.runtime.BuiltinMethods;
 import suneido.runtime.Ops;
 import suneido.runtime.Params;
@@ -31,9 +28,6 @@ import suneido.util.Regex.Result;
 import suneido.util.RegexCache;
 import suneido.util.Tabs;
 import suneido.util.Util;
-
-import com.google.common.base.Charsets;
-import com.google.common.base.Strings;
 
 public class StringMethods extends BuiltinMethods {
 	public static final StringMethods singleton = new StringMethods();
@@ -151,9 +145,10 @@ public class StringMethods extends BuiltinMethods {
 		return i == -1 ? s.length() : i;
 	}
 
-	@Params("string")
-	public static Object FindLast(Object self, Object a) {
-		int i = toStr(self).lastIndexOf(toStr(a));
+	@Params("s, i = false")
+	public static Object FindLast(Object self, Object a, Object b) {
+		int pos = (b == Boolean.FALSE) ? Integer.MAX_VALUE : toInt(b);
+		int i = toStr(self).lastIndexOf(toStr(a), pos);
 		return i == -1 ? Boolean.FALSE : i;
 	}
 
@@ -221,6 +216,11 @@ public class StringMethods extends BuiltinMethods {
 		}
 
 		@Override
+		public String typeName() {
+			return "StringIter";
+		}
+
+		@Override
 		public SuValue lookup(String method) {
 			return IterateMethods.singleton.lookup(method);
 		}
@@ -243,9 +243,8 @@ public class StringMethods extends BuiltinMethods {
 					iter.seq.charAt(iter.index++)) : self;
 		}
 
-		@Override
-		public String typeName() {
-			return "StringIter";
+		public static Object Iter(Object self) {
+			return self;
 		}
 	}
 
@@ -314,8 +313,10 @@ public class StringMethods extends BuiltinMethods {
 			return Boolean.FALSE;
 		if (c == 'e' || c == 'E') {
 			c = sget(s, ++i);
-			if (c == '-')
+			if (c == '-' || c == '+')
 				c = sget(s, ++i);
+			if (! Character.isDigit(c))
+				return false;
 			while (Character.isDigit(c))
 				c = sget(s, ++i);
 		}
@@ -466,53 +467,7 @@ public class StringMethods extends BuiltinMethods {
 
 	public static Object Unescape(Object self) {
 		String s = toStr(self);
-		CharacterIterator ci = new StringCharacterIterator(s);
-		StringBuilder sb = new StringBuilder(s.length());
-		for (char c = ci.first(); c != DONE; c = ci.next())
-			if (c == '\\')
-				sb.append(doesc(ci));
-			else
-				sb.append(c);
-		return sb.toString();
-	}
-
-	public static char doesc(CharacterIterator ci) {
-		assert ci.current() == '\\';
-		int dig1, dig2, dig3;
-		char c = ci.next();
-		switch (c) {
-		case 'n':
-			return '\n';
-		case 't':
-			return '\t';
-		case 'r':
-			return '\r';
-		case 'x':
-			// hex
-			dig1 = Character.digit(ci.next(), 16);
-			dig2 = Character.digit(ci.next(), 16);
-			if (dig1 != -1 && dig2 != -1)
-				return (char) (16 * dig1 + dig2);
-			else {
-				ci.setIndex(ci.getIndex() - 3); // back to backslash
-				return '\\';
-			}
-		case '\\':
-		case '"':
-		case '\'':
-			return c;
-		default:
-			// octal
-			dig1 = Character.digit(ci.next(), 8);
-			dig2 = Character.digit(ci.next(), 8);
-			dig3 = Character.digit(ci.next(), 8);
-			if (dig1 != -1 && dig2 != -1 && dig3 != -1)
-				return (char) (64 * dig1 + 8 * dig2 + dig3);
-			else {
-				ci.setIndex(ci.getIndex() - 4); // back to backslash
-				return '\\';
-			}
-		}
+		return Doesc.doesc(s);
 	}
 
 	public static Object Upper(Object self) {
