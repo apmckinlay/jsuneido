@@ -5,13 +5,15 @@
 package suneido.runtime.builtin;
 
 import static suneido.runtime.Ops.toInt;
+
+import suneido.Suneido;
 import suneido.runtime.Params;
 
 public class Exit {
 
 	@Params("status = 0")
 	public static Object Exit(Object status) {
-		System.exit(toInt(status));
+		Suneido.exit(toInt(status));
 		return null;
 	}
 

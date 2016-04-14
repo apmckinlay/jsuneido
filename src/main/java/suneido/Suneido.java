@@ -40,6 +40,7 @@ public class Suneido {
 	public static Contexts contexts = new Contexts();
 	public static ContextLayered context = new ContextLayered(contexts);
 	public static ThreadGroup threadGroup = new ThreadGroup("Suneido");
+	public static volatile boolean exiting = false;
 
 	public static void main(String[] args) {
 		ClassLoader.getSystemClassLoader().setPackageAssertionStatus("suneido", true);
@@ -62,6 +63,7 @@ public class Suneido {
 		} catch (Throwable e) {
 			Errlog.fatal(cmdlineoptions.action + " FAILED", e);
 		}
+		exit(0);
 	}
 
 	private static void doAction() throws Throwable {
@@ -221,6 +223,11 @@ public class Suneido {
 
 	public static void scheduleAtFixedRate(Runnable fn, long delay, TimeUnit unit) {
 		scheduler.scheduleAtFixedRate(() -> Errlog.run(fn), delay, delay, unit);
+	}
+
+	public static void exit(int status) {
+		exiting = true;
+		System.exit(status);
 	}
 
 }
