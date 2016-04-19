@@ -63,7 +63,6 @@ public class Suneido {
 		} catch (Throwable e) {
 			Errlog.fatal(cmdlineoptions.action + " FAILED", e);
 		}
-		exit(0);
 	}
 
 	private static void doAction() throws Throwable {
