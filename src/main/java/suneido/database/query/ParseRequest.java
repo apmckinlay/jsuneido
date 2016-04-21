@@ -5,6 +5,7 @@
 package suneido.database.query;
 
 import static suneido.compiler.Token.*;
+
 import suneido.compiler.Lexer;
 import suneido.compiler.Parse;
 import suneido.compiler.Token;
@@ -147,12 +148,7 @@ public class ParseRequest<T> extends Parse<T, RequestGenerator<T>> {
 			return null;
 		boolean key = lexer.getKeyword() == KEY;
 		match();
-		boolean unique = false;
-		for (;; match())
-			if (lexer.getKeyword() == UNIQUE)
-				unique = true;
-			else
-				break;
+		boolean unique = ! key && matchIf(UNIQUE);
 		T columns = columnList();
 		T foreignKey = foreignKey();
 		return generator.index(key, unique, columns, foreignKey);
