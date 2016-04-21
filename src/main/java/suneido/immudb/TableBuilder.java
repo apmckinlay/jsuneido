@@ -10,14 +10,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import suneido.SuException;
-import suneido.immudb.Bootstrap.TN;
-
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
+
+import suneido.SuException;
+import suneido.immudb.Bootstrap.TN;
 
 class TableBuilder implements suneido.intfc.database.TableBuilder {
 	private final SchemaTransaction t;
@@ -232,8 +232,11 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 			return noColumns;
 		int[] cols = new int[cm.countIn(s) + 1];
 		int i = 0;
-		for (String c : splitter.split(s))
-			cols[i++] = colNum(columns, c);
+		for (String c : splitter.split(s)) {
+			int cn = colNum(columns, c);
+			verify(cn >= 0, "cannot index rule field " + c);
+			cols[i++] = cn;
+		}
 		return cols;
 	}
 
