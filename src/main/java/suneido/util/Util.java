@@ -521,4 +521,12 @@ public class Util {
 	synchronized public static String displayDate(Date date){
 		return date == null ? "null" : datefmt.format(date);
 	}
+
+	public static void interruptableSleep(int ms) {
+		try {
+			Thread.sleep(ms);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
+	}
 }
