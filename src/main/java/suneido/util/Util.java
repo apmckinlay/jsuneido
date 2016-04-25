@@ -47,6 +47,12 @@ public class Util {
 		return (i == -1) ? s : s.substring(0, i);
 	}
 
+	/** @return original string if sub not found */
+	public static String beforeLast(String s, String sub) {
+		int i = s.lastIndexOf(sub);
+		return (i == -1) ? s : s.substring(0, i);
+	}
+
 	/** @return "" if sub not found */
 	public static String afterFirst(String s, String sub) {
 		int i = s.indexOf(sub);

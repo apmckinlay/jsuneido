@@ -18,6 +18,7 @@ import com.google.common.primitives.Ints;
 
 import suneido.SuException;
 import suneido.immudb.Bootstrap.TN;
+import suneido.util.Util;
 
 class TableBuilder implements suneido.intfc.database.TableBuilder {
 	private final SchemaTransaction t;
@@ -125,8 +126,11 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		verify(! hasColumn(column),
 				"add column: column already exists: " + column);
 		boolean isRuleField = isRuleField(column);
-		column = isRuleField ? uncapitalize(column) : column;
-		int field = isRuleField ? -1 : nextField++;
+		if (isRuleField)
+			column = uncapitalize(column);
+		int field = isRuleField ? -1
+				: isSpecialField(column) ? baseField(column)
+				: nextField++;
 		Column c = new Column(tblnum, field, column);
 		columns.add(c);
 		t.addRecord(TN.COLUMNS, c.toRecord());
@@ -135,6 +139,16 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 
 	private static boolean isRuleField(String column) {
 		return Character.isUpperCase(column.charAt(0));
+	}
+
+	private static boolean isSpecialField(String column) {
+		return column.endsWith("_lower!");
+	}
+
+	private int baseField(String column) {
+		String base = Util.beforeLast(column, "_");
+		int fld = colNum(base);
+		return -fld - 2; // offset by 2 because 0 and -1 are taken
 	}
 
 	@Override
