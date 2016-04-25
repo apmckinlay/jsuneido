@@ -143,7 +143,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 				"rename column: nonexistent column: " + from);
 		verify(! hasColumn(to),
 				"rename column: column already exists: " + to);
-		int i = findColumn(columns, from);
+		int i = findColumn(from);
 		Column cOld = columns.get(i);
 		Column cNew = new Column(tblnum, cOld.field, to);
 		t.updateRecord(TN.COLUMNS, cOld.toRecord(), cNew.toRecord());
@@ -156,14 +156,14 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		verify(hasColumn(column),
 				"drop column: nonexistent column: " + column);
 		mustNotBeUsedByIndex(column);
-		int i = findColumn(columns, column);
+		int i = findColumn(column);
 		t.removeRecord(TN.COLUMNS, columns.get(i).toRecord());
 		columns.remove(i);
 		return this;
 	}
 
 	private void mustNotBeUsedByIndex(String column) {
-		int colNum = colNum(columns, column);
+		int colNum = colNum(column);
 		for (int i = 0; i < indexes.size(); ++i) {
 			Index index = indexes.get(i);
 			verify(! Ints.contains(index.colNums, colNum),
@@ -233,21 +233,23 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		int[] cols = new int[cm.countIn(s) + 1];
 		int i = 0;
 		for (String c : splitter.split(s)) {
-			int cn = colNum(columns, c);
-			verify(cn >= 0, "cannot index rule field " + c);
+			int cn = colNum(c);
+			verify(cn != -1, "cannot index rule field " + c);
 			cols[i++] = cn;
 		}
 		return cols;
 	}
 
-	private int colNum(List<Column> columns, String column) {
-		int i = findColumn(columns, column);
+	/** @return the field number of the column, throws if not found */
+	private int colNum(String column) {
+		int i = findColumn(column);
 		if (i == -1)
 			fail("nonexistent column: " + column);
 		return columns.get(i).field;
 	}
 
-	private static int findColumn(List<Column> columns, String column) {
+	/** @return the index of the column or -1 if not found */
+	private int findColumn(String column) {
 		if (isRuleField(column))
 			column = uncapitalize(column);
 		for (int i = 0; i < columns.size(); ++i)
@@ -257,7 +259,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	}
 
 	private boolean hasColumn(String column) {
-		return findColumn(columns, column) >= 0;
+		return findColumn(column) >= 0;
 	}
 
 	private boolean hasIndex(int[] colNums) {
