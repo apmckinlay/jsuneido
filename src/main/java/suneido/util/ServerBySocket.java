@@ -34,7 +34,7 @@ public class ServerBySocket {
 	}
 
 	public void run(int port) throws IOException {
-		int MAX_THREADS = 100;
+		int MAX_THREADS = 200;
 		int THROTTLE_DELAY = 500; // milliseconds
 		try (ServerSocket serverSocket = new ServerSocket(port)) {
 			int i = 0;
