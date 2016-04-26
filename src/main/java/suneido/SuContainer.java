@@ -13,7 +13,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import com.google.common.collect.Iterables;
 
 import suneido.database.query.Header;
 import suneido.intfc.database.Record;
@@ -26,8 +26,6 @@ import suneido.runtime.builtin.ContainerMethods;
 import suneido.util.NullIterator;
 import suneido.util.PairStack;
 import suneido.util.Util;
-
-import com.google.common.collect.Iterables;
 
 //TODO detect the same modification-during-iteration as cSuneido (see ObjectsTest)
 //TODO resolve concurrency issues flagged below
