@@ -8,9 +8,9 @@ import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.Immutable;
 
-import suneido.util.ByteBuffers;
-
 import com.google.common.base.MoreObjects;
+
+import suneido.util.ByteBuffers;
 
 /**
  * A record stored in a ByteBuffer in the same format as cSuneido.
@@ -65,6 +65,7 @@ class BufRecord extends Record {
 
 	@Override
 	public int fieldOffset(int i) {
+		assert i >= -1;
 		// to match cSuneido use little endian (least significant first)
 		switch (mode()) {
 		case Mode.BYTE:
