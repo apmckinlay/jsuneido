@@ -8,15 +8,16 @@ import static suneido.util.Util.commaSplitter;
 import static suneido.util.Util.listToCommas;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
 import javax.annotation.concurrent.Immutable;
 
-import suneido.SuException;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+
+import suneido.SuException;
 
 /**
  * A wrapper for a list of {@link Column}'s.
@@ -37,6 +38,17 @@ class Columns implements Iterable<Column> {
 		return builder.build();
 	}
 
+	int[] numsArray(String names) {
+		if (names.isEmpty())
+			return new int[0];
+		Iterable<String> cs = commaSplitter.split(names);
+		int[] nums = new int[Iterables.size(cs)];
+		int c = 0;
+		for (String name : cs)
+			nums[c++] = ck_find(name).field;
+		return nums;
+	}
+
 	String names(int[] nums) {
 		if (nums.length == 0)
 			return "";
@@ -44,6 +56,15 @@ class Columns implements Iterable<Column> {
 		for (int n : nums)
 			sb.append(',').append(find(n).name);
 		return sb.substring(1);
+	}
+
+	List<String> namesList(int[] nums) {
+		if (nums.length == 0)
+			return Collections.emptyList();
+		ImmutableList.Builder<String> builder = ImmutableList.builder();
+		for (int n : nums)
+			builder.add(find(n).name);
+		return builder.build();
 	}
 
 	private Column ck_find(String name) {
@@ -91,8 +112,9 @@ class Columns implements Iterable<Column> {
 				cols.add(c.name);
 		// NOT reversing rule order like cSuneido
 		for (Column c : columns)
-			if (c.field < 0)
+			if (c.field == -1)
 				cols.add(c.name.substring(0,1).toUpperCase() + c.name.substring(1));
+		// omit special fields < -1
 		return listToCommas(cols);
 	}
 

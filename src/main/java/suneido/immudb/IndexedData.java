@@ -8,13 +8,12 @@
 
 package suneido.immudb;
 
-import gnu.trove.set.hash.TIntHashSet;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import gnu.trove.set.hash.TIntHashSet;
 import suneido.SuException;
 import suneido.intfc.database.Fkmode;
 import suneido.intfc.database.Transaction.Blocking;
@@ -210,7 +209,7 @@ class IndexedData {
 		}
 
 		Record searchKey(Record rec) {
-			return new RecordBuilder().addFields(rec, fields).arrayRec();
+			return keyBuilder(rec, fields).arrayRec();
 		}
 
 		void fkeyHandleAdd(Record rec) {
@@ -312,7 +311,18 @@ class IndexedData {
 	}
 
 	static BtreeKey key(Record rec, int[] fields, int adr) {
-		return new RecordBuilder().addFields(rec, fields).btreeKey(adr);
+		return keyBuilder(rec, fields).btreeKey(adr);
+	}
+
+	private static RecordBuilder keyBuilder(Record rec, int[] fields) {
+		RecordBuilder rb = new RecordBuilder();
+		for (int f : fields)
+			if (f >= 0)
+				rb.add(rec, f);
+			else
+				//TODO handle other transforms
+				rb.add(rec.getString(-f - 2).toLowerCase());
+		return rb;
 	}
 
 }

@@ -141,6 +141,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		return Character.isUpperCase(column.charAt(0));
 	}
 
+	//TODO: eliminate duplication with Request
 	private static boolean isSpecialField(String column) {
 		return column.endsWith("_lower!");
 	}

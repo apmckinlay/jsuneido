@@ -118,7 +118,7 @@ class DbLoad {
 		if (first == 0)
 			return; // no data
 		for (Index index : table.indexes) {
-			print("\t" + index.columns(table.fields));
+			print("\t" + index.columns(table.columns));
 			createIndex(t, first, last, index);
 		}
 	}

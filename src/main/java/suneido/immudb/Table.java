@@ -5,17 +5,15 @@
 package suneido.immudb;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static suneido.util.Util.commaSplitter;
 
 import java.util.List;
 
 import javax.annotation.concurrent.Immutable;
 
-import suneido.immudb.Bootstrap.TN;
-
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
+
+import suneido.immudb.Bootstrap.TN;
 
 /**
  * Table schema information.
@@ -111,12 +109,12 @@ class Table implements suneido.intfc.database.Table {
 
 	@Override
 	public List<List<String>> indexesColumns() {
-		return indexes.columns(fields);
+		return indexes.columns(columns);
 	}
 
 	@Override
 	public List<List<String>> keysColumns() {
-		return indexes.keysColumns(fields);
+		return indexes.keysColumns(columns);
 	}
 
 	List<Column> columnsList() {
@@ -128,14 +126,7 @@ class Table implements suneido.intfc.database.Table {
 	}
 
 	int[] namesToNums(String names) {
-		if (names.isEmpty())
-			return new int[0];
-		Iterable<String> cs = commaSplitter.split(names);
-		int[] nums = new int[Iterables.size(cs)];
-		int c = 0;
-		for (String field : cs)
-			nums[c++] = fields.indexOf(field);
-		return nums;
+		return columns.numsArray(names);
 	}
 
 	String numsToNames(int[] nums) {
