@@ -121,8 +121,8 @@ class DbDump {
 	}
 
 //	public static void main(String[] args) {
-//		DbTools.dumpPrintExit(DatabasePackage.dbpkg, "immu.compact", "immu.su");
-////		dumpTablePrint("test");
+////		DbTools.dumpPrintExit(DatabasePackage.dbpkg, "immu.compact", "immu.su");
+//		DbTools.dumpTablePrint(DatabasePackage.dbpkg, "suneido.db", "tmp");
 //	}
 
 }
