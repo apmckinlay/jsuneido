@@ -114,7 +114,8 @@ class Columns implements Iterable<Column> {
 		for (Column c : columns)
 			if (c.field == -1)
 				cols.add(c.name.substring(0,1).toUpperCase() + c.name.substring(1));
-		// omit special fields < -1
+			else if (c.field < -1)
+				cols.add(c.name); // special e.g. _lower!
 		return listToCommas(cols);
 	}
 

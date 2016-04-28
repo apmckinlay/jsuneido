@@ -185,23 +185,13 @@ public class Request implements RequestGenerator<Object> {
 		}
 
 		void create(TableBuilder tb) {
-			addSpecial(tb);
 			tb.addIndex(listToCommas(columns), key, unique,
 					in.table, listToCommas(in.columns), in.mode);
 		}
 
 		void ensure(TableBuilder tb) {
-			addSpecial(tb);
 			tb.ensureIndex(listToCommas(columns), key, unique,
 					in.table, listToCommas(in.columns), in.mode);
-		}
-
-		private void addSpecial(TableBuilder tb) {
-			if (columns == null)
-				return ;
-			for (String col : columns)
-				if (isSpecialField(col))
-					tb.addColumn(col);
 		}
 
 		@Override
@@ -209,11 +199,6 @@ public class Request implements RequestGenerator<Object> {
 			return (key ? "key" : ((unique ? "unique" : "") + " index")) +
 					columns + in;
 		}
-	}
-
-	//TODO: eliminate duplication with TableBuilder
-	private static boolean isSpecialField(String column) {
-		return column.endsWith("_lower!");
 	}
 
 	@Override

@@ -4,6 +4,7 @@
 
 package suneido.immudb;
 
+import static suneido.intfc.database.Table.isSpecialField;
 import static suneido.util.Util.uncapitalize;
 
 import java.util.Arrays;
@@ -139,11 +140,6 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 
 	private static boolean isRuleField(String column) {
 		return Character.isUpperCase(column.charAt(0));
-	}
-
-	//TODO: eliminate duplication with Request
-	private static boolean isSpecialField(String column) {
-		return column.endsWith("_lower!");
 	}
 
 	private int baseField(String column) {
