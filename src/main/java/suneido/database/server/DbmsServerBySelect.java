@@ -9,7 +9,6 @@ import static suneido.Trace.tracing;
 import static suneido.Trace.Type.CLIENTSERVER;
 import static suneido.util.ByteBuffers.stringToBuffer;
 
-import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -43,14 +42,11 @@ public class DbmsServerBySelect {
 	static final Set<ServerData> serverDataSet = new HashSet<>();
 	private static InetAddress inetAddress;
 
-	public static void run(int port, int idleTimeoutMin) {
+	public static Runnable run(int port, int idleTimeoutMin) {
 		ServerBySelect server = new ServerBySelect(new HandlerFactory(), idleTimeoutMin);
 		inetAddress = server.getInetAddress();
-		try {
-			server.run(port);
-		} catch (IOException e) {
-			Errlog.error("IOException in ServerBySelect.run", e);
-		}
+		server.open(port);
+		return () -> server.serve();
 	}
 
 	public static InetAddress getInetAddress() {

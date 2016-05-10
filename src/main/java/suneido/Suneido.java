@@ -75,7 +75,6 @@ public class Suneido {
 			TheDbms.setPort(cmdlineoptions.serverPort);
 			Print.timestamped("starting server");
 			startServer();
-			Errlog.setExtra(TheDbms::sessionid);
 			break;
 		case CLIENT:
 			TheDbms.remote(cmdlineoptions.actionArg, cmdlineoptions.serverPort);
@@ -149,12 +148,15 @@ public class Suneido {
 	private static void startServer() {
 		HttpServerMonitor.run(cmdlineoptions.serverPort + 1);
 		openDbms();
-		DbmsServer.run(cmdlineoptions.serverPort, cmdlineoptions.timeoutMin);
+		Runnable serve =
+				DbmsServer.run(cmdlineoptions.serverPort, cmdlineoptions.timeoutMin);
 		try {
 			Compiler.eval("Init()");
 		} catch (Throwable e) {
 			Errlog.fatal("error during init", e);
 		}
+		Errlog.setExtra(TheDbms::sessionid);
+		serve.run(); // NOTE: does not return
 	}
 
 	private static Database db;
