@@ -78,7 +78,8 @@ public abstract class SuRecordOld extends SuContainer {
 
 		for (Iterator<Row.Entry> iter = row.iterator(hdr); iter.hasNext();) {
 			Row.Entry e = iter.next();
-			addField(e.field, e.value);
+			if (! isSpecialField(e.field))
+				addField(e.field, e.value);
 		}
 	}
 
