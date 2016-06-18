@@ -9,15 +9,14 @@ import java.util.List;
 
 import javax.annotation.concurrent.Immutable;
 
-import suneido.immudb.Bootstrap.TN;
-import suneido.immudb.IndexedData.Mode;
-import suneido.intfc.database.Fkmode;
-
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ComparisonChain;
-import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
+
+import suneido.immudb.Bootstrap.TN;
+import suneido.immudb.IndexedData.Mode;
+import suneido.intfc.database.Fkmode;
 
 /**
  * Wrapper for a record from the indexes table, i.e. the schema
@@ -84,11 +83,8 @@ class Index implements Comparable<Index> {
 		return toRecord(tblnum, colNums, isKey, unique, fksrc);
 	}
 
-	List<String> columns(List<String> fields) {
-		ImmutableList.Builder<String> cols = ImmutableList.builder();
-		for (int i : colNums)
-			cols.add(fields.get(i));
-		return cols.build();
+	List<String> columns(Columns columns) {
+		return columns.namesList(colNums);
 	}
 
 	Mode mode() {

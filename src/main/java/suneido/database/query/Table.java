@@ -328,6 +328,7 @@ public class Table extends Query {
 
 	}
 
+	/** adds derived "columns" i.e. "fields" converted from numbers to names */
 	private class IndexesImpl extends Impl {
 
 		@Override
@@ -363,8 +364,14 @@ public class Table extends Query {
 				return "";
 			List<String> fields = tran.ck_getTable(rec.getInt(0)).getFields();
 			CommaStringBuilder csb = new CommaStringBuilder();
-			for (String col : Util.commaSplitter(colnums))
-				csb.add(fields.get(Integer.parseInt(col)));
+			for (String col : Util.commaSplitter(colnums)) {
+				int fld = Integer.parseInt(col);
+				if (fld >= 0)
+					csb.add(fields.get(fld));
+				else // special field
+					csb.add(fields.get(-fld - 2) + "_lower!");
+					//TODO handle other transforms
+			}
 			return csb.toString();
 		}
 

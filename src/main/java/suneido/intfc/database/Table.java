@@ -25,4 +25,8 @@ public interface Table {
 	/** @return The physical fields. 1:1 match with records */
 	ImmutableList<String> getFields();
 
+	static boolean isSpecialField(String column) {
+		return column.endsWith("_lower!");
+	}
+
 }

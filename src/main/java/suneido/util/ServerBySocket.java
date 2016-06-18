@@ -12,11 +12,12 @@ import java.util.concurrent.Executors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
+import suneido.Suneido;
+
 /**
  * Socket server framework using plain sockets (not NIO).
  * Uses a supplied HandlerFactory to create a new Runnable handler
  * for each accepted connection.
- * Uses bounded queue and CallerRunsPolicy to throttle requests.
  */
 @NotThreadSafe
 public class ServerBySocket {
@@ -33,14 +34,24 @@ public class ServerBySocket {
 	}
 
 	public void run(int port) throws IOException {
-		@SuppressWarnings("resource")
-		ServerSocket serverSocket = new ServerSocket(port);
-		while (true) {
-			Socket clientSocket = serverSocket.accept();
-			// disable Nagle since we don't have gathering write
-			clientSocket.setTcpNoDelay(true);
-			Runnable handler = handlerFactory.newHandler(clientSocket);
-			executor.execute(handler);
+		int MAX_THREADS = 200;
+		int THROTTLE_DELAY = 500; // milliseconds
+		try (ServerSocket serverSocket = new ServerSocket(port)) {
+			int i = 0;
+			while (true) {
+				// if there are too many active threads, throttle by sleeping
+				// only check every 10 connections to reduce overhead
+				if (i % 10 == 0 && Suneido.threadGroup.activeCount() > MAX_THREADS)
+					Util.interruptableSleep(THROTTLE_DELAY);
+				else {
+					i++;
+					Socket clientSocket = serverSocket.accept();
+					// disable Nagle since we don't have gathering write
+					clientSocket.setTcpNoDelay(true);
+					Runnable handler = handlerFactory.newHandler(clientSocket);
+					executor.execute(handler);
+				}
+			}
 		}
 	}
 

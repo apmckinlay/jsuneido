@@ -56,19 +56,22 @@ class Indexes implements Iterable<Index> {
 		return null;
 	}
 
-	List<List<String>> columns(List<String> fields) {
-		return columns(fields, false);
+	List<List<String>> columns(Columns columns) {
+		ImmutableList.Builder<List<String>> list = ImmutableList.builder();
+		for (Index index : indexes)
+			list.add(index.columns(columns));
+		return list.build();
 	}
 
-	List<List<String>> keysColumns(List<String> fields) {
-		return columns(fields, true);
+	List<List<String>> keysColumns(Columns  columns) {
+		return columns(columns, true);
 	}
 
-	private List<List<String>> columns(List<String> fields, boolean justKeys) {
+	private List<List<String>> columns(Columns columns, boolean justKeys) {
 		ImmutableList.Builder<List<String>> list = ImmutableList.builder();
 		for (Index index : indexes)
 			if (!justKeys || index.isKey())
-				list.add(index.columns(fields));
+				list.add(index.columns(columns));
 		return list.build();
 	}
 

@@ -37,6 +37,7 @@ class Transactions {
 	private final TreeSet<UpdateTransaction> overlapping =
 			new TreeSet<>(UpdateTransaction.byCommit);
 	private static final long FUTURE = Long.MAX_VALUE;
+	private static final int MAX_ACTIVE = 200;
 	private static final int MAX_OVERLAPPING = 200;
 	static int MAX_UPDATE_TRAN_DURATION_SEC = 10;
 	private volatile boolean exclusive = false;
@@ -63,14 +64,21 @@ class Transactions {
 	}
 
 	synchronized void add(Transaction t) {
+		limitTrans();
 		trans.add(t);
 	}
 
 	synchronized void addUpdateTran(UpdateTransaction t) {
 		if (exclusive)
 			throw new SuException("blocked by exclusive transaction");
+		limitTrans();
 		assert t.asof() > 0;
 		utrans.add(t);
+	}
+
+	private void limitTrans() {
+		if (trans.size() >= MAX_ACTIVE)
+			throw new SuException("too many active transactions");
 	}
 
 	synchronized void setExclusive(Transaction t) {

@@ -52,13 +52,25 @@ public class ServerBySelect {
 		this.idleTimeoutMs = idleTimeoutMin * ONE_MINUTE_IN_MS;
 	}
 
-	public void run(int port) throws IOException {
-		ServerSocketChannel serverChannel = ServerSocketChannel.open();
-		ServerSocket serverSocket = serverChannel.socket();
-		serverSocket.bind(new InetSocketAddress(port));
-		inetAddress = serverSocket.getInetAddress();
-		selector = Selector.open();
-		registerChannel(serverChannel, SelectionKey.OP_ACCEPT);
+	public void run(int port) {
+		open(port);
+		serve();
+	}
+
+	public void open(int port) {
+		try {
+			ServerSocketChannel serverChannel = ServerSocketChannel.open();
+			ServerSocket serverSocket = serverChannel.socket();
+			serverSocket.bind(new InetSocketAddress(port));
+			inetAddress = serverSocket.getInetAddress();
+			selector = Selector.open();
+			registerChannel(serverChannel, SelectionKey.OP_ACCEPT);
+		} catch (IOException e) {
+			Errlog.error("IOException in ServerBySelect.open", e);
+		}
+	}
+
+	public void serve() {
 		new Thread(() -> loop()).start();
 	}
 

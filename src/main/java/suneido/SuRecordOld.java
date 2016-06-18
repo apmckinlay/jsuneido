@@ -5,6 +5,7 @@
 package suneido;
 
 import static suneido.Suneido.dbpkg;
+import static suneido.intfc.database.Table.isSpecialField;
 import static suneido.util.Util.commaJoiner;
 import static suneido.util.Verify.verify;
 
@@ -77,7 +78,8 @@ public abstract class SuRecordOld extends SuContainer {
 
 		for (Iterator<Row.Entry> iter = row.iterator(hdr); iter.hasNext();) {
 			Row.Entry e = iter.next();
-			addField(e.field, e.value);
+			if (! isSpecialField(e.field))
+				addField(e.field, e.value);
 		}
 	}
 
@@ -202,13 +204,28 @@ public abstract class SuRecordOld extends SuContainer {
 
 		Object result = getIfPresent(key);
 		if (result == null || invalid.contains(key)) {
-			Object x = callRule(key);
+			Object x = getIfSpecial(key);
+			if (x != null)
+				return x;
+			x = callRule(key);
 			if (x != null)
 				result = x;
 			else if (result == null)
 				result = defval;
 		}
 		return result;
+	}
+
+	private Object getIfSpecial(Object key) {
+		if (key instanceof String && isSpecialField((String) key)) {
+			String base = Util.beforeLast((String) key, "_");
+			Object x = getIfPresent(base);
+			if (x != null)
+				return (x instanceof String)
+						? ((String) x).toLowerCase()
+						: x; // no transform if not string
+		}
+		return null;
 	}
 
 	private void addDependency(Object src, Object dst) {

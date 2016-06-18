@@ -4,20 +4,22 @@
 
 package suneido.immudb;
 
+import static suneido.intfc.database.Table.isSpecialField;
 import static suneido.util.Util.uncapitalize;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import suneido.SuException;
-import suneido.immudb.Bootstrap.TN;
-
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Ints;
+
+import suneido.SuException;
+import suneido.immudb.Bootstrap.TN;
+import suneido.util.Util;
 
 class TableBuilder implements suneido.intfc.database.TableBuilder {
 	private final SchemaTransaction t;
@@ -125,8 +127,11 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		verify(! hasColumn(column),
 				"add column: column already exists: " + column);
 		boolean isRuleField = isRuleField(column);
-		column = isRuleField ? uncapitalize(column) : column;
-		int field = isRuleField ? -1 : nextField++;
+		if (isRuleField)
+			column = uncapitalize(column);
+		int field = isRuleField ? -1
+				: isSpecialField(column) ? baseField(column)
+				: nextField++;
 		Column c = new Column(tblnum, field, column);
 		columns.add(c);
 		t.addRecord(TN.COLUMNS, c.toRecord());
@@ -137,13 +142,19 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		return Character.isUpperCase(column.charAt(0));
 	}
 
+	private int baseField(String column) {
+		String base = Util.beforeLast(column, "_");
+		int fld = colNum(base);
+		return -fld - 2; // offset by 2 because 0 and -1 are taken
+	}
+
 	@Override
 	public TableBuilder renameColumn(String from, String to) {
 		verify(hasColumn(from),
 				"rename column: nonexistent column: " + from);
 		verify(! hasColumn(to),
 				"rename column: column already exists: " + to);
-		int i = findColumn(columns, from);
+		int i = findColumn(from);
 		Column cOld = columns.get(i);
 		Column cNew = new Column(tblnum, cOld.field, to);
 		t.updateRecord(TN.COLUMNS, cOld.toRecord(), cNew.toRecord());
@@ -156,14 +167,14 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		verify(hasColumn(column),
 				"drop column: nonexistent column: " + column);
 		mustNotBeUsedByIndex(column);
-		int i = findColumn(columns, column);
+		int i = findColumn(column);
 		t.removeRecord(TN.COLUMNS, columns.get(i).toRecord());
 		columns.remove(i);
 		return this;
 	}
 
 	private void mustNotBeUsedByIndex(String column) {
-		int colNum = colNum(columns, column);
+		int colNum = colNum(column);
 		for (int i = 0; i < indexes.size(); ++i) {
 			Index index = indexes.get(i);
 			verify(! Ints.contains(index.colNums, colNum),
@@ -232,19 +243,24 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 			return noColumns;
 		int[] cols = new int[cm.countIn(s) + 1];
 		int i = 0;
-		for (String c : splitter.split(s))
-			cols[i++] = colNum(columns, c);
+		for (String c : splitter.split(s)) {
+			int cn = colNum(c);
+			verify(cn != -1, "cannot index rule field " + c);
+			cols[i++] = cn;
+		}
 		return cols;
 	}
 
-	private int colNum(List<Column> columns, String column) {
-		int i = findColumn(columns, column);
+	/** @return the field number of the column, throws if not found */
+	private int colNum(String column) {
+		int i = findColumn(column);
 		if (i == -1)
 			fail("nonexistent column: " + column);
 		return columns.get(i).field;
 	}
 
-	private static int findColumn(List<Column> columns, String column) {
+	/** @return the index of the column or -1 if not found */
+	private int findColumn(String column) {
 		if (isRuleField(column))
 			column = uncapitalize(column);
 		for (int i = 0; i < columns.size(); ++i)
@@ -254,7 +270,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	}
 
 	private boolean hasColumn(String column) {
-		return findColumn(columns, column) >= 0;
+		return findColumn(column) >= 0;
 	}
 
 	private boolean hasIndex(int[] colNums) {

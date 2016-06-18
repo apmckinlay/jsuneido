@@ -60,7 +60,8 @@ public class SuThread extends BuiltinClass {
 				TheDbms.setAuthToken(token);
 				Ops.call(callable);
 			} catch (Throwable e ) {
-				Errlog.error("Thread uncaught", e);
+				if (! Suneido.exiting)
+					Errlog.error("Thread uncaught", e);
 			}
 		}
 	}

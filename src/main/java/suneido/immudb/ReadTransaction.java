@@ -53,11 +53,17 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 
 	/** if colNames is null returns firstIndex */
 	TranIndex getIndex(int tblnum, String colNames) {
-		return getIndex(index(tblnum, colNames));
+		Index index = index(tblnum, colNames);
+		if (index == null)
+			throw new SuException("can't get index for " + colNames);
+		return getIndex(index);
 	}
 
 	TranIndex getIndex(int tblnum, int... colNums) {
-		return getIndex(index(tblnum, colNums));
+		Index index = index(tblnum, colNums);
+		if (index == null)
+			throw new SuException("can't get index for " + colNums);
+		return getIndex(index);
 	}
 
 	protected TranIndex getIndex(Index index) {

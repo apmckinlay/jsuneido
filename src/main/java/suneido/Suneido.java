@@ -40,6 +40,7 @@ public class Suneido {
 	public static Contexts contexts = new Contexts();
 	public static ContextLayered context = new ContextLayered(contexts);
 	public static ThreadGroup threadGroup = new ThreadGroup("Suneido");
+	public static volatile boolean exiting = false;
 
 	public static void main(String[] args) {
 		ClassLoader.getSystemClassLoader().setPackageAssertionStatus("suneido", true);
@@ -74,7 +75,6 @@ public class Suneido {
 			TheDbms.setPort(cmdlineoptions.serverPort);
 			Print.timestamped("starting server");
 			startServer();
-			Errlog.setExtra(TheDbms::sessionid);
 			break;
 		case CLIENT:
 			TheDbms.remote(cmdlineoptions.actionArg, cmdlineoptions.serverPort);
@@ -148,12 +148,15 @@ public class Suneido {
 	private static void startServer() {
 		HttpServerMonitor.run(cmdlineoptions.serverPort + 1);
 		openDbms();
-		DbmsServer.run(cmdlineoptions.serverPort, cmdlineoptions.timeoutMin);
+		Runnable serve =
+				DbmsServer.run(cmdlineoptions.serverPort, cmdlineoptions.timeoutMin);
 		try {
 			Compiler.eval("Init()");
 		} catch (Throwable e) {
 			Errlog.fatal("error during init", e);
 		}
+		Errlog.setExtra(TheDbms::sessionid);
+		serve.run(); // NOTE: does not return
 	}
 
 	private static Database db;
@@ -221,6 +224,11 @@ public class Suneido {
 
 	public static void scheduleAtFixedRate(Runnable fn, long delay, TimeUnit unit) {
 		scheduler.scheduleAtFixedRate(() -> Errlog.run(fn), delay, delay, unit);
+	}
+
+	public static void exit(int status) {
+		exiting = true;
+		System.exit(status);
 	}
 
 }

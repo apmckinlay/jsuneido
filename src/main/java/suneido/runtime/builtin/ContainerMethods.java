@@ -299,12 +299,11 @@ public final class ContainerMethods {
 	}
 
 	public static Object Members(Object self, Object... args) {
+		SuContainer ob = toContainer(self);
 		if (args.length == 0)
-			return new Sequence(toContainer(self)
-					.iterable(IterWhich.ALL, IterResult.KEY));
+			return new Sequence(ob.iterable(IterWhich.ALL, IterResult.KEY));
 		Args.massage(FunctionSpec.NO_PARAMS, args); // args must be named
-		return new Sequence(toContainer(self)
-				.iterable(iterWhich(args), IterResult.KEY));
+		return new Sequence(ob.iterable(iterWhich(args), IterResult.KEY));
 	}
 
 	@Params("string")

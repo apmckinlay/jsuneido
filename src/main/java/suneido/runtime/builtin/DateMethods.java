@@ -77,6 +77,8 @@ public final class DateMethods {
 	@Params("date")
 	public static Object MinusSeconds(Object self, Object a) {
 		if (a instanceof SuDate) {
+			if (((SuDate) self).minusDays((SuDate) a) > 50 * 365)
+				throw new SuException("date.MinusSeconds interval too large");
 			long ms = ((SuDate) self).minusMilliseconds((SuDate) a);
 			return BigDecimal.valueOf(ms, 3);
 		} else

@@ -136,7 +136,6 @@ public class Builtins {
 			.put("System", function(SystemFunction.class))
 			.put("SystemMemory", function(SystemMemory.class))
 			.put("Thread", SuThread.singleton)
-			.put("ThreadCount", function(ThreadCount.class))
 			.put("Timestamp", function(Timestamp.class))
 			.put("Trace", function(SuTrace.class))
 			.put("Transaction", SuTransaction.clazz)

@@ -170,10 +170,10 @@ public class Request implements RequestGenerator<Object> {
 	}
 
 	private static class AnIndex {
-		boolean key;
-		boolean unique;
-		List<String> columns;
-		ForeignKey in;
+		final boolean key;
+		final boolean unique;
+		final List<String> columns;
+		final ForeignKey in;
 
 		AnIndex(boolean key, boolean unique, Object columns, Object foreignKey) {
 			this.key = key;
@@ -185,13 +185,11 @@ public class Request implements RequestGenerator<Object> {
 		}
 
 		void create(TableBuilder tb) {
-			assert (in != null);
 			tb.addIndex(listToCommas(columns), key, unique,
 					in.table, listToCommas(in.columns), in.mode);
 		}
 
 		void ensure(TableBuilder tb) {
-			assert (in != null);
 			tb.ensureIndex(listToCommas(columns), key, unique,
 					in.table, listToCommas(in.columns), in.mode);
 		}
@@ -218,8 +216,8 @@ public class Request implements RequestGenerator<Object> {
 	}
 
 	static class Rename {
-		String from;
-		String to;
+		final String from;
+		final String to;
 
 		Rename(String from, String to) {
 			this.from = from;
@@ -241,8 +239,8 @@ public class Request implements RequestGenerator<Object> {
 	}
 
 	private static class Schema {
-		List<String> columns;
-		List<AnIndex> indexes;
+		final List<String> columns;
+		final List<AnIndex> indexes;
 
 		Schema(Object columns, Object indexes) {
 			if (columns == null)
