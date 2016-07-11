@@ -12,11 +12,11 @@ import java.util.Calendar;
 
 import javax.annotation.concurrent.Immutable;
 
+import com.google.common.primitives.Ints;
+
 import suneido.runtime.Pack;
 import suneido.runtime.builtin.DateMethods;
 import suneido.util.FAQCalendar;
-
-import com.google.common.primitives.Ints;
 
 /**
  * A date class that matches the cSuneido implementation.
@@ -141,7 +141,7 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 	@Override
 	public int compareTo(SuDate that) {
 		int cmp = Ints.compare(this.date, that.date);
-		return cmp != 0 ? cmp : Ints.compare(this.time, that.time);
+		return cmp != 0 ? cmp : Integer.compare(this.time, that.time);
 	}
 
 	@Override
