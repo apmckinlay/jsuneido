@@ -6,6 +6,7 @@ package suneido;
 
 import static suneido.compiler.Token.*;
 
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -160,21 +161,20 @@ public class PortTests {
 	}
 
 	public static void main(String[] args) {
-		//System.out.println("'" + TestDir.path + "'");
 		addTest("ptest", (a) -> a[0].equals(a[1]));
-		runFile("ptest.test");
 		addTest("tr", TrTest::pt_tr);
-		runFile("tr.test");
 		addTest("regex_match", RegexTest::pt_regex_match);
-		runFile("regex.test");
 		addTest("execute", ExecuteTest::pt_execute);
-		runFile("execute.test");
 		addTest("dnum_add", DnumTest::pt_dnum_add);
 		addTest("dnum_sub", DnumTest::pt_dnum_sub);
 		addTest("dnum_mul", DnumTest::pt_dnum_mul);
 		addTest("dnum_div", DnumTest::pt_dnum_div);
 		addTest("dnum_cmp", DnumTest::pt_dnum_cmp);
-		runFile("dnum.test");
+
+		System.out.println("'" + TestDir.path + "'");
+		for (String filename : new File(TestDir.path).list())
+			if (filename.endsWith(".test"))
+				runFile(filename);
 	}
 
 }
