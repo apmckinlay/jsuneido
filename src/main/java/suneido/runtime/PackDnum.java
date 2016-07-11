@@ -16,6 +16,9 @@ import suneido.util.Dnum;
  * <li>exponent adjusted as if decimal was to left of digits,
  * and encoded to compare correctly as unsigned byte
  * <li>bytes of coefficient, most significant first
+ *
+ * NOTE: Dnum IS NOT CURRENTLY USED
+ * WARNING: this pack format is NOT compatible with cSuneido
  */
 public class PackDnum {
 

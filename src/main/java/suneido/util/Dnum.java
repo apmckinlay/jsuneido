@@ -28,6 +28,8 @@ import com.google.common.primitives.UnsignedLongs;
  * There is no NaN, inf / inf = 1, 0 / ... = 0, inf / ... = inf
  * <p>
  * Immutable as far as public methods, but mutable instances used internally.
+ *
+ * NOTE: Dnum IS NOT CURRENTLY USED
  */
 public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 	private long coef;
