@@ -41,6 +41,7 @@ public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 	final static byte MINUS = -1;
 	public final static byte expInf = Byte.MAX_VALUE;
 	final static long coefInf = UnsignedLongs.MAX_VALUE;
+	private final static String MAXCOEF = Long.toUnsignedString(UnsignedLongs.MAX_VALUE);
 
 	public final static Dnum Zero = new Dnum(ZERO, 0, 0);
 	public final static Dnum One = new Dnum(PLUS, 1, 0);
@@ -84,21 +85,37 @@ public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 			after = spanDigits(s.substring(i));
 			i += after.length();
 		}
-		after = cm_zero.trimTrailingFrom(after);
-		long coef = Long.parseUnsignedLong(before + after);
-
 		int exp = 0;
 		if (i < s.length() && (s.charAt(i) == 'e' || s.charAt(i) == 'E')) {
 			exp = Integer.parseInt(s.substring(++i));
 		}
-		if (coef == 0) {
-			return Zero;
-		}
+
+		before = cm_zero.trimLeadingFrom(before);
+		after = cm_zero.trimTrailingFrom(after);
 		exp -= after.length();
-		if (exp < -127 || exp >= 127) {
-			throw new RuntimeException("exponent out of range (" + s + ")");
+		int carry = 0;
+		String digits = before + after;
+		while (cmpNumStr(digits, MAXCOEF) >= 0) {
+			exp++;
+			carry = digits.charAt(digits.length() - 1) < '5' ? 0 : 1;
+			digits = digits.substring(0, digits.length() - 1);
 		}
+		long coef = carry + Long.parseUnsignedLong(digits);
+		if (coef == 0)
+			return Zero;
+
+		if (exp <= Byte.MIN_VALUE)
+			return Dnum.Zero;
+		if (exp >= Byte.MAX_VALUE)
+			return sign < 0 ? Dnum.MinusInf : Dnum.Inf;
+
 		return new Dnum(sign, coef, exp);
+	}
+
+	private static int cmpNumStr(String x, String y) {
+		if (x.length() != y.length())
+			return x.length() - y.length();
+		return x.compareTo(y);
 	}
 
 	private static String spanDigits(String s) {
