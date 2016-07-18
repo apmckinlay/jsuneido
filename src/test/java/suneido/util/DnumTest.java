@@ -219,38 +219,41 @@ public class DnumTest {
 		}
 	}
 
-	/** PortTests */
+	// PortTests --------------------------------------------------------------
+
+	private static interface DnumOp {
+		public boolean op(Dnum x, Dnum y, Dnum z);
+	}
+
+	private static boolean pt_dnum_test(String[] args, DnumOp op) {
+		assertThat(args.length, equalTo(3));
+		Dnum x = parse(args[0]);
+		Dnum y = parse(args[1]);
+		Dnum z = parse(args[2]);
+		return op.op(x, y, z);
+	}
+
 	public static boolean pt_dnum_add(String... args) {
-		Dnum x = parse(args[0]);
-		Dnum y = parse(args[1]);
-		return add(x, y).toString().equals(args[2]) &&
-				add(y, x).toString().equals(args[2]);
+		return pt_dnum_test(args, (x, y, z) ->
+				add(x, y).equals(z) && add(y, x).equals(z));
 	}
 
-	/** PortTests */
 	public static boolean pt_dnum_sub(String... args) {
-		Dnum x = parse(args[0]);
-		Dnum y = parse(args[1]);
-		return sub(x, y).toString().equals(args[2]) &&
-				(args[2].equals("0") || sub(y, x).toString().equals("-" + args[2]));
+		return pt_dnum_test(args, (x, y, z) ->
+			sub(x, y).equals(z) &&
+				(z.equals(Dnum.ZERO) || sub(y, x).equals(z.neg())));
 	}
 
-	/** PortTests */
 	public static boolean pt_dnum_mul(String... args) {
-		Dnum x = parse(args[0]);
-		Dnum y = parse(args[1]);
-		return mul(x, y).toString().equals(args[2]) &&
-				mul(y, x).toString().equals(args[2]);
+		return pt_dnum_test(args, (x, y, z) ->
+				mul(x, y).equals(z) && mul(y, x).equals(z));
 	}
 
-	/** PortTests */
 	public static boolean pt_dnum_div(String... args) {
-		Dnum x = parse(args[0]);
-		Dnum y = parse(args[1]);
-		return div(x, y).toString().equals(args[2]);
+		return pt_dnum_test(args, (x, y, z) ->
+				div(x, y).equals(z));
 	}
 
-	/** PortTests */
 	public static boolean pt_dnum_cmp(String... data) {
 		int n = data.length;
 		for (int i = 0; i < n; ++i) {
