@@ -206,10 +206,6 @@ public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 
 	// add and subtract --------------------------------------------------------
 
-	public Dnum add(Dnum y) {
-		return add(this, y);
-	}
-
 	public static Dnum add(Dnum x, Dnum y) {
 		if (x.isZero())
 			return y;
@@ -233,10 +229,6 @@ public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 			return usub(x, y);
 		else
 			return uadd(x, y);
-	}
-
-	public Dnum sub(Dnum y) {
-		return sub(this, y);
 	}
 
 	public static Dnum sub(Dnum x, Dnum y) {
@@ -352,10 +344,6 @@ public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 
 	// multiply ----------------------------------------------------------------
 
-	public Dnum mul(Dnum y) {
-		return mul(this, y);
-	}
-
 	public static Dnum mul(Dnum x, Dnum y) {
 		int sign = (x.sign * y.sign);
 		if (x == One)
@@ -417,10 +405,6 @@ public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 	}
 
 	// divide ------------------------------------------------------------------
-
-	public Dnum div(Dnum y) {
-		return div(this, y);
-	}
 
 	public static Dnum div(Dnum x, Dnum y) {
 		if (x.isZero())
@@ -516,7 +500,7 @@ public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 			return +1;
 		else if (sign < other.sign)
 			return -1;
-		return sub(other).sign;
+		return sub(this, other).sign;
 	}
 
 	public Dnum check() {
