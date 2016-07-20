@@ -164,12 +164,14 @@ public class PortTests {
 		addTest("ptest", (a) -> a[0].equals(a[1]));
 		addTest("tr", TrTest::pt_tr);
 		addTest("regex_match", RegexTest::pt_regex_match);
-		addTest("execute", ExecuteTest::pt_execute);
 		addTest("dnum_add", DnumTest::pt_dnum_add);
 		addTest("dnum_sub", DnumTest::pt_dnum_sub);
 		addTest("dnum_mul", DnumTest::pt_dnum_mul);
 		addTest("dnum_div", DnumTest::pt_dnum_div);
 		addTest("dnum_cmp", DnumTest::pt_dnum_cmp);
+		addTest("execute", ExecuteTest::pt_execute);
+		addTest("lang_sub", ExecuteTest::pt_lang_sub);
+		addTest("lang_range", ExecuteTest::pt_lang_range);
 
 		System.out.println("'" + TestDir.path + "'");
 		for (String filename : new File(TestDir.path).list())
