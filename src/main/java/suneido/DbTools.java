@@ -39,11 +39,15 @@ public class DbTools {
 
 	public static int dumpDatabase(DatabasePackage dbpkg, Database db,
 			String outputFilename) {
-		try (FileOutputStream fout = new FileOutputStream(outputFilename)) {
-			return dbpkg.dumpDatabase(db, fout.getChannel());
+		int ntables;
+		String tempfile = FileUtils.tempfile().toString();
+		try (FileOutputStream fout = new FileOutputStream(tempfile)) {
+			ntables = dbpkg.dumpDatabase(db, fout.getChannel());
 		} catch (Exception e) {
 			throw new RuntimeException("dump failed", e);
 		}
+		FileUtils.renameWithBackup(tempfile, outputFilename);
+		return ntables;
 	}
 
 	public static void dumpTablePrint(DatabasePackage dbpkg, String dbFilename,
@@ -57,7 +61,7 @@ public class DbTools {
 
 	public static int dumpTable(DatabasePackage dbpkg, Database db,
 			String tablename) {
-		try (FileOutputStream fout =	new FileOutputStream(tablename + ".su")) {
+		try (FileOutputStream fout = new FileOutputStream(tablename + ".su")) {
 			return dbpkg.dumpTable(db, tablename, fout.getChannel());
 		} catch (Exception e) {
 			throw new RuntimeException("dump table failed", e);
