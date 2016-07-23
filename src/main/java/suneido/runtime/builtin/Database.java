@@ -4,6 +4,7 @@
 
 package suneido.runtime.builtin;
 
+import suneido.DbTools;
 import suneido.SuContainer;
 import suneido.SuException;
 import suneido.Suneido;
@@ -74,6 +75,11 @@ public class Database extends BuiltinClass {
 		if (! "".equals(result))
 			throw new SuException("Database.Dump failed: " + result);
 		return null;
+	}
+	
+	@Params("table = ''")
+	public static Object Load(Object self, Object table) {
+		return DbTools.loadTable(Ops.toStr(table));
 	}
 
 	public static Object Check(Object self) {
