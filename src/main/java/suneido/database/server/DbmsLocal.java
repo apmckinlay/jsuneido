@@ -86,6 +86,11 @@ public class DbmsLocal extends Dbms {
 	}
 
 	@Override
+	public int load(String filename) {
+		return DbTools.loadTable(dbpkg, db, filename);
+	}
+	
+	@Override
 	public String check() {
 		return db.check();
 	}
@@ -220,7 +225,7 @@ public class DbmsLocal extends Dbms {
 		return Auth.token();
 	}
 
-	public Database getDb() {
+	Database getDb() {
 		return db;
 	}
 
