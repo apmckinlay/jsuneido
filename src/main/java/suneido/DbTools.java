@@ -14,6 +14,7 @@ import java.nio.channels.WritableByteChannel;
 
 import com.google.common.base.Stopwatch;
 
+import suneido.database.server.DbmsLocal;
 import suneido.intfc.database.Database;
 import suneido.intfc.database.DatabasePackage;
 import suneido.intfc.database.DatabasePackage.Status;
@@ -123,22 +124,34 @@ public class DbTools {
 
 	public static void loadTablePrint(DatabasePackage dbpkg, String dbFilename,
 			String tablename) {
+		if (tablename.endsWith(".su"))
+			tablename = tablename.substring(0, tablename.length() - 3);
 		Database db = dbpkg.dbExists(dbFilename)
 				? dbpkg.open(dbFilename) : dbpkg.create(dbFilename);
 		if (db == null)
 			throw new RuntimeException("can't open database");
 		try {
-			int n = loadTable(dbpkg, db, tablename);
-			System.out.println("loaded " + n + " records " +
-				"from " + tablename + ".su into " + tablename + " in " + dbFilename);
+			@SuppressWarnings("resource")
+			ReadableByteChannel fin = new FileInputStream(tablename + ".su").getChannel();
+			try {
+				int n = dbpkg.loadTable(db, tablename, fin);
+				System.out.println("loaded " + n + " records " +
+						"from " + tablename + ".su into " + tablename + " in " + dbFilename);
+			} finally {
+				fin.close();
+			}
+		} catch (Exception e) {
+			throw new RuntimeException("load " + tablename + " failed", e);
 		} finally {
 			db.close();
 		}
 	}
 	
-	public static int loadTable(DatabasePackage dbpkg, Database db, String tablename) {
+	public static int loadTable(String tablename) {
+		DatabasePackage dbpkg = suneido.immudb.DatabasePackage.dbpkg;
 		if (tablename.endsWith(".su"))
 			tablename = tablename.substring(0, tablename.length() - 3);
+		Database db = ((DbmsLocal) TheDbms.dbms()).getDb();
 		try {
 			@SuppressWarnings("resource")
 			ReadableByteChannel fin = new FileInputStream(tablename + ".su").getChannel();

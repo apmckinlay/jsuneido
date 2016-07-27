@@ -30,7 +30,6 @@ public abstract class Dbms {
 	public abstract SuDate timestamp();
 	public abstract String check();
 	public abstract String dump(String filename);
-	public abstract int load(String filename);
 	public abstract void copy(String filename);
 	public abstract Object run(String s);
 	public abstract long size();

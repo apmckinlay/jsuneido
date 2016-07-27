@@ -4,6 +4,7 @@
 
 package suneido.runtime.builtin;
 
+import suneido.DbTools;
 import suneido.SuContainer;
 import suneido.SuException;
 import suneido.Suneido;
@@ -76,12 +77,9 @@ public class Database extends BuiltinClass {
 		return null;
 	}
 	
-	@Params("filename")
-	public static Object Load(Object self, Object filename) {
-		int result = TheDbms.dbms().load(Ops.toStr(filename));
-		if (result < 0)
-			throw new SuException("Database.Load failed: " + filename);
-		return result;
+	@Params("table = ''")
+	public static Object Load(Object self, Object table) {
+		return DbTools.loadTable(Ops.toStr(table));
 	}
 
 	public static Object Check(Object self) {

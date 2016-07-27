@@ -164,14 +164,6 @@ public enum Command {
 					dbms().dump(bufferToString(line).trim()));
 		}
 	},
-	LOAD {
-		@Override
-		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
-				NetworkOutput outputQueue) {
-			return valueResult(outputQueue,
-					dbms().load(bufferToString(line).trim()));
-		}
-	},
 	EOF { // for testing
 		@Override
 		public ByteBuffer execute(ByteBuffer line, ByteBuffer extra,
