@@ -99,16 +99,24 @@ public class DbTools {
 
 	public static void loadTablePrint(DatabasePackage dbpkg, String dbFilename,
 			String tablename) {
-		if (tablename.endsWith(".su"))
-			tablename = tablename.substring(0, tablename.length() - 3);
 		try (Database db = dbpkg.dbExists(dbFilename)
-				? dbpkg.open(dbFilename) : dbpkg.create(dbFilename);
-				FileInputStream fin = new FileInputStream(tablename + ".su")) {
+				? dbpkg.open(dbFilename) : dbpkg.create(dbFilename);) {
 			if (db == null)
 				throw new RuntimeException("can't open database");
-			int n = dbpkg.loadTable(db, tablename, fin.getChannel());
+			int n = loadTable(dbpkg, db, tablename);
 			System.out.println("loaded " + n + " records " +
-					"from " + tablename + ".su into " + tablename + " in " + dbFilename);
+					"from " + tablename + ".su into " + tablename + " in " + dbFilename);			
+		} catch (Exception e) {
+			throw new RuntimeException("load " + tablename + " failed", e);
+		}
+	}
+	
+	public static int loadTable(DatabasePackage dbpkg, Database db,
+			String tablename) {
+		if (tablename.endsWith(".su"))
+			tablename = tablename.substring(0, tablename.length() - 3);
+		try (FileInputStream fin = new FileInputStream(tablename + ".su")) {
+			return dbpkg.loadTable(db, tablename, fin.getChannel());
 		} catch (Exception e) {
 			throw new RuntimeException("load " + tablename + " failed", e);
 		}
