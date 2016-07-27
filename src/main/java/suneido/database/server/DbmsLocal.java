@@ -220,7 +220,7 @@ public class DbmsLocal extends Dbms {
 		return Auth.token();
 	}
 
-	public Database getDb() {
+	Database getDb() {
 		return db;
 	}
 

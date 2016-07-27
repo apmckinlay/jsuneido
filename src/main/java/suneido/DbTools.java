@@ -12,7 +12,6 @@ import java.io.FileOutputStream;
 
 import com.google.common.base.Stopwatch;
 
-import suneido.database.server.DbmsLocal;
 import suneido.intfc.database.Database;
 import suneido.intfc.database.DatabasePackage;
 import suneido.intfc.database.DatabasePackage.Status;
@@ -110,25 +109,6 @@ public class DbTools {
 			int n = dbpkg.loadTable(db, tablename, fin.getChannel());
 			System.out.println("loaded " + n + " records " +
 					"from " + tablename + ".su into " + tablename + " in " + dbFilename);
-		} catch (Exception e) {
-			throw new RuntimeException("load " + tablename + " failed", e);
-		}
-	}
-	
-	public static int loadTable(String tablename) {
-		DatabasePackage dbpkg = suneido.immudb.DatabasePackage.dbpkg;
-		if (tablename.endsWith(".su"))
-			tablename = tablename.substring(0, tablename.length() - 3);
-		Database db = ((DbmsLocal) TheDbms.dbms()).getDb();
-		try {
-			@SuppressWarnings("resource")
-			ReadableByteChannel fin = new FileInputStream(tablename + ".su").getChannel();
-			try {
-				int n = dbpkg.loadTable(db, tablename, fin);
-				return n;
-			} finally {
-				fin.close();
-			}
 		} catch (Exception e) {
 			throw new RuntimeException("load " + tablename + " failed", e);
 		}
