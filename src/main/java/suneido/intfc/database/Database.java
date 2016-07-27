@@ -6,7 +6,7 @@ package suneido.intfc.database;
 
 import java.util.List;
 
-public interface Database {
+public interface Database extends AutoCloseable {
 
 	Transaction readTransaction();
 
@@ -43,6 +43,7 @@ public interface Database {
 	/** used for tests */
 	Database reopen();
 
+	@Override
 	void close();
 
 	void checkTransEmpty();

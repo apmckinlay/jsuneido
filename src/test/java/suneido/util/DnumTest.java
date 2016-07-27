@@ -219,38 +219,53 @@ public class DnumTest {
 		}
 	}
 
-	/** PortTests */
+	// PortTests --------------------------------------------------------------
+
+	private static interface DnumCk {
+		public boolean ck(Dnum x, Dnum y, Dnum z);
+	}
+
+	private static boolean pt_dnum_test(String[] args, DnumCk ck) {
+		assertThat(args.length, equalTo(3));
+		Dnum x = parse(args[0]);
+		Dnum y = parse(args[1]);
+		Dnum z = parse(args[2]);
+		return ck.ck(x, y, z);
+	}
+
+	private static interface DnumOp {
+		public Dnum op(Dnum x, Dnum y);
+	}
+
+	private static boolean ck(DnumOp op, Dnum x, Dnum y, Dnum z) {
+		if (op.op(x, y).equals(z))
+			return true;
+		System.out.println(x + ", " + y +
+				" => " + op.op(x, y) + " should be " + z);
+		return false;
+	}
+
 	public static boolean pt_dnum_add(String... args) {
-		Dnum x = parse(args[0]);
-		Dnum y = parse(args[1]);
-		return add(x, y).toString().equals(args[2]) &&
-				add(y, x).toString().equals(args[2]);
+		return pt_dnum_test(args, (x, y, z) ->
+				ck(Dnum::add, x, y, z) && ck(Dnum::add, y, x, z));
 	}
 
-	/** PortTests */
 	public static boolean pt_dnum_sub(String... args) {
-		Dnum x = parse(args[0]);
-		Dnum y = parse(args[1]);
-		return sub(x, y).toString().equals(args[2]) &&
-				(args[2].equals("0") || sub(y, x).toString().equals("-" + args[2]));
+		return pt_dnum_test(args, (x, y, z) ->
+			ck(Dnum::sub, x, y, z) &&
+				(z.equals(Dnum.ZERO) || ck(Dnum::sub, y, x, z.neg())));
 	}
 
-	/** PortTests */
 	public static boolean pt_dnum_mul(String... args) {
-		Dnum x = parse(args[0]);
-		Dnum y = parse(args[1]);
-		return mul(x, y).toString().equals(args[2]) &&
-				mul(y, x).toString().equals(args[2]);
+		return pt_dnum_test(args, (x, y, z) ->
+				ck(Dnum::mul, x, y, z) && ck(Dnum::mul, y, x, z));
 	}
 
-	/** PortTests */
 	public static boolean pt_dnum_div(String... args) {
-		Dnum x = parse(args[0]);
-		Dnum y = parse(args[1]);
-		return div(x, y).toString().equals(args[2]);
+		return pt_dnum_test(args, (x, y, z) ->
+				ck(Dnum::div, x, y, z));
 	}
 
-	/** PortTests */
 	public static boolean pt_dnum_cmp(String... data) {
 		int n = data.length;
 		for (int i = 0; i < n; ++i) {

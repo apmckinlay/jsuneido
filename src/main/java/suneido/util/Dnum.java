@@ -28,6 +28,8 @@ import com.google.common.primitives.UnsignedLongs;
  * There is no NaN, inf / inf = 1, 0 / ... = 0, inf / ... = inf
  * <p>
  * Immutable as far as public methods, but mutable instances used internally.
+ *
+ * NOTE: Dnum IS NOT CURRENTLY USED
  */
 public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 	private long coef;
@@ -39,6 +41,7 @@ public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 	final static byte MINUS = -1;
 	public final static byte expInf = Byte.MAX_VALUE;
 	final static long coefInf = UnsignedLongs.MAX_VALUE;
+	private final static String MAXCOEF = Long.toUnsignedString(UnsignedLongs.MAX_VALUE);
 
 	public final static Dnum Zero = new Dnum(ZERO, 0, 0);
 	public final static Dnum One = new Dnum(PLUS, 1, 0);
@@ -82,21 +85,37 @@ public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 			after = spanDigits(s.substring(i));
 			i += after.length();
 		}
-		after = cm_zero.trimTrailingFrom(after);
-		long coef = Long.parseUnsignedLong(before + after);
-
 		int exp = 0;
 		if (i < s.length() && (s.charAt(i) == 'e' || s.charAt(i) == 'E')) {
 			exp = Integer.parseInt(s.substring(++i));
 		}
-		if (coef == 0) {
-			return Zero;
-		}
+
+		before = cm_zero.trimLeadingFrom(before);
+		after = cm_zero.trimTrailingFrom(after);
 		exp -= after.length();
-		if (exp < -127 || exp >= 127) {
-			throw new RuntimeException("exponent out of range (" + s + ")");
+		int carry = 0;
+		String digits = before + after;
+		while (cmpNumStr(digits, MAXCOEF) >= 0) {
+			exp++;
+			carry = digits.charAt(digits.length() - 1) < '5' ? 0 : 1;
+			digits = digits.substring(0, digits.length() - 1);
 		}
+		long coef = carry + Long.parseUnsignedLong(digits);
+		if (coef == 0)
+			return Zero;
+
+		if (exp <= Byte.MIN_VALUE)
+			return Dnum.Zero;
+		if (exp >= Byte.MAX_VALUE)
+			return sign < 0 ? Dnum.MinusInf : Dnum.Inf;
+
 		return new Dnum(sign, coef, exp);
+	}
+
+	private static int cmpNumStr(String x, String y) {
+		if (x.length() != y.length())
+			return x.length() - y.length();
+		return x.compareTo(y);
 	}
 
 	private static String spanDigits(String s) {
@@ -187,10 +206,6 @@ public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 
 	// add and subtract --------------------------------------------------------
 
-	public Dnum add(Dnum y) {
-		return add(this, y);
-	}
-
 	public static Dnum add(Dnum x, Dnum y) {
 		if (x.isZero())
 			return y;
@@ -214,10 +229,6 @@ public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 			return usub(x, y);
 		else
 			return uadd(x, y);
-	}
-
-	public Dnum sub(Dnum y) {
-		return sub(this, y);
 	}
 
 	public static Dnum sub(Dnum x, Dnum y) {
@@ -333,10 +344,6 @@ public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 
 	// multiply ----------------------------------------------------------------
 
-	public Dnum mul(Dnum y) {
-		return mul(this, y);
-	}
-
 	public static Dnum mul(Dnum x, Dnum y) {
 		int sign = (x.sign * y.sign);
 		if (x == One)
@@ -398,10 +405,6 @@ public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 	}
 
 	// divide ------------------------------------------------------------------
-
-	public Dnum div(Dnum y) {
-		return div(this, y);
-	}
 
 	public static Dnum div(Dnum x, Dnum y) {
 		if (x.isZero())
@@ -497,7 +500,7 @@ public class Dnum implements Comparable<Dnum> { // TODO extend Number ???
 			return +1;
 		else if (sign < other.sign)
 			return -1;
-		return sub(other).sign;
+		return sub(this, other).sign;
 	}
 
 	public Dnum check() {

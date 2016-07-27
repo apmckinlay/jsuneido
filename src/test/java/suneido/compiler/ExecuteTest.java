@@ -15,11 +15,15 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import suneido.SuContainer;
 import suneido.SuException;
 import suneido.Suneido;
 import suneido.runtime.BlockReturnException;
 import suneido.runtime.Ops;
+import suneido.runtime.Range;
 import suneido.runtime.SuBoundMethod;
+import suneido.runtime.builtin.ContainerMethods;
+import suneido.runtime.builtin.StringMethods;
 
 public class ExecuteTest {
 
@@ -372,7 +376,7 @@ public class ExecuteTest {
 		assertEquals(expected, Ops.display(eval(expr)));
 	}
 
-	/*
+	/**
 	 * PortTests fixture.
 	 * First argument is an expression to evaluate.
 	 * Optional second argument is the expected result, default is true.
@@ -394,6 +398,54 @@ public class ExecuteTest {
 		} finally {
 			Ops.default_single_quotes = false;
 		}
+	}
+
+	/**
+	 * PortTests fixture.
+	 * Test [from..to] for both strings and containers.
+	 */
+	public static boolean pt_lang_range(String... args) {
+		String s = args[0];
+		int from = Ops.toInt(args[1]);
+		int to = Ops.toInt(args[2]);
+		String expected = args[3];
+		Range r = new Range.RangeTo(from, to);
+		if (!r.substr(s).equals(expected))
+			return false;
+		SuContainer list = stringToCharList(s);
+		SuContainer expectedList = stringToCharList(expected);
+		return r.sublist(list).equals(expectedList);
+	}
+
+	/**
+	 * PortTests fixture.
+	 * Test [from..to] for both strings and containers.
+	 */
+	public static boolean pt_lang_sub(String... args) {
+		String s = args[0];
+		int i = Ops.toInt(args[1]);
+		int n = args.length == 4 ? Ops.toInt(args[2]) : 9999;
+		String expected = args[args.length - 1];
+
+		if (!StringMethods.Substr(s, i, n).equals(expected))
+			return false;
+		Range r = new Range.RangeLen(i, n);
+		if (!r.substr(s).equals(expected))
+			return false;
+
+		SuContainer list = stringToCharList(s);
+		SuContainer expectedList = stringToCharList(expected);
+		if (!ContainerMethods.Slice(list, i, n).equals(expectedList))
+			return false;
+		return r.sublist(list).equals(expectedList);
+	}
+
+	private static SuContainer stringToCharList(String s) {
+		char[] ca = s.toCharArray();
+		SuContainer list = new SuContainer();
+		for (char c : ca)
+			list.add(String.valueOf(c));
+		return list;
 	}
 
 }

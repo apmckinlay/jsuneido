@@ -428,7 +428,12 @@ public class StringMethods extends BuiltinMethods {
 	@Params("s, i = 0")
 	public static Object PrefixQ(Object self, Object a, Object b) {
 		String s = toStr(self);
-		return s.startsWith(toStr(a), toInt(b));
+		int len = s.length();
+		int i = toInt(b);
+		if (i < 0)
+			i += len;
+		i = max(0, min(i, len));
+		return s.startsWith(toStr(a), i);
 	}
 
 	@Params("i, n = INTMAX")
