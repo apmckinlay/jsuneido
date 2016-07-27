@@ -75,6 +75,14 @@ public class Database extends BuiltinClass {
 			throw new SuException("Database.Dump failed: " + result);
 		return null;
 	}
+	
+	@Params("filename")
+	public static Object Load(Object self, Object filename) {
+		int result = TheDbms.dbms().load(Ops.toStr(filename));
+		if (result < 0)
+			throw new SuException("Database.Load failed: " + filename);
+		return result;
+	}
 
 	public static Object Check(Object self) {
 		return TheDbms.dbms().check();
