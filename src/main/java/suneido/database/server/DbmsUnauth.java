@@ -60,6 +60,11 @@ public class DbmsUnauth extends Dbms {
 	}
 
 	@Override
+	public int load(String filename) {
+		throw notauth;
+	}	
+	
+	@Override
 	public void copy(String filename) {
 		throw notauth;
 	}
