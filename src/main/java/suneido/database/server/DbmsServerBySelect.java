@@ -42,7 +42,7 @@ public class DbmsServerBySelect {
 	static final Set<ServerData> serverDataSet = new HashSet<>();
 	private static InetAddress inetAddress;
 
-	public static Runnable run(int port, int idleTimeoutMin) {
+	public static Runnable open(int port, int idleTimeoutMin) {
 		ServerBySelect server = new ServerBySelect(new HandlerFactory(), idleTimeoutMin);
 		inetAddress = server.getInetAddress();
 		server.open(port);
