@@ -157,9 +157,9 @@ public class DbmsRemote extends Dbms {
 	@Override
 	public int load(String filename) {
 		writeLine("LOAD", filename);
-		return (int) readValue();
+		return readInt('N');
 	}
-	
+
 	@Override
 	public void copy(String filename) {
 		writeLine("COPY", filename);

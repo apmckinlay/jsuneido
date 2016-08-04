@@ -114,19 +114,21 @@ public class HttpServerMonitor {
 					.append(mb(TheDbms.dbms().size()))
 					.append("mb</p>\r\n");
 
-			sb.append("<p>Connections: ");
 			List<String> conns = DbmsServer.connections();
+			sb.append("<p>Connections: (").append(conns.size()).append(") ");
 			Collections.sort(conns);
 			Joiner.on(", ").appendTo(sb, conns);
 			sb.append("</p>\r\n");
 
-			sb.append("<p>Threads: ");
-			sb.append(Arrays.asList(SuThread.list()).stream()
-					.map(Thread::getName)
-					.filter(s -> ! s.contains("-connection-") &&
-							! s.contains("-thread-pool"))
-					.sorted()
-					.collect(Collectors.joining(", ")))
+			sb.append("<p>Threads: (")
+					.append(Suneido.threadGroup.activeCount())
+					.append(") ")
+					.append(Arrays.asList(SuThread.list()).stream()
+						.map(Thread::getName)
+						.filter(s -> ! s.contains("-connection-") &&
+								! s.contains("-thread-pool"))
+						.sorted()
+						.collect(Collectors.joining(", ")))
 					.append("</p>\r\n");
 
 			return sb.toString();

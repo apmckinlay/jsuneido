@@ -148,8 +148,8 @@ public class Suneido {
 	private static void startServer() {
 		HttpServerMonitor.run(cmdlineoptions.serverPort + 1);
 		openDbms();
-		Runnable serve =
-				DbmsServer.run(cmdlineoptions.serverPort, cmdlineoptions.timeoutMin);
+		Runnable serve = DbmsServer.open(
+				cmdlineoptions.serverPort, cmdlineoptions.timeoutMin);
 		try {
 			Compiler.eval("Init()");
 		} catch (Throwable e) {
