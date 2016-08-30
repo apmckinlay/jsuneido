@@ -29,32 +29,34 @@ public class NumberMethods extends BuiltinMethods {
 		super("number", NumberMethods.class, "Numbers");
 	}
 
-	public static Object Frac(Object self) {
-		if (integral(self))
-			return 0;
-		Number n = (Number) self;
-		if (self instanceof Float || self instanceof Double)
-			return n.doubleValue() % 1;
-		BigDecimal bd = (BigDecimal) self;
-		return bd.remainder(BigDecimal.ONE);
+	public static Object ACos(Object self) {
+		double d = ((Number) self).doubleValue();
+		return Math.acos(d);
 	}
 
-	public static Object Int(Object self) {
-		if (integral(self))
-			return self;
-		return Numbers.narrow(((Number) self).longValue());
+	public static Object ASin(Object self) {
+		double d = ((Number) self).doubleValue();
+		return Math.asin(d);
 	}
 
-	public static Object Hex(Object self) {
-		long mask = (self instanceof Short) ? 0xffff
-				: (self instanceof Integer) ? 0xffffffffL
-				: ~0L;
-		return Long.toHexString(((Number) self).longValue() & mask);
+	public static Object ATan(Object self) {
+		double d = ((Number) self).doubleValue();
+		return Math.atan(d);
 	}
 
 	public static Object Chr(Object self) {
 		long n = ((Number) self).longValue();
 		return Character.toString((char) (n & 0xff));
+	}
+
+	public static Object Cos(Object self) {
+		double d = ((Number) self).doubleValue();
+		return Math.cos(d);
+	}
+
+	public static Object Exp(Object self) {
+		double d = ((Number) self).doubleValue();
+		return Math.exp(d);
 	}
 
 	@Params("mask")
@@ -129,7 +131,7 @@ public class NumberMethods extends BuiltinMethods {
 		int end = start;
 		while (dst.charAt(end) == '0' && end + 1 < dst.length())
 			++end;
-		if (end > start && dst.charAt(end) == '.' && 
+		if (end > start && dst.charAt(end) == '.' &&
 				(end + 1 >= dst.length() ||
 				! Character.isDigit(dst.charAt(end + 1))))
 			--end;
@@ -142,7 +144,39 @@ public class NumberMethods extends BuiltinMethods {
 		return dst.toString();
 	}
 
-	// used by stdlib Numbers Round so commonly called
+	public static Object Frac(Object self) {
+		if (integral(self))
+			return 0;
+		Number n = (Number) self;
+		if (self instanceof Float || self instanceof Double)
+			return n.doubleValue() % 1;
+		BigDecimal bd = (BigDecimal) self;
+		return bd.remainder(BigDecimal.ONE);
+	}
+
+	public static Object Hex(Object self) {
+		long mask = (self instanceof Short) ? 0xffff
+				: (self instanceof Integer) ? 0xffffffffL
+				: ~0L;
+		return Long.toHexString(((Number) self).longValue() & mask);
+	}
+
+	public static Object Int(Object self) {
+		if (integral(self))
+			return self;
+		return Numbers.narrow(((Number) self).longValue());
+	}
+
+	public static Object Log(Object self) {
+		double d = ((Number) self).doubleValue();
+		return Math.log(d);
+	}
+
+	public static Object Log10(Object self) {
+		double d = ((Number) self).doubleValue();
+		return Math.log10(d);
+	}
+
 	@Params("number")
 	public static Object Pow(Object self, Object a_) {
 		Number sn = (Number) self;
@@ -172,69 +206,19 @@ public class NumberMethods extends BuiltinMethods {
 		return narrow(Math.pow(sn.doubleValue(), an.doubleValue()));
 	}
 
-	public static Object Cos(Object self) {
-		double d = ((Number) self).doubleValue();
-		return Math.cos(d);
-	}
-
-	public static Object Sin(Object self) {
-		double d = ((Number) self).doubleValue();
-		return Math.sin(d);
-	}
-
-	public static Object Tan(Object self) {
-		double d = ((Number) self).doubleValue();
-		return Math.tan(d);
-	}
-
-	public static Object ACos(Object self) {
-		double d = ((Number) self).doubleValue();
-		return Math.acos(d);
-	}
-
-	public static Object ASin(Object self) {
-		double d = ((Number) self).doubleValue();
-		return Math.asin(d);
-	}
-
-	public static Object ATan(Object self) {
-		double d = ((Number) self).doubleValue();
-		return Math.atan(d);
-	}
-
-	public static Object Exp(Object self) {
-		double d = ((Number) self).doubleValue();
-		return Math.exp(d);
-	}
-
-	public static Object Log(Object self) {
-		double d = ((Number) self).doubleValue();
-		return Math.log(d);
-	}
-
-	public static Object Log10(Object self) {
-		double d = ((Number) self).doubleValue();
-		return Math.log10(d);
-	}
-
-	public static Object Sqrt(Object self) {
-		double d = ((Number) self).doubleValue();
-		return Math.sqrt(d);
-	}
-	
 	@Params("number")
 	public static Object Round(Object self, Object d) {
 		return round(self, d, BigDecimal.ROUND_HALF_UP);
 	}
 
 	@Params("number")
-	public static Object RoundUp(Object self, Object d) {
-		return round(self, d, BigDecimal.ROUND_UP);
+	public static Object RoundDown(Object self, Object d) {
+		return round(self, d, BigDecimal.ROUND_DOWN);
 	}
 
 	@Params("number")
-	public static Object RoundDown(Object self, Object d) {
-		return round(self, d, BigDecimal.ROUND_DOWN);
+	public static Object RoundUp(Object self, Object d) {
+		return round(self, d, BigDecimal.ROUND_UP);
 	}
 
 	private static Object round(Object self, Object d, int mode) {
@@ -243,6 +227,21 @@ public class NumberMethods extends BuiltinMethods {
 			return self;
 		int digits = Ops.toInt(d);
 		return n.setScale(digits, mode);
+	}
+
+	public static Object Sin(Object self) {
+		double d = ((Number) self).doubleValue();
+		return Math.sin(d);
+	}
+
+	public static Object Sqrt(Object self) {
+		double d = ((Number) self).doubleValue();
+		return Math.sqrt(d);
+	}
+
+	public static Object Tan(Object self) {
+		double d = ((Number) self).doubleValue();
+		return Math.tan(d);
 	}
 
 }
