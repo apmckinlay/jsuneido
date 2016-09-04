@@ -10,9 +10,9 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.google.common.collect.Lists;
@@ -49,6 +49,7 @@ import suneido.util.Util;
 public class SocketServer extends SuClass {
 	public static final SocketServer singleton = new SocketServer();
 	private static final AtomicInteger count = new AtomicInteger(0);
+	private static final int MAXTHREADS = 200;
 
 	private SocketServer() {
 		super("builtin", "SocketServer", null,
@@ -140,13 +141,7 @@ public class SocketServer extends SuClass {
 	}
 
 	private static class Listener implements Runnable {
-		private static final ThreadFactory threadFactory =
-				new ThreadFactoryBuilder()
-					.setThreadFactory(r -> new Thread(Suneido.threadGroup, r))
-					.setDaemon(true)
-					.build();
-		private static final ExecutorService executor =
-				Executors.newCachedThreadPool(threadFactory);
+		private static final ThreadPoolExecutor executor = executor();
 		private final AtomicInteger nconn = new AtomicInteger(0);
 		private final Master master;
 		private final Info info;
@@ -167,6 +162,19 @@ public class SocketServer extends SuClass {
 				throw new SuException("SocketServer failed", e);
 			}
 		}
+	}
+	
+	private static ThreadPoolExecutor executor() {
+		ThreadFactory threadFactory =
+				new ThreadFactoryBuilder()
+					.setThreadFactory(r -> new Thread(Suneido.threadGroup, r))
+					.setDaemon(true)
+					.build();
+		ThreadPoolExecutor executor =
+				(ThreadPoolExecutor) Executors.newCachedThreadPool(threadFactory);
+		executor.setMaximumPoolSize(MAXTHREADS);
+		executor.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
+		return executor;
 	}
 
 	public static class Master extends SuInstance {
