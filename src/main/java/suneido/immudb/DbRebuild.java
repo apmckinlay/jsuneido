@@ -360,6 +360,7 @@ class DbRebuild {
 				DbLoad.createIndexes(bt, bt.getTable(bulkTblnum), first, last);
 				bt.ck_complete();
 			}
+			rt.complete();
 		}
 
 	} // end of Proc
