@@ -4,8 +4,6 @@
 
 package suneido.util;
 
-import gnu.trove.list.array.TIntArrayList;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -14,6 +12,8 @@ import javax.annotation.concurrent.Immutable;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.primitives.Ints;
+
+import gnu.trove.list.array.TIntArrayList;
 
 /*
  * regular expression grammar and compiled form:
@@ -577,7 +577,7 @@ public class Regex {
 		public int nextPossible(String s, int si, int sn) {
 			if (si == sn)
 				return si + 1;
-			int j = s.indexOf('\n', si + 1);
+			int j = s.indexOf('\n', si);
 			return j == -1 ? sn : j + 1;
 		}
 

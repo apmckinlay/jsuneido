@@ -206,11 +206,15 @@ public class RegexTest {
 	public void match() {
 		match("hello\nworld", "^he");
 		match("hello\nworld", "^wo");
+		match("hello\n\nworld", "^wo");
+		match("\nworld", "^wo");
 		match("hello\nworld", "\\Ahe");
 		nomatch("hello\nworld", "\\Awo");
 
 		match("hello\nworld world", "ld$");
 		match("hello\nworld", "lo$");
+		match("hello\n", "lo$");
+		match("hello\n\nworld", "lo$");
 		match("hello\nworld", "ld\\Z");
 		nomatch("hello\nworld", "lo\\Z");
 
