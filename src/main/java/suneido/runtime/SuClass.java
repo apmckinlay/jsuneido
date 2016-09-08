@@ -246,12 +246,23 @@ public class SuClass extends SuValue {
 		return SuCallable.isBlock(b) ? Ops.call(b) : b;
 	}
 
-	public static Object Members(Object self) {
+	@Params("all=false")
+	public static Object Members(Object self, Object all) {
 		SuContainer c = new SuContainer();
-		for (Map.Entry<String, Object> e : ((SuClass) self).members.entrySet())
+		((SuClass) self).members2(c, all == Boolean.TRUE);
+		if (all == Boolean.TRUE) {
+			c.sort(false);
+			c.unique();
+		}
+		return c;
+	}
+
+	public void members2(SuContainer c, boolean all) {
+		for (Map.Entry<String, Object> e : members.entrySet())
 			if (e.getValue() != null)
 				c.add(e.getKey());
-		return c;
+		if (all && baseGlobal != null)
+			base().members2(c, all);
 	}
 
 	@Params("key")

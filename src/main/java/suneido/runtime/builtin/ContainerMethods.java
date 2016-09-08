@@ -10,7 +10,10 @@ import static suneido.runtime.Ops.toInt;
 import static suneido.util.Util.array;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.ConcurrentModificationException;
+import java.util.Iterator;
+import java.util.Map;
 
 import suneido.SuContainer;
 import suneido.SuContainer.IterResult;
@@ -399,17 +402,7 @@ public final class ContainerMethods {
 
 	public static Object UniqueE(Object self) {
 		SuContainer c = toContainer(self);
-		List<Object> v = c.vec;
-		int dst = 1;
-		for (int src = 1; src < v.size(); ++src) {
-			if (Ops.is_(v.get(src), v.get(src - 1)))
-				continue;
-			if (dst < src)
-				v.set(dst, v.get(src));
-			++dst;
-		}
-		while (v.size() > dst)
-			v.remove(v.size() - 1);
+		c.unique();
 		return c;
 	}
 
