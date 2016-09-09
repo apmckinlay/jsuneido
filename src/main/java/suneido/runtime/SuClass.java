@@ -307,6 +307,10 @@ public class SuClass extends SuValue {
 		return ((SuClass) self).members.size();
 	}
 
+	public static Object ReadonlyQ(Object self) {
+		return true;
+	}
+
 	//==========================================================================
 
 	private static SuClass toClass(Object x) {

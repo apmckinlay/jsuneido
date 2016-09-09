@@ -153,6 +153,10 @@ public class SuInstance extends SuValue {
 		return c;
 	}
 
+	public static Object ReadonlyQ(Object self) {
+		return false;
+	}
+
 	public static Object Size(Object self) {
 		return ((SuInstance) self).ivars.size();
 	}
