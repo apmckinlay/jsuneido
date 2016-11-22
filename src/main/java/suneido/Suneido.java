@@ -156,6 +156,8 @@ public class Suneido {
 			Errlog.fatal("error during init", e);
 		}
 		Errlog.setExtra(TheDbms::sessionid);
+		HttpServerMonitor.running();
+		serve.run();
 	}
 
 	private static Database db;
