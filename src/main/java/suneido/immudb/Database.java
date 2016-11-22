@@ -121,7 +121,7 @@ class Database implements suneido.intfc.database.Database, AutoCloseable {
 		HttpServerMonitor.checking();
 		boolean ok = new Check(dstor, istor).fullcheck();
 		//BUG: if check fails, then rebuild will do another redundant check
-		HttpServerMonitor.running();
+		HttpServerMonitor.starting();
 		return ok;
 	}
 

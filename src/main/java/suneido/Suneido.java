@@ -156,7 +156,6 @@ public class Suneido {
 			Errlog.fatal("error during init", e);
 		}
 		Errlog.setExtra(TheDbms::sessionid);
-		serve.run(); // NOTE: does not return
 	}
 
 	private static Database db;
@@ -172,7 +171,6 @@ public class Suneido {
 			if (db == null)
 				Errlog.fatal("could not open database after rebuild");
 		}
-		HttpServerMonitor.running();
 		TheDbms.set(db);
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> Suneido.db.close()));
 		// need to catch exceptions else scheduler will stop running task
