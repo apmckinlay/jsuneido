@@ -16,21 +16,24 @@ import com.google.common.primitives.UnsignedInts;
  * <li>data is aligned to multiples of ALIGN (8)
  * <li>maximum allocation is CHUNK_SIZE
  * <li>allocations cannot straddle chunks and will be bumped to next chunk
- * <li>long offsets are divided by ALIGN and passed as int,
- * to reduce the space to store them
+ * <li>long offsets are divided by ALIGN and passed as int "addresses" (adr),
+ * to reduce the space to store them.
+ * Addresses are really unsigned ints, but we use int since that's all Java has.
+ * To keep 0 as a special value, addresses start at 1.
+ * See offsetToAdr and adrToOffset.
  * <li>therefore maximum file size is unsigned int max * ALIGN (32gb)
  * <li>blocks should not start with (long) 0 since that is used to detect padding
  */
 abstract class Storage implements AutoCloseable {
 	protected int FIRST_ADR = 1; // should not be changed after construction
-	protected static final int SHIFT = 3;
+	protected static final int SHIFT = 3; // i.e. 8 byte alignment
 	private static final long MAX_SIZE = 0xffffffffL << SHIFT;
 	static final int ALIGN = (1 << SHIFT); // must be power of 2
 	protected static final int MASK = ALIGN - 1;
 	final int CHUNK_SIZE;
 	/** INIT_CHUNKS should be the max for database chunk size & align
 	 * i.e. unsigned int max * align / chunk size
-	 * so that chunks never grows, to avoid concurrency issues.
+	 * so that chunks never grow, to avoid concurrency issues.
 	 * (map is not synchronized)
 	 * Ok to grow for temp index storage since it's not concurrent */
 	protected final int INIT_CHUNKS = 512;
@@ -182,7 +185,8 @@ abstract class Storage implements AutoCloseable {
 	}
 
 	static long adrToOffset(int adr) {
-		return ((adr - 1) & 0xffffffffL) << SHIFT;
+		assert adr != 0;
+		return UnsignedInts.toLong(adr - 1) << SHIFT;
 	}
 
 	/**
@@ -214,7 +218,10 @@ abstract class Storage implements AutoCloseable {
 		return cksum.getValue();
 	}
 
-	/** @return Number of bytes from adr to current offset */
+	/**
+	 * @return Number of bytes from adr to current offset.
+	 * treats 0 as start of file (which is actually 1)
+	 */
 	long sizeFrom(int adr) {
 		long size = storSize; // read once to avoid concurrency issues
 		return adr == 0 ? size : size - adrToOffset(adr);

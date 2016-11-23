@@ -25,6 +25,7 @@ import suneido.SuException;
  */
 @ThreadSafe
 class MmapFile extends Storage {
+	private static final int FILE_HEADER_SIZE = 8;
 	private static final int MMAP_CHUNK_SIZE = 64 * 1024 * 1024;
 	private final FileChannel.MapMode mode;
 	private final RandomAccessFile fin;
@@ -68,7 +69,7 @@ class MmapFile extends Storage {
 			lock();
 		open = true;
 		findEnd();
-		version = getVersion();
+		version = version();
 		FIRST_ADR = (version == 0) ? 1 : 2;
 		starting_file_size = storSize;
 		last_force = offsetToChunk(storSize);
@@ -83,11 +84,12 @@ class MmapFile extends Storage {
 		}
 	}
 
-	private int getVersion() {
+	private int version() {
 		if (storSize == 0) { // newly created file
-			storSize = 8;
+			storSize = FILE_HEADER_SIZE;
 			ByteBuffer buf = buf(0);
 			buf.put(MAGIC).putInt(VERSION);
+			assert buf.position() == FILE_HEADER_SIZE;
 			return VERSION;
 		} else {
 			ByteBuffer buf = buf(0);
