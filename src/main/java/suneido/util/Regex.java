@@ -427,7 +427,7 @@ public class Regex {
 			StringBuilder chars = new StringBuilder();
 			if (match("]"))
 				chars.append(']');
-			CharMatcher cm = CharMatcher.NONE;
+			CharMatcher cm = CharMatcher.none();
 			while (si < sn && src.charAt(si) != ']') {
 				CharMatcher elem;
 				if (matchRange()) {
@@ -435,7 +435,7 @@ public class Regex {
 					char to = src.charAt(si - 1);
 					elem = (from <= to)
 							? CharMatcher.inRange(from, to)
-							: CharMatcher.NONE;
+							: CharMatcher.none();
 				} else if (match("\\d"))
 					elem = digit;
 				else if (match("\\D"))
@@ -458,7 +458,7 @@ public class Regex {
 				}
 				cm = cm.or(elem);
 			}
-			if (! negate && cm == CharMatcher.NONE && chars.length() == 1) {
+			if (! negate && cm == CharMatcher.none() && chars.length() == 1) {
 				// optimization for class with only one character
 				emitChars(chars.toString());
 				return;
