@@ -54,7 +54,7 @@ class Columns implements Iterable<Column> {
 			return "";
 		StringBuilder sb = new StringBuilder();
 		for (int n : nums)
-			sb.append(',').append(find(n).name);
+			sb.append(',').append(numToName(n));
 		return sb.substring(1);
 	}
 
@@ -63,8 +63,15 @@ class Columns implements Iterable<Column> {
 			return Collections.emptyList();
 		ImmutableList.Builder<String> builder = ImmutableList.builder();
 		for (int n : nums)
-			builder.add(find(n).name);
+			builder.add(numToName(n));
 		return builder.build();
+	}
+
+	private String numToName(int n) {
+		if (n < -1)
+			// special derived field
+			return find(-n - 2).name + "_lower!";
+		return find(n).name;
 	}
 
 	private Column ck_find(String name) {
