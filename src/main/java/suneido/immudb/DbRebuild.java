@@ -242,7 +242,7 @@ class DbRebuild {
 				case TN.COLUMNS:
 					Column col = new Column(r);
 					tbEnsure(col.tblnum);
-					tb.addColumn(col.field >= 0 ? col.name : capitalize(col.name));
+					tb.addColumn(col.field == -1 ? capitalize(col.name) : col.name);
 					break;
 				case TN.INDEXES:
 					Index ix = new Index(r);
