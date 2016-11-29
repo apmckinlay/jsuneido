@@ -139,12 +139,8 @@ public class TestBase {
 	}
 
 	protected void makeTable(int nrecords) {
-		makeTable("test", nrecords);
-	}
-
-	protected void makeTable(String tablename, int nrecords) {
 		adm("create test(a,b) key(a) index(b,a)");
-		addRecords(tablename, 0, nrecords - 1);
+		addRecords("test", 0, nrecords - 1);
 	}
 
 	protected void addRecords(String tablename, int from, int to) {
