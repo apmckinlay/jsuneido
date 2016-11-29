@@ -25,7 +25,6 @@ import suneido.SuException;
  */
 @ThreadSafe
 class MmapFile extends Storage {
-	private static final int FILE_HEADER_SIZE = 8;
 	private static final int MMAP_CHUNK_SIZE = 64 * 1024 * 1024;
 	private final FileChannel.MapMode mode;
 	private final RandomAccessFile fin;
@@ -35,7 +34,6 @@ class MmapFile extends Storage {
 	private volatile boolean open = false;
 	static final byte[] MAGIC = { 's', 'n', 'd', 'o' };
 	static final int VERSION = 1;
-	private final int version;
 
 	/** @param mode Must be "r" or "rw" */
 	MmapFile(String filename, String mode) {
@@ -69,8 +67,7 @@ class MmapFile extends Storage {
 			lock();
 		open = true;
 		findEnd();
-		version = version();
-		FIRST_ADR = (version == 0) ? 1 : 2;
+		version();
 		starting_file_size = storSize;
 		last_force = offsetToChunk(storSize);
 	}
@@ -84,25 +81,28 @@ class MmapFile extends Storage {
 		}
 	}
 
-	private int version() {
-		if (storSize == 0) { // newly created file
-			storSize = FILE_HEADER_SIZE;
+	private void version() {
+		if (storSize == ALIGN) { // newly created file
 			ByteBuffer buf = buf(0);
 			buf.put(MAGIC).putInt(VERSION);
-			assert buf.position() == FILE_HEADER_SIZE;
-			return VERSION;
+			assert buf.position() <= ALIGN;
 		} else {
 			ByteBuffer buf = buf(0);
 			byte[] magic = new byte[4];
 			buf.get(magic);
-			return (Arrays.equals(magic, MAGIC)) ? buf.getInt() : 0;
+			if (!Arrays.equals(magic, MAGIC))
+				throw new SuException("invalid database file");
+			int ver = buf.getInt();
+			if (ver != VERSION)
+				throw new SuException("invalid database version, got " + ver +
+						", expected " + VERSION);
 		}
 	}
 
 	/** handle zero padding caused by memory mapping */
 	private void findEnd() {
-		storSize = fileLength();
-		if (storSize == 0)
+		storSize = Math.max(fileLength(), ALIGN);
+		if (storSize <= ALIGN)
 			return;
 		if (0 != (storSize % ALIGN))
 			return; // not aligned
@@ -159,23 +159,6 @@ class MmapFile extends Storage {
 		} catch (IOException e) {
 			// ignore
 		}
-	}
-
-	@Override
-	int sizeToInt(long size) {
-		if (version > 0) {
-			assert (size & MASK) == 0;
-			size = size >>> SHIFT;
-		}
-		return super.sizeToInt(size);
-	}
-
-	@Override
-	long intToSize(int sizeInt) {
-		long size = super.intToSize(sizeInt);
-		if (version > 0)
-			size = size << SHIFT;
-		return size;
 	}
 
 	@Override

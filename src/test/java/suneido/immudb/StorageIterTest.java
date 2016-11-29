@@ -31,7 +31,7 @@ public class StorageIterTest {
 		int adr = stor.alloc(8); // header
 		int start = adr;
 		ByteBuffer buf = stor.buffer(adr);
-		buf.putInt(0, N); // leading size
+		buf.putInt(0, Storage.sizeToInt(N)); // leading size
 		buf.putInt(4, 1234); // dummy timestamp (0 is aborted and skipped)
 
 		if (N > 16)
@@ -40,7 +40,7 @@ public class StorageIterTest {
 		adr = stor.alloc(8); // trailer
 		buf = stor.buffer(adr);
 		buf.putInt(0, stor.checksum(start));
-		buf.putInt(4, N); // trailing size
+		buf.putInt(4, Storage.sizeToInt(N)); // trailing size
 	}
 
 }

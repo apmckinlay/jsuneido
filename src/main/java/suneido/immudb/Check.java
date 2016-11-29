@@ -94,7 +94,7 @@ class Check {
 			adr = iter.prev();
 		if (adr == 0)
 			return EMPTY;
-		long size = istor.intToSize(istor.buffer(adr).getInt());
+		long size = Storage.intToSize(istor.buffer(adr).getInt());
 		lastadr = info(istor, adr, size).lastadr;
 		return adr;
 	}

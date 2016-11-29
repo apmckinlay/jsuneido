@@ -70,7 +70,7 @@ class StorageIter {
 			status = Status.FILE_TRUNCATED;
 			return;
 		}
-		size = stor.intToSize(buf.getInt());
+		size = Storage.intToSize(buf.getInt());
 		if (size < MIN_SIZE) {
 			status = Status.BAD_SIZE;
 			return;
@@ -83,7 +83,7 @@ class StorageIter {
 		}
 		ByteBuffer endbuf = stor.buffer(end);
 		cksum = endbuf.getInt();
-		long endsize = stor.intToSize(endbuf.getInt());
+		long endsize = Storage.intToSize(endbuf.getInt());
 		if (endsize != size) {
 			status = Status.SIZE_MISMATCH;
 			return;

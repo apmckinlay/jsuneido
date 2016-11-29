@@ -25,7 +25,7 @@ import com.google.common.primitives.UnsignedInts;
  * <li>blocks should not start with (long) 0 since that is used to detect padding
  */
 abstract class Storage implements AutoCloseable {
-	protected int FIRST_ADR = 1; // should not be changed after construction
+	protected final int FIRST_ADR = 2;
 	protected static final int SHIFT = 3; // i.e. 8 byte alignment
 	private static final long MAX_SIZE = 0xffffffffL << SHIFT;
 	static final int ALIGN = (1 << SHIFT); // must be power of 2
@@ -38,7 +38,7 @@ abstract class Storage implements AutoCloseable {
 	 * Ok to grow for temp index storage since it's not concurrent */
 	protected final int INIT_CHUNKS = 512;
 	protected ByteBuffer[] chunks = new ByteBuffer[INIT_CHUNKS];
-	protected volatile long storSize = 0;
+	protected volatile long storSize = ALIGN; // one unit reserved
 	private volatile long protect = 0;
 
 	Storage(int chunkSize) {
@@ -121,6 +121,10 @@ abstract class Storage implements AutoCloseable {
 		return offsetToAdr(storSize + rpos);
 	}
 
+	long rposToOffset(long rpos) {
+		return storSize + rpos;
+	}
+
 	/**
 	 * Faster than buffer because it does not duplicate and slice.<p>
 	 * NOTE: This ByteBuffer is shared and must not be modified.
@@ -196,14 +200,16 @@ abstract class Storage implements AutoCloseable {
 	 * This is a problem if a table or index > 4gb
 	 * because load puts entire table / index into one commit.
 	 */
-	int sizeToInt(long size) {
+	static int sizeToInt(long size) {
+		assert (size & MASK) == 0;
+		size = size >>> SHIFT;
 		assert size < 0x100000000L; // unsigned int max
 		return (int) size;
 	}
 
 	/** convert an unsigned int to a long size */
-	long intToSize(int size) {
-		return UnsignedInts.toLong(size);
+	static long intToSize(int size) {
+		return UnsignedInts.toLong(size) << SHIFT;
 	}
 
 	/** @return checksum for bytes from adr to end of file */
@@ -236,7 +242,7 @@ abstract class Storage implements AutoCloseable {
 		long size = storSize; // read once to avoid concurrency issues
 		if (pos < 0)
 			pos += size;
-		return 0 <= pos && pos < size;
+		return ALIGN <= pos && pos < size;
 	}
 
 	boolean isValidAdr(int adr) {

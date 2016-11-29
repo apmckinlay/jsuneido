@@ -30,7 +30,7 @@ public class StorageIterReverse {
 		// skip zero end of chunk padding
 		long size;
 		while (true) {
-			size = stor.intToSize(stor.rbuffer(rpos - Ints.BYTES).getInt());
+			size = Storage.intToSize(stor.rbuffer(rpos - Ints.BYTES).getInt());
 			if (size != 0)
 				break;
 			rpos -= Ints.BYTES;

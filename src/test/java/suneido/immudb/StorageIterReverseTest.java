@@ -30,8 +30,8 @@ public class StorageIterReverseTest {
 
 	private void add(final int N) {
 		ByteBuffer buf = stor.buffer(stor.alloc(N));
-		buf.putInt(0, N); // leading size
-		buf.putInt(N - Ints.BYTES, N); // trailing size
+		buf.putInt(0, Storage.sizeToInt(N)); // leading size
+		buf.putInt(N - Ints.BYTES, Storage.sizeToInt(N)); // trailing size
 	}
 
 }

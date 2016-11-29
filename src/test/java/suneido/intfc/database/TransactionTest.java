@@ -165,12 +165,6 @@ public class TransactionTest extends TestBase {
 		assertThat(t4.complete(), containsString("conflict"));
 	}
 
-	private void remove(Transaction t, int i) {
-		int tblnum = t.getTable("test").num();
-		Record r = t.lookup(tblnum, "a", key(i));
-		t.removeRecord(tblnum, r);
-	}
-
 	private void removeFirst(Transaction t) {
 		t.removeRecord(t.getTable("test").num(), getFirst("test", t));
 	}
@@ -217,12 +211,6 @@ public class TransactionTest extends TestBase {
 			assertThat(e.toString(), containsString("conflict"));
 		}
 		assertThat(t3.complete(), containsString("conflict"));
-	}
-
-	private void update(Transaction t, int i, Record newrec) {
-		int tblnum = t.getTable("test").num();
-		Record oldrec = t.lookup(tblnum, "a", key(i));
-		t.updateRecord(tblnum, oldrec, newrec);
 	}
 
 	@Test

@@ -6,19 +6,22 @@ package suneido.immudb;
 
 import static suneido.immudb.UpdateTransaction.REMOVE;
 
+//WHY is this using end relative (negative) positions? (rpos)
+
 import java.util.Date;
+
+import com.google.common.primitives.Ints;
 
 import suneido.SuDate;
 import suneido.intfc.database.Record;
 import suneido.util.IntArraysList;
-
-import com.google.common.primitives.Ints;
 
 /**
  * Each commit is read into memory as a list of addresses.
  * Note: This could be quite large for bulk transactions like an initial load.
  * This isn't necessary for reading forwards
  * but to handle changing direction it's easier to always do it.
+ * Similar to {@link StorageIterator} but bidirectional.
  */
 class HistoryIterator implements suneido.intfc.database.HistoryIterator {
 	private final Storage dstor;
@@ -28,6 +31,7 @@ class HistoryIterator implements suneido.intfc.database.HistoryIterator {
 	private Date date;
 	private IntArraysList rlist;
 	private int ri;
+	private static final long START = 1; // special rpos value
 
 	HistoryIterator(Storage dstor, int tblnum) {
 		this.dstor = dstor;
@@ -46,7 +50,7 @@ class HistoryIterator implements suneido.intfc.database.HistoryIterator {
 	public Record[] getNext() {
 		if (rewound) {
 			rewound = false;
-			rpos = 1; // special value handled by nextCommit
+			rpos = START;
 		}
 		while (true) {
 			if (ri + 1 >= rlist.size())
@@ -66,15 +70,15 @@ class HistoryIterator implements suneido.intfc.database.HistoryIterator {
 
 	private boolean nextCommit() {
 		do {
-			if (rpos == 1)
-				rpos = -dstor.sizeFrom(0);
+			if (rpos == START)
+				rpos = -dstor.sizeFrom(0) + Storage.ALIGN;
 			else {
-				int size = dstor.rbuffer(rpos).getInt();
+				long size = Storage.intToSize(dstor.rbuffer(rpos).getInt());
 				rpos += size;
 				if (rpos >= 0)
 					return false; // eof
-				while (0 == (size = dstor.rbuffer(rpos).getInt()))
-					rpos += Ints.BYTES;
+				while (0 == dstor.rbuffer(rpos).getLong())
+					rpos += Long.BYTES; // skip end of chunk padding
 			}
 			readList();
 		} while (date == null || rlist.size() == 0); // skip aborted or empty
@@ -112,7 +116,7 @@ class HistoryIterator implements suneido.intfc.database.HistoryIterator {
 			int size;
 			while (0 == (size = dstor.rbuffer(rpos - Ints.BYTES).getInt()))
 				rpos -= Ints.BYTES; // skip end of chunk padding
-			rpos -= size;
+			rpos -= Storage.intToSize(size);
 			readList();
 		} while (date == null || rlist.size() == 0); // skip aborted or empty
 		ri = rlist.size();
