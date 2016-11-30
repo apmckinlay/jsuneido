@@ -8,7 +8,6 @@ import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.Immutable;
 
-import com.google.common.primitives.Ints;
 import com.google.common.primitives.UnsignedInts;
 
 /**
@@ -20,7 +19,7 @@ class BtreeKey implements Comparable<BtreeKey> {
 	final static BtreeKey EMPTY = new BtreeKey(Record.EMPTY);
 	final Record key;
 	final int dataAdr;
-	
+
 	BtreeKey(Record key) {
 		this(key, 0);
 	}
@@ -74,7 +73,7 @@ class BtreeKey implements Comparable<BtreeKey> {
 	}
 
 	int packSize() {
-		return Ints.BYTES + key.packSize();
+		return Integer.BYTES + key.packSize();
 	}
 
 	void pack(ByteBuffer buf) {
@@ -85,7 +84,7 @@ class BtreeKey implements Comparable<BtreeKey> {
 	static BtreeKey unpack(ByteBuffer buf, int pos) {
 		int adr = buf.getInt(pos);
 		assert adr != 0;
-		Record key = Record.from(buf, pos + Ints.BYTES);
+		Record key = Record.from(buf, pos + Integer.BYTES);
 		return new BtreeKey(key, adr);
 	}
 

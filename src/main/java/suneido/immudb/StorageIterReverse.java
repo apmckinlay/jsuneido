@@ -4,8 +4,6 @@
 
 package suneido.immudb;
 
-import com.google.common.primitives.Ints;
-
 //TODO change to use adr instead of pos (like HistoryIterator)
 
 /**
@@ -32,10 +30,10 @@ public class StorageIterReverse {
 		// skip zero end of chunk padding
 		long size;
 		while (true) {
-			size = Storage.intToSize(stor.rbuffer(rpos - Ints.BYTES).getInt());
+			size = Storage.intToSize(stor.rbuffer(rpos - Integer.BYTES).getInt());
 			if (size != 0)
 				break;
-			rpos -= Ints.BYTES;
+			rpos -= Integer.BYTES;
 		}
 		if (! isValidSize(stor, rpos, size))
 			throw new RuntimeException("bad size " + size);

@@ -12,7 +12,6 @@ import java.util.concurrent.TimeUnit;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Ints;
-import com.google.common.primitives.Shorts;
 
 import gnu.trove.iterator.TIntIterator;
 import gnu.trove.list.array.TIntArrayList;
@@ -345,7 +344,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 	/** overridden by tests */
 	protected void storeRemove(int act) {
 		ByteBuffer buf = tran.dstor.buffer(
-				tran.dstor.alloc(Shorts.BYTES + Ints.BYTES));
+				tran.dstor.alloc(Short.BYTES + Integer.BYTES));
 		buf.putShort(REMOVE);
 		buf.putInt(act);
 		assert deletes.contains(act);
@@ -379,7 +378,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 	/** overridden by tests */
 	protected void storeUpdate(int from, int to) {
 		ByteBuffer buf = tran.dstor.buffer(
-				tran.dstor.alloc(Shorts.BYTES + Ints.BYTES));
+				tran.dstor.alloc(Short.BYTES + Integer.BYTES));
 		buf.putShort(UPDATE);
 		buf.putInt(from);
 		storeAdd(to);
@@ -395,7 +394,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 	}
 
 	protected static void endCommit(Storage stor) {
-		stor.buffer(stor.alloc(Shorts.BYTES)).putShort(END);
+		stor.buffer(stor.alloc(Short.BYTES)).putShort(END);
 	}
 
 	// update btrees -----------------------------------------------------------

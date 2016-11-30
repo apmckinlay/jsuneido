@@ -6,8 +6,6 @@ package suneido.immudb;
 
 import java.nio.ByteBuffer;
 
-import com.google.common.primitives.Ints;
-
 /**
  * NOTE: Do not need to override compareTo
  * (i.e. can use inherited BtreeKey.compareTo)
@@ -55,7 +53,7 @@ class BtreeTreeKey extends BtreeKey {
 
 	@Override
 	int packSize() {
-		return Ints.BYTES + super.packSize();
+		return Integer.BYTES + super.packSize();
 	}
 
 	@Override
@@ -68,8 +66,8 @@ class BtreeTreeKey extends BtreeKey {
 	static BtreeTreeKey unpack(ByteBuffer buf, int pos, BtreeNode child) {
 		int childAdr = buf.getInt(pos);
 		assert childAdr != 0;
-		int dataAdr = buf.getInt(pos + Ints.BYTES);
-		Record key = Record.from(buf, pos + 2 * Ints.BYTES);
+		int dataAdr = buf.getInt(pos + Integer.BYTES);
+		Record key = Record.from(buf, pos + 2 * Integer.BYTES);
 		assert dataAdr != 0 || key.isEmpty(); // could be minimal
 		return new BtreeTreeKey(key, dataAdr, childAdr, child);
 	}

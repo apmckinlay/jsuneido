@@ -10,8 +10,6 @@ import java.nio.ByteBuffer;
 
 import org.junit.Test;
 
-import com.google.common.primitives.Ints;
-
 public class StorageIterReverseTest {
 	Storage stor = new HeapStorage(64);
 
@@ -31,7 +29,7 @@ public class StorageIterReverseTest {
 	private void add(final int N) {
 		ByteBuffer buf = stor.buffer(stor.alloc(N));
 		buf.putInt(0, Storage.sizeToInt(N)); // leading size
-		buf.putInt(N - Ints.BYTES, Storage.sizeToInt(N)); // trailing size
+		buf.putInt(N - Integer.BYTES, Storage.sizeToInt(N)); // trailing size
 	}
 
 }

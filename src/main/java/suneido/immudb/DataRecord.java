@@ -6,7 +6,6 @@ package suneido.immudb;
 
 import java.nio.ByteBuffer;
 
-import com.google.common.primitives.Shorts;
 import com.google.common.primitives.UnsignedInts;
 
 /**
@@ -15,7 +14,7 @@ import com.google.common.primitives.UnsignedInts;
  * Records stored in the database are prefixed with their table number.
  */
 class DataRecord extends BufRecord {
-	private static final int TBLNUM_SIZE = Shorts.BYTES;
+	private static final int TBLNUM_SIZE = Short.BYTES;
 	private int address;
 	private int tblnum;
 

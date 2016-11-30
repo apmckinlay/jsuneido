@@ -7,7 +7,6 @@ package suneido.immudb;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.primitives.Ints;
 
 import suneido.immudb.DbHashTrie.Entry;
 import suneido.immudb.DbHashTrie.IntEntry;
@@ -20,8 +19,8 @@ import suneido.immudb.DbHashTrie.Translator;
  */
 @NotThreadSafe
 class Tran implements Translator {
-	static final int HEAD_SIZE = 2 * Ints.BYTES; // size and datetime
-	static final int TAIL_SIZE = 2 * Ints.BYTES; // checksum and size
+	static final int HEAD_SIZE = 2 * Integer.BYTES; // size and datetime
+	static final int TAIL_SIZE = 2 * Integer.BYTES; // checksum and size
 	{ assert TAIL_SIZE == MmapFile.align(TAIL_SIZE); }
 	final Storage dstor;
 	final Storage istor;
