@@ -50,7 +50,7 @@ public class HistoryIteratorTest extends TestBase {
 		HistoryIterator iter = new HistoryIterator(((Database) db).dstor, tblnum);
 		for (String expect : expected) {
 			Record[] x = iter.getNext();
-System.out.println(x[0].get(1) + " " + x[1].get(fld));
+			//System.out.println(x[0].get(1) + " " + x[1].get(fld));
 			assertEquals(expect, x[0].get(1) + " " + x[1].get(fld));
 		}
 		assert iter.getNext() == null;

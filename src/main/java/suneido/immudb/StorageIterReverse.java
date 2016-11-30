@@ -6,6 +6,8 @@ package suneido.immudb;
 
 import com.google.common.primitives.Ints;
 
+//TODO change to use adr instead of pos (like HistoryIterator)
+
 /**
  * Minimal reverse iterator.
  * @see StorageIter
@@ -19,7 +21,7 @@ public class StorageIterReverse {
 	StorageIterReverse(Storage stor) {
 		this.stor = stor;
 		fileSize = stor.sizeFrom(0);
-		MIN_SIZE = Storage.adrToOffset(stor.FIRST_ADR) + Tran.HEAD_SIZE + Tran.TAIL_SIZE;
+		MIN_SIZE = Storage.adrToOffset(Storage.FIRST_ADR) + Tran.HEAD_SIZE + Tran.TAIL_SIZE;
 	}
 
 	boolean hasPrev() {

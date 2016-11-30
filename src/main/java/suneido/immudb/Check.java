@@ -64,7 +64,7 @@ class Check {
 	 */
 	boolean fullcheck() {
 		try {
-			return checkFrom(dstor.FIRST_ADR, istor.FIRST_ADR);
+			return checkFrom(Storage.FIRST_ADR, Storage.FIRST_ADR);
 		} catch (Throwable e) {
 			Errlog.error("fullcheck", e);
 			return false;

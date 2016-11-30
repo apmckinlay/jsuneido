@@ -10,6 +10,10 @@ import java.util.Arrays;
 
 import com.google.common.primitives.UnsignedInts;
 
+// TODO eliminate +1 on addresses
+// since reserving the first unit of storage prevents a zero address
+// BUT this will change the database i.e. mean a version increment
+
 /**
  * Chunked storage access. Abstract base class for MemStorage and MmapFile.
  * <li>derived classes must set storSize
@@ -25,7 +29,7 @@ import com.google.common.primitives.UnsignedInts;
  * <li>blocks should not start with (long) 0 since that is used to detect padding
  */
 abstract class Storage implements AutoCloseable {
-	protected final int FIRST_ADR = 2;
+	protected final static int FIRST_ADR = 2;
 	protected static final int SHIFT = 3; // i.e. 8 byte alignment
 	private static final long MAX_SIZE = 0xffffffffL << SHIFT;
 	static final int ALIGN = (1 << SHIFT); // must be power of 2
@@ -119,10 +123,6 @@ abstract class Storage implements AutoCloseable {
 		assert rpos < 0;
 		assert -rpos <= storSize;
 		return offsetToAdr(storSize + rpos);
-	}
-
-	long rposToOffset(long rpos) {
-		return storSize + rpos;
 	}
 
 	/**

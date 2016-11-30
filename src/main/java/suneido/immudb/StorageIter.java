@@ -36,7 +36,7 @@ class StorageIter {
 	private int upTo = Integer.MAX_VALUE;
 
 	StorageIter(Storage stor) {
-		this(stor, stor.FIRST_ADR);
+		this(stor, Storage.FIRST_ADR);
 	}
 
 	StorageIter(Storage stor, int adr) {
