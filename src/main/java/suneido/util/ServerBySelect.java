@@ -66,7 +66,7 @@ public class ServerBySelect {
 			selector = Selector.open();
 			registerChannel(serverChannel, SelectionKey.OP_ACCEPT);
 		} catch (IOException e) {
-			Errlog.error("IOException in ServerBySelect.open", e);
+			throw new RuntimeException("IOException in ServerBySelect.open", e);
 		}
 	}
 
