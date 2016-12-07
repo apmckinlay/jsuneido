@@ -20,3 +20,4 @@ hunspell/*
 outfilec
 nightlychecktimes.txt
 clindex_suneidoc/*
+/logs/

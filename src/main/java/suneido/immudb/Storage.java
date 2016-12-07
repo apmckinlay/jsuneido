@@ -10,32 +10,39 @@ import java.util.Arrays;
 
 import com.google.common.primitives.UnsignedInts;
 
+// TODO eliminate +1 on addresses
+// since reserving the first unit of storage prevents a zero address
+// BUT this will change the database i.e. mean a version increment
+
 /**
  * Chunked storage access. Abstract base class for MemStorage and MmapFile.
  * <li>derived classes must set storSize
  * <li>data is aligned to multiples of ALIGN (8)
  * <li>maximum allocation is CHUNK_SIZE
  * <li>allocations cannot straddle chunks and will be bumped to next chunk
- * <li>long offsets are divided by ALIGN and passed as int,
- * to reduce the space to store them
+ * <li>long offsets are divided by ALIGN and passed as int "addresses" (adr),
+ * to reduce the space to store them.
+ * Addresses are really unsigned ints, but we use int since that's all Java has.
+ * To keep 0 as a special value, addresses start at 1.
+ * See offsetToAdr and adrToOffset.
  * <li>therefore maximum file size is unsigned int max * ALIGN (32gb)
  * <li>blocks should not start with (long) 0 since that is used to detect padding
  */
 abstract class Storage implements AutoCloseable {
-	protected int FIRST_ADR = 1; // should not be changed after construction
-	protected static final int SHIFT = 3;
+	protected final static int FIRST_ADR = 2;
+	protected static final int SHIFT = 3; // i.e. 8 byte alignment
 	private static final long MAX_SIZE = 0xffffffffL << SHIFT;
 	static final int ALIGN = (1 << SHIFT); // must be power of 2
 	protected static final int MASK = ALIGN - 1;
 	final int CHUNK_SIZE;
 	/** INIT_CHUNKS should be the max for database chunk size & align
 	 * i.e. unsigned int max * align / chunk size
-	 * so that chunks never grows, to avoid concurrency issues.
+	 * so that chunks never grow, to avoid concurrency issues.
 	 * (map is not synchronized)
 	 * Ok to grow for temp index storage since it's not concurrent */
 	protected final int INIT_CHUNKS = 512;
 	protected ByteBuffer[] chunks = new ByteBuffer[INIT_CHUNKS];
-	protected volatile long storSize = 0;
+	protected volatile long storSize = ALIGN; // one unit reserved
 	private volatile long protect = 0;
 
 	Storage(int chunkSize) {
@@ -182,7 +189,8 @@ abstract class Storage implements AutoCloseable {
 	}
 
 	static long adrToOffset(int adr) {
-		return ((adr - 1) & 0xffffffffL) << SHIFT;
+		assert adr != 0;
+		return UnsignedInts.toLong(adr - 1) << SHIFT;
 	}
 
 	/**
@@ -192,14 +200,16 @@ abstract class Storage implements AutoCloseable {
 	 * This is a problem if a table or index > 4gb
 	 * because load puts entire table / index into one commit.
 	 */
-	int sizeToInt(long size) {
+	static int sizeToInt(long size) {
+		assert (size & MASK) == 0;
+		size = size >>> SHIFT;
 		assert size < 0x100000000L; // unsigned int max
 		return (int) size;
 	}
 
 	/** convert an unsigned int to a long size */
-	long intToSize(int size) {
-		return UnsignedInts.toLong(size);
+	static long intToSize(int size) {
+		return UnsignedInts.toLong(size) << SHIFT;
 	}
 
 	/** @return checksum for bytes from adr to end of file */
@@ -214,7 +224,10 @@ abstract class Storage implements AutoCloseable {
 		return cksum.getValue();
 	}
 
-	/** @return Number of bytes from adr to current offset */
+	/**
+	 * @return Number of bytes from adr to current offset.
+	 * treats 0 as start of file (which is actually 1)
+	 */
 	long sizeFrom(int adr) {
 		long size = storSize; // read once to avoid concurrency issues
 		return adr == 0 ? size : size - adrToOffset(adr);
@@ -229,7 +242,7 @@ abstract class Storage implements AutoCloseable {
 		long size = storSize; // read once to avoid concurrency issues
 		if (pos < 0)
 			pos += size;
-		return 0 <= pos && pos < size;
+		return ALIGN <= pos && pos < size;
 	}
 
 	boolean isValidAdr(int adr) {

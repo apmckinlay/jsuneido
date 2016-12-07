@@ -8,6 +8,7 @@ import java.lang.ref.SoftReference;
 
 import suneido.SuContainer;
 import suneido.compiler.AstNode;
+import suneido.compiler.Token;
 import suneido.runtime.Ops;
 import suneido.runtime.Params;
 import suneido.runtime.VirtualContainer;
@@ -47,9 +48,12 @@ public class AstParse {
 					c.put("Children", SuContainer.EMPTY);
 				else {
 					SuContainer c2 = new SuContainer(node.children.size());
+					int i = 0;
 					for (AstNode child : node.children)
 						if (child != null)
-							c2.add(new AstWrapper(child));
+							c2.put(i++, new AstWrapper(child));
+						else if (node.token == Token.FOR)
+							i++;
 					c.put("Children", c2);
 				}
 			}

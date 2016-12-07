@@ -11,9 +11,6 @@ import static suneido.immudb.UpdateTransaction.UPDATE;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
-import com.google.common.primitives.Ints;
-import com.google.common.primitives.Shorts;
-
 /**
  * Process the contents of a single data store commit
  * Used by @DbRebuild,
@@ -60,7 +57,7 @@ abstract class CommitProcessor {
 					remove(recadr);
 				else // UPDATE
 					from = recadr;
-				buf = advance(Shorts.BYTES + Ints.BYTES);
+				buf = advance(Short.BYTES + Integer.BYTES);
 			} else { // add or second half of update
 				addrec = new DataRecord(buf, buf.position());
 				addrec.tblnum(b);

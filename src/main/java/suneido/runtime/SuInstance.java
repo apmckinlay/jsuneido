@@ -142,8 +142,19 @@ public class SuInstance extends SuValue {
 		return myclass.hasMember(key);
 	}
 
-	public static SuContainer Members(Object self) {
-		return new SuContainer(((SuInstance) self).ivars.keySet());
+	@Params("all=false")
+	public static SuContainer Members(Object self, Object all) {
+		SuContainer c = new SuContainer(((SuInstance) self).ivars.keySet());
+		if (all == Boolean.TRUE) {
+			((SuInstance) self).myclass.members2(c, true);
+			c.sort(false);
+			c.unique();
+		}
+		return c;
+	}
+
+	public static Object ReadonlyQ(Object self) {
+		return false;
 	}
 
 	public static Object Size(Object self) {

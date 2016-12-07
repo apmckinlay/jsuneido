@@ -160,4 +160,28 @@ public class TestBase {
 		return dbpkg().recordBuilder().add(i).build();
 	}
 
+	protected void remove(int i) {
+		Transaction t = db.updateTransaction();
+		remove(t, i);
+		t.ck_complete();
+	}
+
+	protected void remove(Transaction t, int i) {
+		int tblnum = t.getTable("test").num();
+		Record r = t.lookup(tblnum, "a", key(i));
+		t.removeRecord(tblnum, r);
+	}
+
+	protected void update(int i, Record newrec) {
+		Transaction t = db.updateTransaction();
+		update(t, i, newrec);
+		t.ck_complete();
+	}
+
+	protected void update(Transaction t, int i, Record newrec) {
+		int tblnum = t.getTable("test").num();
+		Record oldrec = t.lookup(tblnum, "a", key(i));
+		t.updateRecord(tblnum, oldrec, newrec);
+	}
+
 }

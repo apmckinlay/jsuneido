@@ -9,7 +9,6 @@ import static suneido.immudb.Storage.align;
 import java.nio.ByteBuffer;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.primitives.Ints;
 
 import suneido.immudb.DbHashTrie.Entry;
 import suneido.immudb.DbHashTrie.IntEntry;
@@ -28,10 +27,10 @@ import suneido.immudb.DbHashTrie.Translator;
  * tail - checksum and size (checksum zero if aborted)
  */
 class Persist {
-	static final int HEAD_SIZE = 2 * Ints.BYTES; // size and timestamp
-	static final int TAIL_SIZE = 2 * Ints.BYTES; // checksum and size
+	static final int HEAD_SIZE = 2 * Integer.BYTES; // size and timestamp
+	static final int TAIL_SIZE = 2 * Integer.BYTES; // checksum and size
 	{ assert TAIL_SIZE == align(TAIL_SIZE); }
-	static final int ENDING_SIZE = align(4 * Ints.BYTES);
+	static final int ENDING_SIZE = align(4 * Integer.BYTES);
 	private final Storage istor;
 	private DbHashTrie dbinfo;
 	private int head_adr = 0;
@@ -98,7 +97,7 @@ class Persist {
 		ending(dbinfoadr, schema.maxTblnum, lastcksum, lastadr);
 
 		int tail_adr = istor.alloc(TAIL_SIZE);
-		int size = istor.sizeToInt(istor.sizeFrom(head_adr));
+		int size = Storage.sizeToInt(istor.sizeFrom(head_adr));
 		istor.buffer(head_adr).putInt(size).putInt(Tran.datetime());
 
 		int cksum = istor.checksum(head_adr);
@@ -143,7 +142,7 @@ class Persist {
 		ending(dbstate.dbinfoadr, dbstate.schema.maxTblnum,
 				dbstate.lastcksum, dbstate.lastadr);
 		int tail_adr = istor.alloc(TAIL_SIZE);
-		int sizeInt = istor.sizeToInt(istor.sizeFrom(head_adr));
+		int sizeInt = Storage.sizeToInt(istor.sizeFrom(head_adr));
 		istor.buffer(head_adr).putInt(sizeInt).putInt(0);
 		istor.buffer(tail_adr).putInt(0).putInt(sizeInt);
 		istor.protectAll();

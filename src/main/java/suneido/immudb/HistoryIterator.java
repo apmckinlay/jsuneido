@@ -6,28 +6,28 @@ package suneido.immudb;
 
 import static suneido.immudb.UpdateTransaction.REMOVE;
 
+import java.nio.ByteBuffer;
 import java.util.Date;
 
 import suneido.SuDate;
 import suneido.intfc.database.Record;
 import suneido.util.IntArraysList;
 
-import com.google.common.primitives.Ints;
-
 /**
  * Each commit is read into memory as a list of addresses.
  * Note: This could be quite large for bulk transactions like an initial load.
  * This isn't necessary for reading forwards
  * but to handle changing direction it's easier to always do it.
+ * Similar to {@link StorageIterator} but bidirectional.
  */
 class HistoryIterator implements suneido.intfc.database.HistoryIterator {
 	private final Storage dstor;
 	private final int tblnum;
 	private boolean rewound;
-	private long rpos;
 	private Date date;
 	private IntArraysList rlist;
 	private int ri;
+	private int adr;
 
 	HistoryIterator(Storage dstor, int tblnum) {
 		this.dstor = dstor;
@@ -44,10 +44,6 @@ class HistoryIterator implements suneido.intfc.database.HistoryIterator {
 
 	@Override
 	public Record[] getNext() {
-		if (rewound) {
-			rewound = false;
-			rpos = 1; // special value handled by nextCommit
-		}
 		while (true) {
 			if (ri + 1 >= rlist.size())
 				if (! nextCommit()) {
@@ -66,15 +62,14 @@ class HistoryIterator implements suneido.intfc.database.HistoryIterator {
 
 	private boolean nextCommit() {
 		do {
-			if (rpos == 1)
-				rpos = -dstor.sizeFrom(0);
-			else {
-				int size = dstor.rbuffer(rpos).getInt();
-				rpos += size;
-				if (rpos >= 0)
+			if (rewound) {
+				rewound = false;
+				adr = Storage.FIRST_ADR;
+			} else {
+				long size = Storage.intToSize(dstor.buffer(adr).getInt());
+				adr = dstor.advance(adr, size);
+				if (!dstor.isValidAdr(adr))
 					return false; // eof
-				while (0 == (size = dstor.rbuffer(rpos).getInt()))
-					rpos += Ints.BYTES;
 			}
 			readList();
 		} while (date == null || rlist.size() == 0); // skip aborted or empty
@@ -86,7 +81,7 @@ class HistoryIterator implements suneido.intfc.database.HistoryIterator {
 	public Record[] getPrev() {
 		if (rewound) {
 			rewound = false;
-			rpos = 0;
+			adr = dstor.upTo();
 		}
 		while (true) {
 			if (ri <= 0) {
@@ -107,16 +102,22 @@ class HistoryIterator implements suneido.intfc.database.HistoryIterator {
 
 	private boolean prevCommit() {
 		do {
-			if (! dstor.isValidPos(rpos - Ints.BYTES))
+			if (adr == Storage.FIRST_ADR)
 				return false; // eof
 			int size;
-			while (0 == (size = dstor.rbuffer(rpos - Ints.BYTES).getInt()))
-				rpos -= Ints.BYTES; // skip end of chunk padding
-			rpos -= size;
+			while (0 == (size = getPrevSize(adr)))
+				--adr; // skip end of chunk padding
+			adr -= size;
 			readList();
 		} while (date == null || rlist.size() == 0); // skip aborted or empty
 		ri = rlist.size();
 		return true;
+	}
+
+	int getPrevSize(int adr) {
+		ByteBuffer buf = dstor.buffer(adr - 1);
+		buf.getInt(); // skip checksum
+		return buf.getInt();
 	}
 
 	private Record[] result(String action, DataRecord r) {
@@ -132,7 +133,7 @@ class HistoryIterator implements suneido.intfc.database.HistoryIterator {
 	 */
 	private void readList() {
 		rlist = new IntArraysList();
-		new Proc(dstor, dstor.rposToAdr(rpos)).process();
+		new Proc(dstor, adr).process();
 	}
 
 	private class Proc extends CommitProcessor {

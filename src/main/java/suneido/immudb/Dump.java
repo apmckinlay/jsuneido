@@ -25,7 +25,7 @@ public class Dump {
 	/** dump the entire contents */
 	static void dump(Storage dstor, Storage istor, boolean detail) {
 		try {
-			dump(dstor, dstor.FIRST_ADR, istor, istor.FIRST_ADR, detail);
+			dump(dstor, Storage.FIRST_ADR, istor, Storage.FIRST_ADR, detail);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}

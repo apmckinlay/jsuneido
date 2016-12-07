@@ -7,7 +7,6 @@ package suneido.immudb;
 import javax.annotation.concurrent.NotThreadSafe;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.primitives.Ints;
 
 import suneido.immudb.DbHashTrie.Entry;
 import suneido.immudb.DbHashTrie.IntEntry;
@@ -20,8 +19,8 @@ import suneido.immudb.DbHashTrie.Translator;
  */
 @NotThreadSafe
 class Tran implements Translator {
-	static final int HEAD_SIZE = 2 * Ints.BYTES; // size and datetime
-	static final int TAIL_SIZE = 2 * Ints.BYTES; // checksum and size
+	static final int HEAD_SIZE = 2 * Integer.BYTES; // size and datetime
+	static final int TAIL_SIZE = 2 * Integer.BYTES; // checksum and size
 	{ assert TAIL_SIZE == MmapFile.align(TAIL_SIZE); }
 	final Storage dstor;
 	final Storage istor;
@@ -66,7 +65,7 @@ class Tran implements Translator {
 	StoreInfo endStore() {
 		assert head_adr != 0;
 		int tail_adr = dstor.alloc(TAIL_SIZE);
-		int sizeInt = dstor.sizeToInt(dstor.sizeFrom(head_adr));
+		int sizeInt = Storage.sizeToInt(dstor.sizeFrom(head_adr));
 		dstor.buffer(head_adr).putInt(sizeInt).putInt(datetime());
 
 		int cksum = dstor.checksum(head_adr);
@@ -84,7 +83,7 @@ class Tran implements Translator {
 		if (head_adr == 0) // didn't start store
 			return;
 		int tail_adr = dstor.alloc(TAIL_SIZE);
-		int sizeInt = dstor.sizeToInt(dstor.sizeFrom(head_adr));
+		int sizeInt = Storage.sizeToInt(dstor.sizeFrom(head_adr));
 		dstor.buffer(head_adr).putInt(sizeInt).putInt(0); // zero date
 		dstor.buffer(tail_adr).putInt(0).putInt(sizeInt); // zero checksum
 		dstor.protectAll(); // can't output outside tran

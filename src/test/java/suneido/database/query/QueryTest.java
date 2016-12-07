@@ -15,17 +15,17 @@ import java.util.List;
 
 import org.junit.Test;
 
+import com.google.common.collect.Lists;
+
 import suneido.database.query.Query.Dir;
 import suneido.intfc.database.Transaction;
 import suneido.runtime.Ops;
-
-import com.google.common.collect.Lists;
 
 public class QueryTest extends TestBase {
 
 	@Test
 	public void address() {
-		makeTable("test", 1);
+		makeTable(1);
 		Transaction t = db.readTransaction();
 		try {
 			Query q = CompileQuery.query(t, serverData, "test");

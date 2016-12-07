@@ -23,16 +23,12 @@
 			<attribute name="javadoc_location" value="jar:platform:/resource/jsuneido/lib/junit-4.11-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="lib/guava-19.0.jar" sourcepath="lib/guava-19.0-sources.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="jar:platform:/resource/jsuneido/lib/guava-19.0-javadoc.jar!/"/>
-		</attributes>
-	</classpathentry>
 	<classpathentry kind="lib" path="lib/asm-all-5.0.4.jar"/>
 	<classpathentry kind="lib" path="lib/mockito-all-1.10.18.jar"/>
 	<classpathentry kind="lib" path="lib/lucene-analyzers-common-4.10.3.jar"/>
 	<classpathentry kind="lib" path="lib/lucene-core-4.10.3.jar"/>
 	<classpathentry kind="lib" path="lib/lucene-queryparser-4.10.3.jar"/>
+	<classpathentry kind="lib" path="lib/guava-20.0.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/tools.jar"/>
 	<classpathentry kind="output" path="target"/>

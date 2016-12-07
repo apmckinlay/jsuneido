@@ -170,7 +170,7 @@ class DbRebuild {
 		Date lastOkDate = check.lastOkDate();
 		long lastOkSize = check.dOkSize();
 		StorageIter dIter = new StorageIter(dstor,
-				lastOkSize == 0 ? dstor.FIRST_ADR : Storage.offsetToAdr(lastOkSize));
+				lastOkSize == 0 ? Storage.FIRST_ADR : Storage.offsetToAdr(lastOkSize));
 		while (dIter.notFinished()) {
 			try {
 				new Proc(db, check.dOkSize(), dstor, dIter.adr()).process();
@@ -216,7 +216,7 @@ class DbRebuild {
 		@Override
 		void type(char c) {
 			type = c;
-			skip = (commitAdr == stor.FIRST_ADR); // skip bootstrap commit
+			skip = (commitAdr == Storage.FIRST_ADR); // skip bootstrap commit
 			if (type == 'u')
 				ut = new RebuildTransaction(db);
 			else if (type == 'b')
@@ -242,7 +242,7 @@ class DbRebuild {
 				case TN.COLUMNS:
 					Column col = new Column(r);
 					tbEnsure(col.tblnum);
-					tb.addColumn(col.field >= 0 ? col.name : capitalize(col.name));
+					tb.addColumn(col.field == -1 ? capitalize(col.name) : col.name);
 					break;
 				case TN.INDEXES:
 					Index ix = new Index(r);
@@ -360,6 +360,7 @@ class DbRebuild {
 				DbLoad.createIndexes(bt, bt.getTable(bulkTblnum), first, last);
 				bt.ck_complete();
 			}
+			rt.complete();
 		}
 
 	} // end of Proc

@@ -4,8 +4,6 @@
 
 package suneido.util;
 
-import gnu.trove.list.array.TIntArrayList;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -14,6 +12,8 @@ import javax.annotation.concurrent.Immutable;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.primitives.Ints;
+
+import gnu.trove.list.array.TIntArrayList;
 
 /*
  * regular expression grammar and compiled form:
@@ -427,7 +427,7 @@ public class Regex {
 			StringBuilder chars = new StringBuilder();
 			if (match("]"))
 				chars.append(']');
-			CharMatcher cm = CharMatcher.NONE;
+			CharMatcher cm = CharMatcher.none();
 			while (si < sn && src.charAt(si) != ']') {
 				CharMatcher elem;
 				if (matchRange()) {
@@ -435,7 +435,7 @@ public class Regex {
 					char to = src.charAt(si - 1);
 					elem = (from <= to)
 							? CharMatcher.inRange(from, to)
-							: CharMatcher.NONE;
+							: CharMatcher.none();
 				} else if (match("\\d"))
 					elem = digit;
 				else if (match("\\D"))
@@ -458,7 +458,7 @@ public class Regex {
 				}
 				cm = cm.or(elem);
 			}
-			if (! negate && cm == CharMatcher.NONE && chars.length() == 1) {
+			if (! negate && cm == CharMatcher.none() && chars.length() == 1) {
 				// optimization for class with only one character
 				emitChars(chars.toString());
 				return;
@@ -577,7 +577,7 @@ public class Regex {
 		public int nextPossible(String s, int si, int sn) {
 			if (si == sn)
 				return si + 1;
-			int j = s.indexOf('\n', si + 1);
+			int j = s.indexOf('\n', si);
 			return j == -1 ? sn : j + 1;
 		}
 

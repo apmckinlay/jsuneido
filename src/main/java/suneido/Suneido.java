@@ -146,6 +146,7 @@ public class Suneido {
 	}
 
 	private static void startServer() {
+		schedule(Deadlock::check, 1, TimeUnit.MINUTES);
 		HttpServerMonitor.run(cmdlineoptions.serverPort + 1);
 		openDbms();
 		Runnable serve = DbmsServer.open(
@@ -156,7 +157,8 @@ public class Suneido {
 			Errlog.fatal("error during init", e);
 		}
 		Errlog.setExtra(TheDbms::sessionid);
-		serve.run(); // NOTE: does not return
+		HttpServerMonitor.running();
+		serve.run();
 	}
 
 	private static Database db;
@@ -172,7 +174,6 @@ public class Suneido {
 			if (db == null)
 				Errlog.fatal("could not open database after rebuild");
 		}
-		HttpServerMonitor.running();
 		TheDbms.set(db);
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> Suneido.db.close()));
 		// need to catch exceptions else scheduler will stop running task

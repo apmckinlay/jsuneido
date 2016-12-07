@@ -696,6 +696,19 @@ public class SuContainer extends SuValue
 							: Ops.call(fn, y, x) == Boolean.TRUE ? 1 : 0);
 	}
 
+	public synchronized void unique() {
+		int dst = 1;
+		for (int src = 1; src < vec.size(); ++src) {
+			if (Ops.is_(vec.get(src), vec.get(src - 1)))
+				continue;
+			if (dst < src)
+				vec.set(dst, vec.get(src));
+			++dst;
+		}
+		while (vec.size() > dst)
+			vec.remove(vec.size() - 1);
+	}
+
 	public synchronized int lowerBound(Object value, final Object fn) {
 		if (fn == Boolean.FALSE)
 			return Util.lowerBound(vec, value, Ops.comp);

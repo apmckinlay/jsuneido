@@ -66,7 +66,7 @@ public class ServerBySelect {
 			selector = Selector.open();
 			registerChannel(serverChannel, SelectionKey.OP_ACCEPT);
 		} catch (IOException e) {
-			Errlog.error("IOException in ServerBySelect.open", e);
+			throw new RuntimeException("IOException in ServerBySelect.open", e);
 		}
 	}
 
@@ -309,7 +309,7 @@ public class ServerBySelect {
 		if (d < IDLE_CHECK_INTERVAL_MS)
 			return;
 		if (d > 4 * IDLE_CHECK_INTERVAL_MS)
-			Errlog.error("closeIdleConnections has not run for " + d + " ms, " +
+			Errlog.info("closeIdleConnections has not run for " + d + " ms, " +
 					"idleTimeoutMs is " + idleTimeoutMs);
 		lastIdleCheck = t;
 		for (SelectionKey key : selector.keys()) {

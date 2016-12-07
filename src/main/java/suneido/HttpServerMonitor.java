@@ -23,11 +23,12 @@ import suneido.runtime.builtin.SuThread;
 import suneido.util.Errlog;
 
 public class HttpServerMonitor {
-	private final static int RUNNING = 0;
+	private final static int STARTING = 0;
+	private final static int RUNNING = 1;
 	private final static int CORRUPT = 2;
 	private final static int CHECKING = 3;
 	private final static int REBUILDING = 4;
-	private static AtomicInteger mode = new AtomicInteger(RUNNING);
+	private static AtomicInteger mode = new AtomicInteger(STARTING);
 
 	public static void run(int port) {
 		HttpServer server;
@@ -40,6 +41,10 @@ public class HttpServerMonitor {
 		server.createContext("/", new MyHandler());
 		server.setExecutor(null); // null creates a default executor
 		server.start();
+	}
+
+	public static void starting() {
+		mode.set(STARTING);
 	}
 
 	public static void running() {
@@ -95,7 +100,9 @@ public class HttpServerMonitor {
 
 		private static String status() {
 			StringBuilder sb = new StringBuilder();
-			if (mode.get() == CORRUPT)
+			if (mode.get() == STARTING)
+				sb.append("<h2 style=\"color: blue;\">STARTING</h2>\r\n");
+			else if (mode.get() == CORRUPT)
 				sb.append("<h2 style=\"color: red;\">DATABASE DAMAGE DETECTED - "
 						+ "OPERATING IN READ-ONLY MODE</h2>\r\n");
 			sb.append("<p>Built: ")
