@@ -36,6 +36,7 @@ class Database implements suneido.intfc.database.Database, AutoCloseable {
 	private State lastPersistState;
 	private boolean corrupt = false;
 	private static enum Ck { CHECK, NOCHECK };
+	private volatile boolean closed = false;
 
 	// create
 
@@ -316,6 +317,9 @@ class Database implements suneido.intfc.database.Database, AutoCloseable {
 
 	@Override
 	public void close() {
+		if (closed)
+			return;
+		closed = true;
 		long size;
 		synchronized (commitLock) {
 			persist();

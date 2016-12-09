@@ -163,6 +163,8 @@ class MmapFile extends Storage {
 
 	@Override
 	public void close() {
+		if (! open)
+			return;
 		open = false;
 		force();
 		Arrays.fill(chunks, null); // might help gc
