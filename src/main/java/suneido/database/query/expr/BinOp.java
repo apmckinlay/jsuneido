@@ -9,25 +9,7 @@ import static suneido.compiler.Token.GT;
 import static suneido.compiler.Token.GTE;
 import static suneido.compiler.Token.LT;
 import static suneido.compiler.Token.LTE;
-import static suneido.runtime.Ops.add;
-import static suneido.runtime.Ops.bitand;
-import static suneido.runtime.Ops.bitor;
-import static suneido.runtime.Ops.bitxor;
-import static suneido.runtime.Ops.cat;
-import static suneido.runtime.Ops.div;
-import static suneido.runtime.Ops.gt;
-import static suneido.runtime.Ops.gte;
-import static suneido.runtime.Ops.is;
-import static suneido.runtime.Ops.isnt;
-import static suneido.runtime.Ops.lshift;
-import static suneido.runtime.Ops.lt;
-import static suneido.runtime.Ops.lte;
-import static suneido.runtime.Ops.match;
-import static suneido.runtime.Ops.matchnot;
-import static suneido.runtime.Ops.mod;
-import static suneido.runtime.Ops.mul;
-import static suneido.runtime.Ops.rshift;
-import static suneido.runtime.Ops.sub;
+import static suneido.runtime.Ops.*;
 import static suneido.util.ByteBuffers.bufferUcompare;
 import static suneido.util.Util.union;
 
@@ -37,12 +19,13 @@ import java.util.List;
 import suneido.compiler.Token;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
+import suneido.runtime.Ops;
 
 public class BinOp extends Expr {
 	public Token op;
 	public Expr left;
 	public Expr right;
-	private boolean isTerm = false;
+	private boolean isTerm = false; // valid for isTermFields
 	private List<String> isTermFields = null;
 
 	public BinOp(Token op, Expr left, Expr right) {
@@ -169,6 +152,22 @@ public class BinOp extends Expr {
 		Expr new_right = right.replace(from, to);
 		return new_left == left && new_right == right ? this :
 			new BinOp(op, new_left, new_right);
+	}
+
+	@Override
+	public boolean cantBeNil(List<String> fields) {
+		if (! isTerm(fields))
+			return false;
+		Constant c = (Constant) right;
+		switch (op) {
+		case IS :	return c != Constant.EMPTY;
+		case ISNT :	return c == Constant.EMPTY;
+		case LT :	return Ops.lte(c.value, "");
+		case LTE :	return Ops.lt(c.value, "");
+		case GT :	return Ops.gte(c.value, "");
+		case GTE :	return Ops.gt(c.value, "");
+		}
+		return false;
 	}
 
 }

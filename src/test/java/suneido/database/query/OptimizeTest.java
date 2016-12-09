@@ -281,9 +281,9 @@ public class OptimizeTest extends TestBase {
 		test1("trans summarize id, total cost",
 				"trans^(item) SUMMARIZE-MAP (id) total_cost = total cost");
 
-		test1("(inven leftjoin trans) where date = 960204",
+		test1("(inven leftjoin trans) where date > 960204",
 			"(inven^(item) LEFTJOIN 1:n on (item) trans^(item)) " +
-				"WHERE (date is 960204)");
+				"WHERE (date > 960204)");
 
 		// "in" on empty table
 		test1("test_minus1 where a in (1)",

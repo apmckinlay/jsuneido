@@ -42,4 +42,8 @@ public abstract class Expr {
 
 	public abstract Object eval(Header hdr, Row row);
 
+	public boolean cantBeNil(List<String> fields) {
+		return false;
+	}
+
 }
