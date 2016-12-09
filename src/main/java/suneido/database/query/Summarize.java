@@ -187,8 +187,6 @@ public class Summarize extends Query1 {
 
 	@Override
 	public Header header() {
-		if (first)
-			iterate_setup();
 		List<String> flds = concat(by, cols);
 		return new Header(asList(noFields, flds), flds);
 	}
@@ -223,6 +221,8 @@ public class Summarize extends Query1 {
 
 	@Override
 	void select(List<String> index, Record from, Record to) {
+		if (first)
+			iterate_setup();
 		strategyImp.select(index, from, to);
 		strategyImp.sel.org = from;
 		strategyImp.sel.end = to;
