@@ -132,8 +132,10 @@ public class ServerBySelect {
 		if (channel == null)
 			return;
 		SelectionKey key2 = registerChannel(channel, SelectionKey.OP_READ);
-		if (key2 == null)
+		if (key2 == null) {
+			Errlog.error("ServerBySelect accept registerChannel failed");
 			return;
+		}
 		InetAddress adr = channel.socket().getInetAddress();
 		Handler handler = handlerFactory.newHandler(new OutputQueue(this, key2),
 				adr.getHostAddress());
@@ -204,15 +206,11 @@ public class ServerBySelect {
 		}
 	}
 
+	// called by selector
 	private static void write(SelectionKey key) throws IOException {
-		if (write2(key))
+		if (channelWrite(key))
 			if (key.isValid())
 				key.interestOps(SelectionKey.OP_READ); // turn off write interest
-	}
-
-	// called by selector
-	private static boolean write2(SelectionKey key) throws IOException {
-		return channelWrite(key);
 	}
 
 	// called by worker
@@ -224,6 +222,7 @@ public class ServerBySelect {
 		}
 	}
 
+	/** returns false if it needs to be called again */
 	private static boolean channelWrite(SelectionKey key) {
 		SocketChannel channel = (SocketChannel) key.channel();
 		if (! channel.isOpen())
@@ -286,7 +285,7 @@ public class ServerBySelect {
 				if (ServerBySelect.write3(key))
 					return;
 			} catch (IOException e) {
-				e.printStackTrace();
+				Errlog.error("IOException in OutputQueue.write", e);
 			}
 			selectServer.needWrite(key);
 		}

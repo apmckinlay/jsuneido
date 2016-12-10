@@ -77,17 +77,27 @@ public class TransformTest extends TestBase {
 		test("(hist union trans) where cost > 10",
 				"(hist WHERE (cost > 10) UNION trans WHERE (cost > 10))");
 		// distribute where over leftjoin
-		test("(customer leftjoin trans) where id = 5",
-				"(customer WHERE (id is 5) LEFTJOIN 1:n on (id) trans)");
+		test("(customer leftjoin trans) where id > 5",
+				"(customer WHERE (id > 5) LEFTJOIN 1:n on (id) trans)");
 		// distribute where over leftjoin
-		test("(customer leftjoin trans) where id = 5 and item = 3",
-				"(customer WHERE (id is 5) LEFTJOIN 1:n on (id) trans) WHERE (item is 3)");
+		test("(customer leftjoin trans) where id > 5 and item > 3",
+				"(customer WHERE (id > 5) LEFTJOIN 1:n on (id) trans) WHERE (item > 3)");
 		// distribute where over join
 		test("(customer join trans) where cost > 10 and city =~ 'toon'",
 				"(customer WHERE (city =~ 'toon') JOIN 1:n on (id) trans WHERE (cost > 10))");
 		// distribute where over product
 		test("(customer times inven) where qty > 10 and city =~ 'toon'",
 				"(customer WHERE (city =~ 'toon') TIMES inven WHERE (qty > 10))");
+
+		// convert LEFTJOIN to JOIN
+		test("(tables leftjoin columns) where column isnt ''",
+				"(tables JOIN 1:n on (table) columns WHERE (column isnt ''))");
+		test("(tables leftjoin columns) where column is 123",
+				"(tables JOIN 1:n on (table) columns WHERE (column is 123))");
+		test("(tables leftjoin columns) where column in (123)",
+				"(tables JOIN 1:n on (table) columns WHERE column in (123))");
+		test("(tables leftjoin columns) where table isnt ''",
+				"(tables WHERE (table isnt '') LEFTJOIN 1:n on (table) columns)");
 
 		// distribute project over union
 		test("(hist union trans) project item, cost",

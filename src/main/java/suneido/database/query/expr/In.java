@@ -21,7 +21,7 @@ public class In extends Expr {
 	public final Expr expr;
 	private final List<Object> values;
 	public final Record packed;
-	private boolean isTerm = false;
+	private boolean isTerm = false; // valid for isTermFields
 	private List<String> isTermFields = null;
 
 	public In(Expr expr, List<Object> values) {
@@ -111,5 +111,10 @@ public class In extends Expr {
 	public Expr replace(List<String> from, List<Expr> to) {
 		Expr new_expr = expr.replace(from, to);
 		return new_expr == expr ? this : new In(new_expr, values, packed);
+	}
+
+	@Override
+	public boolean cantBeNil(List<String> fields) {
+		return isTerm(fields) && eval2("") == Boolean.FALSE;
 	}
 }

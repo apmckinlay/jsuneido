@@ -38,6 +38,7 @@ import suneido.runtime.Ops;
 import suneido.runtime.Pack;
 import suneido.util.ByteBuffers;
 import suneido.util.CommaStringBuilder;
+import suneido.util.Util;
 
 public class Select extends Query1 {
 	private Multi expr;
@@ -132,6 +133,12 @@ public class Select extends Query1 {
 
 	@Override
 	Query transform() {
+		// convert leftjoin to join if possible
+		if (source instanceof LeftJoin && source2cantBeNil()) {
+			LeftJoin lj = (LeftJoin) source;
+			source = new Join(lj.source, lj.source2, null);
+		}
+
 		boolean moved = false;
 		// remove empty selects
 		if (nil(expr.exprs))
@@ -245,6 +252,17 @@ public class Select extends Query1 {
 		}
 		source = source.transform();
 		return moved ? source : this;
+	}
+
+	/** determine if this select allows empty source2 records */
+	private boolean source2cantBeNil() {
+		LeftJoin lj = (LeftJoin) source;
+		List<String> fields = lj.source2.header().fields();
+		fields = Util.difference(fields, lj.joincols);
+		for (Expr e : expr.exprs)
+			if (fields.containsAll(e.fields()) && e.cantBeNil(fields))
+				return true;
+		return false;
 	}
 
 	private Expr project(Query q) {
