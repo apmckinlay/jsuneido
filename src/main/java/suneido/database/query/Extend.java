@@ -123,7 +123,7 @@ public class Extend extends Query1 {
 	@Override
 	public Row get(Dir dir) {
 		if (hdr == null)
-			header();
+			hdr = header();
 		Row srcrow = source.get(dir);
 		if (srcrow == null)
 			return null;
@@ -140,11 +140,9 @@ public class Extend extends Query1 {
 
 	@Override
 	public Header header() {
-		if (hdr == null)
-			hdr = new Header(source.header(),
-//					new Header(asList(real_fields(), noFields), flds));
-					new Header(asList(noFields, real_fields()), flds));
-		return hdr;
+		return new Header(source.header(),
+//				new Header(asList(real_fields(), noFields), flds));
+				new Header(asList(noFields, real_fields()), flds));
 	}
 
 	/** i.e. not rules */
