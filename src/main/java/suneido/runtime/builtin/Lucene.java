@@ -11,7 +11,6 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
-import org.apache.lucene.document.FieldType;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.*;
@@ -21,22 +20,14 @@ import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.search.highlight.Highlighter;
-import org.apache.lucene.search.highlight.QueryScorer;
-import org.apache.lucene.search.highlight.SimpleHTMLFormatter;
-import org.apache.lucene.search.highlight.TextFragment;
-import org.apache.lucene.search.highlight.TokenSources;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.Version;
-import org.apache.lucene.analysis.TokenStream;
 
-import suneido.SuContainer;
 import suneido.SuException;
 import suneido.SuValue;
 import suneido.runtime.BuiltinClass;
 import suneido.runtime.BuiltinMethods;
-import suneido.runtime.Numbers;
 import suneido.runtime.Ops;
 import suneido.runtime.Params;
 
@@ -102,21 +93,25 @@ public class Lucene extends BuiltinClass {
 			IndexWriter writer = ((Updater) self).writer;
 			Document doc = new Document();
 			doc.add(new StringField("key", Ops.toStr(key), Field.Store.YES));
-			
-			FieldType type = new FieldType();
-	        type.setIndexed(true);
-	        type.setIndexOptions(FieldInfo.IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS);
-	        type.setStored(true);
-	        type.setStoreTermVectors(true);
-	        type.setTokenized(true);
-	        type.setStoreTermVectorOffsets(true);
-	        Field field = new Field("content", Ops.toStr(text), type); //with term vector enabled
-	        TextField f = new TextField("ncontent", Ops.toStr(text), Field.Store.YES);
-	        doc.add(field);
-	        doc.add(f);
-
+			doc.add(new TextField("text", Ops.toStr(text), Field.Store.NO));
 			try {
 				writer.addDocument(doc);
+			} catch (IOException e) {
+				throw new SuException("Lucene.Update: Add failed", e);
+			}
+			return null;
+		}
+
+		@Params("key, text")
+		public static Object Update(Object self, Object a, Object text) {
+			IndexWriter writer = ((Updater) self).writer;
+			String key = Ops.toStr(a);
+			Term term = new Term("key", key);
+			Document doc = new Document();
+			doc.add(new StringField("key", key, Field.Store.YES));
+			doc.add(new TextField("text", Ops.toStr(text), Field.Store.NO));
+			try {
+				writer.updateDocument(term, doc);
 			} catch (IOException e) {
 				throw new SuException("Lucene.Update: Add failed", e);
 			}
@@ -165,28 +160,14 @@ public class Lucene extends BuiltinClass {
 				IndexReader ir = DirectoryReader.open(dir)) {
 			IndexSearcher searcher = new IndexSearcher(ir);
 			Analyzer analyzer = analyzer();
-			QueryParser parser = new QueryParser("ncontent", analyzer);
+			QueryParser parser = new QueryParser("text", analyzer);
 			Query query = parser.parse(queryStr);
 			TopDocs results = searcher.search(query, limit);
-			SimpleHTMLFormatter htmlFormatter = new SimpleHTMLFormatter();
-			Highlighter highlighter = new Highlighter(htmlFormatter, new QueryScorer(query));
 			ScoreDoc[] hits = results.scoreDocs;
-			for (ScoreDoc hit : hits) {	
-				int id = hit.doc;
-				Document doc  = ir.document(id);
+			for (ScoreDoc hit : hits) {
+				Document doc = searcher.doc(hit.doc);
 				String key = doc.get("key");
-				String content = doc.get("ncontent");
-				TokenStream tokenStream = TokenSources.getAnyTokenStream(searcher.getIndexReader(), id, "ncontent", analyzer);
-				TextFragment[] frag = highlighter.getBestTextFragments(tokenStream, content, false, 4); 
-				SuContainer fragments = new SuContainer();
-				
-				for (int j = 0; j < frag.length; j++) {
-	                if ((frag[j] != null) && (frag[j].getScore() > 0)) {
-	                	fragments.add(frag[j].toString());
-	                }
-	            }
-				
-				Ops.call2(d, key, fragments);
+				Ops.call1(d, key);
 			}
 			return null;
 		} catch (Exception e) {
