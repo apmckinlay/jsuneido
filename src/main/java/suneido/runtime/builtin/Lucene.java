@@ -122,6 +122,13 @@ public class Lucene extends BuiltinClass {
 			return null;
 		}
 
+		@Params("key, text")
+		public static Object Update(Object self, Object key, Object text) {
+			Remove(self, key);
+			Insert(self, key, text);
+			return null;
+		}
+		
 		@Params("key")
 		public static Object Remove(Object self, Object key) {
 			IndexWriter writer = ((Updater) self).writer;
