@@ -36,7 +36,6 @@ import suneido.SuException;
 import suneido.SuValue;
 import suneido.runtime.BuiltinClass;
 import suneido.runtime.BuiltinMethods;
-import suneido.runtime.Numbers;
 import suneido.runtime.Ops;
 import suneido.runtime.Params;
 
