@@ -7,6 +7,7 @@
 -libraryjars lib/lucene-core-4.10.3.jar
 -libraryjars lib/lucene-analyzers-common-4.10.3.jar
 -libraryjars lib/lucene-queryparser-4.10.3.jar
+-libraryjars lib/lucene-highlighter-4.10.3.jar
 -libraryjars <java.home>/lib/rt.jar
 
 -dontoptimize
