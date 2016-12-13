@@ -180,10 +180,10 @@ public class Lucene extends BuiltinClass {
 				SuContainer fragments = new SuContainer();
 				
 				for (int j = 0; j < frag.length; j++) {
-	                if ((frag[j] != null) && (frag[j].getScore() > 0)) {
-	                	fragments.add(frag[j].toString());
-	                }
-	            }
+					if ((frag[j] != null) && (frag[j].getScore() > 0)) {
+						fragments.add(frag[j].toString());
+					}
+				}
 				
 				Ops.call2(d, key, fragments);
 			}
