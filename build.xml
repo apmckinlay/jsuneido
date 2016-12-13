@@ -19,6 +19,7 @@
 	<property name="lib.lucene-core" value="lucene-core-4.10.3.jar"/>
 	<property name="lib.lucene-analyzers-common" value="lucene-analyzers-common-4.10.3.jar"/>
 	<property name="lib.lucene-queryparser" value="lucene-queryparser-4.10.3.jar"/>
+	<property name="lib.lucene-highlighter" value="lucene-highlighter-4.10.3.jar"/>
 
 	<property name="main.srcdir" value="src/main/java"/>
 	<property name="main.dstdir.classes" value="target/classes"/>
@@ -32,6 +33,7 @@
 		<pathelement location="${lib.dir}/${lib.lucene-core}"/>
 		<pathelement location="${lib.dir}/${lib.lucene-analyzers-common}"/>
 		<pathelement location="${lib.dir}/${lib.lucene-queryparser}"/>
+		<pathelement location="${lib.dir}/${lib.lucene-highlighter}"/>
 		<pathelement location="${lib.dir}/tools.jar"/> <!-- com.sun.jdi -->
 		<pathelement location="${lib.dir}/trove-3.0.3.jar"/>
 	</path>
@@ -205,9 +207,11 @@
 			<attribute name="Class-Path" value="${lib.lucene-core}
 ${lib.lucene-analyzers-common}
 ${lib.lucene-queryparser}
+${lib.lucene-highlighter}
 lib/${lib.lucene-core}
 lib/${lib.lucene-analyzers-common}
-lib/${lib.lucene-queryparser}"
+lib/${lib.lucene-queryparser}
+lib/${lib.lucene-highlighter}"
 			/>
 			<section name="Built">
 				<attribute name="By" value="${user.name}"/>
