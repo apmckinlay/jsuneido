@@ -109,8 +109,9 @@ public class Lucene extends BuiltinClass {
 	        type.setStoreTermVectors(true);
 	        type.setTokenized(true);
 	        type.setStoreTermVectorOffsets(true);
-	        Field field = new Field("content", Ops.toStr(text), type); //with term vector enabled
-	        TextField f = new TextField("ncontent", Ops.toStr(text), Field.Store.YES);
+	        String textStr = Ops.toStr(text);
+	        Field field = new Field("termcontent", textStr, type); // with term vector enabled
+	        TextField f = new TextField("content", textStr, Field.Store.YES);
 	        doc.add(field);
 	        doc.add(f);
 
@@ -171,7 +172,7 @@ public class Lucene extends BuiltinClass {
 				IndexReader ir = DirectoryReader.open(dir)) {
 			IndexSearcher searcher = new IndexSearcher(ir);
 			Analyzer analyzer = analyzer();
-			QueryParser parser = new QueryParser("ncontent", analyzer);
+			QueryParser parser = new QueryParser("content", analyzer);
 			Query query = parser.parse(queryStr);
 			TopDocs results = searcher.search(query, limit);
 			SimpleHTMLFormatter htmlFormatter = new SimpleHTMLFormatter();
@@ -181,8 +182,8 @@ public class Lucene extends BuiltinClass {
 				int id = hit.doc;
 				Document doc  = ir.document(id);
 				String key = doc.get("key");
-				String content = doc.get("ncontent");
-				TokenStream tokenStream = TokenSources.getAnyTokenStream(searcher.getIndexReader(), id, "ncontent", analyzer);
+				String content = doc.get("content");
+				TokenStream tokenStream = TokenSources.getAnyTokenStream(searcher.getIndexReader(), id, "content", analyzer);
 				TextFragment[] frag = highlighter.getBestTextFragments(tokenStream, content, false, 4); 
 				SuContainer fragments = new SuContainer();
 				
