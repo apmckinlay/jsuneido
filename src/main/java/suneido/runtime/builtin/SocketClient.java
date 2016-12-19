@@ -19,7 +19,7 @@ import suneido.SuValue;
 import suneido.runtime.*;
 import suneido.util.Util;
 
-/***
+/**
  * Also used by {@link SocketServer}
  */
 public class SocketClient extends SuValue {
@@ -41,7 +41,7 @@ public class SocketClient extends SuValue {
 				socket = new Socket();
 				socket.connect(new InetSocketAddress(address, port), timeoutConnect);
 			}
-			socket.setSoTimeout(timeout);
+			socket.setSoTimeout(timeout); // NOTE: only affects reads
 			socket.setTcpNoDelay(true); // disable nagle
 			input = new BufferedInputStream(socket.getInputStream());
 			output = socket.getOutputStream();
