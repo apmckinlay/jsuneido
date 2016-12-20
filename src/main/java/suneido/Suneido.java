@@ -176,7 +176,6 @@ public class Suneido {
 		}
 		TheDbms.set(db);
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> Suneido.db.close()));
-		// need to catch exceptions else scheduler will stop running task
 		scheduleAtFixedRate(db::limitOutstandingTransactions, 1, TimeUnit.SECONDS);
 		scheduleAtFixedRate(db::force, 1, TimeUnit.MINUTES);
 	}
@@ -224,6 +223,7 @@ public class Suneido {
 	}
 
 	public static void scheduleAtFixedRate(Runnable fn, long delay, TimeUnit unit) {
+		// need to catch exceptions else scheduler will stop running task
 		scheduler.scheduleAtFixedRate(() -> Errlog.run(fn), delay, delay, unit);
 	}
 
