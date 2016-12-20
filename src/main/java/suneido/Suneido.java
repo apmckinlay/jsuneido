@@ -40,6 +40,7 @@ public class Suneido {
 	public static Contexts contexts = new Contexts();
 	public static ContextLayered context = new ContextLayered(contexts);
 	public static ThreadGroup threadGroup = new ThreadGroup("Suneido");
+	public static DbmsServer server;
 	public static volatile boolean exiting = false;
 
 	public static void main(String[] args) {
@@ -74,7 +75,7 @@ public class Suneido {
 		case SERVER:
 			TheDbms.setPort(cmdlineoptions.serverPort);
 			Print.timestamped("starting server");
-			startServer();
+			startServer(); // does not return
 			break;
 		case CLIENT:
 			TheDbms.remote(cmdlineoptions.actionArg, cmdlineoptions.serverPort);
@@ -145,12 +146,13 @@ public class Suneido {
 		}
 	}
 
+	/** does not return */
 	private static void startServer() {
 		schedule(Deadlock::check, 1, TimeUnit.MINUTES);
 		HttpServerMonitor.run(cmdlineoptions.serverPort + 1);
 		openDbms();
-		Runnable serve = DbmsServer.open(
-				cmdlineoptions.serverPort, cmdlineoptions.timeoutMin);
+		server = new DbmsServer(cmdlineoptions.timeoutMin);
+		server.open(cmdlineoptions.serverPort);
 		try {
 			Compiler.eval("Init()");
 		} catch (Throwable e) {
@@ -158,7 +160,7 @@ public class Suneido {
 		}
 		Errlog.setExtra(TheDbms::sessionid);
 		HttpServerMonitor.running();
-		serve.run();
+		server.serve();
 	}
 
 	private static Database db;

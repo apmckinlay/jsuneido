@@ -6,6 +6,7 @@ package suneido.database.server;
 
 import static suneido.util.Verify.verify;
 
+import java.io.Closeable;
 import java.util.*;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -14,7 +15,6 @@ import suneido.TheDbms;
 import suneido.intfc.database.Database;
 import suneido.intfc.database.Transaction;
 import suneido.util.Errlog;
-import suneido.util.NetworkOutput;
 
 /**
  * Each connection/session has it's own ServerData instance
@@ -22,30 +22,26 @@ import suneido.util.NetworkOutput;
 @NotThreadSafe
 public class ServerData {
 	private int next = 0;
-	private final Map<Integer, DbmsTran> trans =
-			new HashMap<>();
-	private final Map<Integer, List<Integer>> tranqueries =
-			new HashMap<>();
-	private final Map<Integer, DbmsQuery> queries =
-			new HashMap<>();
-	private final Map<Integer, DbmsQuery> cursors =
-			new HashMap<>();
+	private final Map<Integer, DbmsTran> trans = new HashMap<>();
+	private final Map<Integer, List<Integer>> tranqueries = new HashMap<>();
+	private final Map<Integer, DbmsQuery> queries = new HashMap<>();
+	private final Map<Integer, DbmsQuery> cursors = new HashMap<>();
 	private final Map<String, String> sviews = new HashMap<>();
 	private final Stack<String> viewnest = new Stack<>();
 	private String sessionId = "127.0.0.1";
-	public final NetworkOutput outputQueue; // for kill
+	public final Closeable connection; // for kill
 	public boolean textmode = true;
 	private byte[] nonce = null;
 	public boolean auth;
 
 	/** for tests */
 	public ServerData() {
-		this.outputQueue = null;
+		this.connection = null;
 		this.auth = true;
 	}
 
-	public ServerData(NetworkOutput outputQueue) {
-		this.outputQueue = outputQueue;
+	public ServerData(Closeable connection) {
+		this.connection = connection;
 
 		Database db = ((DbmsLocal) TheDbms.dbms()).getDb();
 		Transaction t = db.readTransaction();

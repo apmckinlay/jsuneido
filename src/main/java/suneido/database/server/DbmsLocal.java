@@ -11,10 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import suneido.DbTools;
-import suneido.SuContainer;
-import suneido.SuDate;
-import suneido.SuException;
+import suneido.*;
 import suneido.compiler.Compiler;
 import suneido.database.query.CompileQuery;
 import suneido.database.query.Query.Dir;
@@ -60,7 +57,7 @@ public class DbmsLocal extends Dbms {
 
 	@Override
 	public SuContainer connections() {
-		return new SuContainer(DbmsServer.connections());
+		return new SuContainer(Suneido.server.connections());
 	}
 
 	@Override
@@ -102,7 +99,7 @@ public class DbmsLocal extends Dbms {
 
 	@Override
 	public int kill(String sessionId) {
-		return DbmsServer.kill_connections(sessionId);
+		return Suneido.server.killConnections(sessionId);
 	}
 
 	@Override

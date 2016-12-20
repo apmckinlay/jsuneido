@@ -4,197 +4,134 @@
 
 package suneido.database.server;
 
-import static suneido.Trace.trace;
-import static suneido.Trace.tracing;
-import static suneido.Trace.Type.CLIENTSERVER;
 import static suneido.util.ByteBuffers.stringToBuffer;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
-import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import suneido.SuException;
 import suneido.Suneido;
-import suneido.util.ByteBuffers;
 import suneido.util.Errlog;
-import suneido.util.NetworkOutput;
 import suneido.util.ServerBySelect;
 
 /**
  * Uses {@link suneido.util.ServerBySelect}
  */
 public class DbmsServerBySelect {
-	private static final ThreadFactory threadFactory =
-		new ThreadFactoryBuilder()
-			.setNameFormat("DbmsServer-thread-%d")
-			.build();
-	private static final Executor executor =
-		Executors.newCachedThreadPool(threadFactory);
-	@GuardedBy("serverDataSet")
-	static final Set<ServerData> serverDataSet = new HashSet<>();
-	private static InetAddress inetAddress;
+	private final ThreadFactory threadFactory =
+		new ThreadFactoryBuilder().setNameFormat("DbmsServer-thread-%d").build();
+	private final Executor executor = Executors.newCachedThreadPool(threadFactory);
+	private static final ByteBuffer hello = stringToBuffer(
+			"Suneido Database Server (" + Suneido.cmdlineoptions.impersonate + ")\r\n");
+	private static final int BUFSIZE = 16 * 1024;
+	private static final ThreadLocal<ByteBuffer> tlbuf = 
+			ThreadLocal.withInitial(() -> ByteBuffer.allocateDirect(BUFSIZE));
+	private ServerBySelect server;
+	public ServerDataSet serverDataSet = new ServerDataSet();
+	
+	public DbmsServerBySelect(int idleTimeoutMin) {
+		server = new ServerBySelect(Handler::new, idleTimeoutMin);
+	}
 
-	public static Runnable open(int port, int idleTimeoutMin) {
-		ServerBySelect server = new ServerBySelect(new HandlerFactory(), idleTimeoutMin);
-		inetAddress = server.getInetAddress();
+	public void open(int port) {
 		server.open(port);
-		return () -> server.serve();
 	}
-
-	public static InetAddress getInetAddress() {
-		return inetAddress;
-	}
-
-	private static class HandlerFactory implements ServerBySelect.HandlerFactory {
-		@Override
-		public ServerBySelect.Handler newHandler(NetworkOutput outputQueue,
-				String address) {
-			return new Handler(outputQueue, address);
-		}
+	
+	/** does not return */
+	public void serve() {
+		server.serve();
 	}
 
 	/**
-	 * There is an instance of Handler for each open connection. Once a complete
-	 * request has been received, it is executed in a separate thread. Since
-	 * requests do not overlap, moreInput will not be called while a request is
-	 * executing.
+	 * There is an instance of Handler for each open connection. 
+	 * Each handler has ServerData which tracks open transactions, queries, etc.
+	 * A handler is constructed when a new connection is accepted.
+	 * The request method is called each time the channel becomes readable.
+	 * The request method reads the request, executes it, writes the response
+	 * and then reregisters the channel with the selector.
 	 */
 	@NotThreadSafe
-	private static class Handler implements ServerBySelect.Handler, Runnable {
-		private static final ByteBuffer hello = stringToBuffer(
-				"Suneido Database Server (" + Suneido.cmdlineoptions.impersonate + ")\r\n");
-		private final NetworkOutput outputQueue;
+	private class Handler implements ServerBySelect.Handler {
 		private final ServerData serverData;
-		private volatile int linelen = -1;
-		private volatile Command cmd = null;
-		private volatile int nExtra = -1;
-		private volatile ByteBuffer line;
-		private volatile ByteBuffer extra;
 
-		Handler(NetworkOutput outputQueue, String address) {
-			this.outputQueue = outputQueue;
-			serverData = new ServerData(outputQueue);
-			serverData.setSessionId(address);
-			synchronized(serverDataSet) {
-				serverDataSet.add(serverData);
+		Handler(SocketChannel channel) {
+			serverData = new ServerData(channel);
+			InetAddress adr = channel.socket().getInetAddress();
+			serverData.setSessionId(adr.getHostAddress());
+			serverDataSet.add(serverData);
+			hello.rewind();
+			try {
+				channel.write(hello);
+			} catch (IOException e) {
 			}
 		}
 
 		@Override
-		public void start() {
-			outputQueue.add(hello.duplicate());
-			outputQueue.write();
+		public void request(SocketChannel channel) {
+			executor.execute(() -> handleRequest(channel));
 		}
 
-		@Override
-		public synchronized void moreInput(ByteBuffer buf) {
-			// first state = waiting for newline
-			if (linelen == -1) {
-				line = getLine(buf);
-				if (line == null)
+		private void handleRequest(SocketChannel channel) {
+			try {
+				String line = readline(channel);
+				if (line == null) { // disconnected
+					channel.close();
+					close();
 					return;
-				if (tracing(CLIENTSERVER))
-					trace(CLIENTSERVER, serverData.getSessionId() +
-							" " + ByteBuffers.bufferToString(line).trim());
-//System.out.print("> " + ByteBuffers.bufferToString(line));
-				linelen = line.remaining();
-				cmd = getCmd(line);
-				line = line.slice();
-				nExtra = cmd.extra(line);
-				line.position(0);
+				}
+				String word = firstWord(line);
+				line = line.substring(word.length()).trim();
+				Command cmd = getCmd(word);
+				int nExtra = cmd.extra(line);
+				
+				ByteBuffer extra = nExtra > BUFSIZE ||
+						cmd == Command.OUTPUT || cmd == Command.UPDATE
+						? ByteBuffer.allocateDirect(nExtra)
+						: tlbuf.get();
+				extra.clear();
+				while (extra.position() < nExtra)
+					channel.read(extra);
+				extra.flip();
+
+				ByteBuffer output = null;
+				ArrayList<ByteBuffer> writeBufs = new ArrayList<>();
+				try {
+					ServerData.threadLocal.set(serverData);
+					output = cmd.execute(line, extra, writeBufs::add);
+				} catch (Throwable e) {
+					Class<? extends Throwable> c = e.getClass();
+					if (c != RuntimeException.class && c != SuException.class)
+						Errlog.error("DbmsServerBySelect.run", e);
+					output = stringToBuffer("ERR " + escape(e.toString()) + "\r\n");
+				}
+				if (output != null)
+					writeBufs.add(output);
+				send(channel, writeBufs);
+				server.reregister(channel, this);
+			} catch (IOException e) {
+				try {
+					channel.close();
+				} catch (IOException e1) {
+				}
 			}
-			// next state = waiting for extra data (if any)
-			if (nExtra != -1 && buf.remaining() >= linelen + nExtra) {
-				assert buf.position() == 0;
-
-				buf.position(linelen);
-				buf.limit(linelen + nExtra);
-				extra = buf.slice();
-
-				buf.position(buf.limit()); // consume all input
-				// since synchronous, it's safe to discard extra input
-				linelen = -1;
-				nExtra = -1;
-				executor.execute(this);
-			}
-		}
-
-		private static ByteBuffer getLine(ByteBuffer buf) {
-			int nlPos = indexOf(buf, (byte) '\n');
-			if (nlPos == -1)
-				return null;
-			ByteBuffer line = buf.duplicate();
-			line.position(0);
-			line.limit(nlPos + 1);
-			return line;
-		}
-		private static int indexOf(ByteBuffer buf, byte b) {
-			// NOTE: use buf.remaining() since buf is flipped
-			for (int i = 0; i < buf.remaining(); ++i)
-				if (buf.get(i) == b)
-					return i;
-			return -1;
-		}
-
-		private static Command getCmd(ByteBuffer buf) {
-			try {
-				String word = firstWord(buf);
-				if (word.isEmpty())
-					return Command.NILCMD;
-				return Command.valueOf(word.toUpperCase());
-			} catch (IllegalArgumentException e) {
-				return Command.BADCMD;
-			}
-		}
-		private static String firstWord(ByteBuffer buf) {
-			StringBuilder sb = new StringBuilder();
-			buf.position(0);
-			while (buf.remaining() > 0) {
-				char c = (char) buf.get();
-				if (c == ' ' || c == '\r' || c == '\n')
-					break ;
-				sb.append(c);
-			}
-			return sb.toString();
-		}
-
-		@Override
-		public synchronized void run() {
-			ByteBuffer output = null;
-			try {
-				ServerData.threadLocal.set(serverData);
-				output = cmd.execute(line, extra, outputQueue);
-			} catch (Throwable e) {
-				Class<? extends Throwable> c = e.getClass();
-				if (c != RuntimeException.class && c != SuException.class)
-					Errlog.error("DbmsServerBySelect.run", e);
-				output = stringToBuffer("ERR " + escape(e.toString()) + "\r\n");
-			}
-			line = null;
-			extra = null;
-			if (output != null)
-				outputQueue.add(output);
-			outputQueue.write();
-		}
-
-		private static String escape(String s) {
-			return s.replace("\r", "\\r").replace("\n", "\\n");
 		}
 
 		@Override
 		public void close() {
-			synchronized(serverDataSet) {
-				serverData.end();
-				serverDataSet.remove(serverData);
-			}
+			serverData.end();
+			serverDataSet.remove(serverData);
 		}
 
 		@Override
@@ -203,30 +140,97 @@ public class DbmsServerBySelect {
 		}
 	}
 
-	public static List<String> connections() {
-		List<String> list = new ArrayList<>();
-		synchronized(serverDataSet) {
-			for (ServerData sd : serverDataSet)
-				list.add(sd.getSessionId());
+	private static String readline(SocketChannel channel) throws IOException {
+		StringBuilder sb = new StringBuilder();
+		InputStream in = channel.socket().getInputStream();
+		while (true) {
+			int b = in.read();
+			if (b == -1)
+				return null; // disconnected
+			if (b == '\n')
+				break;
+			if (b != '\r')
+				sb.append((char) b);
 		}
-		return list;
+		return sb.toString();
 	}
 
-	static int kill_connections(String sessionId) {
-		int nkilled = 0;
-		synchronized(DbmsServer.serverDataSet) {
-			Iterator<ServerData> iter = DbmsServer.serverDataSet.iterator();
+	private static String firstWord(String line) {
+		int i = line.indexOf(' ');
+		return i == -1 ? line : line.substring(0, i);
+	}
+
+	private static Command getCmd(String word) {
+		try {
+			if (word.isEmpty())
+				return Command.NILCMD;
+			return Command.valueOf(word.toUpperCase());
+		} catch (IllegalArgumentException e) {
+			return Command.BADCMD;
+		}
+	}
+
+	private static void send(SocketChannel channel, ArrayList<ByteBuffer> writeBufs)
+			throws IOException {
+		ByteBuffer[] bufs = writeBufs.toArray(new ByteBuffer[0]);
+		while (! bufsEmpty(bufs))
+			channel.write(bufs);
+	}
+	private static boolean bufsEmpty(ByteBuffer[] bufs) {
+		for (ByteBuffer b : bufs)
+			if (b.remaining() > 0)
+				return false;
+		return true; // everything written
+	}
+
+	private static String escape(String s) {
+		return s.replace("\r", "\\r").replace("\n", "\\n");
+	}
+	
+	@ThreadSafe
+	private static class ServerDataSet {
+		private final Set<ServerData> serverDataSet = new HashSet<>();
+		
+		synchronized void add(ServerData serverData) {
+			serverDataSet.add(serverData);
+		}
+		
+		synchronized void remove(ServerData serverData) {
+			serverDataSet.remove(serverData);
+		}
+		
+		synchronized List<String> connections() {
+			List<String> list = new ArrayList<>();
+			for (ServerData sd : serverDataSet)
+				list.add(sd.getSessionId());
+			return list;
+		}
+
+		synchronized int killConnections(String sessionId) {
+			int nkilled = 0;
+			Iterator<ServerData> iter = serverDataSet.iterator();
 			while (iter.hasNext()) {
 				ServerData serverData = iter.next();
 				if (sessionId.equals(serverData.getSessionId())) {
 					++nkilled;
 					serverData.end();
-					serverData.outputQueue.close();
+					try {
+						serverData.connection.close();
+					} catch (IOException e) {
+					}
 					iter.remove();
 				}
 			}
+			return nkilled;
 		}
-		return nkilled;
+	}
+	
+	public List<String> connections() {
+		return serverDataSet.connections();
+	}
+	
+	public int killConnections(String sessionId) {
+		return serverDataSet.killConnections(sessionId);
 	}
 
 }

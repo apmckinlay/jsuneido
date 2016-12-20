@@ -16,8 +16,9 @@ import static suneido.util.ByteBuffers.bufferToString;
 import static suneido.util.ByteBuffers.stringToBuffer;
 
 import java.nio.ByteBuffer;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.junit.After;
 import org.junit.Before;
@@ -27,11 +28,11 @@ import org.mockito.internal.matchers.Matches;
 import suneido.TheDbms;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
+import suneido.database.server.Command.Reader;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.RecordBuilder;
 import suneido.runtime.Ops;
 import suneido.runtime.Pack;
-import suneido.util.NetworkOutput;
 
 public class CommandTest {
 
@@ -40,77 +41,64 @@ public class CommandTest {
 	}
 
 	@Before
-	public void clearServerData() {
+	public void before() {
 		ServerData.threadLocal.set(new ServerData());
-	}
-
-	@Before
-	public void setQuoting() {
 		Ops.default_single_quotes = true;
 		TheDbms.set(dbpkg.testdb());
 	}
 
 	@After
-	public void restoreQuoting() {
+	public void after() {
 		Ops.default_single_quotes = false;
+		assertTrue(ServerData.forThread().isEmpty());
 	}
 
 	@Test
 	public void getnum() {
-		ByteBuffer buf;
-		buf = stringToBuffer("");
-		assertEquals(-1, Command.getnum('T', buf));
+		Reader rdr;
+		rdr = new Reader("");
+		assertEquals(-1, rdr.getnum('T'));
 
-		buf = stringToBuffer("  A123  B-4  xyz");
-		assertEquals(-1, Command.getnum('X', buf));
-		assertEquals(0, buf.position());
-		assertEquals(123, Command.getnum('A', buf));
-		assertEquals(8, buf.position());
-		assertEquals(-1, Command.getnum('X', buf));
-		assertEquals(8, buf.position());
-		assertEquals(-4, Command.getnum('B', buf));
-
-		assertEquals("xyz", bufferToString(buf.slice()));
+		rdr = new Reader("  A123  B-4  xyz");
+		assertEquals(-1, rdr.getnum('X'));
+		assertEquals(0, rdr.pos);
+		assertEquals(123, rdr.getnum('A'));
+		assertEquals(8, rdr.pos);
+		assertEquals(-1, rdr.getnum('X'));
+		assertEquals(8, rdr.pos);
+		assertEquals(-4, rdr.getnum('B'));
+		
+		assertEquals("xyz", rdr.str.substring(rdr.pos));
 	}
 
 	@Test
 	public void badcmd() {
-		Output output = new Output();
-		ByteBuffer hello = stringToBuffer("hello world");
-		ByteBuffer buf = Command.BADCMD.execute(hello, null, output);
-		assertEquals("ERR bad command: ", bufferToString(output.get(0)));
-		assertEquals(hello, buf);
+		String s = bst(Command.BADCMD.execute("hello world", null, null));
+		assertEquals("ERR bad command: hello world", s);
 	}
 
 	@Test
 	public void transaction() {
-		ByteBuffer buf = Command.TRANSACTION.execute(READ, null, null);
-		assertThat(bufferToString(buf), matches("T\\d+\r\n"));
-		buf.rewind();
-		buf = Command.ABORT.execute(buf, null, null);
-		assertEquals("OK\r\n", bufferToString(buf));
+		String s = bst(Command.TRANSACTION.execute("read", null, null));
+		assertThat(s, matches("T\\d+"));
+		s = bst(Command.ABORT.execute(s, null, null));
+		assertEquals("OK", s);
 		assertTrue(ServerData.forThread().isEmpty());
 
-		buf = Command.TRANSACTION.execute(UPDATE, null, null);
-		assertThat(bufferToString(buf), matches("T\\d+\r\n"));
-		buf.rewind();
-		buf = Command.COMMIT.execute(buf, null, null);
-		assertEquals("OK\r\n", bufferToString(buf));
+		s = bst(Command.TRANSACTION.execute("update", null, null));
+		assertThat(s, matches("T\\d+"));
+		s = bst(Command.COMMIT.execute(s, null, null));
+		assertEquals("OK", s);
 		assertTrue(ServerData.forThread().isEmpty());
 	}
 
 	@Test
 	public void cursor() {
-		ServerData serverData = new ServerData();
+		String s = bst(Command.CURSOR.execute(null, stringToBuffer("tables"), null));
+		assertEquals("C0", s);
 
-		ByteBuffer buf = Command.CURSOR.execute(null, stringToBuffer("tables"),
-				null);
-		assertEquals("C0\r\n", bufferToString(buf));
-
-		buf.rewind();
-		buf = Command.CLOSE.execute(buf, null, null);
-		assertEquals("OK\r\n", bufferToString(buf));
-		assertTrue(serverData.isEmpty());
+		s = bst(Command.CLOSE.execute(s, null, null));
+		assertEquals("OK", s);
 	}
 
 	@Test(expected = RuntimeException.class)
@@ -122,146 +110,119 @@ public class CommandTest {
 
 	@Test
 	public void query() {
-		ServerData serverData = new ServerData();
+		assertEquals(7, Command.QUERY.extra("T0 Q7"));
 
-		assertEquals(7, Command.QUERY.extra(stringToBuffer("T0 Q7")));
-
-		ByteBuffer tbuf = Command.TRANSACTION.execute(READ, null, null);
-		String t = bufferToString(tbuf).trim();
+		String t = bst(Command.TRANSACTION.execute("read", null, null));
 		assertThat(t, matches("T\\d+"));
 
-		ByteBuffer buf = Command.QUERY.execute(stringToBuffer(t + " Q7"),
-				stringToBuffer("tables"), null);
-		assertEquals("Q0\r\n", bufferToString(buf));
+		String s = bst(Command.QUERY.execute(t + " Q7", stringToBuffer("tables"), null));
+		assertEquals("Q0", s);
 
-		buf.rewind();
-		buf = Command.CLOSE.execute(buf, null, null);
-		assertEquals("OK\r\n", bufferToString(buf));
-		tbuf.rewind();
-		buf = Command.COMMIT.execute(tbuf, null, null);
-		assertEquals("OK\r\n", bufferToString(buf));
-		assertTrue(serverData.isEmpty());
+		s = bst(Command.CLOSE.execute(s, null, null));
+		assertEquals("OK", s);
+		
+		s = bst(Command.COMMIT.execute(t, null, null));
+		assertEquals("OK", s);
 	}
 
 	@Test
 	public void header() {
-		ByteBuffer buf = Command.CURSOR.execute(null, stringToBuffer("tables"),
-				null);
-		assertEquals("C0\r\n", bufferToString(buf));
+		String s = bst(Command.CURSOR.execute(null, stringToBuffer("tables"), null));
+		assertEquals("C0", s);
 
-		buf.rewind();
-		buf = Command.HEADER.execute(buf, null, null);
-		assertThat(bufferToString(buf), startsWith("(table,tablename"));
+		s = bst(Command.HEADER.execute(s, null, null));
+		assertThat(s, startsWith("(table,tablename"));
 	}
 
 	@Test
 	public void order() {
-		ByteBuffer tbuf = Command.TRANSACTION.execute(READ, null, null);
-		String t = bufferToString(tbuf).trim();
+		String t = bst(Command.TRANSACTION.execute("read", null, null));
 		assertThat(t, matches("T\\d+"));
 
-		ByteBuffer buf = Command.QUERY.execute(stringToBuffer(t + " Q25"),
-				stringToBuffer("columns sort column,table"), null);
-		assertEquals("Q0\r\n", bufferToString(buf));
+		String s = bst(Command.QUERY.execute(t + " Q25",
+				stringToBuffer("columns sort column,table"), null));
+		assertEquals("Q0", s);
 
-		buf.rewind();
-		buf = Command.ORDER.execute(buf, null, null);
-		assertEquals("(column,table)\r\n", bufferToString(buf));
+		s = bst(Command.ORDER.execute("Q0", null, null));
+		assertEquals("(column,table)", s);
+		
+		s = bst(Command.COMMIT.execute(t, null, null));
+		assertEquals("OK", s);
 	}
 
 	@Test
 	public void keys() {
-		ByteBuffer buf = Command.CURSOR.execute(null, stringToBuffer("tables"),
-				null);
-		assertEquals("C0\r\n", bufferToString(buf));
+		String s = bst(Command.CURSOR.execute(null, stringToBuffer("tables"), null));
+		assertEquals("C0", s);
 
-		buf.rewind();
-		buf = Command.KEYS.execute(buf, null, null);
-		assertEquals("((table),(tablename))\r\n", bufferToString(buf));
+		s = bst(Command.KEYS.execute("C0", null, null));
+		assertEquals("((table),(tablename))", s);
 
-		Command.CLOSE.execute(stringToBuffer("C0"), null, null);
+		Command.CLOSE.execute("C0", null, null);
 	}
 
 	@Test
 	public void explain() {
-		ByteBuffer buf = Command.CURSOR.execute(null, stringToBuffer("tables"),
-				null);
-		assertEquals("C0\r\n", bufferToString(buf));
+		String s = bst(Command.CURSOR.execute(null, stringToBuffer("tables"), null));
+		assertEquals("C0", s);
 
-		buf.rewind();
-		buf = Command.EXPLAIN.execute(buf, null, null);
-		assertEquals("tables^(table)\r\n", bufferToString(buf));
+		s = bst(Command.EXPLAIN.execute("C0", null, null));
+		assertEquals("tables^(table)", s);
 
-		Command.CLOSE.execute(stringToBuffer("C0"), null, null);
+		Command.CLOSE.execute("C0", null, null);
 	}
 
 	@Test
 	public void rewind() {
-		ByteBuffer buf = Command.CURSOR.execute(null, stringToBuffer("tables"),
-				null);
-		assertEquals("C0\r\n", bufferToString(buf));
+		String s = bst(Command.CURSOR.execute(null, stringToBuffer("tables"), null));
+		assertEquals("C0", s);
 
-		buf.rewind();
-		buf = Command.REWIND.execute(buf, null, null);
-		assertEquals("OK\r\n", bufferToString(buf));
+		s = bst(Command.REWIND.execute("C0", null, null));
+		assertEquals("OK", s);
 
-		Command.CLOSE.execute(stringToBuffer("C0"), null, null);
+		Command.CLOSE.execute("C0", null, null);
 	}
 
 	@Test
 	public void get() {
-		ServerData serverData = new ServerData();
 		Output output = new Output();
 
-		ByteBuffer tbuf = Command.TRANSACTION.execute(READ, null, null);
-		String t = bufferToString(tbuf).trim();
+		String t = bst(Command.TRANSACTION.execute("read", null, null));
 		assertThat(t, startsWith("T"));
 
-		assertEquals(7, Command.QUERY.extra(stringToBuffer(t + " Q7")));
-		ByteBuffer buf = Command.QUERY.execute(stringToBuffer(t + " Q7"),
-				stringToBuffer("tables"), null);
-		assertEquals("Q0\r\n", bufferToString(buf));
+		assertEquals(7, Command.QUERY.extra(t + " Q7"));
+		String s = bst(Command.QUERY.execute(t + " Q7", stringToBuffer("tables"), null));
+		assertEquals("Q0", s);
 
-		buf = Command.GET.execute(stringToBuffer("+ Q0"), null, output);
-		assertNull(buf);
-		assertThat(bufferToString(output.get(0)), matches("A\\d+ R\\d+\r\n"));
+		assertNull(Command.GET.execute("+ Q0", null, output));
+		assertThat(bst(output.get(0)), matches("A\\d+ R\\d+"));
 		Record rec = dbpkg.record(output.get(1));
 		assertThat(rec.toString(), startsWith("[1,'tables'"));
 
-		buf = Command.CLOSE.execute(stringToBuffer("Q0"), null, null);
-		assertEquals("OK\r\n", bufferToString(buf));
+		s = bst(Command.CLOSE.execute("Q0", null, null));
+		assertEquals("OK", s);
 
-		tbuf.rewind();
-		buf = Command.COMMIT.execute(tbuf, null, null);
-		assertEquals("OK\r\n", bufferToString(buf));
-		assertTrue(serverData.isEmpty());
+		s = bst(Command.COMMIT.execute(t, null, null));
+		assertEquals("OK", s);
 	}
 
 	@Test
 	public void get1() {
-		ServerData serverData = new ServerData();
 		Output output = new Output();
 
-		ByteBuffer tbuf = Command.TRANSACTION.execute(READ, null, null);
-		String t = bufferToString(tbuf).trim();
+		String t = bst(Command.TRANSACTION.execute("read", null, null));
 		assertThat(t, startsWith("T"));
 
-		ByteBuffer line = stringToBuffer("+ " + t + " Q6");
+		String line = "+ " + t + " Q6";
 		assertEquals(6, Command.GET1.extra(line));
-		line.rewind();
-		ByteBuffer buf = Command.GET1.execute(line,
-				stringToBuffer("tables"),
-				output);
-		assertNull(buf);
-		assertThat(bufferToString(output.get(0)),
-				matches("A\\d+ R\\d+ \\(table,tablename.*\\)\r\n"));
+		assertNull(Command.GET1.execute(line, stringToBuffer("tables"), output));
+		assertThat(bst(output.get(0)),
+				matches("A\\d+ R\\d+ \\(table,tablename.*\\)"));
 		Record rec = dbpkg.record(output.get(1));
 		assertThat(rec.toString(), startsWith("[1,'tables'"));
 
-		tbuf.rewind();
-		buf = Command.COMMIT.execute(tbuf, null, null);
-		assertEquals("OK\r\n", bufferToString(buf));
-		assertTrue(serverData.isEmpty());
+		String s = bst(Command.COMMIT.execute(t, null, null));
+		assertEquals("OK", s);
 	}
 
 	@Test
@@ -274,7 +235,7 @@ public class CommandTest {
 		output(q, make("a", "b", "c"));
 		commit(t);
 
-		// UPDATE
+		// "update"
 		t = updateTran();
 		String adr = get(t, "['a','b','c']");
 		update(t, adr, make("A", "B", "C"));
@@ -289,110 +250,90 @@ public class CommandTest {
 		commit(t);
 	}
 	private static void admin(String s) {
-		Command.ADMIN.execute(stringToBuffer(s),
-				null, null);
+		Command.ADMIN.execute(s, null, null);
 	}
 	private static String updateTran() {
-		ByteBuffer buf = Command.TRANSACTION.execute(UPDATE, null, null);
-		String t = bufferToString(buf).trim();
+		String t = bst(Command.TRANSACTION.execute("update", null, null));
 		assertThat(t, startsWith("T"));
 		return t;
 	}
 	private static String query(String t) {
-		ByteBuffer buf = Command.QUERY.execute(stringToBuffer(t + " Q5"),
-				stringToBuffer("test"), null);
-		String q = bufferToString(buf).trim();
+		String q = bst(Command.QUERY.execute(t + " Q5", stringToBuffer("test"), null));
 		assertThat(q, startsWith("Q"));
 		return q;
 	}
 	private static void output(String q, Record rec) {
-		Command.OUTPUT.execute(stringToBuffer(q + " R" + rec.packSize()),
-				rec.getBuffer(), null);
+		Command.OUTPUT.execute(q + " R" + rec.packSize(), rec.getBuffer(), null);
 	}
 	private static void commit(String t) {
-		ByteBuffer buf = Command.COMMIT.execute(stringToBuffer(t + "\r\n"), null, null);
-		assertEquals("OK\r\n", bufferToString(buf));
+		String s = bst(Command.COMMIT.execute(t, null, null));
+		assertEquals("OK", s);
 	}
 	private static String get(String t, String expected) {
 		Output output = new Output();
-		ByteBuffer buf = Command.GET1.execute(stringToBuffer("+ " + t + " Q4"),
-				stringToBuffer("test"), output);
-		assertNull(buf);
-		String s = bufferToString(output.get(0));
-		assertThat(s, matches("A[-0-9]+ R\\d+ \\(a,b,c\\)\r\n"));
+		assertNull(Command.GET1.execute("+ " + t + " Q4", stringToBuffer("test"), output));
+		String s = bst(output.get(0));
+		assertThat(s, matches("A[-0-9]+ R\\d+ \\(a,b,c\\)"));
 		Record rec = dbpkg.record(output.get(1));
 		assertThat(rec.toString(), equalTo(expected));
 		return s.substring(0, s.indexOf(' '));
 	}
 	private static void update(String t, String adr, Record rec) {
-		ByteBuffer buf = Command.UPDATE.execute(
-				stringToBuffer(t + " " + adr + " R" + rec.packSize()),
-				rec.getBuffer(), null);
-		assertThat(bufferToString(buf), startsWith("U"));
+		String s = bst(Command.UPDATE.execute(t + " " + adr + " R" + rec.packSize(),
+				rec.getBuffer(), null));
+		assertThat(s, startsWith("U"));
 	}
 	private static void erase(String t, String adr) {
-		ByteBuffer buf = Command.ERASE.execute(stringToBuffer(t + " " + adr), null,
-				null);
-		assertEquals("OK\r\n", bufferToString(buf));
+		String s = bst(Command.ERASE.execute(t + " " + adr, null, null));
+		assertEquals("OK", s);
 	}
 
 	private static void geteof(String t) {
 		Output output = new Output();
-		Command.GET1.execute(stringToBuffer("+ " + t + " Q4"),
-				stringToBuffer("test"), output);
-		assertEquals("EOF\r\n", bufferToString(output.get(0)));
+		Command.GET1.execute("+ " + t + " Q4", stringToBuffer("test"), output);
+		assertEquals("EOF", bst(output.get(0)));
 	}
 
 	@Test
 	public void libget() {
-		final ServerData serverData = new ServerData();
 		Output output = new Output();
 
-		Command.ADMIN.execute(
-				stringToBuffer("create stdlib (name,text,group) key(name,group)"),
+		Command.ADMIN.execute("create stdlib (name,text,group) key(name,group)", 
 				null, null);
 
 		String t = updateTran();
 
-		ByteBuffer buf = Command.QUERY.execute(stringToBuffer(t + " Q6"),
-				stringToBuffer("stdlib"), null);
-		assertEquals("Q0\r\n", bufferToString(buf));
+		String s = bst(Command.QUERY.execute(t + " Q6", stringToBuffer("stdlib"), null));
+		assertEquals("Q0", s);
 
 		Record rec = make(-1, "Foo", "some text");
-		buf = Command.OUTPUT.execute(
-				stringToBuffer("Q0 R" + rec.packSize()), rec.getBuffer(), null);
-		assertEquals("t\r\n", bufferToString(buf));
+		s = bst(Command.OUTPUT.execute("Q0 R" + rec.packSize(), rec.getBuffer(), null));
+		assertEquals("t", s);
 
 		rec = make(-1, "Bar", "other stuff");
-		buf = Command.OUTPUT.execute(
-				stringToBuffer("Q0 R" + rec.packSize()), rec.getBuffer(), null);
-		assertEquals("t\r\n", bufferToString(buf));
+		s = bst(Command.OUTPUT.execute("Q0 R" + rec.packSize(), rec.getBuffer(), null));
+		assertEquals("t", s);
 
 		rec = make(1, "Foo", ""); // folder
-		buf = Command.OUTPUT.execute(
-				stringToBuffer("Q0 R" + rec.packSize()), rec.getBuffer(), null);
-		assertEquals("t\r\n", bufferToString(buf));
+		s = bst(Command.OUTPUT.execute("Q0 R" + rec.packSize(), rec.getBuffer(), null));
+		assertEquals("t", s);
 
-		buf = Command.CLOSE.execute(stringToBuffer("Q0"), null, null);
-		assertEquals("OK\r\n", bufferToString(buf));
+		s = bst(Command.CLOSE.execute("Q0", null, null));
+		assertEquals("OK", s);
 		commit(t);
-		assertTrue(serverData.isEmpty());
 
-		buf = Command.LIBGET.execute(stringToBuffer("Foo"), null, output);
-		assertEquals(null, buf);
-		assertEquals("L10 \r\n", bufferToString(output.get(0)));
-		assertEquals("stdlib\r\n", bufferToString(output
-				.get(1)));
-		assertEquals("" + (char) Pack.Tag.STRING + "some text",
-				bufferToString(output.get(2)));
+		assertNull(Command.LIBGET.execute("Foo", null, output));
+		assertEquals("L10", bst(output.get(0)));
+		assertEquals("stdlib", bst(output.get(1)));
+		assertEquals("" + (char) Pack.Tag.STRING + "some text", bufferToString(output.get(2)));
 
-		buf = Command.LIBGET.execute(stringToBuffer("Nil"), null, output);
+		assertNull(Command.LIBGET.execute("Nil", null, output));
 	}
 
 	@Test
 	public void libraries() {
-		ByteBuffer buf = Command.LIBRARIES.execute(null, null, null);
-		assertEquals("(stdlib)\r\n", bufferToString(buf));
+		String s = bst(Command.LIBRARIES.execute(null, null, null));
+		assertEquals("(stdlib)", s);
 	}
 
 	@Test
@@ -422,30 +363,18 @@ public class CommandTest {
 
 	// =========================================================================
 
-	public static class Output implements NetworkOutput {
-
-		private final List<ByteBuffer> content = new LinkedList<>();
+	public static class Output implements Consumer<ByteBuffer> {
+		private final List<ByteBuffer> content = new ArrayList<>();
 
 		@Override
-		public void add(ByteBuffer buf) {
+		public void accept(ByteBuffer buf) {
 			content.add(buf);
 		}
-
-		public ByteBuffer get(int i) {
+		
+		ByteBuffer get(int i) {
 			return content.get(i);
 		}
-
-		@Override
-		public void write() {
-		}
-
-		@Override
-		public void close() {
-		}
 	}
-
-	private static ByteBuffer READ = stringToBuffer("read");
-	private static ByteBuffer UPDATE = stringToBuffer("update");
 
 	static Record make(String... args) {
 		RecordBuilder r = dbpkg.recordBuilder();
@@ -460,6 +389,10 @@ public class CommandTest {
 			r.add(s);
 		r.add(n);
 		return r.build();
+	}
+	
+	static String bst(ByteBuffer buf) {
+		return bufferToString(buf).trim();
 	}
 
 }

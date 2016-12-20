@@ -5,64 +5,62 @@
 package suneido.util;
 
 import java.io.IOException;
-import java.net.InetAddress;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.Random;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.function.Function;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Socket server framework using NIO Selector and non-blocking channels.
- * Uses a supplied HandlerFactory to create a new
- * Handler for each accepted connection. Calls handler.start initially. Then
- * calls handler.moreInput each time more data is read. Input is accumulated
- * until moreInput consumes it, presumably after a complete request has been
- * received. The handler is given an OutputQueue to send its output to. Output
- * is gather written asynchronously. OutputQueue's are synchronized. It is up
- * to handlers to create worker threads if desired.
+ * Socket server framework using NIO Selector for accept and readability.
+ * Uses a supplied function to create a new Handler for each accepted connection.
+ * Constructs handler initially while channel is still in blocking mode.
+ * It is up to handlers to create worker threads.
+ * Does NOT doing any reading or writing.
+ * Assumes request-response model.
+ * Waits till channel is readable and then passes channel to handler.request
+ * with the channel in blocking mode and unregistered from selector.
+ * When the handler finishes reading the request and writing the response
+ * it should reregister.
+ * It is up to the handler to detect closed connections and close the channel.
+ * Closes idle connections.
  */
 @NotThreadSafe
 public class ServerBySelect {
-	private final HandlerFactory handlerFactory;
-	private InetAddress inetAddress;
+	private final Function<SocketChannel, Handler> handlerFactory;
 	private Selector selector;
-	private static final int INITIAL_BUFSIZE = 16 * 1024;
-	private static final int MAX_BUFSIZE = 64 * 1024;
 	private final int idleTimeoutMs;
 	private static final int ONE_MINUTE_IN_MS = 60 * 1000;
 	private static final int SELECT_TIMEOUT_MS = ONE_MINUTE_IN_MS;
 	private static final int IDLE_CHECK_INTERVAL_MS = ONE_MINUTE_IN_MS;
-	private final Set<SelectionKey> needWrite
-			= new ConcurrentSkipListSet<>(new IdentityComparator());
 	private long lastIdleCheck = System.currentTimeMillis();
+	private final ConcurrentLinkedQueue<ChannelHandler> reregister
+			= new ConcurrentLinkedQueue<>();
 
-	public ServerBySelect(HandlerFactory handlerFactory) {
+	public ServerBySelect(Function<SocketChannel, Handler> handlerFactory) {
 		this(handlerFactory, 0);
 	}
 
-	public ServerBySelect(HandlerFactory handlerFactory, int idleTimeoutMin) {
+	public ServerBySelect(Function<SocketChannel, Handler> handlerFactory,
+			int idleTimeoutMin) {
 		this.handlerFactory = handlerFactory;
 		this.idleTimeoutMs = idleTimeoutMin * ONE_MINUTE_IN_MS;
-	}
-
-	public void run(int port) {
-		open(port);
-		serve();
 	}
 
 	public void open(int port) {
 		try {
 			ServerSocketChannel serverChannel = ServerSocketChannel.open();
 			ServerSocket serverSocket = serverChannel.socket();
+			//serverSocket.setReuseAddress(true);
 			serverSocket.bind(new InetSocketAddress(port));
-			inetAddress = serverSocket.getInetAddress();
 			selector = Selector.open();
 			registerChannel(serverChannel, SelectionKey.OP_ACCEPT);
 		} catch (IOException e) {
@@ -70,26 +68,33 @@ public class ServerBySelect {
 		}
 	}
 
+	/** does not return */
 	public void serve() {
-		new Thread(() -> loop()).start();
-	}
-
-	private void loop() {
+		int errorCount = 0;
 		while (true) {
 			try {
 				int nready = selector.select(SELECT_TIMEOUT_MS);
+				// must be before handleSelected
+				// so we don't try to reregister a key we just cancel'ed
+				handleReregister();
 				if (nready > 0)
 					handleSelected();
-				handleWriters();
 				closeIdleConnections();
+				errorCount = 0; // reset after success
 			} catch (Throwable e) {
 				Errlog.error("error in server loop", e);
+				if (++errorCount > 100)
+					Errlog.fatal("ServerBySelect too many consecutive errors");
 			}
 		}
 	}
 
-	public InetAddress getInetAddress() {
-		return inetAddress;
+	private void handleReregister() throws IOException {
+		ChannelHandler ch;
+		while (null != (ch = reregister.poll())) {
+			SelectionKey key = registerChannel(ch.channel, SelectionKey.OP_READ);
+			key.attach(new Info(ch.handler));
+		}
 	}
 
 	private void handleSelected() throws IOException {
@@ -102,27 +107,8 @@ public class ServerBySelect {
 			if (key.isAcceptable())
 				accept(key);
 			else if (key.isReadable())
-				read(key);
-			else if (key.isWritable())
-				write(key);
+				readable(key);
 		}
-	}
-
-	private void handleWriters() {
-		if (needWrite.isEmpty())
-			return;
-		Iterator<SelectionKey> iter = needWrite.iterator();
-		while (iter.hasNext()) {
-			SelectionKey key = iter.next();
-			iter.remove();
-			if (key.isValid())
-				key.interestOps(SelectionKey.OP_WRITE);
-		}
-	}
-
-	private void needWrite(SelectionKey key) {
-		needWrite.add(key);
-		selector.wakeup();
 	}
 
 	private void accept(SelectionKey key)
@@ -131,172 +117,47 @@ public class ServerBySelect {
 		SocketChannel channel = server.accept();
 		if (channel == null)
 			return;
+		Handler handler = handlerFactory.apply(channel);
 		SelectionKey key2 = registerChannel(channel, SelectionKey.OP_READ);
-		if (key2 == null) {
-			Errlog.error("ServerBySelect accept registerChannel failed");
-			return;
-		}
-		InetAddress adr = channel.socket().getInetAddress();
-		Handler handler = handlerFactory.newHandler(new OutputQueue(this, key2),
-				adr.getHostAddress());
 		key2.attach(new Info(handler));
-		handler.start();
 	}
 
-	private SelectionKey registerChannel(SelectableChannel channel, int ops)
+	private SelectionKey registerChannel(SelectableChannel channel, int op)
 			throws IOException {
 		channel.configureBlocking(false);
-		return channel.register(selector, ops);
+		return channel.register(selector, op);
 	}
 
 	private static class Info {
 		volatile long idleSince = 0;
 		final Handler handler;
-		ByteBuffer readBuf = ByteBuffer.allocateDirect(INITIAL_BUFSIZE);
-		ByteBuffer[] writeBufs = new ByteBuffer[0]; // set by OutputQueue.write
 
 		Info(Handler handler) {
 			this.handler = handler;
 		}
 	}
 
-	private static void read(SelectionKey key) {
-		try {
-			read2(key);
-		} catch (Exception e) {
-			errorClose(key, e);
-		}
-	}
-
-	private static void read2(SelectionKey key)	throws IOException {
+	private static void readable(SelectionKey key) throws IOException {
 		SocketChannel channel = (SocketChannel) key.channel();
 		Info info = (Info) key.attachment();
-		ByteBuffer buf = info.readBuf;
-		int n;
-		do {
-			if (buf.remaining() == 0) {
-				ByteBuffer oldbuf = buf;
-				buf = ByteBuffer.allocateDirect(2 * oldbuf.capacity());
-				oldbuf.flip();
-				buf.put(oldbuf);
-				info.readBuf = buf;
-			}
-			try {
-				n = channel.read(buf);
-			} catch (IOException e) {
-				// we get this if the client closes the connection
-				n = -1;
-			}
-		} while (n > 0);
-		if (n < 0) {
-			close(key);
-			return;
-		}
-		buf.flip();
-		info.handler.moreInput(buf);
-		if (buf.remaining() > 0) {
-			assert buf.position() == 0;
-			buf.compact();
-		} else {
-			// input has been consumed
-			if (buf.capacity() <= MAX_BUFSIZE)
-				buf.clear();
-			else // don't keep buffer bigger than max
-				info.readBuf = ByteBuffer.allocateDirect(MAX_BUFSIZE);
-		}
+		info.idleSince = 0;
+		key.cancel(); // stop monitoring while handler running
+		channel.configureBlocking(true);
+		info.handler.request(channel);
 	}
 
-	// called by selector
-	private static void write(SelectionKey key) throws IOException {
-		if (channelWrite(key))
-			if (key.isValid())
-				key.interestOps(SelectionKey.OP_READ); // turn off write interest
+	/** called by handlers when they finish handling a request (thread safe) */
+	public void reregister(SocketChannel channel, Handler handler) {
+		// use a queue to avoid messing with the selector from multiple threads
+		reregister.add(new ChannelHandler(channel, handler));
+		selector.wakeup();
 	}
-
-	// called by worker
-	private static boolean write3(SelectionKey key) throws IOException {
-		// this synchronized should not be necessary
-		// but it seems to prevent problems with garbage being sent sometimes
-		synchronized(ServerBySelect.class) {
-			return channelWrite(key);
-		}
-	}
-
-	/** returns false if it needs to be called again */
-	private static boolean channelWrite(SelectionKey key) {
-		SocketChannel channel = (SocketChannel) key.channel();
-		if (! channel.isOpen())
-			return true;
-		Info info = (Info) key.attachment();
-		try {
-			channel.write(info.writeBufs);
-			return bufsEmpty(info.writeBufs);
-		} catch (IOException e) {
-			errorClose(key, e);
-			return true;
-		}
-	}
-
-	private static void errorClose(SelectionKey key, Exception e) {
-		Info info = (Info) key.attachment();
-		Print.timestamped("io failed so closing " + info.handler, e);
-		close(key);
-	}
-
-	private static void close(SelectionKey key) {
-		Info info = (Info) key.attachment();
-		info.handler.close();
-		key.cancel();
-		try {
-			key.channel().close();
-		} catch (IOException e) {
-			// ignore error during close
-		}
-	}
-
-	private static boolean bufsEmpty(ByteBuffer[] bufs) {
-		for (ByteBuffer b : bufs)
-			if (b.remaining() > 0)
-				return false;
-		return true; // everything written
-	}
-
-	public static class OutputQueue implements NetworkOutput {
-		private static final ByteBuffer[] ByteBufferArray = new ByteBuffer[0];
-		private final ServerBySelect selectServer;
-		private final SelectionKey key;
-		private final List<ByteBuffer> writeQueue = new ArrayList<>();
-
-		public OutputQueue(ServerBySelect selectServer, SelectionKey key) { // public for tests
-			this.selectServer = selectServer;
-			this.key = key;
-		}
-		@Override
-		public void add(ByteBuffer output) {
-			writeQueue.add(output);
-		}
-		@Override
-		public void write() {
-			Info info = (Info) key.attachment();
-			info.idleSince = 0;
-			info.writeBufs = writeQueue.toArray(ByteBufferArray);
-			writeQueue.clear();
-			try {
-				if (ServerBySelect.write3(key))
-					return;
-			} catch (IOException e) {
-				Errlog.error("IOException in OutputQueue.write", e);
-			}
-			selectServer.needWrite(key);
-		}
-		@Override
-		public void close() {
-			key.cancel();
-			try {
-				key.channel().close();
-			} catch (IOException e) {
-				// ignore errors during close
-			}
+	private static class ChannelHandler {
+		final SocketChannel channel;
+		final Handler handler;
+		public ChannelHandler(SocketChannel channel, Handler handler) {
+			this.channel = channel;
+			this.handler = handler;
 		}
 	}
 
@@ -325,58 +186,97 @@ public class ServerBySelect {
 		}
 	}
 
-	public interface HandlerFactory {
-		Handler newHandler(NetworkOutput outputQueue, String address);
-	}
+	// =========================================================================
 
+	/**
+	 * Constructed for each new connection that is accepted,
+	 * with the channel in blocking mode.
+	 */
 	public interface Handler {
-		void start();
-		void moreInput(ByteBuffer buf);
+		/**
+		 * Called when the channel is readable (but no data has been read)
+		 * with the channel in blocking mode.
+		 * Any lengthy processing should be done in a separate thread.
+		 * Should close the channel when connection is broken.
+		 */
+		void request(SocketChannel channel);
+
+		/** used when closing idle connections */
 		void close();
 	}
 
-	//==========================================================================
+	// demo ====================================================================
 
-//	public static void main(String[] args) {
-//		ServerBySelect server = new ServerBySelect(new EchoHandlerFactory());
-//		try {
-//			server.run(1234);
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
-//	}
-//
-//	static class EchoHandler implements Handler {
-//		private static ByteBuffer hello = stringToBuffer("EchoServer\r\n");
-//		NetworkOutput outputQueue;
-//
-//		EchoHandler(NetworkOutput outputQueue) {
-//			this.outputQueue = outputQueue;
-//		}
-//
-//		@Override
-//		public void start() {
-//			hello.rewind();
-//			outputQueue.add(hello);
-//			outputQueue.write();
-//		}
-//
-//		@Override
-//		public void moreInput(ByteBuffer buf) {
-//			ByteBuffer output = ByteBuffer.allocate(buf.remaining());
-//			output.put(buf).rewind();
-//			outputQueue.add(output);
-//		}
-//
-//		@Override
-//		public void close() {
-//		}
-//	}
-//	static class EchoHandlerFactory implements HandlerFactory {
-//		@Override
-//		public Handler newHandler(NetworkOutput outputQueue, String address) {
-//			return new EchoHandler(outputQueue);
-//		}
-//	}
+	private static ServerBySelect server =
+			new ServerBySelect(EchoHandler::new, 1); // 1 min timeout
+
+	public static void main(String[] args) {
+		server.open(1234);
+		server.serve();
+	}
+
+	static class EchoHandler implements Handler {
+		private static final Executor executor =
+				Executors.newCachedThreadPool();
+		private static ByteBuffer hello =
+				ByteBuffers.stringToBuffer("EchoServer\r\n");
+		private static Random rand = new Random();
+
+		EchoHandler(SocketChannel channel) {
+			hello.rewind();
+			try {
+				channel.write(hello);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		@Override
+		public void request(SocketChannel channel) {
+			switch (rand.nextInt(3)) {
+			case 0:
+				handleRequest(channel);
+				break;
+			case 1:
+				new Thread(() -> handleRequest(channel)).start();
+				break;
+			case 2:
+				executor.execute(() -> handleRequest(channel));
+				break;
+			}
+		}
+
+		private void handleRequest(SocketChannel channel) {
+			try {
+				String line = readline(channel);
+				channel.write(ByteBuffers.stringToBuffer(line + '\n'));
+				server.reregister(channel, this);
+			} catch (IOException e) {
+				try {
+					channel.close();
+				} catch (IOException e1) {
+					Errlog.error("error in channel.close", e);
+				}
+			}
+		}
+
+		String readline(SocketChannel channel) throws IOException {
+			StringBuilder sb = new StringBuilder();
+			InputStream in = channel.socket().getInputStream();
+			while (true) {
+				int b = in.read();
+				if (b == -1 || b == '\n')
+					break;
+				if (b != '\r')
+					sb.append((char) b);
+			}
+			return sb.toString();
+		}
+
+		@Override
+		public void close() {
+			System.out.println("closing (idle)");
+		}
+	}
 
 }

@@ -18,7 +18,6 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
-import suneido.database.server.DbmsServer;
 import suneido.runtime.builtin.SuThread;
 import suneido.util.Errlog;
 
@@ -121,7 +120,7 @@ public class HttpServerMonitor {
 					.append(mb(TheDbms.dbms().size()))
 					.append("mb</p>\r\n");
 
-			List<String> conns = DbmsServer.connections();
+			List<String> conns = Suneido.server.connections();
 			sb.append("<p>Connections: (").append(conns.size()).append(") ");
 			Collections.sort(conns);
 			Joiner.on(", ").appendTo(sb, conns);
