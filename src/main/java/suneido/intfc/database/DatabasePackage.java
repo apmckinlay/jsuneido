@@ -25,12 +25,6 @@ public interface DatabasePackage {
 
 	Record record(ByteBuffer buf);
 
-	/**
-	 * used when buf must be copied
-	 * i.e. calling code will reuse buf
-	 */
-	Record recordCopy(ByteBuffer buf);
-
 	Record record(int recadr, ByteBuffer buf);
 
 	RecordStore recordStore();
