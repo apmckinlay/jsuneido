@@ -130,7 +130,7 @@ public class DbmsChannel {
 	public void writeLine(String cmd) {
 		if (tracing(CLIENTSERVER))
 			trace(CLIENTSERVER, cmd);
-		write(cmd + "\n");
+		write(cmd + "\r\n");
 	}
 
 	public void writeLine(String cmd, String s) {
