@@ -7,10 +7,10 @@ package suneido.database.server;
 import static suneido.util.ByteBuffers.stringToBuffer;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -37,7 +37,7 @@ public class DbmsServerBySelect {
 			"Suneido Database Server (" + Suneido.cmdlineoptions.impersonate + ")\r\n");
 	private static final int BUFSIZE = 16 * 1024;
 	private static final ThreadLocal<ByteBuffer> tlbuf = 
-			ThreadLocal.withInitial(() -> ByteBuffer.allocateDirect(BUFSIZE));
+			ThreadLocal.withInitial(() -> ByteBuffer.allocate(BUFSIZE));
 	private ServerBySelect server;
 	public ServerDataSet serverDataSet = new ServerDataSet();
 	
@@ -85,7 +85,8 @@ public class DbmsServerBySelect {
 
 		private void handleRequest(SocketChannel channel) {
 			try {
-				String line = readline(channel);
+				ByteBuffer buf = tlbuf.get();
+				String line = readline(channel, buf);
 				if (line == null) { // disconnected
 					channel.close();
 					close();
@@ -98,9 +99,8 @@ public class DbmsServerBySelect {
 				
 				ByteBuffer extra = nExtra > BUFSIZE ||
 						cmd == Command.OUTPUT || cmd == Command.UPDATE
-						? ByteBuffer.allocateDirect(nExtra)
-						: tlbuf.get();
-				extra.clear();
+						? newBuf(buf, nExtra)
+						: buf;
 				while (extra.position() < nExtra)
 					channel.read(extra);
 				extra.flip();
@@ -139,20 +139,46 @@ public class DbmsServerBySelect {
 			return serverData.getSessionId();
 		}
 	}
+	
+	private static ByteBuffer newBuf(ByteBuffer buf, int nExtra) {
+		ByteBuffer dst = ByteBuffer.allocateDirect(nExtra);
+		buf.flip();
+		dst.put(buf);
+		return dst;
+	}
 
-	private static String readline(SocketChannel channel) throws IOException {
-		StringBuilder sb = new StringBuilder();
-		InputStream in = channel.socket().getInputStream();
+	private static int indexOf(ByteBuffer buf, int pos, byte b) {
+		for (int i = pos; i < buf.position(); ++i)
+			if (buf.get(i) == b)
+				return i;
+		return -1;
+	}
+
+	private static String readline(SocketChannel channel, ByteBuffer buf) throws IOException {
+		buf.clear();
+		int pos = 0;
 		while (true) {
-			int b = in.read();
-			if (b == -1)
+			if (buf.remaining() == 0) // line too long
+				return null; // ???
+			if (-1 == channel.read(buf))
 				return null; // disconnected
-			if (b == '\n')
+			int i = indexOf(buf, pos, (byte) '\n');
+			if (i != -1) {
+				pos = i;
 				break;
-			if (b != '\r')
-				sb.append((char) b);
+			}
+			pos = buf.position();
 		}
-		return sb.toString();
+		int len = pos;
+		if (buf.get(pos - 1) == '\r')
+			--len;
+		String s = new String(buf.array(), buf.arrayOffset(), len, 
+				StandardCharsets.ISO_8859_1);
+		// if we read more than just line, leave it at start of buf
+		buf.limit(buf.position());
+		buf.position(pos + 1);
+		buf.compact();
+		return s;
 	}
 
 	private static String firstWord(String line) {
