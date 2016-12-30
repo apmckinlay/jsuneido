@@ -12,6 +12,8 @@ import java.security.SecureRandom;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.Sets;
+
 import suneido.TheDbms;
 import suneido.intfc.database.Database;
 import suneido.intfc.database.Record;
@@ -19,21 +21,20 @@ import suneido.intfc.database.Table;
 import suneido.intfc.database.Transaction;
 import suneido.util.Util;
 
-import com.google.common.collect.Sets;
-
 public class Auth {
 	private static SecureRandom random = new SecureRandom();
 	public static final int NONCE_SIZE = 8;
 	public static final int TOKEN_SIZE = 16;
 	private static Set<String> tokens = Sets.newConcurrentHashSet();
 
-	/** @return Random eight bytes */
+	/** @return Random bytes */
 	synchronized private static byte[] random(int size) {
 		byte bytes[] = new byte[size];
 		random.nextBytes(bytes);
 		return bytes;
 	}
 
+	/** @return 8 random bytes used to salt the auth hash */
 	public static byte[] nonce() {
 		byte[] nonce = random(NONCE_SIZE);
 		ServerData.forThread().setNonce(nonce);
@@ -50,8 +51,10 @@ public class Auth {
 		return token;
 	}
 
-	// data may be token or user + sha1(nonce + lookup(user).passhash)
-	// where passhash is md5(user + password)
+	/**
+	 * data may be token or user + sha1(nonce + lookup(user).passhash)
+	 * where passhash is md5(user + password)
+	 */
 	public static boolean auth(String data) {
 		if (! (isToken(data) || isUser(data)))
 			return false;

@@ -163,6 +163,7 @@ public class ServerData {
 		this.nonce = nonce;
 	}
 
+	/** @return the current nonce and clear it */
 	public byte[] getNonce() {
 		byte[] result = nonce;
 		nonce = null;
