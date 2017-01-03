@@ -251,8 +251,6 @@ public class Pack {
 	}
 
 	private static String unpackString(ByteBuffer buf) {
-		if (buf.remaining() == 0)
-			return "";
 		return bufferToString(buf);
 	}
 

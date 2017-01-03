@@ -4,39 +4,87 @@
 
 package suneido.util;
 
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 public class ByteBuffers {
 
+	// buffer to string --------------------------------------------------------
+
+	/**
+	 * @return The remainder of the buffer as a string.
+	 * Does NOT change buffer position.
+	 */
 	public static String bufferToString(ByteBuffer buf) {
-		return ByteBuffers.getStringFromBuffer(buf, buf.position());
+		return bufferToString(buf, buf.position());
 	}
 
-	/** does NOT change buffer position */
-	public static String getStringFromBuffer(ByteBuffer buf, int i) {
-		StringBuilder sb = new StringBuilder(buf.remaining());
-		for (; i < buf.limit(); ++i)
-			sb.append((char) (buf.get(i) & 0xff));
-		return sb.toString();
+	/**
+	 * @return The remainder of the buffer after pos as a string.
+	 * Does NOT change buffer position.
+	 */
+	public static String bufferToString(ByteBuffer buf, int pos) {
+		return bufferToString(buf, pos, buf.limit() - pos);
 	}
 
+	/**
+	 * @return A portion of the buffer as a string.
+	 * Does NOT change buffer position.
+	 */
+	public static String bufferToString(ByteBuffer buf, int pos, int len) {
+		if (pos >= buf.limit())
+			return "";
+		if (buf.hasArray())
+			return new String(buf.array(), buf.arrayOffset() + pos, len,
+					StandardCharsets.ISO_8859_1);
+		else {
+			char[] c = new char[len];
+			for (int i = 0; i < len; ++i)
+				c[i] = (char) (buf.get(pos + i) & 0xff);
+			return new String(c);
+		}
+	}
+
+	/** DOES change buffer position */
+	public static String getStringFromBuffer(ByteBuffer buf, int len) {
+		if (len > buf.remaining())
+			throw new BufferUnderflowException();
+		if (buf.hasArray()) {
+			String s = new String(buf.array(), buf.arrayOffset() + buf.position(), len,
+					StandardCharsets.ISO_8859_1);
+			buf.position(buf.position() + len);
+			return s;
+		} else {
+			char[] c = new char[len];
+			for (int i = 0; i < len; ++i)
+				c[i] = (char) (buf.get() & 0xff);
+			return new String(c);
+		}
+	}
+
+	// string to buffer --------------------------------------------------------
+
+	/** @return A buffer with position 0 and limit of string length */
 	public static ByteBuffer stringToBuffer(String s) {
 		ByteBuffer buf = ByteBuffer.allocate(s.length());
-		ByteBuffers.putStringToByteBuffer(s, buf, 0);
+		putStringToByteBuffer(s, buf, 0);
 		return buf;
 	}
 
 	/** DOES change buffer position */
 	public static void putStringToByteBuffer(String s, ByteBuffer buf) {
 		for (int i = 0; i < s.length(); ++i)
-			buf.put((byte) s.codePointAt(i));
+			buf.put((byte) s.charAt(i));
 	}
 
 	/** does NOT change buffer position */
 	public static void putStringToByteBuffer(String s, ByteBuffer buf, int pos) {
 		for (int i = 0; i < s.length(); ++i)
-			buf.put(pos++, (byte) s.codePointAt(i));
+			buf.put(pos++, (byte) s.charAt(i));
 	}
+
+	//--------------------------------------------------------------------------
 
 	public static String bufferToHex(ByteBuffer buf) {
 		StringBuilder sb = new StringBuilder();
@@ -102,6 +150,32 @@ public class ByteBuffers {
 		if (pos != 0)
 			buf = buf.slice();
 		return buf;
+	}
+
+	public static int indexOf(ByteBuffer buf, byte b) {
+		return indexOf(buf, 0, b);
+	}
+
+	/**
+	 * @return the index of the first b in buf between pos and buf.position()
+	 * or -1 if not found.
+	 */
+	public static int indexOf(ByteBuffer buf, int pos, byte b) {
+		for (int i = pos; i < buf.position(); ++i)
+			if (buf.get(i) == b)
+				return i;
+		return -1;
+	}
+
+	/**
+	 * @return true if remaining() is zero in all the buffers.
+	 * Useful when writing buffers to a channel
+	 */
+	public static boolean bufsEmpty(ByteBuffer[] bufs) {
+		for (ByteBuffer b : bufs)
+			if (b.remaining() > 0)
+				return false;
+		return true;
 	}
 
 }

@@ -14,6 +14,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 
 import suneido.database.query.Header;
 import suneido.intfc.database.Record;
@@ -40,7 +41,7 @@ public class SuContainer extends SuValue
 	private final Map<Object,Object> map;
 	protected Object defval = null;
 	private boolean readonly = false;
-	public final static SuContainer EMPTY = new SuContainer(Empty.EMPTY);
+	public final static SuContainer EMPTY = empty();
 
 	@SuppressWarnings("serial")
 	private static class CanonicalMap extends HashMap<Object, Object> {
@@ -86,18 +87,25 @@ public class SuContainer extends SuValue
 		defval = other.defval;
 	}
 
-	enum Empty { EMPTY };
-	private SuContainer(Empty empty) {
-		vec = Collections.emptyList();
-		map = Collections.emptyMap();
-		readonly = true;
+	private SuContainer(List<Object> vec) {
+		this(vec, new CanonicalMap());
 	}
 
-	public static SuContainer of(Object x, Object y) {
-		SuContainer c = new SuContainer();
-		c.add(x);
-		c.add(y);
+	private SuContainer(List<Object> vec, Map<Object,Object> map) {
+		this.vec = vec;
+		this.map = map;
+	}
+
+	/** only used to initialize EMPTY */
+	private static SuContainer empty() {
+		SuContainer c =
+				new SuContainer(Collections.emptyList(), Collections.emptyMap());
+		c.readonly = true;
 		return c;
+	}
+
+	public static SuContainer of(Object ...values) {
+		return new SuContainer(Lists.newArrayList(values));
 	}
 
 	/**

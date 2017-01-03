@@ -16,6 +16,7 @@ import suneido.util.Errlog;
 
  CheckLibrary('stdlib')
  CheckLibraries(Libraries())
+ TestRunner.Run(libs: #(stdlib), skipTags: #(gui, windows), quit_on_failure:);;
  TestRunner.Run(skipTags: #(gui, windows), quit_on_failure:);;
  */
 

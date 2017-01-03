@@ -22,6 +22,15 @@ public class ByteBuffersTest {
 	}
 
 	@Test
+	public void bufferToString_unsigned() {
+		ByteBuffer buf = ByteBuffer.allocate(1);
+		buf.put((byte) 255);
+		buf.flip();
+		String s = bufferToString(buf);
+		assertEquals(255, s.charAt(0));
+	}
+
+	@Test
 	public void slice_test() {
 		byte[] array = { 11, 22, 33, 44 };
 		ByteBuffer buf = ByteBuffer.wrap(array);
