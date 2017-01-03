@@ -26,7 +26,7 @@ public class SuValue implements Packable {
 
 	/**
 	 * <p>Computes the contribution of a value to the hash code of a container
-	 * which it belongs to. Overridden by {@link SuContainer</p>
+	 * which it belongs to. Overridden by {@link SuContainer}</p>
 	 * <p>The {@link #hashCode()} contract applies equally to this method. In
 	 * particular, for any two SuValue objects {@code A} and {@code B} such that
 	 * {@code A.equals(B)}, {@code A.hashCodeContrib()} must be equal to
