@@ -4,12 +4,11 @@
 
 package suneido.immudb;
 
-import gnu.trove.list.array.TIntArrayList;
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 
+import gnu.trove.list.array.TIntArrayList;
 import suneido.immudb.BufRecord.Mode;
 
 /**
@@ -68,18 +67,13 @@ class ArrayRecord extends Record {
 		return bufRecord().getBuffer();
 	}
 
-	@Override
-	public BufRecord squeeze() {
-		return bufRecord();
-	}
-
 	DataRecord dataRecord() {
 		return new DataRecord(pack());
 	}
 
 	// convert to BufRecord ----------------------------------------------------
 
-	private BufRecord bufRecord() {
+	BufRecord bufRecord() {
 		if (bufrec == null)
 			bufrec = new BufRecord(pack());
 		return bufrec;

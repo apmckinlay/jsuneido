@@ -4,11 +4,10 @@
 
 package suneido.immudb;
 
-import gnu.trove.list.array.TIntArrayList;
-
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
+import gnu.trove.list.array.TIntArrayList;
 import suneido.runtime.Pack;
 
 class RecordBuilder implements suneido.intfc.database.RecordBuilder {
@@ -122,7 +121,7 @@ class RecordBuilder implements suneido.intfc.database.RecordBuilder {
 	}
 
 	BufRecord bufRec() {
-		return arrayRec().squeeze();
+		return arrayRec().bufRecord();
 	}
 
 	ArrayRecord arrayRec() {

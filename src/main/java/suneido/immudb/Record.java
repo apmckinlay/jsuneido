@@ -11,6 +11,7 @@ import java.util.Iterator;
 
 import suneido.runtime.Ops;
 import suneido.runtime.Pack;
+import suneido.runtime.Pack.Tag;
 import suneido.util.ByteBuffers;
 import suneido.util.CommaStringBuilder;
 
@@ -119,6 +120,8 @@ abstract class Record implements suneido.intfc.database.Record {
 		byte x = buf.get(off);
 		if (x == 'c' || x == 's' || x == 'l')
 			return Record.from(buf, off);
+		if (x == Tag.STRING) // avoid duplicate for strings
+			return ByteBuffers.bufferToString(buf, off + 1, len - 1);
 		ByteBuffer b = buf.duplicate();
 		b.position(off);
 		b.limit(off + len);
@@ -178,11 +181,6 @@ abstract class Record implements suneido.intfc.database.Record {
 		public void remove() {
 			throw unreachable();
 		}
-	}
-
-	@Override
-	public Record squeeze() {
-		return this;
 	}
 
 	@Override

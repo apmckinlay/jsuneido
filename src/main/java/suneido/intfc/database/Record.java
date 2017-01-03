@@ -12,8 +12,6 @@ public interface Record
 	ByteBuffer MIN_FIELD = ByteBuffer.allocate(0);
 	ByteBuffer MAX_FIELD = ByteBuffer.allocate(1).put(0, (byte) 0x7f).asReadOnlyBuffer();
 
-	Record squeeze();
-
 	ByteBuffer getBuffer();
 
 	ByteBuffer getRaw(int i);

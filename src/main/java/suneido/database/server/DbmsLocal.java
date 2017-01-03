@@ -6,7 +6,6 @@ package suneido.database.server;
 
 import static suneido.Suneido.dbpkg;
 
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -61,11 +60,6 @@ public class DbmsLocal extends Dbms {
 	}
 
 	@Override
-	public void copy(String filename) {
-		throw new UnsupportedOperationException("copy");
-	}
-
-	@Override
 	public int cursors() {
 		return ServerData.forThread().cursorsSize();
 	}
@@ -86,7 +80,7 @@ public class DbmsLocal extends Dbms {
 	public int load(String filename) {
 		return DbTools.loadTable(dbpkg, db, filename);
 	}
-	
+
 	@Override
 	public String check() {
 		return db.check();
@@ -178,18 +172,13 @@ public class DbmsLocal extends Dbms {
 	}
 
 	@Override
-	public List<Integer> tranlist() {
+	public List<Integer> transactions() {
 		return db.tranlist();
 	}
 
 	@Override
 	public void log(String s) {
 		Errlog.bare(s);
-	}
-
-	@Override
-	public InetAddress getInetAddress() {
-		return null;
 	}
 
 	@Override

@@ -28,13 +28,13 @@ import org.mockito.internal.matchers.Matches;
 import suneido.TheDbms;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
-import suneido.database.server.Command.Reader;
+import suneido.database.server.CommandText.Reader;
 import suneido.intfc.database.Record;
 import suneido.intfc.database.RecordBuilder;
 import suneido.runtime.Ops;
 import suneido.runtime.Pack;
 
-public class CommandTest {
+public class CommandTextTest {
 
 	public static Matches matches(String regex){
 		return new Matches(regex);
@@ -73,136 +73,136 @@ public class CommandTest {
 
 	@Test
 	public void badcmd() {
-		String s = bst(Command.BADCMD.execute("hello world", null, null));
+		String s = bst(CommandText.BADCMD.execute("hello world", null, null));
 		assertEquals("ERR bad command: hello world", s);
 	}
 
 	@Test
 	public void transaction() {
-		String s = bst(Command.TRANSACTION.execute("read", null, null));
+		String s = bst(CommandText.TRANSACTION.execute("read", null, null));
 		assertThat(s, matches("T\\d+"));
-		s = bst(Command.ABORT.execute(s, null, null));
+		s = bst(CommandText.ABORT.execute(s, null, null));
 		assertEquals("OK", s);
 		assertTrue(ServerData.forThread().isEmpty());
 
-		s = bst(Command.TRANSACTION.execute("update", null, null));
+		s = bst(CommandText.TRANSACTION.execute("update", null, null));
 		assertThat(s, matches("T\\d+"));
-		s = bst(Command.COMMIT.execute(s, null, null));
+		s = bst(CommandText.COMMIT.execute(s, null, null));
 		assertEquals("OK", s);
 		assertTrue(ServerData.forThread().isEmpty());
 	}
 
 	@Test
 	public void cursor() {
-		String s = bst(Command.CURSOR.execute(null, stringToBuffer("tables"), null));
+		String s = bst(CommandText.CURSOR.execute(null, stringToBuffer("tables"), null));
 		assertEquals("C0", s);
 
-		s = bst(Command.CLOSE.execute(s, null, null));
+		s = bst(CommandText.CLOSE.execute(s, null, null));
 		assertEquals("OK", s);
 	}
 
 	@Test(expected = RuntimeException.class)
 	public void badcursor() {
-		Command.CURSOR.execute(null,
+		CommandText.CURSOR.execute(null,
 				stringToBuffer("tables sort totalsize"),
 				null);
 	}
 
 	@Test
 	public void query() {
-		assertEquals(7, Command.QUERY.extra("T0 Q7"));
+		assertEquals(7, CommandText.QUERY.extra("T0 Q7"));
 
-		String t = bst(Command.TRANSACTION.execute("read", null, null));
+		String t = bst(CommandText.TRANSACTION.execute("read", null, null));
 		assertThat(t, matches("T\\d+"));
 
-		String s = bst(Command.QUERY.execute(t + " Q7", stringToBuffer("tables"), null));
+		String s = bst(CommandText.QUERY.execute(t + " Q7", stringToBuffer("tables"), null));
 		assertEquals("Q0", s);
 
-		s = bst(Command.CLOSE.execute(s, null, null));
+		s = bst(CommandText.CLOSE.execute(s, null, null));
 		assertEquals("OK", s);
 		
-		s = bst(Command.COMMIT.execute(t, null, null));
+		s = bst(CommandText.COMMIT.execute(t, null, null));
 		assertEquals("OK", s);
 	}
 
 	@Test
 	public void header() {
-		String s = bst(Command.CURSOR.execute(null, stringToBuffer("tables"), null));
+		String s = bst(CommandText.CURSOR.execute(null, stringToBuffer("tables"), null));
 		assertEquals("C0", s);
 
-		s = bst(Command.HEADER.execute(s, null, null));
+		s = bst(CommandText.HEADER.execute(s, null, null));
 		assertThat(s, startsWith("(table,tablename"));
 	}
 
 	@Test
 	public void order() {
-		String t = bst(Command.TRANSACTION.execute("read", null, null));
+		String t = bst(CommandText.TRANSACTION.execute("read", null, null));
 		assertThat(t, matches("T\\d+"));
 
-		String s = bst(Command.QUERY.execute(t + " Q25",
+		String s = bst(CommandText.QUERY.execute(t + " Q25",
 				stringToBuffer("columns sort column,table"), null));
 		assertEquals("Q0", s);
 
-		s = bst(Command.ORDER.execute("Q0", null, null));
+		s = bst(CommandText.ORDER.execute("Q0", null, null));
 		assertEquals("(column,table)", s);
 		
-		s = bst(Command.COMMIT.execute(t, null, null));
+		s = bst(CommandText.COMMIT.execute(t, null, null));
 		assertEquals("OK", s);
 	}
 
 	@Test
 	public void keys() {
-		String s = bst(Command.CURSOR.execute(null, stringToBuffer("tables"), null));
+		String s = bst(CommandText.CURSOR.execute(null, stringToBuffer("tables"), null));
 		assertEquals("C0", s);
 
-		s = bst(Command.KEYS.execute("C0", null, null));
+		s = bst(CommandText.KEYS.execute("C0", null, null));
 		assertEquals("((table),(tablename))", s);
 
-		Command.CLOSE.execute("C0", null, null);
+		CommandText.CLOSE.execute("C0", null, null);
 	}
 
 	@Test
 	public void explain() {
-		String s = bst(Command.CURSOR.execute(null, stringToBuffer("tables"), null));
+		String s = bst(CommandText.CURSOR.execute(null, stringToBuffer("tables"), null));
 		assertEquals("C0", s);
 
-		s = bst(Command.EXPLAIN.execute("C0", null, null));
+		s = bst(CommandText.EXPLAIN.execute("C0", null, null));
 		assertEquals("tables^(table)", s);
 
-		Command.CLOSE.execute("C0", null, null);
+		CommandText.CLOSE.execute("C0", null, null);
 	}
 
 	@Test
 	public void rewind() {
-		String s = bst(Command.CURSOR.execute(null, stringToBuffer("tables"), null));
+		String s = bst(CommandText.CURSOR.execute(null, stringToBuffer("tables"), null));
 		assertEquals("C0", s);
 
-		s = bst(Command.REWIND.execute("C0", null, null));
+		s = bst(CommandText.REWIND.execute("C0", null, null));
 		assertEquals("OK", s);
 
-		Command.CLOSE.execute("C0", null, null);
+		CommandText.CLOSE.execute("C0", null, null);
 	}
 
 	@Test
 	public void get() {
 		Output output = new Output();
 
-		String t = bst(Command.TRANSACTION.execute("read", null, null));
+		String t = bst(CommandText.TRANSACTION.execute("read", null, null));
 		assertThat(t, startsWith("T"));
 
-		assertEquals(7, Command.QUERY.extra(t + " Q7"));
-		String s = bst(Command.QUERY.execute(t + " Q7", stringToBuffer("tables"), null));
+		assertEquals(7, CommandText.QUERY.extra(t + " Q7"));
+		String s = bst(CommandText.QUERY.execute(t + " Q7", stringToBuffer("tables"), null));
 		assertEquals("Q0", s);
 
-		assertNull(Command.GET.execute("+ Q0", null, output));
+		assertNull(CommandText.GET.execute("+ Q0", null, output));
 		assertThat(bst(output.get(0)), matches("A\\d+ R\\d+"));
 		Record rec = dbpkg.record(output.get(1));
 		assertThat(rec.toString(), startsWith("[1,'tables'"));
 
-		s = bst(Command.CLOSE.execute("Q0", null, null));
+		s = bst(CommandText.CLOSE.execute("Q0", null, null));
 		assertEquals("OK", s);
 
-		s = bst(Command.COMMIT.execute(t, null, null));
+		s = bst(CommandText.COMMIT.execute(t, null, null));
 		assertEquals("OK", s);
 	}
 
@@ -210,18 +210,18 @@ public class CommandTest {
 	public void get1() {
 		Output output = new Output();
 
-		String t = bst(Command.TRANSACTION.execute("read", null, null));
+		String t = bst(CommandText.TRANSACTION.execute("read", null, null));
 		assertThat(t, startsWith("T"));
 
 		String line = "+ " + t + " Q6";
-		assertEquals(6, Command.GET1.extra(line));
-		assertNull(Command.GET1.execute(line, stringToBuffer("tables"), output));
+		assertEquals(6, CommandText.GET1.extra(line));
+		assertNull(CommandText.GET1.execute(line, stringToBuffer("tables"), output));
 		assertThat(bst(output.get(0)),
 				matches("A\\d+ R\\d+ \\(table,tablename.*\\)"));
 		Record rec = dbpkg.record(output.get(1));
 		assertThat(rec.toString(), startsWith("[1,'tables'"));
 
-		String s = bst(Command.COMMIT.execute(t, null, null));
+		String s = bst(CommandText.COMMIT.execute(t, null, null));
 		assertEquals("OK", s);
 	}
 
@@ -250,28 +250,28 @@ public class CommandTest {
 		commit(t);
 	}
 	private static void admin(String s) {
-		Command.ADMIN.execute(s, null, null);
+		CommandText.ADMIN.execute(s, null, null);
 	}
 	private static String updateTran() {
-		String t = bst(Command.TRANSACTION.execute("update", null, null));
+		String t = bst(CommandText.TRANSACTION.execute("update", null, null));
 		assertThat(t, startsWith("T"));
 		return t;
 	}
 	private static String query(String t) {
-		String q = bst(Command.QUERY.execute(t + " Q5", stringToBuffer("test"), null));
+		String q = bst(CommandText.QUERY.execute(t + " Q5", stringToBuffer("test"), null));
 		assertThat(q, startsWith("Q"));
 		return q;
 	}
 	private static void output(String q, Record rec) {
-		Command.OUTPUT.execute(q + " R" + rec.packSize(), rec.getBuffer(), null);
+		CommandText.OUTPUT.execute(q + " R" + rec.packSize(), rec.getBuffer(), null);
 	}
 	private static void commit(String t) {
-		String s = bst(Command.COMMIT.execute(t, null, null));
+		String s = bst(CommandText.COMMIT.execute(t, null, null));
 		assertEquals("OK", s);
 	}
 	private static String get(String t, String expected) {
 		Output output = new Output();
-		assertNull(Command.GET1.execute("+ " + t + " Q4", stringToBuffer("test"), output));
+		assertNull(CommandText.GET1.execute("+ " + t + " Q4", stringToBuffer("test"), output));
 		String s = bst(output.get(0));
 		assertThat(s, matches("A[-0-9]+ R\\d+ \\(a,b,c\\)"));
 		Record rec = dbpkg.record(output.get(1));
@@ -279,18 +279,18 @@ public class CommandTest {
 		return s.substring(0, s.indexOf(' '));
 	}
 	private static void update(String t, String adr, Record rec) {
-		String s = bst(Command.UPDATE.execute(t + " " + adr + " R" + rec.packSize(),
+		String s = bst(CommandText.UPDATE.execute(t + " " + adr + " R" + rec.packSize(),
 				rec.getBuffer(), null));
 		assertThat(s, startsWith("U"));
 	}
 	private static void erase(String t, String adr) {
-		String s = bst(Command.ERASE.execute(t + " " + adr, null, null));
+		String s = bst(CommandText.ERASE.execute(t + " " + adr, null, null));
 		assertEquals("OK", s);
 	}
 
 	private static void geteof(String t) {
 		Output output = new Output();
-		Command.GET1.execute("+ " + t + " Q4", stringToBuffer("test"), output);
+		CommandText.GET1.execute("+ " + t + " Q4", stringToBuffer("test"), output);
 		assertEquals("EOF", bst(output.get(0)));
 	}
 
@@ -298,41 +298,41 @@ public class CommandTest {
 	public void libget() {
 		Output output = new Output();
 
-		Command.ADMIN.execute("create stdlib (name,text,group) key(name,group)", 
+		CommandText.ADMIN.execute("create stdlib (name,text,group) key(name,group)", 
 				null, null);
 
 		String t = updateTran();
 
-		String s = bst(Command.QUERY.execute(t + " Q6", stringToBuffer("stdlib"), null));
+		String s = bst(CommandText.QUERY.execute(t + " Q6", stringToBuffer("stdlib"), null));
 		assertEquals("Q0", s);
 
 		Record rec = make(-1, "Foo", "some text");
-		s = bst(Command.OUTPUT.execute("Q0 R" + rec.packSize(), rec.getBuffer(), null));
+		s = bst(CommandText.OUTPUT.execute("Q0 R" + rec.packSize(), rec.getBuffer(), null));
 		assertEquals("t", s);
 
 		rec = make(-1, "Bar", "other stuff");
-		s = bst(Command.OUTPUT.execute("Q0 R" + rec.packSize(), rec.getBuffer(), null));
+		s = bst(CommandText.OUTPUT.execute("Q0 R" + rec.packSize(), rec.getBuffer(), null));
 		assertEquals("t", s);
 
 		rec = make(1, "Foo", ""); // folder
-		s = bst(Command.OUTPUT.execute("Q0 R" + rec.packSize(), rec.getBuffer(), null));
+		s = bst(CommandText.OUTPUT.execute("Q0 R" + rec.packSize(), rec.getBuffer(), null));
 		assertEquals("t", s);
 
-		s = bst(Command.CLOSE.execute("Q0", null, null));
+		s = bst(CommandText.CLOSE.execute("Q0", null, null));
 		assertEquals("OK", s);
 		commit(t);
 
-		assertNull(Command.LIBGET.execute("Foo", null, output));
+		assertNull(CommandText.LIBGET.execute("Foo", null, output));
 		assertEquals("L10", bst(output.get(0)));
 		assertEquals("stdlib", bst(output.get(1)));
 		assertEquals("" + (char) Pack.Tag.STRING + "some text", bufferToString(output.get(2)));
 
-		assertNull(Command.LIBGET.execute("Nil", null, output));
+		assertNull(CommandText.LIBGET.execute("Nil", null, output));
 	}
 
 	@Test
 	public void libraries() {
-		String s = bst(Command.LIBRARIES.execute(null, null, null));
+		String s = bst(CommandText.LIBRARIES.execute(null, null, null));
 		assertEquals("(stdlib)", s);
 	}
 
@@ -343,7 +343,7 @@ public class CommandTest {
 		Header hdr = new Header(flds, cols);
 		Record rec = dbpkg.recordBuilder().add(123).add("hello").build();
 		Row row = new Row(rec);
-		assertThat(Command.rowToRecord(row, hdr), equalTo(rec));
+		assertThat(CommandText.rowToRecord(row, hdr), equalTo(rec));
 	}
 
 	@Test
@@ -358,7 +358,7 @@ public class CommandTest {
 		Record rec4 = dbpkg.recordBuilder().add(456).add("bye").build();
 		Record rec = dbpkg.recordBuilder().add(123).add("hi").addMin().add(456).add("bye").build();
 		Row row = new Row(rec1, rec2, rec3, rec4);
-		assertThat(Command.rowToRecord(row, hdr), equalTo(rec));
+		assertThat(CommandText.rowToRecord(row, hdr), equalTo(rec));
 	}
 
 	// =========================================================================

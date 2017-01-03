@@ -31,9 +31,11 @@ import suneido.runtime.Pack;
 import suneido.runtime.builtin.ServerEval;
 
 /**
- * Implements the server protocol commands.
+ * Server side of the *text* client-server protocol.
+ * See {@link DbmsServerText} for the actual server.
+ * {@link DbmsClientText} is the client side.
  */
-public enum Command {
+public enum CommandText {
 	BADCMD {
 		@Override
 		public ByteBuffer execute(String line, ByteBuffer extra,
@@ -127,14 +129,6 @@ public enum Command {
 		public ByteBuffer execute(String line, ByteBuffer extra,
 				Consumer<ByteBuffer> output) {
 			return valueResult(output, dbms().connections());
-		}
-	},
-	COPY {
-		@Override
-		public ByteBuffer execute(String line, ByteBuffer extra,
-				Consumer<ByteBuffer> output) {
-			dbms().copy(line.trim());
-			return ok();
 		}
 	},
 	CURSOR {
@@ -477,7 +471,7 @@ public enum Command {
 		@Override
 		public ByteBuffer execute(String line, ByteBuffer extra,
 				Consumer<ByteBuffer> output) {
-			return stringToBuffer(listToParens(dbms().tranlist()) + "\r\n");
+			return stringToBuffer(listToParens(dbms().transactions()) + "\r\n");
 		}
 	},
 	TRANSACTION {
@@ -690,7 +684,7 @@ public enum Command {
 				rb.add(row.getraw(hdr, f));
 			rec = rb.trim().build();
 		}
-		return rec.squeeze();
+		return rec;
 	}
 
 	/** WARNING: does not copy, the buffer must not be reused */

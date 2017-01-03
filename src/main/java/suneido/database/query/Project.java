@@ -5,26 +5,15 @@
 package suneido.database.query;
 
 import static suneido.SuInternalError.unreachable;
-import static suneido.util.Util.addAllUnique;
-import static suneido.util.Util.difference;
-import static suneido.util.Util.intersect;
-import static suneido.util.Util.listToParens;
-import static suneido.util.Util.nil;
-import static suneido.util.Util.setEquals;
-import static suneido.util.Util.startsWithSet;
-import static suneido.util.Util.withoutDups;
+import static suneido.util.Util.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+
+import com.google.common.collect.ImmutableList;
 
 import suneido.SuException;
 import suneido.database.query.expr.Expr;
 import suneido.intfc.database.Record;
-
-import com.google.common.collect.ImmutableList;
 
 public class Project extends Query1 {
 	private List<String> flds;
@@ -398,7 +387,7 @@ public class Project extends Query1 {
 		}
 		Row row;
 		while (null != (row = source.get(dir))) {
-			Record key = row.project(srcHdr, flds).squeeze();
+			Record key = row.project(srcHdr, flds);
 			Object[] data = map.get(key);
 			if (data == null) {
 				map.put(key, row.getRefs());
@@ -414,7 +403,7 @@ public class Project extends Query1 {
 	private void buildLookupIndex() {
 		Row row;
 		while (null != (row = source.get(Dir.NEXT))) {
-			Record key = row.project(projHdr, flds).squeeze();
+			Record key = row.project(projHdr, flds);
 			if (null == map.get(key))
 				map.put(key, row.getRefs());
 		}

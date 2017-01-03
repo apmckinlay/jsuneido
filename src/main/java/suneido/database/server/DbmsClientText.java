@@ -9,7 +9,6 @@ import static suneido.Trace.trace;
 import static suneido.Trace.tracing;
 import static suneido.Trace.Type.CLIENTSERVER;
 
-import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -30,16 +29,17 @@ import suneido.intfc.database.Record;
 import suneido.runtime.Pack;
 
 /**
- * Client end of client-server connection.
- * ({@link DbmsServer} is the server side.)
+ * Client side of the *text* client-server protocol.
+ * {@link DbmsServerText} and {@link CommandText} are the server side.
+ * Uses {@link DbmsChannel}
  */
-public class DbmsRemote extends Dbms {
+public class DbmsClientText extends Dbms {
 	public final Thread owner = Thread.currentThread();
 	public volatile long idleSince = 0; // used by TheDbms.closeIfIdle
 	DbmsChannel io;
 	private String sessionid = "(opening)";
 
-	public DbmsRemote(String ip, int port) {
+	public DbmsClientText(String ip, int port) {
 		io = new DbmsChannel(ip, port);
 		String msg = io.readLine();
 		if (! msg.startsWith("Suneido Database Server"))
@@ -127,7 +127,7 @@ public class DbmsRemote extends Dbms {
 	}
 
 	@Override
-	public List<Integer> tranlist() {
+	public List<Integer> transactions() {
 		Iterable<String> iter = readList("TRANLIST");
 		return ImmutableList.copyOf(Iterables.transform(iter, Integer::parseInt));
 	}
@@ -158,12 +158,6 @@ public class DbmsRemote extends Dbms {
 	public int load(String filename) {
 		writeLine("LOAD", filename);
 		return readInt('N');
-	}
-
-	@Override
-	public void copy(String filename) {
-		writeLine("COPY", filename);
-		ok();
 	}
 
 	@Override
@@ -396,7 +390,6 @@ public class DbmsRemote extends Dbms {
 	}
 
 	private void writeRecord(String cmd, Record rec) {
-		rec = rec.squeeze();
 		writeLineBuf(cmd, " R" + rec.bufSize());
 		io.write(rec.getBuffer());
 	}
@@ -527,11 +520,6 @@ public class DbmsRemote extends Dbms {
 			return s + "C" + qn;
 		}
 
-	}
-
-	@Override
-	public InetAddress getInetAddress() {
-		return io.getInetAddress();
 	}
 
 	@Override

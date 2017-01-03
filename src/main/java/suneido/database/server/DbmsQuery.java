@@ -19,6 +19,7 @@ public interface DbmsQuery {
 
 	List<List<String>> keys();
 
+	/** @return null on eof */
 	Row get(Dir dir);
 
 	void rewind();
@@ -26,8 +27,10 @@ public interface DbmsQuery {
 	@Override
 	String toString();
 
+	/** Only for queries, not cursors. */
 	void output(Record rec);
 
+	/** Only for cursors. Should be called before update. */
 	void setTransaction(DbmsTran tran);
 
 	boolean updateable();

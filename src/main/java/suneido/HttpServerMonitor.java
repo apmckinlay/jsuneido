@@ -111,7 +111,7 @@ public class HttpServerMonitor {
 					.append(mb(Runtime.getRuntime().totalMemory()))
 					.append("mb</p>\r\n");
 			sb.append("<p>Transactions: ")
-					.append(TheDbms.dbms().tranlist().size())
+					.append(TheDbms.dbms().transactions().size())
 					.append("</p>\r\n");
 			sb.append("<p>Cursors: ")
 					.append(TheDbms.dbms().cursors())

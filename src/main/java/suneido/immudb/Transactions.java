@@ -192,6 +192,10 @@ class Transactions {
 		return list;
 	}
 
+	/**
+	 * @return The number of committed update transactions
+	 * that are still outstanding because they overlap active transactions
+	 */
 	synchronized int finalSize() {
 		return overlapping.size();
 	}

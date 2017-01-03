@@ -4,7 +4,8 @@
 
 package suneido.database.server;
 
-public class DbmsServer extends DbmsServerBySelect {
+// this allows easily swapping implementations
+public class DbmsServer extends DbmsServerText {
 
 	public DbmsServer(int timeoutMin) {
 		super(timeoutMin);

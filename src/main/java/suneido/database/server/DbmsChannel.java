@@ -7,6 +7,7 @@ package suneido.database.server;
 import static suneido.Trace.trace;
 import static suneido.Trace.tracing;
 import static suneido.Trace.Type.CLIENTSERVER;
+import static suneido.util.ByteBuffers.indexOf;
 import static suneido.util.ByteBuffers.putStringToByteBuffer;
 
 import java.io.IOException;
@@ -22,7 +23,7 @@ import suneido.util.Errlog;
 import suneido.util.Tr;
 
 /**
- * Channel input/output for {@link DbmsRemote} client
+ * Channel input/output for {@link DbmsClientText}
  */
 @NotThreadSafe
 public class DbmsChannel {
@@ -109,13 +110,6 @@ public class DbmsChannel {
 		oldbuf.flip();
 		buf.put(oldbuf);
 		return buf;
-	}
-
-	private static int indexOf(ByteBuffer buf, byte b) {
-		for (int i = 0; i < buf.position(); ++i)
-			if (buf.get(i) == b)
-				return i;
-		return -1;
 	}
 
 	public static String getString(ByteBuffer buf, int n) {

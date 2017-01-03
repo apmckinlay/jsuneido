@@ -5,16 +5,12 @@
 package suneido.util;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
-import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.util.Iterator;
-import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -137,19 +133,19 @@ public class ServerBySelect {
 		}
 	}
 
-	private static void readable(SelectionKey key) throws IOException {
+	private void readable(SelectionKey key) throws IOException {
 		SocketChannel channel = (SocketChannel) key.channel();
 		Info info = (Info) key.attachment();
 		info.idleSince = 0;
 		key.cancel(); // stop monitoring while handler running
 		channel.configureBlocking(true);
-		info.handler.request(channel);
+		info.handler.request(channel, this::reregister);
 	}
 
 	/** called by handlers when they finish handling a request (thread safe) */
-	public void reregister(SocketChannel channel, Handler handler) {
+	private void reregister(Channel channel, Handler handler) {
 		// use a queue to avoid messing with the selector from multiple threads
-		reregister.add(new ChannelHandler(channel, handler));
+		reregister.add(new ChannelHandler((SocketChannel) channel, handler));
 		selector.wakeup();
 	}
 	private static class ChannelHandler {
@@ -199,7 +195,7 @@ public class ServerBySelect {
 		 * Any lengthy processing should be done in a separate thread.
 		 * Should close the channel when connection is broken.
 		 */
-		void request(SocketChannel channel);
+		void request(Channel channel, BiConsumer<Channel, Handler> reregister);
 
 		/** used when closing idle connections */
 		void close();
@@ -207,76 +203,70 @@ public class ServerBySelect {
 
 	// demo ====================================================================
 
-	private static ServerBySelect server =
-			new ServerBySelect(EchoHandler::new, 1); // 1 min timeout
-
-	public static void main(String[] args) {
-		server.open(1234);
-		server.serve();
-	}
-
-	static class EchoHandler implements Handler {
-		private static final Executor executor =
-				Executors.newCachedThreadPool();
-		private static ByteBuffer hello =
-				ByteBuffers.stringToBuffer("EchoServer\r\n");
-		private static Random rand = new Random();
-
-		EchoHandler(SocketChannel channel) {
-			hello.rewind();
-			try {
-				channel.write(hello);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-
-		@Override
-		public void request(SocketChannel channel) {
-			switch (rand.nextInt(3)) {
-			case 0:
-				handleRequest(channel);
-				break;
-			case 1:
-				new Thread(() -> handleRequest(channel)).start();
-				break;
-			case 2:
-				executor.execute(() -> handleRequest(channel));
-				break;
-			}
-		}
-
-		private void handleRequest(SocketChannel channel) {
-			try {
-				String line = readline(channel);
-				channel.write(ByteBuffers.stringToBuffer(line + '\n'));
-				server.reregister(channel, this);
-			} catch (IOException e) {
-				try {
-					channel.close();
-				} catch (IOException e1) {
-					Errlog.error("error in channel.close", e);
-				}
-			}
-		}
-
-		String readline(SocketChannel channel) throws IOException {
-			StringBuilder sb = new StringBuilder();
-			InputStream in = channel.socket().getInputStream();
-			while (true) {
-				int b = in.read();
-				if (b == -1 || b == '\n')
-					break;
-				if (b != '\r')
-					sb.append((char) b);
-			}
-			return sb.toString();
-		}
-
-		@Override
-		public void close() {
-			System.out.println("closing (idle)");
-		}
-	}
+//	public static void main(String[] args) {
+//		ServerBySelect server =
+//				new ServerBySelect(EchoHandler::new, 1); // 1 min timeout
+//		server.open(1234);
+//		server.serve();
+//	}
+//
+//	static class EchoHandler implements Handler {
+//		private static final Executor executor =
+//				Executors.newCachedThreadPool();
+//		private static ByteBuffer hello =
+//				ByteBuffers.stringToBuffer("EchoServer\r\n");
+//		ByteBuffer buf = ByteBuffer.allocate(1000);
+//		private static Random rand = new Random();
+//
+//		EchoHandler(Channel channel) {
+//			hello.rewind();
+//			try {
+//				((WritableByteChannel) channel).write(hello);
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
+//		}
+//
+//		@Override
+//		public void request(Channel channel,
+//				BiConsumer<Channel, Handler> reregister) {
+//			switch (rand.nextInt(3)) {
+//			case 0: // single threaded
+//				handleRequest(channel, reregister);
+//				break;
+//			case 1: // thread per request
+//				new Thread(() -> handleRequest(channel, reregister)).start();
+//				break;
+//			case 2: // thread pool
+//				executor.execute(() -> handleRequest(channel, reregister));
+//				break;
+//			}
+//		}
+//
+//		private void handleRequest(Channel channel,
+//				BiConsumer<Channel, Handler> reregister) {
+//			try {
+//				buf.clear();
+//				if (-1 != ((ReadableByteChannel) channel).read(buf)) {
+//					buf.flip();
+//					((WritableByteChannel) channel).write(buf);
+//					reregister.accept(channel, this);
+//				} else
+//					channel.close();
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//				try {
+//					channel.close();
+//				} catch (IOException ec) {
+//					e.printStackTrace();
+//				}
+//			}
+//		}
+//
+//		@Override
+//		public void close() {
+//			System.out.println("closing (idle)");
+//		}
+//	}
 
 }

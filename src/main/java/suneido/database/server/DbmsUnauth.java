@@ -4,7 +4,6 @@
 
 package suneido.database.server;
 
-import java.net.InetAddress;
 import java.util.List;
 
 import suneido.SuContainer;
@@ -40,7 +39,7 @@ public class DbmsUnauth extends Dbms {
 	}
 
 	@Override
-	public List<Integer> tranlist() {
+	public List<Integer> transactions() {
 		throw notauth;
 	}
 
@@ -61,11 +60,6 @@ public class DbmsUnauth extends Dbms {
 
 	@Override
 	public int load(String filename) {
-		throw notauth;
-	}	
-	
-	@Override
-	public void copy(String filename) {
 		throw notauth;
 	}
 
@@ -131,11 +125,6 @@ public class DbmsUnauth extends Dbms {
 
 	@Override
 	public List<String> libraries() {
-		throw notauth;
-	}
-
-	@Override
-	public InetAddress getInetAddress() {
 		throw notauth;
 	}
 

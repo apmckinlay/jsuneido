@@ -60,7 +60,7 @@ public class Database extends BuiltinClass {
 	}
 
 	public static Object Transactions(Object self) {
-		return new SuContainer(TheDbms.dbms().tranlist());
+		return new SuContainer(TheDbms.dbms().transactions());
 	}
 
 	@Params("string")

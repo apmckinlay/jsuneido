@@ -4,7 +4,6 @@
 
 package suneido.database.server;
 
-import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.List;
 
@@ -17,7 +16,7 @@ import suneido.database.query.Row;
 /**
  * The interface between Suneido and the database. Used to hide the difference
  * between a local database ({@link DbmsLocal})
- * and a remote database ({@link DbmsRemote}).
+ * and a remote database ({@link DbmsClient}).
  */
 public abstract class Dbms {
 	public abstract DbmsTran transaction(boolean readwrite);
@@ -26,12 +25,11 @@ public abstract class Dbms {
 
 	public abstract DbmsQuery cursor(String s);
 
-	public abstract List<Integer> tranlist();
+	public abstract List<Integer> transactions();
 	public abstract SuDate timestamp();
 	public abstract String check();
 	public abstract String dump(String filename);
 	public abstract int load(String filename);
-	public abstract void copy(String filename);
 	public abstract Object run(String s);
 	public abstract long size();
 	public abstract SuContainer connections();
@@ -55,7 +53,10 @@ public abstract class Dbms {
 			this.row = row;
 		}
 	}
-	public final HeaderAndRow get(Dir dir, String query, boolean one) {
+
+	/** @return null on eof */
+	// overridden by DbmsClientBinary so transaction is only on server
+	public HeaderAndRow get(Dir dir, String query, boolean one) {
 		DbmsTran tran = transaction(false);
 		try {
 			return tran.get(dir, query, one);
@@ -77,8 +78,6 @@ public abstract class Dbms {
 	public abstract boolean use(String library);
 	public abstract boolean unuse(String library);
 	public abstract List<String> libraries();
-
-	public abstract InetAddress getInetAddress();
 
 	public abstract void disableTrigger(String table);
 	public abstract void enableTrigger(String table);
