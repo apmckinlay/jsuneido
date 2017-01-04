@@ -135,7 +135,7 @@ public abstract class Serializer {
 		}
 		n |= ((long) b << i);
 		long tmp = (((n << 63) >> 63) ^ n) >> 1;
-		return  tmp ^ (n & (1L << 63));
+		return tmp ^ (n & (1L << 63));
 	}
 
 	/** Get a size prefixed string (8 byte chars) */
