@@ -386,7 +386,7 @@ public class DbmsClientBinary extends Dbms {
 		public String complete() {
 			isEnded = true;
 			send(COMMIT, tn);
-			return io.getBool() ? io.getString() : null;
+			return io.getBool() ? null : io.getString();
 		}
 
 		@Override
@@ -456,7 +456,7 @@ public class DbmsClientBinary extends Dbms {
 		public Header header() {
 			if (header == null) {
 				send(HEADER, qn, c_or_q());
-				header = parseHeader(io.getStrings());
+				header = headerResult();
 			}
 			return header;
 		}
@@ -554,21 +554,6 @@ public class DbmsClientBinary extends Dbms {
 			this.tn = -1;
 			return tn;
 		}
-	}
-
-	private static Header parseHeader(Iterable<String> list) {
-		ImmutableList.Builder<String> fields = ImmutableList.builder();
-		ImmutableList.Builder<String> columns = ImmutableList.builder();
-		for (String s : list) {
-			if (Character.isUpperCase(s.charAt(0)))
-				s = Character.toLowerCase(s.charAt(0)) + s.substring(1);
-			else
-				fields.add(s);
-			if (! s.equals("-"))
-				columns.add(s);
-		}
-		List<String> f = fields.build();
-		return new Header(ImmutableList.of(f), columns.build());
 	}
 
 }

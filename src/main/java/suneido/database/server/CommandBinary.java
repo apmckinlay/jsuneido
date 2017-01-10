@@ -117,16 +117,16 @@ public enum CommandBinary {
 			String result = t.complete();
 			io.put(true);
 			if (result == null)
-				io.put(false);
+				io.put(true);
 			else
-				io.put(true).put(result);
+				io.put(false).put(result);
 		}
 	},
 	/**
 	 * Return a list of the currently connected session ids
 	 * ({@link Dbms#connections})
 	 * <p>
-	 * &rarr; string list
+	 * &rarr; SuContainer
 	 */
 	CONNECTIONS {
 		@Override
@@ -251,7 +251,7 @@ public enum CommandBinary {
 	 * Get the first, last, or only record for a query string.
 	 * ({@link Dbms#get}, {@link DbmsTran#get})
 	 * <p>
-	 * '+' or '-' or '1', -1 or transaction int, cursor or query int
+	 * '+' or '-' or '1', -1 or transaction int, query
 	 * &rarr; false or (true, recadr int, header string list, record buffer)
 	 */
 	GET1 {

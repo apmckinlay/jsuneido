@@ -137,15 +137,16 @@ public class SuChannel extends Serializer {
 	 */
 	 @Override
 	protected ByteBuffer need(int n) {
-		// we have data between 0 and limit
-		// 0 to position has already been fetched,
-		// position to limit is available to fetch,
-		// limit to capacity can be used to read more
+		assert n >= 0;
 		if (mode == Mode.WRITE) {
 			mode = Mode.READ;
 			buf.position(0);
 			buf.limit(0);
 		}
+		// we have data between 0 and limit
+		// 0 to position has already been fetched,
+		// position to limit is available to fetch,
+		// limit to capacity can be used to read more
 		if (n <= buf.remaining())
 			return buf;
 		int prevPos;
@@ -175,12 +176,14 @@ public class SuChannel extends Serializer {
 
 	@Override
 	void forceNewBuffer(int n) {
+		assert n >= 0;
 		newBuffer(n);
 		buf.limit(buf.position());
 		buf.position(0);
 	}
 
 	private void newBuffer(int n) {
+		assert n >= 0;
 		ByteBuffer oldbuf = buf;
 		buf = ByteBuffer.allocateDirect(oldbuf.remaining() + n);
 		buf.put(oldbuf); // copy unread data to new buffer
