@@ -8,19 +8,9 @@
 			<attribute name="javadoc_location" value="jar:platform:/resource/jsuneido/lib/trove-3.0.3-javadocs.jar!/"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="lib/hamcrest-library-1.3.jar" sourcepath="lib/hamcrest-library-1.3-sources.jar">
+	<classpathentry kind="lib" path="lib/junit-4.12.jar" sourcepath="lib/junit-4.12-sources.jar">
 		<attributes>
-			<attribute name="javadoc_location" value="jar:platform:/resource/jsuneido/lib/hamcrest-library-1.3-javadoc.jar!/"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="lib/hamcrest-core-1.3.jar" sourcepath="lib/hamcrest-core-1.3-sources.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="jar:platform:/resource/jsuneido/lib/hamcrest-core-1.3-javadoc.jar!/"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="lib/junit-4.11.jar">
-		<attributes>
-			<attribute name="javadoc_location" value="jar:platform:/resource/jsuneido/lib/junit-4.11-javadoc.jar!/"/>
+			<attribute name="javadoc_location" value="jar:platform:/resource/jsuneido/lib/junit-4.12-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="lib/asm-all-5.0.4.jar"/>
@@ -29,7 +19,21 @@
 	<classpathentry kind="lib" path="lib/lucene-core-4.10.3.jar"/>
 	<classpathentry kind="lib" path="lib/lucene-queryparser-4.10.3.jar"/>
 	<classpathentry kind="lib" path="lib/lucene-highlighter-4.10.3.jar"/>
-	<classpathentry kind="lib" path="lib/guava-20.0.jar"/>
+	<classpathentry kind="lib" path="lib/guava-20.0.jar" sourcepath="lib/guava-20.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/jsuneido/lib/guava-20.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/hamcrest-core-1.3.jar" sourcepath="lib/hamcrest-core-1.3-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/jsuneido/lib/hamcrest-core-1.3-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/hamcrest-library-1.3.jar" sourcepath="lib/hamcrest-library-1.3-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/jsuneido/lib/hamcrest-library-1.3-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/tools.jar"/>
 	<classpathentry kind="output" path="target"/>
