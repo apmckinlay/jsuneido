@@ -4,9 +4,8 @@
 
 package suneido.immudb;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.*;
 
 import java.nio.ByteBuffer;
@@ -19,9 +18,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import suneido.runtime.Ops;
-
 import com.google.common.collect.Lists;
+
+import suneido.runtime.Ops;
 
 public class BtreeNodeTest {
 

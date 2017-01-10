@@ -4,17 +4,13 @@
 
 package suneido.compiler;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 import java.util.Set;
 
 import org.junit.Test;
-
-import suneido.compiler.AstNode;
-import suneido.compiler.AstVariables;
-import suneido.compiler.Compiler;
 
 import com.google.common.collect.ImmutableSet;
 

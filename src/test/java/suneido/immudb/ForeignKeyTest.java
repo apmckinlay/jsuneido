@@ -4,17 +4,17 @@
 
 package suneido.immudb;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 import java.util.List;
 import java.util.Set;
 
 import org.junit.Test;
 
-import suneido.intfc.database.Fkmode;
-
 import com.google.common.collect.Ordering;
+
+import suneido.intfc.database.Fkmode;
 
 public class ForeignKeyTest {
 	private Database db = DatabasePackage.dbpkg.testdb();

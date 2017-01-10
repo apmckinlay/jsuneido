@@ -4,9 +4,9 @@
 
 package suneido.database.query;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static suneido.Suneido.dbpkg;
 import static suneido.database.query.Query.Dir.NEXT;
 import static suneido.database.query.Query.Dir.PREV;

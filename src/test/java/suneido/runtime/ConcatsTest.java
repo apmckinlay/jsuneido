@@ -4,12 +4,10 @@
 
 package suneido.runtime;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
-
-import suneido.runtime.Concats;
 
 import com.google.common.base.Strings;
 

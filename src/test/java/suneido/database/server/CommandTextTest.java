@@ -5,11 +5,11 @@
 package suneido.database.server;
 
 import static java.util.Arrays.asList;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.startsWith;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.core.StringStartsWith.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static suneido.Suneido.dbpkg;
 import static suneido.util.ByteBuffers.bufferToString;
@@ -67,7 +67,7 @@ public class CommandTextTest {
 		assertEquals(-1, rdr.getnum('X'));
 		assertEquals(8, rdr.pos);
 		assertEquals(-4, rdr.getnum('B'));
-		
+
 		assertEquals("xyz", rdr.str.substring(rdr.pos));
 	}
 
@@ -120,7 +120,7 @@ public class CommandTextTest {
 
 		s = bst(CommandText.CLOSE.execute(s, null, null));
 		assertEquals("OK", s);
-		
+
 		s = bst(CommandText.COMMIT.execute(t, null, null));
 		assertEquals("OK", s);
 	}
@@ -145,7 +145,7 @@ public class CommandTextTest {
 
 		s = bst(CommandText.ORDER.execute("Q0", null, null));
 		assertEquals("(column,table)", s);
-		
+
 		s = bst(CommandText.COMMIT.execute(t, null, null));
 		assertEquals("OK", s);
 	}
@@ -298,7 +298,7 @@ public class CommandTextTest {
 	public void libget() {
 		Output output = new Output();
 
-		CommandText.ADMIN.execute("create stdlib (name,text,group) key(name,group)", 
+		CommandText.ADMIN.execute("create stdlib (name,text,group) key(name,group)",
 				null, null);
 
 		String t = updateTran();
@@ -370,7 +370,7 @@ public class CommandTextTest {
 		public void accept(ByteBuffer buf) {
 			content.add(buf);
 		}
-		
+
 		ByteBuffer get(int i) {
 			return content.get(i);
 		}
@@ -390,7 +390,7 @@ public class CommandTextTest {
 		r.add(n);
 		return r.build();
 	}
-	
+
 	static String bst(ByteBuffer buf) {
 		return bufferToString(buf).trim();
 	}

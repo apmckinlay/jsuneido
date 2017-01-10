@@ -4,8 +4,8 @@
 
 package suneido.util;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 import static suneido.util.Tabs.detab;
 import static suneido.util.Tabs.entab;
 

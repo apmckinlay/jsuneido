@@ -4,12 +4,12 @@
 
 package suneido.immudb;
 
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.closeTo;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -19,9 +19,9 @@ import java.util.Random;
 
 import org.junit.Test;
 
-import suneido.immudb.TranIndex.Update;
-
 import com.google.common.collect.Lists;
+
+import suneido.immudb.TranIndex.Update;
 
 public class BtreeTest {
 	private final Storage stor = new HeapStorage();
