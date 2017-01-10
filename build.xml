@@ -28,7 +28,7 @@
 
 	<path id="main.classpath">
 		<pathelement location="${lib.dir}/asm-all-5.0.4.jar"/>
-		<pathelement location="${lib.dir}/guava-19.0.jar"/>
+		<pathelement location="${lib.dir}/guava-20.0.jar"/>
 		<pathelement location="${lib.dir}/jsr305-1.3.9.jar"/>
 		<pathelement location="${lib.dir}/${lib.lucene-core}"/>
 		<pathelement location="${lib.dir}/${lib.lucene-analyzers-common}"/>
