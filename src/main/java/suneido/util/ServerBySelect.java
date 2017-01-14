@@ -76,11 +76,10 @@ public class ServerBySelect {
 				if (nready > 0)
 					handleSelected();
 				closeIdleConnections();
-				errorCount = 0; // reset after success
 			} catch (Throwable e) {
 				Errlog.error("error in server loop", e);
 				if (++errorCount > 100)
-					Errlog.fatal("ServerBySelect too many consecutive errors");
+					Errlog.fatal("ServerBySelect too many errors");
 			}
 		}
 	}
@@ -113,7 +112,13 @@ public class ServerBySelect {
 		SocketChannel channel = server.accept();
 		if (channel == null)
 			return;
-		Handler handler = handlerFactory.apply(channel);
+		Handler handler;
+		try {
+			handler = handlerFactory.apply(channel);
+		} catch (Throwable e) {
+			channel.close();
+			throw e;
+		}
 		SelectionKey key2 = registerChannel(channel, SelectionKey.OP_READ);
 		key2.attach(new Info(handler));
 	}
