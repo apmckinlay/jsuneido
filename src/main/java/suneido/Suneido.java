@@ -148,7 +148,7 @@ public class Suneido {
 
 	/** does not return */
 	private static void startServer() {
-		schedule(Deadlock::check, 1, TimeUnit.MINUTES);
+		scheduleAtFixedRate(Deadlock::check, 5, TimeUnit.MINUTES);
 		HttpServerMonitor.run(cmdlineoptions.serverPort + 1);
 		openDbms();
 		server = new DbmsServer(cmdlineoptions.timeoutMin);
