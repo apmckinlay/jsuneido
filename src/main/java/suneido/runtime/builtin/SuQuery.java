@@ -73,7 +73,7 @@ public class SuQuery extends SuValue {
 				cols.add(col);
 		return new SuContainer(cols);
 	}
-	
+
 	public static Object RuleColumns(Object self) {
 		return new SuContainer(((SuQuery) self).q.header().rules());
 	}
@@ -113,8 +113,8 @@ public class SuQuery extends SuValue {
 		if (eof == dir)
 			return Boolean.FALSE;
 		Row row = q.get(dir);
-		eof = row == null ? dir : null;
-		return row == null ? Boolean.FALSE : new SuRecord(row, q.header(), t);
+		eof = (row == null) ? dir : null;
+		return (row == null) ? Boolean.FALSE : new SuRecord(row, q.header(), t);
 	}
 
 	@Params("record")
