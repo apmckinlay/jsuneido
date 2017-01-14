@@ -5,7 +5,7 @@
 package suneido.database.server;
 
 //this allows easily swapping implementations
-public class DbmsClient extends DbmsClientBinary {
+public class DbmsClient extends DbmsClientText {
 
 	public DbmsClient(String ip, int port) {
 		super(ip, port);

@@ -5,7 +5,7 @@
 package suneido.database.server;
 
 // this allows easily swapping implementations
-public class DbmsServer extends DbmsServerBinary {
+public class DbmsServer extends DbmsServerText {
 
 	public DbmsServer(int timeoutMin) {
 		super(timeoutMin);
