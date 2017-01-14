@@ -102,7 +102,6 @@ public enum CommandText {
 		public ByteBuffer execute(String line, ByteBuffer extra,
 				Consumer<ByteBuffer> output) {
 			Reader rdr = new Reader(line);
-			rdr.getnum('T'); // ignore
 			int n;
 			if (-1 != (n = rdr.getnum('Q')))
 				ServerData.forThread().endQuery(n);

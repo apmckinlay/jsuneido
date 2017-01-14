@@ -507,7 +507,7 @@ public class DbmsClientText extends Dbms {
 
 		@Override
 		public void setTransaction(DbmsTran tran) {
-			tn = ((DbmsTranRemote) tran).tn;
+			tn = (tran == null) ? NO_TRAN : ((DbmsTranRemote) tran).tn;
 		}
 
 		@Override

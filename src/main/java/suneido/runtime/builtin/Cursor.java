@@ -5,6 +5,7 @@
 package suneido.runtime.builtin;
 
 import static suneido.util.Util.array;
+
 import suneido.SuException;
 import suneido.SuValue;
 import suneido.TheDbms;
@@ -46,7 +47,11 @@ public class Cursor extends SuQuery {
 			throw new SuException("usage: cursor.Next/Prev(transaction)");
 		DbmsTran t = ((SuTransaction) arg).getTransaction();
 		q.setTransaction(t);
-		return super.getrec(dir, t);
+		try {
+			return super.getrec(dir, t);
+		} finally {
+			q.setTransaction(null);
+		}
 	}
 
 	@Override
