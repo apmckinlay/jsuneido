@@ -37,9 +37,12 @@ class Persist {
 	private int dbinfoadr;
 
 	static void persist(Database db) {
-		synchronized(db.commitLock) {
+		try {
+			db.commitLock();
 			Persist p = new Persist(db.state.dbinfo, db.istor);
 			p.run(db);
+		} finally {
+			db.commitUnlock();
 		}
 	}
 

@@ -6,6 +6,8 @@ package suneido.immudb;
 
 import java.io.File;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -30,7 +32,7 @@ class Database implements suneido.intfc.database.Database, AutoCloseable {
 	final Storage dstor;
 	final Storage istor;
 	private final Triggers triggers = new Triggers();
-	final Object commitLock = new Object();
+	private final ReentrantLock commit_lock = new ReentrantLock();
 	/** only updated when holding commitLock */
 	volatile State state;
 	private State lastPersistState;
@@ -174,10 +176,13 @@ class Database implements suneido.intfc.database.Database, AutoCloseable {
 	@Override
 	public String check() {
 		int dUpTo, iUpTo;
-		synchronized (commitLock) {
+		try {
+			commitLock();
 			persist();
 			dUpTo = dstor.upTo();
 			iUpTo = istor.upTo();
+		} finally {
+			commitUnlock();
 		}
 		StringObserver so = new StringObserver();
 		Status status = DbCheck.check(filename, dstor, istor, dUpTo, iUpTo, so);
@@ -321,11 +326,14 @@ class Database implements suneido.intfc.database.Database, AutoCloseable {
 			return;
 		closed = true;
 		long size;
-		synchronized (commitLock) {
+		try {
+			commitLock();
 			persist();
 			size = dstor.sizeFrom(0);
 			dstor.close();
 			istor.close();
+		} finally {
+			commitUnlock();
 		}
 		if (! corrupt && ! filename.equals(""))
 			DbGood.create(filename + "c", size);
@@ -425,6 +433,32 @@ class Database implements suneido.intfc.database.Database, AutoCloseable {
 					.add("lastcksum", lastcksum)
 					.toString();
 		}
+	}
+
+	/**
+	 * Throws if it cannot get lock in 30 seconds.
+	 * <p>
+	 * Usage:<pre>
+	 * try {
+	 *     commitLock();
+	 *     ...
+	 * } finally {
+	 *     commitUnlock();
+	 * }
+	 */
+	public void commitLock() {
+		try {
+			if (!commit_lock.tryLock(30, TimeUnit.SECONDS))
+				throw new SuException("could not get commit lock, timed out, "
+						+ "queue length " + commit_lock.getQueueLength());
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw new SuException("could not get commit lock, interrupted", e);
+		}
+	}
+
+	public void commitUnlock() {
+		commit_lock.unlock();
 	}
 
 }

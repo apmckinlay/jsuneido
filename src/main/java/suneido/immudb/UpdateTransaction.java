@@ -210,7 +210,8 @@ class UpdateTransaction extends ReadWriteTransaction {
 		checkLimits();
 		Stopwatch sw = Stopwatch.createStarted();
 		buildReads();
-		synchronized(db.commitLock) {
+		try {
+			db.commitLock();
 			if (db.state.schema != dbstate.schema)
 				throw new Conflict("schema changed");
 			checkForConflicts();
@@ -223,6 +224,8 @@ class UpdateTransaction extends ReadWriteTransaction {
 				tran.abortIncompleteStore();
 				throw e;
 			}
+		} finally {
+			db.commitUnlock();
 		}
 		long secs = sw.elapsed(TimeUnit.SECONDS);
 		if (secs > Transactions.MAX_UPDATE_TRAN_DURATION_SEC/2)
