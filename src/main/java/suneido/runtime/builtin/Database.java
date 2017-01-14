@@ -45,6 +45,10 @@ public class Database extends BuiltinClass {
 		return TheDbms.dbms().cursors();
 	}
 
+	public static Object Final(Object self) {
+		return TheDbms.dbms().finalSize();
+	}
+
 	@Params("string")
 	public static Object Kill(Object self, Object a) {
 		return TheDbms.dbms().kill(Ops.toStr(a));
@@ -75,7 +79,7 @@ public class Database extends BuiltinClass {
 			throw new SuException("Database.Dump failed: " + result);
 		return null;
 	}
-	
+
 	@Params("filename")
 	public static Object Load(Object self, Object filename) {
 		int result = TheDbms.dbms().load(Ops.toStr(filename));

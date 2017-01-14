@@ -113,6 +113,9 @@ public class HttpServerMonitor {
 			sb.append("<p>Transactions: ")
 					.append(TheDbms.dbms().transactions().size())
 					.append("</p>\r\n");
+			sb.append("<p>Final: ")
+					.append(TheDbms.dbms().finalSize())
+					.append("</p>\r\n");
 			sb.append("<p>Cursors: ")
 					.append(TheDbms.dbms().cursors())
 					.append("</p>\r\n");
