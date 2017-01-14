@@ -9,7 +9,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -21,8 +20,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class ServerBySocket {
 	private final Executor executor;
 	private final HandlerFactory handlerFactory;
-	private final AtomicBoolean shouldLog = new AtomicBoolean(true);
-	private static final int THROTTLE_SLEEP_MS = 100;
 
 	public ServerBySocket(Executor executor, HandlerFactory handlerFactory) {
 		this.executor = executor;
@@ -30,6 +27,7 @@ public class ServerBySocket {
 	}
 
 	public void run(int port) throws IOException {
+		int errorcount = 0;
 		try (ServerSocket serverSocket = new ServerSocket(port)) {
 			while (true) {
 				Socket clientSocket = serverSocket.accept();
@@ -38,12 +36,13 @@ public class ServerBySocket {
 				try {
 					Runnable handler = handlerFactory.newHandler(clientSocket);
 					executor.execute(handler);
-					shouldLog.set(true);
 				} catch (RejectedExecutionException e) {
 					clientSocket.close();
-					if (shouldLog.getAndSet(false))
-						Errlog.error("SocketServer too many connections");
-					Util.interruptableSleep(THROTTLE_SLEEP_MS);
+					Errlog.error("SocketServer too many connections");
+					if (++errorcount > 100) {
+						Errlog.error("SocketServer too many errors, terminating");
+						return;
+					}
 				}
 			}
 		}
