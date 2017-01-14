@@ -27,6 +27,16 @@ public class Auth {
 	public static final int TOKEN_SIZE = 16;
 	private static Set<String> tokens = Sets.newConcurrentHashSet();
 
+//	boolean haveUserTable() {
+//		Database db = ((DbmsLocal) TheDbms.dbms()).getDb();
+//		Transaction t = db.readTransaction();
+//		try {
+//			return ! t.tableExists("users");
+//		} finally {
+//			t.complete();
+//		}
+//	}
+
 	/** @return Random bytes */
 	synchronized private static byte[] random(int size) {
 		byte bytes[] = new byte[size];
@@ -52,7 +62,7 @@ public class Auth {
 	}
 
 	/**
-	 * data may be token or user + sha1(nonce + lookup(user).passhash)
+	 * data may be token or user + '\x00' + sha1(nonce + lookup(user).passhash)
 	 * where passhash is md5(user + password)
 	 */
 	public static boolean auth(String data) {

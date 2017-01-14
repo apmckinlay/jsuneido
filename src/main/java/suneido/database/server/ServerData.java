@@ -11,9 +11,6 @@ import java.util.*;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
-import suneido.TheDbms;
-import suneido.intfc.database.Database;
-import suneido.intfc.database.Transaction;
 import suneido.util.Errlog;
 
 /**
@@ -42,14 +39,6 @@ public class ServerData {
 
 	public ServerData(Closeable connection) {
 		this.connection = connection;
-
-		Database db = ((DbmsLocal) TheDbms.dbms()).getDb();
-		Transaction t = db.readTransaction();
-		try {
-			auth = ! t.tableExists("users");
-		} finally {
-			t.complete();
-		}
 		auth = true; //TEMPORARY until applications are converted
 	}
 
