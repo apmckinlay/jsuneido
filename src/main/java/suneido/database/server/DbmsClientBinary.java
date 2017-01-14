@@ -258,7 +258,7 @@ public class DbmsClientBinary extends Dbms {
 
 	@Override
 	public HeaderAndRow get(Dir dir, String query, boolean one) {
-		send(GET1, one ? '1' : (dir == Dir.PREV ? '-' : '+'), -1, query);
+		send(GET1, one ? '1' : (dir == Dir.PREV ? '-' : '+'), NO_TRAN, query);
 		return rowResult(true);
 	}
 
@@ -521,12 +521,12 @@ public class DbmsClientBinary extends Dbms {
 		}
 
 		protected int getTran() {
-			return -1;
+			return NO_TRAN;
 		}
 	}
 
 	private class DbmsClientCursor extends DbmsClientQuery {
-		protected int tn = -1;
+		protected int tn = NO_TRAN;
 
 		DbmsClientCursor(int qn) {
 			super(qn);
@@ -549,9 +549,9 @@ public class DbmsClientBinary extends Dbms {
 
 		@Override
 		protected int getTran() {
-			assert tn != -1;
+			assert isTran(tn);
 			int tn = this.tn;
-			this.tn = -1;
+			this.tn = NO_TRAN;
 			return tn;
 		}
 	}

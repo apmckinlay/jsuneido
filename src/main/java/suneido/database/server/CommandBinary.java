@@ -5,6 +5,7 @@
 package suneido.database.server;
 
 import static suneido.Suneido.dbpkg;
+import static suneido.database.server.Dbms.isTran;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -232,7 +233,7 @@ public enum CommandBinary {
 	 * Get the next or previous record in a query or cursor.
 	 * ({@link DbmsQuery#get})
 	 * <p>
-	 * '+' or '-', -1 or transaction int, cursor or query int
+	 * '+' or '-', 0 or transaction int, cursor or query int
 	 * &rarr; false or (true, recadr int, record buffer)
 	 */
 	GET {
@@ -251,7 +252,7 @@ public enum CommandBinary {
 	 * Get the first, last, or only record for a query string.
 	 * ({@link Dbms#get}, {@link DbmsTran#get})
 	 * <p>
-	 * '+' or '-' or '1', -1 or transaction int, query
+	 * '+' or '-' or '1', 0 or transaction int, query
 	 * &rarr; false or (true, recadr int, header string list, record buffer)
 	 */
 	GET1 {
@@ -262,9 +263,9 @@ public enum CommandBinary {
 			boolean one = (d == '1');
 			int tn = io.getInt();
 			String query = io.getString();
-			HeaderAndRow hr = (tn == -1)
-					? dbms().get(dir, query, one)
-					: tran(tn).get(dir, query, one);
+			HeaderAndRow hr = isTran(tn)
+					? tran(tn).get(dir, query, one)
+					: dbms().get(dir, query, one);
 			if (hr == null)
 				io.put(true).put(EOF);
 			else
@@ -590,7 +591,7 @@ public enum CommandBinary {
 	protected DbmsQuery q_or_tc(SuChannel io) {
 		int tn = io.getInt();
 		int qn = io.getInt();
-		if (tn == -1)
+		if (! isTran(tn))
 			return ServerData.forThread().getQuery(qn);
 		DbmsQuery c = ServerData.forThread().getCursor(qn);
 		c.setTransaction(ServerData.forThread().getTransaction(tn));

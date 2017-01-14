@@ -19,6 +19,11 @@ import suneido.database.query.Row;
  * and a remote database ({@link DbmsClient}).
  */
 public abstract class Dbms {
+	public static final int NO_TRAN = 0;
+	public static boolean isTran(int tn) {
+		return tn > 0; // handle both -1 and 0
+	}
+
 	public abstract DbmsTran transaction(boolean readwrite);
 
 	public abstract void admin(String s);

@@ -499,7 +499,7 @@ public class DbmsClientText extends Dbms {
 	}
 
 	private class DbmsCursorRemote extends DbmsQueryRemote {
-		private int tn = -1;
+		private int tn = NO_TRAN;
 
 		DbmsCursorRemote(int qn) {
 			super(qn);
@@ -513,9 +513,9 @@ public class DbmsClientText extends Dbms {
 		@Override
 		public String toString() {
 			String s = "";
-			if (tn >= 0) {
+			if (isTran(tn)) {
 				s = "T" + tn + " ";
-				tn = -1;
+				tn = NO_TRAN;
 			}
 			return s + "C" + qn;
 		}
