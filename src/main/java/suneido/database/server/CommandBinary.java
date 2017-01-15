@@ -243,7 +243,7 @@ public enum CommandBinary {
 			DbmsQuery q = q_or_tc(io);
 			Row row = q.get(dir);
 			if (row == null)
-				io.put(true).put(EOF);
+				io.put(true).put(false);
 			else
 				rowResult(row, q.header(), false, io);
 		}
@@ -267,7 +267,7 @@ public enum CommandBinary {
 					? tran(tn).get(dir, query, one)
 					: dbms().get(dir, query, one);
 			if (hr == null)
-				io.put(true).put(EOF);
+				io.put(true).put(false);
 			else
 				rowResult(hr.row, hr.header, true, io);
 		}
@@ -404,7 +404,7 @@ public enum CommandBinary {
 		public void execute(SuChannel io) {
 			int qn = io.getInt();
 			DbmsQuery q = ServerData.forThread().getQuery(qn);
-			Record rec = record(io);
+			Record rec = getRecord(io);
 			q.output(rec);
 			io.put(true);
 		}
@@ -563,7 +563,7 @@ public enum CommandBinary {
 		public void execute(SuChannel io) {
 			DbmsTran t = tran(io);
 			int recadr = io.getInt();
-			Record rec = record(io);
+			Record rec = getRecord(io);
 			recadr = t.update(recadr, rec);
 			io.put(true).put(recadr);
 		}
@@ -637,7 +637,7 @@ public enum CommandBinary {
 		return ServerData.forThread().getTransaction(tn);
 	}
 
-	private static Record record(SuChannel io) {
+	private static Record getRecord(SuChannel io) {
 		ByteBuffer buf = io.getOwnedBuffer();
 		return dbpkg.record(0, buf);
 	}
@@ -649,7 +649,5 @@ public enum CommandBinary {
 		else
 			io.put(true).putPacked(result);
 	}
-
-	private static final int EOF = 0;
 
 }
