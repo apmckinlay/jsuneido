@@ -9,11 +9,11 @@ import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
-import suneido.SuException;
-
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+
+import suneido.SuException;
 
 /**
  * The "global" context for a function or method.
@@ -89,6 +89,7 @@ public abstract class Context {
 	public synchronized final Object tryget(int slot) {
 		Object value = values.get(slot);
 		if (value == null) {
+			values.set(slot, nonExistent); // in case fetch fails
 			String name = nameForSlot(slot);
 			value = name.contains("@") ? contexts.fetchExplicit(name) : fetch(name);
 			values.set(slot, value == null ? nonExistent : value);
