@@ -473,7 +473,7 @@ public final class Ops {
 		String s = x.toString();
 		if (! s.contains("`") && s.contains("\\") && printable.matchesAllOf(s))
 			return "`" + s + "`";
-		s = s.replace("\\", "\\\\");
+		s = s.replace("\\", "\\\\").replace("\000", "\\x00");
 		boolean single_quotes = default_single_quotes
 			? !s.contains("'")
 			: (s.contains("\"") && !s.contains("'"));
