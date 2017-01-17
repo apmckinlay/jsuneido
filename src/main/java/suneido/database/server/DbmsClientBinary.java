@@ -539,7 +539,7 @@ public class DbmsClientBinary extends Dbms {
 
 		@Override
 		public void setTransaction(DbmsTran tran) {
-			tn = ((DbmsClientTran) tran).tn;
+			tn = tran == null ? NO_TRAN : ((DbmsClientTran) tran).tn;
 		}
 
 		@Override
