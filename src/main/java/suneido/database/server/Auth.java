@@ -26,16 +26,23 @@ public class Auth {
 	public static final int NONCE_SIZE = 8;
 	public static final int TOKEN_SIZE = 16;
 	private static Set<String> tokens = Sets.newConcurrentHashSet();
+	private static class InitOnce {
+		static final boolean initialValue = ! haveUserTable();
+	}
 
-//	boolean haveUserTable() {
-//		Database db = ((DbmsLocal) TheDbms.dbms()).getDb();
-//		Transaction t = db.readTransaction();
-//		try {
-//			return ! t.tableExists("users");
-//		} finally {
-//			t.complete();
-//		}
-//	}
+	static boolean initialValue() {
+		return true; //InitOnce.initialValue;
+	}
+
+	private static boolean haveUserTable() {
+		Database db = ((DbmsLocal) TheDbms.dbms()).getDb();
+		Transaction t = db.readTransaction();
+		try {
+			return t.tableExists("users");
+		} finally {
+			t.complete();
+		}
+	}
 
 	/** @return Random bytes */
 	synchronized private static byte[] random(int size) {

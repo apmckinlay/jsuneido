@@ -39,7 +39,7 @@ public class ServerData {
 
 	public ServerData(Closeable connection) {
 		this.connection = connection;
-		auth = true; //TEMPORARY until applications are converted
+		auth = Auth.initialValue();
 	}
 
 	/**
