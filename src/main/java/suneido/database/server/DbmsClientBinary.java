@@ -6,6 +6,7 @@ package suneido.database.server;
 
 import static suneido.Suneido.dbpkg;
 import static suneido.database.server.CommandBinary.*;
+import static suneido.util.ByteBuffers.bufferToString;
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -49,6 +50,9 @@ public class DbmsClientBinary extends Dbms {
 
 	public DbmsClientBinary(Channel channel) {
 		this.io = new SuChannel(channel);
+		String msg = bufferToString(io.getBuffer(DbmsServerBinary.helloSize));
+		if (! msg.startsWith("Suneido Database Server") || ! msg.contains("binary"))
+			throw new SuException("invalid connect response: " + msg);
 		sessionid = sessionid("");
 	}
 

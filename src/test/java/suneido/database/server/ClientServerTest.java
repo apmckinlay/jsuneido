@@ -175,7 +175,8 @@ public class ClientServerTest {
 
 	private void serverHandler() {
 		// not request because we don't want threads
-		handler.handleRequest(channel, (channel, handler) -> { });
+		if (handler != null) // needed to handle initial greeting
+			handler.handleRequest(channel, (channel, handler) -> { });
 	}
 
 }

@@ -63,7 +63,9 @@ public class TestChannel
 
 	@Override
 	public int write(ByteBuffer src) {
-		throw new UnsupportedOperationException();
+		ByteBuffer[] bufs = new ByteBuffer[1];
+		bufs[0] = src;
+		return (int) write(bufs);
 	}
 
 	@Override

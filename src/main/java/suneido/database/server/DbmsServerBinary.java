@@ -4,11 +4,14 @@
 
 package suneido.database.server;
 
+import static suneido.util.ByteBuffers.stringToBuffer;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channel;
 import java.nio.channels.SocketChannel;
+import java.nio.channels.WritableByteChannel;
 import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -18,9 +21,11 @@ import java.util.function.BiConsumer;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
+import com.google.common.base.Strings;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import suneido.SuException;
+import suneido.Suneido;
 import suneido.util.Errlog;
 import suneido.util.ServerBySelect;
 import suneido.util.ServerBySelect.Handler;
@@ -34,6 +39,7 @@ import suneido.util.ServerBySelect.Handler;
 public class DbmsServerBinary {
 	public final ServerDataSet serverDataSet = new ServerDataSet();
 	private final ServerBySelect server;
+	public static final int helloSize = 64;
 
 	public DbmsServerBinary(int idleTimeoutMin) {
 		server = new ServerBySelect(
@@ -69,6 +75,9 @@ public class DbmsServerBinary {
 		private static final CommandBinary[] commands = CommandBinary.values();
 		private final ServerDataSet serverDataSet;
 		private final ServerData serverData;
+		private static class InitOnce {
+			static final ByteBuffer hello = hello();
+		}
 
 		DbmsServerHandler(Channel channel, ServerDataSet serverDataSet) {
 			this.serverDataSet = serverDataSet;
@@ -78,6 +87,23 @@ public class DbmsServerBinary {
 				serverData.setSessionId(adr.getHostAddress());
 			}
 			serverDataSet.add(serverData);
+			sendHello(channel);
+		}
+
+		private static void sendHello(Channel channel) {
+			ByteBuffer hello = InitOnce.hello;
+			hello.rewind();
+			try {
+				((WritableByteChannel) channel).write(hello);
+			} catch (IOException e) {
+				throw new RuntimeException("error writing hello", e);
+			}
+		}
+
+		private static ByteBuffer hello() {
+			return stringToBuffer(Strings.padEnd("Suneido Database Server (" +
+					Suneido.cmdlineoptions.impersonate + ") binary\r\n",
+					helloSize, ' '));
 		}
 
 		@Override
