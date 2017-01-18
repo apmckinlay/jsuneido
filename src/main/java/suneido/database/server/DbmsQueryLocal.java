@@ -51,7 +51,7 @@ public class DbmsQueryLocal implements DbmsQuery {
 
 	@Override
 	public void setTransaction(DbmsTran tran) {
-		q.setTransaction(((DbmsTranLocal) tran).t);
+		q.setTransaction(tran == null ? null : ((DbmsTranLocal) tran).t);
 	}
 
 	@Override
