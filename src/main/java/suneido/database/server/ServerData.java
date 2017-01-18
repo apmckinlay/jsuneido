@@ -14,7 +14,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 import suneido.util.Errlog;
 
 /**
- * Each connection/session has it's own ServerData instance
+ * Each connection/session has its own ServerData instance
  */
 @NotThreadSafe
 public class ServerData {

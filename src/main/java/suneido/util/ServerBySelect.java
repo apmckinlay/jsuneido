@@ -20,7 +20,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Uses a supplied function to create a new Handler for each accepted connection.
  * Constructs handler initially while channel is still in blocking mode.
  * It is up to handlers to create worker threads.
- * Does NOT doing any reading or writing.
+ * Does NOT do any reading or writing.
  * Assumes request-response model.
  * Waits till channel is readable and then passes channel to handler.request
  * with the channel in blocking mode and unregistered from selector.

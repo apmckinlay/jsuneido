@@ -25,8 +25,8 @@ import suneido.runtime.Params;
 public class SuQuery extends SuValue {
 	protected String query;
 	protected DbmsQuery q;
-	protected final DbmsTran t;
-	protected Dir eof = null;
+	private final DbmsTran t;
+	private Dir eof = null;
 
 	private static BuiltinMethods methods = new BuiltinMethods("query", SuQuery.class);
 
@@ -105,7 +105,7 @@ public class SuQuery extends SuValue {
 		return ((SuQuery) self).getrec(Dir.PREV);
 	}
 
-	protected Object getrec(Dir dir) {
+	private Object getrec(Dir dir) {
 		return getrec(dir, t);
 	}
 
