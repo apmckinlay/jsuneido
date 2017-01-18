@@ -25,57 +25,17 @@ public class DbmsUnauth extends Dbms {
 	}
 
 	@Override
-	public DbmsTran transaction(boolean readwrite) {
-		throw notauth;
-	}
-
-	@Override
 	public void admin(String s) {
 		throw notauth;
 	}
 
 	@Override
-	public DbmsQuery cursor(String s) {
-		throw notauth;
-	}
-
-	@Override
-	public HeaderAndRow get(Dir dir, String query, boolean one) {
-		throw notauth;
-	}
-
-	@Override
-	public List<Integer> transactions() {
-		throw notauth;
-	}
-
-	@Override
-	public SuDate timestamp() {
-		throw notauth;
+	public boolean auth(String data) {
+		return dbms.auth(data);
 	}
 
 	@Override
 	public String check() {
-		throw notauth;
-	}
-
-	@Override
-	public String dump(String filename) {
-		throw notauth;
-	}
-
-	@Override
-	public int load(String filename) {
-		throw notauth;
-	}
-
-	@Override
-	public Object run(String s) {
-		throw notauth;
-	}
-
-	@Override
-	public long size() {
 		throw notauth;
 	}
 
@@ -85,52 +45,12 @@ public class DbmsUnauth extends Dbms {
 	}
 
 	@Override
+	public DbmsQuery cursor(String s) {
+		throw notauth;
+	}
+
+	@Override
 	public int cursors() {
-		throw notauth;
-	}
-
-	@Override
-	public String sessionid(String s) {
-		return dbms.sessionid(s);
-	}
-
-	@Override
-	public int finalSize() {
-		throw notauth;
-	}
-
-	@Override
-	public void log(String s) {
-		dbms.log(s);
-	}
-
-	@Override
-	public int kill(String s) {
-		throw notauth;
-	}
-
-	@Override
-	public Object exec(SuContainer c) {
-		throw notauth;
-	}
-
-	@Override
-	public List<LibGet> libget(String name) {
-		return dbms.libget(name);
-	}
-
-	@Override
-	public boolean use(String library) {
-		return dbms.use(library);
-	}
-
-	@Override
-	public boolean unuse(String library) {
-		throw notauth;
-	}
-
-	@Override
-	public List<String> libraries() {
 		throw notauth;
 	}
 
@@ -140,8 +60,53 @@ public class DbmsUnauth extends Dbms {
 	}
 
 	@Override
+	public String dump(String filename) {
+		throw notauth;
+	}
+
+	@Override
 	public void enableTrigger(String table) {
 		throw notauth;
+	}
+
+	@Override
+	public Object exec(SuContainer c) {
+		throw notauth;
+	}
+
+	@Override
+	public int finalSize() {
+		throw notauth;
+	}
+
+	@Override
+	public HeaderAndRow get(Dir dir, String query, boolean one) {
+		throw notauth;
+	}
+
+	@Override
+	public int kill(String s) {
+		throw notauth;
+	}
+
+	@Override
+	public List<LibGet> libget(String name) {
+		return dbms.libget(name);
+	}
+
+	@Override
+	public List<String> libraries() {
+		throw notauth;
+	}
+
+	@Override
+	public int load(String filename) {
+		throw notauth;
+	}
+
+	@Override
+	public void log(String s) {
+		dbms.log(s);
 	}
 
 	@Override
@@ -150,13 +115,48 @@ public class DbmsUnauth extends Dbms {
 	}
 
 	@Override
-	public boolean auth(String data) {
-		return dbms.auth(data);
+	public String sessionid(String s) {
+		return dbms.sessionid(s);
+	}
+
+	@Override
+	public long size() {
+		throw notauth;
+	}
+
+	@Override
+	public Object run(String s) {
+		throw notauth;
+	}
+
+	@Override
+	public SuDate timestamp() {
+		throw notauth;
 	}
 
 	@Override
 	public byte[] token() {
 		throw notauth;
+	}
+
+	@Override
+	public DbmsTran transaction(boolean readwrite) {
+		throw notauth;
+	}
+
+	@Override
+	public List<Integer> transactions() {
+		throw notauth;
+	}
+
+	@Override
+	public boolean unuse(String library) {
+		throw notauth;
+	}
+
+	@Override
+	public boolean use(String library) {
+		return dbms.use(library);
 	}
 
 }
