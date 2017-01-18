@@ -115,17 +115,17 @@ public class DbmsUnauth extends Dbms {
 	}
 
 	@Override
+	public Object run(String s) {
+		throw notauth;
+	}
+
+	@Override
 	public String sessionid(String s) {
 		return dbms.sessionid(s);
 	}
 
 	@Override
 	public long size() {
-		throw notauth;
-	}
-
-	@Override
-	public Object run(String s) {
 		throw notauth;
 	}
 
