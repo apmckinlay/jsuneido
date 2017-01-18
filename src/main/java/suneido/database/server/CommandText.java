@@ -28,7 +28,6 @@ import suneido.intfc.database.Record;
 import suneido.intfc.database.RecordBuilder;
 import suneido.runtime.Ops;
 import suneido.runtime.Pack;
-import suneido.runtime.builtin.ServerEval;
 
 /**
  * Server side of the *text* client-server protocol.
@@ -194,7 +193,7 @@ public enum CommandText {
 		public ByteBuffer execute(String line, ByteBuffer extra,
 				Consumer<ByteBuffer> output) {
 			SuContainer c = (SuContainer) Pack.unpack(extra);
-			Object result = ServerEval.exec(c);
+			Object result = dbms().exec(c);
 			return valueResult(output, result);
 		}
 
