@@ -9,6 +9,7 @@ import java.util.List;
 import suneido.SuContainer;
 import suneido.SuDate;
 import suneido.SuException;
+import suneido.database.query.Query.Dir;
 
 /**
  * Wrapper for Dbms for unauthorized client connections.
@@ -35,6 +36,11 @@ public class DbmsUnauth extends Dbms {
 
 	@Override
 	public DbmsQuery cursor(String s) {
+		throw notauth;
+	}
+
+	@Override
+	public HeaderAndRow get(Dir dir, String query, boolean one) {
 		throw notauth;
 	}
 
@@ -95,7 +101,7 @@ public class DbmsUnauth extends Dbms {
 
 	@Override
 	public void log(String s) {
-		throw notauth;
+		dbms.log(s);
 	}
 
 	@Override
