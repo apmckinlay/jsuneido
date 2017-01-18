@@ -23,11 +23,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.base.Strings;
+
 import suneido.SuException;
 import suneido.compiler.ExecuteTest;
 import suneido.jsdi.Buffer;
-
-import com.google.common.base.Strings;
 
 public class OpsTest {
 
@@ -45,9 +45,9 @@ public class OpsTest {
 	@Test
 	public void test_display() {
 		assertThat(Ops.display("hello"), equalTo("'hello'"));
-		assertThat(Ops.display("hello\000"), equalTo("'hello\000'"));
+		assertThat(Ops.display("hello\000"), equalTo("'hello\\x00'"));
 		assertThat(Ops.display(new Buffer(5, "hello")), equalTo("'hello'"));
-		assertThat(Ops.display(new Buffer(7, "hello")), equalTo("'hello\000\000'"));
+		assertThat(Ops.display(new Buffer(7, "hello")), equalTo("'hello\\x00\\x00'"));
 		assertThat(Ops.display(new Concats("hello", "world")), equalTo("'helloworld'"));
 	}
 
