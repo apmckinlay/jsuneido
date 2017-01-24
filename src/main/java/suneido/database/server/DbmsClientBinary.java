@@ -51,7 +51,7 @@ public class DbmsClientBinary extends Dbms {
 	public DbmsClientBinary(Channel channel) {
 		this.io = new SuChannel(channel);
 		String msg = bufferToString(io.getBuffer(DbmsServerBinary.helloSize));
-		if (! msg.startsWith("Suneido Database Server") || ! msg.contains("binary"))
+		if (! msg.startsWith("Suneido ") || msg.startsWith("Suneido Database Server"))
 			throw new SuException("invalid connect response: " + msg);
 		sessionid = sessionid("");
 	}

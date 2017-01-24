@@ -25,7 +25,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import suneido.SuException;
-import suneido.Suneido;
+import suneido.Build;
 import suneido.util.Errlog;
 import suneido.util.ServerBySelect;
 import suneido.util.ServerBySelect.Handler;
@@ -68,8 +68,9 @@ public class DbmsServerText {
 		private final ThreadFactory threadFactory =
 				new ThreadFactoryBuilder().setNameFormat("DbmsServer-thread-%d").build();
 		private final Executor executor = Executors.newCachedThreadPool(threadFactory);
+		// hello should be at least DbmsServerBinary.helloSize
 		private static final ByteBuffer hello = stringToBuffer(
-				"Suneido Database Server (" + Suneido.cmdlineoptions.impersonate + ")\r\n");
+				"Suneido Database Server (" + Build.desc() + ")\r\n");
 		private static final int BUFSIZE = 16 * 1024;
 		private static final ThreadLocal<ByteBuffer> tlbuf =
 				ThreadLocal.withInitial(() -> ByteBuffer.allocate(BUFSIZE));

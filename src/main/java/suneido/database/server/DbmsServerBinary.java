@@ -24,8 +24,8 @@ import javax.annotation.concurrent.ThreadSafe;
 import com.google.common.base.Strings;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
+import suneido.Build;
 import suneido.SuException;
-import suneido.Suneido;
 import suneido.util.Errlog;
 import suneido.util.ServerBySelect;
 import suneido.util.ServerBySelect.Handler;
@@ -39,7 +39,7 @@ import suneido.util.ServerBySelect.Handler;
 public class DbmsServerBinary {
 	public final ServerDataSet serverDataSet = new ServerDataSet();
 	private final ServerBySelect server;
-	public static final int helloSize = 64;
+	public static final int helloSize = 50; // must match cSuneido
 
 	public DbmsServerBinary(int idleTimeoutMin) {
 		server = new ServerBySelect(
@@ -101,9 +101,9 @@ public class DbmsServerBinary {
 		}
 
 		private static ByteBuffer hello() {
-			return stringToBuffer(Strings.padEnd("Suneido Database Server (" +
-					Suneido.cmdlineoptions.impersonate + ") binary\r\n",
-					helloSize, ' '));
+			String hello = "Suneido " + Build.desc() + "\r\n";
+			assert hello.length() < helloSize;
+			return stringToBuffer(Strings.padEnd(hello, helloSize, '\000'));
 		}
 
 		@Override
