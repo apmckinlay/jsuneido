@@ -96,7 +96,7 @@ public class DbmsUnauth extends Dbms {
 
 	@Override
 	public List<String> libraries() {
-		throw notauth;
+		return dbms.libraries();
 	}
 
 	@Override
