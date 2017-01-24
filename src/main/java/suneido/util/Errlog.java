@@ -47,7 +47,7 @@ public class Errlog {
 	}
 
 	public static void fatal(String s, Throwable e) {
-		Util.interruptableSleep(10); // give other thread a chance to exit gracefully
+		Util.interruptableSleep(10); // give threads a chance to exit gracefully
 		log("FATAL ERROR", s, e);
 		System.exit(-1);
 	}
