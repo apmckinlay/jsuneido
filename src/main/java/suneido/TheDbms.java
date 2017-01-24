@@ -135,4 +135,15 @@ public class TheDbms {
 		}
 	};
 
+	public static void closeAll() {
+		synchronized(dbmsRemotes) {
+			Iterator<DbmsClient> iter = dbmsRemotes.iterator();
+			while (iter.hasNext()) {
+				DbmsClient dr = iter.next();
+				iter.remove();
+				dr.close();
+			}
+		}
+	}
+
 }

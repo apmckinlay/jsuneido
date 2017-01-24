@@ -80,6 +80,8 @@ public class Suneido {
 		case CLIENT:
 			TheDbms.remote(cmdlineoptions.actionArg, cmdlineoptions.serverPort);
 			scheduleAtFixedRate(TheDbms.closer, 30, TimeUnit.SECONDS);
+			Runtime.getRuntime().addShutdownHook(
+					new Thread(() -> TheDbms.closeAll()));
 			Errlog.setExtra(TheDbms::sessionid);
 			if ("".equals(cmdlineoptions.remainder))
 				Repl.repl2();
