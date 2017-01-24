@@ -91,4 +91,5 @@ public abstract class Dbms {
 	public abstract boolean auth(String data);
 	public abstract byte[] token();
 
+	public abstract void close();
 }

@@ -10,10 +10,11 @@ import java.util.Iterator;
 import java.util.Set;
 
 import suneido.database.server.Dbms;
-import suneido.database.server.DbmsLocal;
 import suneido.database.server.DbmsClient;
+import suneido.database.server.DbmsLocal;
 import suneido.intfc.database.Database;
 import suneido.runtime.builtin.SocketServer;
+import suneido.util.Errlog;
 import suneido.util.Util;
 
 public class TheDbms {
@@ -35,6 +36,19 @@ public class TheDbms {
 		if (dbms == null)
 			dbms = newDbms();
 		return dbms;
+	}
+
+	// used by SuThread
+	public static void close() {
+		if (ip == null)
+			return;
+		DbmsClient dbms = remoteDbms.get();
+		if (dbms == null)
+			return;
+		remoteDbms.set(null);
+		dbms.close();
+		if (! dbmsRemotes.remove(dbms))
+			Errlog.error("TheDbms.close dbmsRemotes.remove failed");
 	}
 
 	private static DbmsClient newDbms() {

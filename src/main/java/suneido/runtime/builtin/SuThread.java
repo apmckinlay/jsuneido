@@ -56,12 +56,15 @@ public class SuThread extends BuiltinClass {
 		public void run() {
 			// runs in the child thread
 			try {
-				// don't want to auth here since that will force dbms connection
+				// don't want to actually auth here
+				// since that will force dbms connection
 				TheDbms.setAuthToken(token);
 				Ops.call(callable);
 			} catch (Throwable e ) {
 				if (! Suneido.exiting)
 					Errlog.error("Thread uncaught", e);
+			} finally {
+				TheDbms.close();
 			}
 		}
 	}

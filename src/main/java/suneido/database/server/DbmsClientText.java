@@ -50,6 +50,7 @@ public class DbmsClientText extends Dbms {
 		sessionid = io.readLine();
 	}
 
+	@Override
 	public void close() {
 		io.close();
 	}

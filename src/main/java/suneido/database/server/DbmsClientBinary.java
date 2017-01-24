@@ -56,6 +56,7 @@ public class DbmsClientBinary extends Dbms {
 		sessionid = sessionid("");
 	}
 
+	@Override
 	public void close() {
 		io.close();
 	}

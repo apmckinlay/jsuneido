@@ -79,6 +79,7 @@ public class Repl {
 		} // repl: while (true)
 		out.println("bye");
 		out.flush();
+		TheDbms.dbms().close();
 	}
 
 	public static void main(String[] args) throws Exception {

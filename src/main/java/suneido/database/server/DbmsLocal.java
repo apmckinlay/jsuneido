@@ -215,4 +215,9 @@ public class DbmsLocal extends Dbms {
 		return db;
 	}
 
+	@Override
+	public void close() {
+		db.close();
+	}
+
 }

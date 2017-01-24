@@ -159,4 +159,9 @@ public class DbmsUnauth extends Dbms {
 		return dbms.use(library);
 	}
 
+	@Override
+	public void close() {
+		dbms.close();
+	}
+
 }
