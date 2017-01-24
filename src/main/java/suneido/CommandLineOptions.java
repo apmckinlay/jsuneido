@@ -26,7 +26,6 @@ public class CommandLineOptions {
 	public int serverPort = -1;
 	public DebugModel debugModel = DebugModel.OFF;
 	public String remainder = "";
-	public String impersonate = WhenBuilt.when();
 	private static final int DEFAULT_TIMEOUT = 4 * 60; // 4 hours
 	public int timeoutMin = DEFAULT_TIMEOUT;
 	public int max_update_tran_sec = 0;
@@ -101,11 +100,7 @@ public class CommandLineOptions {
 				setActionWithArg(Action.TESTCLIENT);
 			else if (arg.equals("-testserver") || arg.equals("-ts"))
 				setAction(Action.TESTSERVER);
-			else if (arg.equals("-impersonate") || arg.equals("-i")) {
-				impersonate = getArg();
-				if (impersonate == null)
-					error("impersonate requires value");
-			} else if (arg.equals("-timeout") || arg.equals("-to"))
+			else if (arg.equals("-timeout") || arg.equals("-to"))
 				timeoutMin = getIntArg();
 			else if (arg.equals("-ut"))
 				max_update_tran_sec = getIntArg();
@@ -231,8 +226,6 @@ public class CommandLineOptions {
 			if (remainder != "")
 				sb.append(" rest: ").append(remainder);
 		}
-		if (impersonate != null && !impersonate.equals(WhenBuilt.when()))
-			sb.append(" impersonate='").append(impersonate).append("'");
 		if (timeoutMin != DEFAULT_TIMEOUT)
 			sb.append(" timeout=" + timeoutMin);
 		return sb.toString();

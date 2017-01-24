@@ -73,20 +73,6 @@ public class CommandLineOptionsTest {
 	}
 
 	@Test
-	public void impersonate_without_arg() {
-		assertEquals("ERROR impersonate requires value",
-				CommandLineOptions.parse("-i").toString());
-	}
-
-	@Test
-	public void impersonate() {
-		assertEquals("REPL impersonate='1234'",
-				CommandLineOptions.parse("-impersonate", "1234").toString());
-		assertEquals("REPL impersonate='1234'",
-				CommandLineOptions.parse("-i", "1234").toString());
-	}
-
-	@Test
 	public void timeout() {
 		assertThat(CommandLineOptions.parse("-timeout", "1234").toString(),
 				is("REPL timeout=1234"));
