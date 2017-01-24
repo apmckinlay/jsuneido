@@ -30,7 +30,7 @@ public class CommandLineOptions {
 	public int timeoutMin = DEFAULT_TIMEOUT;
 	public int max_update_tran_sec = 0;
 	public int max_writes_per_tran = 0;
-	public boolean jsdi = true;
+	public boolean jsdi = false;
 	public boolean unattended = false;
 
 	public static CommandLineOptions parse(String... args) {
@@ -108,8 +108,8 @@ public class CommandLineOptions {
 				max_writes_per_tran = getIntArg();
 			else if (arg.equals("-debug"))
 				debugModel = getDebugModelArg();
-			else if (arg.equals("-nojsdi"))
-				jsdi = false;
+			else if (arg.equals("-jsdi"))
+				jsdi = true;
 			else if (arg.equals("-unattended") || arg.equals("-u"))
 				unattended = true;
 			else
