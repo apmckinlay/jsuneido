@@ -105,7 +105,7 @@ public class HttpServerMonitor {
 				sb.append("<h2 style=\"color: red;\">DATABASE DAMAGE DETECTED - "
 						+ "OPERATING IN READ-ONLY MODE</h2>\r\n");
 			sb.append("<p>Built: ")
-					.append(WhenBuilt.when())
+					.append(Build.desc())
 					.append("</p>\r\n");
 			sb.append("<p>Heap Size: ")
 					.append(mb(Runtime.getRuntime().totalMemory()))

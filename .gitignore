@@ -1,5 +1,6 @@
 *.log
 src/main/java/suneido/WhenBuilt.java
+src/main/java/suneido/Build.java
 target/*
 jsuneido.jar
 *.dbd

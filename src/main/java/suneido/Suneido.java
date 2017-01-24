@@ -126,7 +126,7 @@ public class Suneido {
 			Dump.dump();
 			break;
 		case VERSION:
-			System.out.println("jSuneido " + WhenBuilt.when());
+			System.out.println("jSuneido " + Build.desc());
 			if (JSDI.isInitialized()) {
 				System.out.println("JSDI " + JSDI.getInstance().whenBuilt());
 			}
