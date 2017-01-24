@@ -24,8 +24,8 @@ import javax.annotation.concurrent.ThreadSafe;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
-import suneido.SuException;
 import suneido.Build;
+import suneido.SuException;
 import suneido.util.Errlog;
 import suneido.util.ServerBySelect;
 import suneido.util.ServerBySelect.Handler;
@@ -171,7 +171,8 @@ public class DbmsServerText {
 		while (true) {
 			if (buf.remaining() == 0) // line too long
 				return null; // ???
-			if (-1 == ((ReadableByteChannel) channel).read(buf))
+			int nr = ((ReadableByteChannel) channel).read(buf);
+			if (nr <= 0)
 				return null; // disconnected
 			int i = indexOf(buf, pos, (byte) '\n');
 			if (i != -1) {
