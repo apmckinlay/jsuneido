@@ -6,7 +6,6 @@ package suneido.runtime.builtin;
 
 import suneido.SuContainer;
 import suneido.SuException;
-import suneido.Suneido;
 import suneido.TheDbms;
 import suneido.runtime.*;
 import suneido.util.Util;
@@ -65,11 +64,6 @@ public class Database extends BuiltinClass {
 
 	public static Object Transactions(Object self) {
 		return new SuContainer(TheDbms.dbms().transactions());
-	}
-
-	@Params("string")
-	public static Object Impersonate(Object self, Object a) {
-		return Suneido.cmdlineoptions.impersonate = Ops.toStr(a);
 	}
 
 	@Params("table = ''")
