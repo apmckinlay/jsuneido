@@ -12,9 +12,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import suneido.Suneido;
-import suneido.jsdi.DllInterface;
-import suneido.runtime.builtin.Name;
-import suneido.util.testing.Assumption;
 
 /**
  * Test for the {@link Name} built-in.
@@ -96,37 +93,37 @@ public class NameTest {
 		test("x = B; Name(x)", "B");
 	}
 
-	@Test
-	@DllInterface
-	public void testJSDILocal() {
-		Assumption.jvmIsOnWindows();
-		test("Name(Buffer(1, ''))", "");
-		test("Name(x = Buffer(1, ''))", "");
-		test("Name(struct { char x })", "");
-		test("Name(x = struct { char x })", "");
-		test("Name(callback())", "");
-		test("Name(x = callback())", "");
-		test("Name(dll void void:f())", "");
-		test("Name(x = dll void void:f())", "");
-	}
-
-	@Test
-	@DllInterface
-	public void testJSDIInContext() {
-		Assumption.jvmIsOnWindows();
-
-		define("A", "struct { char x }");
-		test("Name(A)", "A");
-		test("x = A; Name(x)", "A");
-
-		define("B", "callback()");
-		test("Name(B)", "B");
-		test("x = B; Name(x)", "B");
-
-		define("C", "dll void void:f()");
-		test("Name(C)", "C");
-		test("x = C; Name(x)", "C");
-	}
+//	@Test
+//	@DllInterface
+//	public void testJSDILocal() {
+//		Assumption.jvmIsOnWindows();
+//		test("Name(Buffer(1, ''))", "");
+//		test("Name(x = Buffer(1, ''))", "");
+//		test("Name(struct { char x })", "");
+//		test("Name(x = struct { char x })", "");
+//		test("Name(callback())", "");
+//		test("Name(x = callback())", "");
+//		test("Name(dll void void:f())", "");
+//		test("Name(x = dll void void:f())", "");
+//	}
+//
+//	@Test
+//	@DllInterface
+//	public void testJSDIInContext() {
+//		Assumption.jvmIsOnWindows();
+//
+//		define("A", "struct { char x }");
+//		test("Name(A)", "A");
+//		test("x = A; Name(x)", "A");
+//
+//		define("B", "callback()");
+//		test("Name(B)", "B");
+//		test("x = B; Name(x)", "B");
+//
+//		define("C", "dll void void:f()");
+//		test("Name(C)", "C");
+//		test("x = C; Name(x)", "C");
+//	}
 
 	@Before
 	public void beforeTest() {
