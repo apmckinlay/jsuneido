@@ -7,14 +7,16 @@ package suneido.util;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Iterator;
 
 /**
  * A merge tree using fixed size blocks of memory
  * rather than contiguous runs of doubling sizes.
  * This is better for allocation and garbage collection.
  */
-public class BlockMergeTree<T> {
-	private static final int BLOCKSIZE = 256;
+public class BlockMergeTree<T extends Comparable<T>> implements Iterable<T> {
+	private final int BLOCKSIZE;
+	private static final int DEFAULT_BLOCKSIZE = 256;
 	private final Comparator<? super T> cmp;
 	/**
 	 * blocks is an array of levels,
@@ -23,7 +25,7 @@ public class BlockMergeTree<T> {
 	 * The first level (one block) is not sorted during insertions.
 	 * All other levels are sorted.
 	 */
-	private Level[] levels = newArray();
+	private Level[] levels = newArray(0);
 	private final ArrayDeque<T[]> freeBlocks = new ArrayDeque<>();
 	/**
 	 * The number of elements.
@@ -32,16 +34,24 @@ public class BlockMergeTree<T> {
 	private int size = 0;
 
 	@SafeVarargs
-	static <E> E[] newArray(E... array) {
-	    return array;
+	static <E> E[] newArray(int length, E... array) {
+	    return Arrays.copyOf(array, length);
 	}
 
-	@SuppressWarnings("unchecked")
 	public BlockMergeTree() {
-		this((T x, T y) -> ((Comparable<T>) x).compareTo(y));
+		this(DEFAULT_BLOCKSIZE);
+	}
+
+	public BlockMergeTree(int blocksize) {
+		this(blocksize, (T x, T y) -> x.compareTo(y));
 	}
 
 	public BlockMergeTree(Comparator<? super T> cmp) {
+		this(DEFAULT_BLOCKSIZE, cmp);
+	}
+
+	public BlockMergeTree(int blocksize, Comparator<? super T> cmp) {
+		BLOCKSIZE = blocksize;
 		this.cmp = cmp;
 		expandLevels(); // create first level
 		expandLevels(); // create second level
@@ -69,7 +79,7 @@ public class BlockMergeTree<T> {
 	}
 
 	private void sortFirstBlock() {
-		Arrays.sort(levels[0].blocks[0], cmp);
+		Arrays.sort(levels[0].blocks[0], 0, levels[0].size, cmp);
 	}
 
 	/** merge levels 0 to destLevel - 1 to destLevel */
@@ -83,7 +93,7 @@ public class BlockMergeTree<T> {
 			for (int level = 0; level < destLevel; ++level) {
 				T value = levels[level].first();
 				if (value != null &&
-						(minValue == null || cmp(value, minValue) < 0)) {
+						(minValue == null || cmp.compare(value, minValue) < 0)) {
 					minValue = value;
 					minLevel = level;
 				}
@@ -94,11 +104,7 @@ public class BlockMergeTree<T> {
 		for (int level = 0; level < destLevel; ++level)
 			levels[level].clear();
 	}
-
-	@SuppressWarnings("unchecked")
-	private int cmp(Object x, Object y) {
-		return cmp.compare((T) x, (T) y);
-	}
+	//TODO move whole blocks when possible
 
 	/** @return the first empty level, expanding blocks as necessary */
 	private int firstEmptyLevel() {
@@ -111,7 +117,7 @@ public class BlockMergeTree<T> {
 	}
 
 	/** @return The number of items on a level */
-	private static int levelSize(int level) {
+	private int levelSize(int level) {
 		return levelBlocks(level) * BLOCKSIZE;
 	}
 
@@ -131,10 +137,9 @@ public class BlockMergeTree<T> {
 		freeBlocks.add(block);
 	}
 
-	@SuppressWarnings("unchecked")
 	private T[] alloc() {
 		return freeBlocks.isEmpty()
-				? (T[]) new Object[BLOCKSIZE]
+				? newArray(BLOCKSIZE)
 				: freeBlocks.removeLast();
 	}
 
@@ -157,9 +162,8 @@ public class BlockMergeTree<T> {
 		int size = 0;
 		int first = 0;
 
-		@SuppressWarnings("unchecked")
 		Level(int nblocks) {
-			blocks = (T[][]) new Object[nblocks][];
+			blocks = newArray(nblocks);
 		}
 
 		void add(T x) {
@@ -201,7 +205,7 @@ public class BlockMergeTree<T> {
 			T prev = blocks[0][0];
 			for (T[] b : blocks)
 				for (T val : b) {
-					assert cmp(val, prev) >= 0;
+					assert cmp.compare(val, prev) >= 0;
 					prev = val;
 				}
 		}
@@ -222,5 +226,87 @@ public class BlockMergeTree<T> {
 				}
 			System.out.println("size " + size + " first " + first);
 		}
+
+		Iter iter() {
+			return new Iter();
+		}
+
+		class Iter {
+			int bi = 0;
+			int i = 0;
+			int iLimit = Math.min(size, BLOCKSIZE);
+
+			T peek() {
+				return blocks[bi][i];
+			}
+
+			boolean hasNext() {
+				return bi < blocks.length;
+			}
+
+			boolean next() {
+				if (bi >= blocks.length)
+					return false;
+				if (++i < iLimit)
+					return true;
+				i = 0;
+				return ++bi < blocks.length;
+			}
+
+			@Override
+			public String toString() {
+				return "len " + blocks.length + " bi " + bi + " i " + i +
+						(hasNext() ? " hasNext" : "");
+			}
+		}
 	}
+
+	//--------------------------------------------------------------------------
+
+	@Override
+	public Iterator<T> iterator() {
+		sortFirstBlock();
+		return new Iter();
+	}
+
+	private class Iter implements Iterator<T> {
+		Level.Iter[] iters;
+		int n;
+
+		Iter() {
+			iters = newArray(levels.length);
+			for (int level = 0; level < levels.length; ++level)
+				if (!levels[level].isEmpty())
+					iters[n++] = levels[level].iter();
+		}
+
+		@Override
+		public boolean hasNext() {
+			for (int i = 0; i < n; ++i)
+				if (iters[i].hasNext())
+					return true;
+			return false;
+		}
+
+		@Override
+		public T next() {
+			int iMin = -1;
+			T min = null;
+			for (int i = 0; i < n; ++i)
+				if (iters[i].hasNext())
+					if (min == null || cmp.compare(iters[i].peek(), min) <= 0)
+						min = iters[iMin = i].peek();
+			iters[iMin].next();
+			return min;
+		}
+
+		@Override
+		public String toString() {
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < n; ++i)
+				sb.append(iters[i]).append(" / ");
+			return sb.toString();
+		}
+	}
+
 }

@@ -4,16 +4,30 @@
 
 package suneido.util;
 
+import java.util.ArrayList;
+import java.util.Random;
+
 import org.junit.Test;
 
 public class BlockMergeTreeTest {
 
 	@Test
 	public void test() {
-		BlockMergeTree<Integer> bmt = new BlockMergeTree<>();
-		for (int i = 20000; i > 0; --i)
-			bmt.add(i);
+		ArrayList<Integer> list = new ArrayList<>();
+		Random rand = new Random();
+		BlockMergeTree<Integer> bmt = new BlockMergeTree<>(2);
+		int N = 64 + 16 + 4 + 1;
+		for (int i = 0; i < N; ++i) {
+			int n = rand.nextInt();
+			bmt.add(n);
+			list.add(n);
+		}
 		bmt.check();
+		//bmt.print();
+		int i = 0;
+		list.sort(null);
+		for (Integer x : bmt)
+			assert x.intValue() == list.get(i++);
 	}
 
 }
