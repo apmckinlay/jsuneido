@@ -82,7 +82,7 @@ public class Repl {
 	}
 
 	public static void main(String[] args) throws Exception {
-		Suneido.cmdlineoptions = CommandLineOptions.parse("-nojsdi",  "eta.go");
+		Suneido.cmdlineoptions = CommandLineOptions.parse("eta.go");
 		repl();
 	}
 
