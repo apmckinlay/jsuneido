@@ -207,8 +207,10 @@ public class Table extends Query {
 
 	@Override
 	public void setTransaction(Transaction tran) {
+		if (this.tran == tran)
+			return;
 		this.tran = tran;
-		if (this.tran == tran || tran == null)
+		if (tran == null)
 			return;
 		set_ix();
 		if (iter != null)
