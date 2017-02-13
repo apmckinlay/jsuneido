@@ -30,6 +30,7 @@ public class Row {
 	final Record[] data;
 	private DbmsTran tran = null;
 	private SuRecord surec = null; // cache
+	private static final Row emptyrow = new Row();
 
 	public Row(Record... data) {
 		this.data = data;
@@ -48,7 +49,11 @@ public class Row {
 	}
 
 	public Row(Row row1, Row row2) {
-		this(new Record[row1.data.length + row2.data.length]);
+		if (row1 == null)
+			row1 = emptyrow;
+		if (row2 == null)
+			row2 = emptyrow;
+		data = new Record[row1.data.length + row2.data.length];
 		System.arraycopy(row1.data, 0, data, 0, row1.data.length);
 		System.arraycopy(row2.data, 0, data, row1.data.length, row2.data.length);
 	}
