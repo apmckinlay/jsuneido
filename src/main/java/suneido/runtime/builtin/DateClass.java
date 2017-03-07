@@ -6,6 +6,7 @@ package suneido.runtime.builtin;
 
 import static suneido.runtime.FunctionSpec.NA;
 import static suneido.util.Util.array;
+
 import suneido.SuDate;
 import suneido.SuException;
 import suneido.runtime.Args;
@@ -35,12 +36,16 @@ public class DateClass extends BuiltinClass {
 							+ "Date(year:, month:, day:, hour:, minute:, second:)");
 		if (args[0] != NA) {
 			if (args[0] instanceof SuDate)
-				return (SuDate) args[0];
+				return args[0];
 			SuDate d;
-			if (args[1] == NA)
-				d = SuDate.parse(Ops.toStr(args[0]));
-			else
-				d = SuDate.parse(Ops.toStr(args[0]), Ops.toStr(args[1]));
+			String s = Ops.toStr(args[0]);
+			if (args[1] == NA) {
+				if (s.startsWith("#"))
+					d = SuDate.fromLiteral(s);
+				else
+					d = SuDate.parse(s);
+			} else
+				d = SuDate.parse(s, Ops.toStr(args[1]));
 			return d == null ? false : d;
 		} else if (hasFields(args)) {
 			return named(args);
