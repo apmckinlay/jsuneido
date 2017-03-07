@@ -74,10 +74,10 @@ public class BinOp extends Expr {
 		switch (op) {
 		case IS :	return is(x, y);
 		case ISNT :	return isnt(x, y);
-		case LT :	return lt(x, y);
-		case LTE :	return lte(x, y);
-		case GT :	return gt(x, y);
-		case GTE :	return gte(x, y);
+		case LT :	return cmp(x, y) < 0;
+		case LTE :	return cmp(x, y) <= 0;
+		case GT :	return cmp(x, y) > 0;
+		case GTE :	return cmp(x, y) >= 0;
 		case ADD :	return add(x, y);
 		case SUB :	return sub(x, y);
 		case CAT: 	return cat(x, y);
@@ -93,6 +93,18 @@ public class BinOp extends Expr {
 		case MATCHNOT : return matchnot(x, y);
 		default : 	throw unreachable();
 		}
+	}
+
+	// override Ops.cmp to make "" < all other values
+	// to match packed comparison
+	private static int cmp(Object x, Object y) {
+		if (x == y)
+			return 0;
+		if ("".equals(x))
+			return -1;
+		if ("".equals(y))
+			return +1;
+		return Ops.cmp(x, y);
 	}
 
 	// see also In
