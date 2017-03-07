@@ -78,13 +78,19 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 		int second = nsub(s, 13, 15);
 		int millisecond = nsub(s, 15, 18);
 
+		if (! SuDate.valid(year, month, day, hour, minute, second, millisecond))
+			return null;
 		return new SuDate(year, month, day, hour, minute, second, millisecond);
 	}
 
 	private static int nsub(String s, int from, int to) {
 		if (to > s.length())
 			return 0;
-		return Integer.parseInt(s.substring(from, to));
+		try {
+			return Integer.parseInt(s.substring(from, to));
+		} catch (NumberFormatException e) {
+			return -1;
+		}
 	}
 
 	public static SuDate fromTime(long d) {
