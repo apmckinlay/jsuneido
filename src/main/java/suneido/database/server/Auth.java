@@ -31,14 +31,16 @@ public class Auth {
 	}
 
 	static boolean initialValue() {
-		return true; //InitOnce.initialValue;
+		return InitOnce.initialValue;
 	}
 
 	private static boolean haveUserTable() {
 		Database db = ((DbmsLocal) TheDbms.dbms()).getDb();
 		Transaction t = db.readTransaction();
 		try {
-			return t.tableExists("users");
+			Table tbl = t.getTable("users");
+			return tbl != null && 0 < t.tableCount(tbl.num());
+			//TODO check for user and passhash fields and user key
 		} finally {
 			t.complete();
 		}
