@@ -7,10 +7,16 @@ package suneido.util;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.concurrent.Executor;
+import java.util.Date;
+import java.util.Queue;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
+
+import com.google.common.base.Joiner;
+import com.google.common.collect.EvictingQueue;
 
 /**
  * Socket server framework using plain sockets (not NIO). Uses a supplied
@@ -18,19 +24,20 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class ServerBySocket {
-	private final Executor executor;
+	private final ExecutorService executor;
 	private final HandlerFactory handlerFactory;
+	private final Queue<LogEntry> log = EvictingQueue.create(10);
 
-	public ServerBySocket(Executor executor, HandlerFactory handlerFactory) {
+	public ServerBySocket(ExecutorService executor, HandlerFactory handlerFactory) {
 		this.executor = executor;
 		this.handlerFactory = handlerFactory;
 	}
 
 	public void run(int port) throws IOException {
-		int errorcount = 0;
 		try (ServerSocket serverSocket = new ServerSocket(port)) {
 			while (true) {
 				Socket clientSocket = serverSocket.accept();
+				log.add(new LogEntry(clientSocket));
 				// disable Nagle since we don't have gathering write
 				clientSocket.setTcpNoDelay(true);
 				try {
@@ -38,18 +45,38 @@ public class ServerBySocket {
 					executor.execute(handler);
 				} catch (RejectedExecutionException e) {
 					clientSocket.close();
-					Errlog.error("SocketServer too many connections");
-					if (++errorcount > 100) {
-						Errlog.error("SocketServer too many errors, terminating");
-						return;
-					}
+					break;
 				}
 			}
+		}
+		Errlog.error("SocketServer too many connections, stopping\r\n" +
+				"\tlast 10 connections:\r\n\t" +
+				Joiner.on("\r\n\t").join(log));
+		executor.shutdownNow(); // NOTE: may not clean up all threads or sockets
+		try {
+			boolean result = executor.awaitTermination(10, TimeUnit.SECONDS);
+			Errlog.info("SocketServer awaitTermination(10 sec) returned " + result);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 	}
 
 	public interface HandlerFactory {
 		Runnable newHandler(Socket socket) throws IOException;
+	}
+
+	private static class LogEntry {
+		final Date timestamp = new Date();
+		final Socket clientSocket;
+
+		LogEntry(Socket clientSocket) {
+			this.clientSocket = clientSocket;
+		}
+
+		@Override
+		public String toString() {
+			return timestamp + " - " + clientSocket.getInetAddress().getHostName();
+		}
 	}
 
 	// ==========================================================================

@@ -49,7 +49,7 @@ import suneido.util.Util;
 public class SocketServer extends SuClass {
 	public static final SocketServer singleton = new SocketServer();
 	private static final AtomicInteger count = new AtomicInteger(0);
-	private static final int MAXTHREADS = 200;
+	private static final int MAXTHREADS = 300;
 
 	private SocketServer() {
 		super("builtin", "SocketServer", null,
@@ -141,7 +141,6 @@ public class SocketServer extends SuClass {
 	}
 
 	private static class Listener implements Runnable {
-		private static final ThreadPoolExecutor executor = executor();
 		private final AtomicInteger nconn = new AtomicInteger(0);
 		private final Master master;
 		private final Info info;
@@ -154,7 +153,7 @@ public class SocketServer extends SuClass {
 		@Override
 		public void run() {
 			SuThread.extraName(info.name);
-			ServerBySocket server = new ServerBySocket(executor,
+			ServerBySocket server = new ServerBySocket(executor(),
 					socket -> master.dup(socket, nconn.getAndIncrement()));
 			try {
 				server.run(info.port);
@@ -163,7 +162,7 @@ public class SocketServer extends SuClass {
 			}
 		}
 	}
-	
+
 	private static ThreadPoolExecutor executor() {
 		ThreadFactory threadFactory =
 				new ThreadFactoryBuilder()
@@ -214,7 +213,7 @@ public class SocketServer extends SuClass {
 						name + "-connection-" + nconn + " " + extra);
 				super.lookup("Run").eval0(this);
 			} catch (Exception e) {
-				Errlog.error("SocketServer", e);
+				Errlog.error("in SocketServer:", e);
 			} finally {
 				Thread.currentThread().setName("SocketServer-thread-pool");
 				socket.close();
