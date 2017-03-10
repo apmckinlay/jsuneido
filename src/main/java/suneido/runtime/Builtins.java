@@ -51,6 +51,7 @@ public class Builtins {
 			.put("Database", Database.singleton)
 			.put("Date", DateClass.singleton)
 			.put("Date?", function(DateQ.class))
+			.put("Deadlock", function(SuDeadlock.class))
 			.put("DeleteDir", function(DeleteDir.class))
 			.put("DeleteFile", function(DeleteFile.class))
 			.put("Dir", function(Dir.class))
