@@ -62,7 +62,7 @@ public class SuThread extends BuiltinClass {
 				Ops.call(callable);
 			} catch (Throwable e ) {
 				if (! Suneido.exiting)
-					Errlog.error("in thread:", e);
+					Errlog.error("uncaught in thread:", e);
 			} finally {
 				TheDbms.close();
 			}
