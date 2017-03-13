@@ -5,13 +5,11 @@
 package suneido.runtime;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 
 import suneido.SuException;
 
@@ -28,13 +26,7 @@ import suneido.SuException;
 @ThreadSafe
 public abstract class Context {
 	private final Contexts contexts;
-	private final LoadingCache<String, Integer> nameToSlot =
-			CacheBuilder.newBuilder().build(
-					new CacheLoader<String, Integer>() {
-						@Override
-						public Integer load(String name) {
-							return newSlot(name);
-						}});
+	private final Map<String, Integer> nameToSlot = new HashMap<>();
 	private final List<String> names = new ArrayList<>(1000);
 	private final List<Object> values = new ArrayList<>(1000);
 	private static final Object nonExistent = new Object();
@@ -49,21 +41,17 @@ public abstract class Context {
 	}
 
 	/**
-	 * Called by compile. Cache handles synchronization for existing names.
+	 * Called by compile.
 	 * @return The slot for a name, assigning a new slot for a new name.
 	 */
-	public final int slotForName(String name) {
-		return nameToSlot.getUnchecked(name);
-	}
-
-	// needs to be synchronized
-	// because cache allows loading different keys concurrently
-	private synchronized int newSlot(String name) {
-		assert names.size() == values.size();
-		int slot = names.size();
-		names.add(name);
-		values.add(null);
-		return slot;
+	public final synchronized int slotForName(String name) {
+		return nameToSlot.computeIfAbsent(name, (key) -> {
+			assert names.size() == values.size();
+			int slot = names.size();
+			names.add(name);
+			values.add(null);
+			return slot;
+			});
 	}
 
 	public final synchronized Object get(String name) {
