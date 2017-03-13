@@ -39,9 +39,7 @@ public abstract class Context {
 	private final List<Object> values = new ArrayList<>(1000);
 	private static final Object nonExistent = new Object();
 
-	/** VCS 20130703 -- I made this protected so we can derive a trivial context
-	 *                  for testing purposes...
-	 */
+	// protected so we can derive a trivial context for testing purposes
 	protected Context(Contexts contexts) {
 		this.contexts = contexts;
 		contexts.addContext(this);
@@ -58,6 +56,8 @@ public abstract class Context {
 		return nameToSlot.getUnchecked(name);
 	}
 
+	// needs to be synchronized
+	// because cache allows loading different keys concurrently
 	private synchronized int newSlot(String name) {
 		assert names.size() == values.size();
 		int slot = names.size();
