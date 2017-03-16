@@ -20,8 +20,7 @@ import suneido.intfc.database.Record;
  * doesn't require any order, can only supply in order of "by"
  */
 public class SummarizeStrategyMap extends SummarizeStrategy {
-	TreeMap<Record, List<Summary>> results =
-			new TreeMap<>();
+	TreeMap<Record, List<Summary>> results = new TreeMap<>();
 	NavigableMap<Record, List<Summary>> selected;
 	Map.Entry<Record, List<Summary>> cur;
 	boolean first = true;
