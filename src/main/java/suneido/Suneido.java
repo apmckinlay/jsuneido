@@ -184,12 +184,6 @@ public class Suneido {
 		scheduleAtFixedRate(db::force, 1, TimeUnit.MINUTES);
 	}
 
-	public static String sessionid() {
-		String sessionid = TheDbms.sessionid();
-		return ("".equals(sessionid) || "127.0.0.1".equals(sessionid)) ? ""
-			: sessionid + " ";
-	}
-
 	private static void tryToCloseMemoryMappings() {
 		System.gc();
 		System.runFinalization();
