@@ -297,12 +297,14 @@ public class OptimizeTest extends TestBase {
 
 		test1("inven extend a = 1, b = a",
 				"inven^(item) EXTEND a = 1, b = a");
+	}
 
+	public void extend_invalid_column() {
 		try {
 			CompileQuery.query(db, serverData, "inven extend a = b, b = 1");
 			assert false;
 		} catch (RuntimeException e) {
-			assertTrue(e.toString().contains(""));
+			assertTrue(e.toString().contains("invalid column"));
 		}
 	}
 
