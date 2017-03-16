@@ -22,3 +22,7 @@ outfilec
 nightlychecktimes.txt
 clindex_suneidoc/*
 /logs/
+
+*.apps
+
+*.DMP
