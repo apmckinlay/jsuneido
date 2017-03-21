@@ -223,7 +223,8 @@ public class QueryTest extends TestBase {
 		test1("cus where cnum = 2 and abbrev >= 'b' and abbrev < 'c'",
 			"cnum	abbrev	name\n" +
 			"2	'b'	'bill'\n");
-		test1("hist summarize count",
+
+		test1("hist summarize count", // by is empty
 			"count\n" +
 			"4\n");
 		test1("hist summarize min cost, average cost, max cost, sum = total cost",
@@ -242,6 +243,21 @@ public class QueryTest extends TestBase {
 		test1("hist summarize list id",
 			"list_id\n" +
 			"#('a', 'c', 'e')\n");
+		test1("cus summarize max cnum sort name", // key so whole record
+			"cnum	abbrev	name	max_cnum\n" +
+			"4	'd'	'dick'	4\n");
+		test1("supplier summarize min city", // indexed
+			"min_city\n" +
+			"'calgary'\n");
+		test1("supplier summarize max city", // indexed
+			"max_city\n" +
+			"'vancouver'\n");
+		test1("supplier summarize min city, max city",
+			"min_city	max_city\n" +
+			"'calgary'	'vancouver'\n");
+		test1("hist summarize max cost", // not indexed
+			"max_cost\n" +
+			"300\n");
 
 		test1("customer where !(id in ())",
 				"id	name	city\n" +

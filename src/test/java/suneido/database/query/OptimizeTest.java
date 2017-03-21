@@ -269,17 +269,26 @@ public class OptimizeTest extends TestBase {
 		test1("inven extend x = qty where x > 4",
 			"inven^(item) WHERE^(item) EXTEND x = qty");
 
+
+		test1("trans summarize total cost", // by is empty
+				"trans^(item) SUMMARIZE-SEQ total_cost = total cost");
+
+		test1("trans summarize total cost sort total_cost", // ignore sort
+				"trans^(item) SUMMARIZE-SEQ total_cost = total cost");
+
 		test1("trans summarize item, total cost",
 			"trans^(item) SUMMARIZE-SEQ ^(item) (item) total_cost = total cost");
 
-		test1("trans summarize item, x = total cost",
-			"trans^(item) SUMMARIZE-SEQ ^(item) (item) x = total cost");
-
-		test1("trans summarize total cost",
-				"trans^(item) SUMMARIZE-COPY total_cost = total cost");
-
 		test1("trans summarize id, total cost",
-				"trans^(item) SUMMARIZE-MAP (id) total_cost = total cost");
+			"trans^(item) SUMMARIZE-MAP (id) total_cost = total cost");
+
+		test1("supplier summarize max supplier", // key
+				"supplier^(supplier) SUMMARIZE-IDX ^(supplier) max_supplier = max supplier");
+		test1("cus summarize max cnum sort name", // ignore sort
+				"cus^(cnum) SUMMARIZE-IDX ^(cnum) max_cnum = max cnum");
+		test1("supplier summarize max city", // index
+				"supplier^(city) SUMMARIZE-IDX ^(city) max_city = max city");
+
 
 		test1("(inven leftjoin trans) where date > 960204",
 			"(inven^(item) LEFTJOIN 1:n on (item) trans^(item)) " +

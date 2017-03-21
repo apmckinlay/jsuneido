@@ -26,16 +26,20 @@ public class Summarize extends Query1 {
 	private final List<String> cols;
 	final List<String> funcs;
 	final List<String> on;
-	private enum Strategy { NONE, COPY, SEQUENTIAL, MAP };
+	private enum Strategy { NONE, SEQ, MAP, IDX };
 	private Strategy strategy = Strategy.NONE;
 	List<String> via;
 	private boolean first = true;
 	private boolean rewound = true;
 	private Header hdr;
 	private SummarizeStrategy strategyImp;
+	final boolean wholeRecord;
 
-	Summarize(Query source, List<String> by, List<String> cols,
-			List<String> funcs, List<String> on) {
+	/**
+	 * cols, funcs, and on are parallel arrays storing multiple col = func [on]
+	 */
+	Summarize(Query source, List<String> by,
+			List<String> cols, List<String> funcs, List<String> on) {
 		super(source);
 		this.by = by;
 		this.cols = cols;
@@ -45,21 +49,19 @@ public class Summarize extends Query1 {
 			throw new SuException("summarize: nonexistent columns: "
 					+ difference(by, source.columns()));
 
-		if (by.isEmpty() || by_contains_key())
-			strategy = Strategy.COPY;
-
 		for (int i = 0; i < cols.size(); ++i)
 			if (cols.get(i) == null)
 				cols.set(i, on.get(i) == null ? "count"
 						: funcs.get(i) + "_" + on.get(i));
+
+		wholeRecord = minmax1() && source.keys().contains(on);
 	}
 
-	boolean by_contains_key() {
-		// check if project contain candidate key
-		for (List<String> k : source.keys())
-			if (by.containsAll(k))
-				return true;
-		return false;
+	private boolean minmax1() {
+		if (! by.isEmpty() || funcs.size() != 1)
+			return false;
+		String fn = funcs.get(0).toLowerCase();
+		return fn.equals("min") || fn.equals("max");
 	}
 
 	@Override
@@ -68,9 +70,9 @@ public class Summarize extends Query1 {
 		sb.append(" SUMMARIZE");
 		switch (strategy) {
 		case NONE: break;
-		case COPY: sb.append("-COPY"); break;
-		case SEQUENTIAL: sb.append("-SEQ"); break;
+		case SEQ: sb.append("-SEQ"); break;
 		case MAP: sb.append("-MAP"); break;
+		case IDX: sb.append("-IDX"); break;
 		default: throw SuInternalError.unreachable();
 		}
 		sb.append(" ");
@@ -89,49 +91,51 @@ public class Summarize extends Query1 {
 		return sb.substring(0, sb.length() - 2);
 	}
 
+	// optimize ----------------------------------------------------------------
+
 	@Override
 	double optimize2(List<String> index, Set<String> needs,
 			Set<String> firstneeds, boolean is_cursor, boolean freeze) {
 		Set<String> srcneeds =
 				setUnion(without(on, null), setDifference(needs, cols));
-		if (strategy == Strategy.COPY)
-			return optimizeCopy(index, is_cursor, freeze, srcneeds);
+
+		double seqCost = seqCost(index, srcneeds, is_cursor, false);
+		double idxCost = idxCost(is_cursor, false);
+		double mapCost = mapCost(index, srcneeds, is_cursor, false);
+
+		if (!freeze)
+			return Math.min(seqCost, Math.min(idxCost, mapCost));
+
+		if (seqCost <= idxCost && seqCost <= mapCost)
+			return seqCost(index, srcneeds, is_cursor, true);
+		else if (idxCost <= mapCost)
+			return idxCost(is_cursor, true);
 		else
-			return optimizeNonCopy(index, is_cursor, freeze, srcneeds);
+			return mapCost(index, srcneeds, is_cursor, true);
 	}
 
-	private double optimizeCopy(List<String> index, boolean is_cursor,
-			boolean freeze, Set<String> srcneeds) {
+	private double seqCost(List<String> index, Set<String> srcneeds,
+			boolean is_cursor, boolean freeze) {
 		if (freeze)
-			via = index;
-		return source.optimize(index, srcneeds, ImmutableSet.copyOf(by),
-				is_cursor, freeze);
-	}
-
-	// NOTE: using optimize1 to bypass tempindex
-	private double optimizeNonCopy(List<String> index, boolean is_cursor,
-			boolean freeze, Set<String> srcneeds) {
-		Best best = best_prefixed(sourceIndexes(index), by, srcneeds, is_cursor);
-
-		double mapCost = startsWith(by, index)
-				? 1.5 * source.optimize1(noFields, srcneeds, noNeeds, is_cursor, false)
-				: IMPOSSIBLE;
-
-		if (! freeze)
-			return Math.min(best.cost, mapCost);
-
-		if (mapCost < best.cost) {
-			strategy = Strategy.MAP;
-			return source.optimize1(noFields, srcneeds, noNeeds, is_cursor, freeze);
-		} else {
-			if (best.cost >= IMPOSSIBLE)
-				return IMPOSSIBLE;
-			strategy = Strategy.SEQUENTIAL;
+			strategy = Strategy.SEQ;
+		if (by.isEmpty() || by_contains_key())
+			return source.optimize(by.isEmpty() ? noFields : index,
+					srcneeds, ImmutableSet.copyOf(by), is_cursor, freeze);
+		else {
+			Best best = best_prefixed(sourceIndexes(index), by, srcneeds, is_cursor);
+			if (! freeze || best.cost >= IMPOSSIBLE)
+				return best.cost;
 			via = best.index;
 			return source.optimize1(best.index, srcneeds, noNeeds, is_cursor, freeze);
 		}
 	}
-
+	private boolean by_contains_key() {
+		// check if project contain candidate key
+		for (List<String> k : source.keys())
+			if (by.containsAll(k))
+				return true;
+		return false;
+	}
 	/** @return the indexes that satisfy the required index */
 	private List<List<String>> sourceIndexes(List<String> index) {
 		if (nil(index))
@@ -146,14 +150,46 @@ public class Summarize extends Query1 {
 		}
 	}
 
+	private double idxCost(boolean is_cursor, boolean freeze) {
+		if (! minmax1())
+			return IMPOSSIBLE;
+		// using optimize1 to bypass tempindex
+		// dividing by nrecords since we're only reading one record
+		double nr = Math.max(1, source.nrecords());
+		double cost = source.optimize1(on, noNeeds, noNeeds, is_cursor, freeze) / nr;
+		if (freeze) {
+			strategy = Strategy.IDX;
+			via = on;
+		}
+		return cost;
+	}
+
+	private double mapCost(List<String> index, Set<String> srcneeds,
+			boolean is_cursor,	boolean freeze) {
+		// can only provide 'by' as index
+		if (! startsWith(by, index))
+			return IMPOSSIBLE;
+		// using optimize1 to bypass tempindex
+		// add 50% for map overhead
+		double cost = 1.5 *
+				source.optimize1(noFields, srcneeds, noNeeds, is_cursor, freeze);
+		if (freeze)
+			strategy = Strategy.MAP;
+		return cost;
+	}
+
+	// end of optimize ---------------------------------------------------------
+
 	@Override
 	List<String> columns() {
-		return union(by, cols);
+		return wholeRecord
+				? union(cols, source.columns())
+				: union(by, cols);
 	}
 
 	@Override
 	List<List<String>> indexes() {
-		if (strategy == Strategy.COPY)
+		if (by.isEmpty() || by_contains_key())
 			return source.indexes();
 		else {
 			List<List<String>> idxs = new ArrayList<>();
@@ -177,7 +213,11 @@ public class Summarize extends Query1 {
 
 	@Override
 	double nrecords() {
-		return source.nrecords() / 2;
+		double nr = source.nrecords();
+		return nr == 0 ? 0
+				: by.isEmpty() ? 1
+				: by_contains_key() ? nr
+				: nr / 2;					//TODO review this estimate
 	}
 
 	@Override
@@ -187,8 +227,13 @@ public class Summarize extends Query1 {
 
 	@Override
 	public Header header() {
-		List<String> flds = concat(by, cols);
-		return new Header(asList(noFields, flds), flds);
+		if (wholeRecord) {
+			return new Header(source.header(),
+					new Header(asList(noFields, cols), cols));
+		} else {
+			List<String> flds = concat(by, cols);
+			return new Header(asList(noFields, flds), flds);
+		}
 	}
 
 	@Override
@@ -199,9 +244,10 @@ public class Summarize extends Query1 {
 	private void iterate_setup() {
 		first = false;
 		hdr = source.header();
-		strategyImp = (strategy == Strategy.MAP)
-			? new SummarizeStrategyMap(this)
-			: new SummarizeStrategySeq(this);
+		strategyImp =
+				(strategy == Strategy.MAP) ? new SummarizeStrategyMap(this)
+				: (strategy == Strategy.IDX) ? new SummarizeStrategyIdx(this)
+				: new SummarizeStrategySeq(this);
 	}
 
 	@Override
@@ -240,8 +286,16 @@ public class Summarize extends Query1 {
 
 	public abstract static class Summary {
 		abstract void init();
-		abstract void add(Object x);
+		void add(Object x) {
+			add(null, x);
+		}
+		void add(Row row, Object x) {
+			add(x);
+		}
 		abstract Object result();
+		Row getRow() {
+			return null;
+		}
 
 		static Summary valueOf(String summary) {
 			summary = summary.toLowerCase();
@@ -323,8 +377,9 @@ public class Summarize extends Query1 {
 		}
 	}
 
-	private static class Max extends Summary {
+	private static abstract class MinMax extends Summary {
 		Object value;
+		Row row;
 
 		@Override
 		void init() {
@@ -332,35 +387,34 @@ public class Summarize extends Query1 {
 		}
 
 		@Override
-		void add(Object x) {
-			if (value == null || Ops.cmp(x, value) > 0)
-				value = x;
+		Object result() {
+			return value;
 		}
 
 		@Override
-		Object result() {
-			return value;
+		Row getRow() {
+			return row;
 		}
 	}
 
-	private static class Min extends Summary {
+	private static class Max extends MinMax {
 		@Override
-		void init() {
-			value = null;
-		}
-
-		@Override
-		void add(Object x) {
-			if (value == null || Ops.cmp(x, value) < 0)
+		void add(Row row, Object x) {
+			if (value == null || Ops.cmp(x, value) > 0) {
+				this.row = row;
 				value = x;
+			}
 		}
+	}
 
+	private static class Min extends MinMax {
 		@Override
-		Object result() {
-			return value;
+		void add(Row row, Object x) {
+			if (value == null || Ops.cmp(x, value) < 0) {
+				this.row = row;
+				value = x;
+			}
 		}
-
-		Object value;
 	}
 
 	private static class ListSum extends Summary {

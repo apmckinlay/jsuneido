@@ -56,9 +56,7 @@ public class SummarizeStrategyMap extends SummarizeStrategy {
 
 	@Override
 	void select(List<String> index, Record from, Record to) {
-		assert startsWith(q.by, index);
-		sel.org = from;
-		sel.end = to;
+		assert startsWith(q.by, index); //TODO review if we need this
 	}
 
 	void process() {

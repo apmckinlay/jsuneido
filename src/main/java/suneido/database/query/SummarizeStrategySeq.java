@@ -53,13 +53,16 @@ public class SummarizeStrategySeq extends SummarizeStrategy {
 			if (nextrow == null)
 				break ;
 			for (int i = 0; i < sums.size(); ++i)
-				sums.get(i).add(nextrow.getval(q.getHdr(), q.on.get(i)));
+				sums.get(i).add(nextrow, nextrow.getval(q.getHdr(), q.on.get(i)));
 			nextrow = source.get(dir);
 		} while (equal());
 		// output after reading a group
 
 		Record byRec = currow.project(q.getHdr(), q.by);
-		return makeRow(byRec, sums);
+		Row row = makeRow(byRec, sums);
+		if (q.wholeRecord)
+			row = new Row(sums.get(0).getRow(), row);
+		return row;
 	}
 
 	private boolean equal() {
