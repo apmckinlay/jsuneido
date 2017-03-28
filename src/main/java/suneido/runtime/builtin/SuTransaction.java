@@ -26,6 +26,7 @@ public class SuTransaction extends SuValue {
 	private final DbmsTran t;
 	private boolean update = false;
 	private String conflict = null;
+	private Object data = false;
 	private static final BuiltinMethods methods =
 			new BuiltinMethods("transaction", SuTransaction.class, "Transactions");
 
@@ -175,6 +176,14 @@ public class SuTransaction extends SuValue {
 
 	public static Object UpdateQ(Object self) {
 		return ((SuTransaction) self).update;
+	}
+
+	@Params("value=null")
+	public static Object Data(Object self, Object d) {
+		SuTransaction tran = (SuTransaction) self;
+		if (d != null)
+			tran.data = d;
+		return tran.data;
 	}
 
 	// used by Transaction for block form
