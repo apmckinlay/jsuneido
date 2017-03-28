@@ -12,10 +12,7 @@ import static suneido.util.Util.array;
 
 import java.util.Map;
 
-import suneido.SuException;
-import suneido.SuRecord;
-import suneido.SuValue;
-import suneido.TheDbms;
+import suneido.*;
 import suneido.database.query.CompileQuery;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.Dbms.HeaderAndRow;
@@ -26,7 +23,7 @@ public class SuTransaction extends SuValue {
 	private final DbmsTran t;
 	private boolean update = false;
 	private String conflict = null;
-	private Object data = false;
+	private SuContainer data = null;
 	private static final BuiltinMethods methods =
 			new BuiltinMethods("transaction", SuTransaction.class, "Transactions");
 
@@ -178,11 +175,10 @@ public class SuTransaction extends SuValue {
 		return ((SuTransaction) self).update;
 	}
 
-	@Params("value=null")
-	public static Object Data(Object self, Object d) {
+	public static Object Data(Object self) {
 		SuTransaction tran = (SuTransaction) self;
-		if (d != null)
-			tran.data = d;
+		if (tran.data == null)
+			tran.data = new SuContainer();
 		return tran.data;
 	}
 
