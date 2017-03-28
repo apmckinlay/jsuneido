@@ -118,10 +118,11 @@ public class Summarize extends Query1 {
 			boolean is_cursor, boolean freeze) {
 		if (freeze)
 			strategy = Strategy.SEQ;
-		if (by.isEmpty() || by_contains_key())
-			return source.optimize(by.isEmpty() ? noFields : index,
+		if (by.isEmpty() || by_contains_key()) {
+			via = by.isEmpty() ? noFields : index;
+			return source.optimize(via,
 					srcneeds, ImmutableSet.copyOf(by), is_cursor, freeze);
-		else {
+		} else {
 			Best best = best_prefixed(sourceIndexes(index), by, srcneeds, is_cursor);
 			if (! freeze || best.cost >= IMPOSSIBLE)
 				return best.cost;
