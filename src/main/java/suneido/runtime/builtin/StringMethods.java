@@ -273,7 +273,9 @@ public class StringMethods extends BuiltinMethods {
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < slen; i += n) {
 			String chunk = s.substring(i, Math.min(i + n, slen));
-			sb.append(Ops.toStr(Ops.call(block, chunk)));
+			Object result = Ops.call(block, chunk);
+			if (result != null)
+				sb.append(Ops.toStr(result));
 		}
 		return sb.toString();
 	}
