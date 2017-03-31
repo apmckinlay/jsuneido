@@ -173,19 +173,21 @@ class Database implements suneido.intfc.database.Database, AutoCloseable {
 		return Database.open(filename, dstor, istor);
 	}
 
+	private static class UpTo {
+		int d;
+		int i;
+	}
+
 	@Override
 	public String check() {
-		int dUpTo, iUpTo;
-		try {
-			commitLock();
+		UpTo upto = new UpTo();
+		withCommitLock(() -> {
 			persist();
-			dUpTo = dstor.upTo();
-			iUpTo = istor.upTo();
-		} finally {
-			commitUnlock();
-		}
+			upto.d = dstor.upTo();
+			upto.i = istor.upTo();
+		});
 		StringObserver so = new StringObserver();
-		Status status = DbCheck.check(filename, dstor, istor, dUpTo, iUpTo, so);
+		Status status = DbCheck.check(filename, dstor, istor, upto.d, upto.i, so);
 		if (status != Status.OK) {
 			HttpServerMonitor.corrupt();
 			corrupt = true; // prevent writing dbc file
@@ -325,18 +327,15 @@ class Database implements suneido.intfc.database.Database, AutoCloseable {
 		if (closed)
 			return;
 		closed = true;
-		long size;
-		try {
-			commitLock();
+		long[] size = new long[1];
+		withCommitLock(() -> {
 			persist();
-			size = dstor.sizeFrom(0);
+			size[0] = dstor.sizeFrom(0);
 			dstor.close();
 			istor.close();
-		} finally {
-			commitUnlock();
-		}
+		});
 		if (! corrupt && ! filename.equals(""))
-			DbGood.create(filename + "c", size);
+			DbGood.create(filename + "c", size[0]);
 	}
 
 	@Override
@@ -435,18 +434,28 @@ class Database implements suneido.intfc.database.Database, AutoCloseable {
 		}
 	}
 
-	/**
-	 * Throws if it cannot get lock in 30 seconds.
-	 * <p>
-	 * Usage:<pre>
-	 * try {
-	 *     commitLock();
-	 *     ...
-	 * } finally {
-	 *     commitUnlock();
-	 * }
-	 */
-	public void commitLock() {
+	/** similar to try with resources */
+	public void withCommitLock(Runnable fn) {
+		Throwable e0 = null;
+		commitLock();
+		try {
+			fn.run();
+		} catch (Throwable e) {
+			e0 = e;
+			throw e;
+		} finally {
+			if (e0 != null)
+				try {
+					commit_lock.unlock();
+				} catch (Throwable e) {
+					e0.addSuppressed(e); // already being thrown
+				}
+			else
+				commit_lock.unlock();
+		}
+	}
+
+	private void commitLock() {
 		try {
 			if (!commit_lock.tryLock(30, TimeUnit.SECONDS))
 				throw new SuException("could not get commit lock, timed out, "
@@ -455,10 +464,6 @@ class Database implements suneido.intfc.database.Database, AutoCloseable {
 			Thread.currentThread().interrupt();
 			throw new SuException("could not get commit lock, interrupted", e);
 		}
-	}
-
-	public void commitUnlock() {
-		commit_lock.unlock();
 	}
 
 }

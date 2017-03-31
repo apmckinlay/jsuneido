@@ -37,13 +37,10 @@ class Persist {
 	private int dbinfoadr;
 
 	static void persist(Database db) {
-		try {
-			db.commitLock();
+		db.withCommitLock(() -> {
 			Persist p = new Persist(db.state.dbinfo, db.istor);
 			p.run(db);
-		} finally {
-			db.commitUnlock();
-		}
+		});
 	}
 
 	Persist(DbHashTrie dbinfo, Storage istor) {
