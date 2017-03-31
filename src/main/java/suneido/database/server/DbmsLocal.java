@@ -93,7 +93,8 @@ public class DbmsLocal extends Dbms {
 
 	@Override
 	public int kill(String sessionId) {
-		return Suneido.server.killConnections(sessionId);
+		return Suneido.server == null ? 0
+				: Suneido.server.killConnections(sessionId);
 	}
 
 	@Override
