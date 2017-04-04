@@ -356,33 +356,33 @@ public class StringMethods extends BuiltinMethods {
 		return replace(s, pat, b, n);
 	}
 
-	public static String replace(String s, String p, Object b, int n) {
+	public static String replace(String s, String p, Object r, int n) {
+		if (n <= 0)
+			return s;
 		Regex.Pattern pat = RegexCache.getPattern(p);
-		String rep = null;
-		if (Ops.isString(b))
-			rep = b.toString();
-		ForEach foreach = new ForEach(s, rep, n, b);
+		ForEach foreach = new ForEach(s, r, n);
 		pat.forEachMatch(s, foreach);
 		return foreach.result();
 	}
 
 	private static class ForEach implements Regex.ForEach {
-		final StringBuilder sb;
 		final String s;
 		final String rep;
 		int n;
 		final Object block;
 		int append = 0;
+		StringBuilder sb = null; // construct only if needed
 
-		ForEach(String s, String rep, int n, Object block) {
+		ForEach(String s, Object r, int n) {
 			this.s = s;
-			this.rep = rep;
 			this.n = n;
-			this.block = block;
-			sb = new StringBuilder(s.length());
+			block = r;
+			rep = Ops.isString(r) ? r.toString() : null;
 		}
 		@Override
 		public int each(Result res) {
+			if (sb == null)
+				sb = new StringBuilder(s.length());
 			sb.append(s.substring(append, res.pos[0]));
 			if (rep == null) {
 				String matched = res.group(s, 0);
@@ -394,6 +394,8 @@ public class StringMethods extends BuiltinMethods {
 			return --n > 0 ? Math.max(res.end[0], res.pos[0] + 1) : s.length() + 1;
 		}
 		String result() {
+			if (sb == null)
+				return s;
 			sb.append(s.substring(append));
 			return sb.toString();
 		}

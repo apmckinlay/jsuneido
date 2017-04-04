@@ -9,7 +9,6 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 import suneido.SuContainer;
-import suneido.runtime.builtin.StringMethods;
 
 public class StringMethodsTest {
 
@@ -48,6 +47,14 @@ public class StringMethodsTest {
 		replace("now is the time", "t", "X", 1, "now is Xhe time");
 		replace("now is the time", "[a-z]+", "(&)", 2, "(now) (is) the time");
 		replace("abcdef", "(abc|def)", "x", "xx");
+		replace("hello", "$", " world", "hello world");
+		replace("world", "^", "hello ", "hello world");
+
+		String s = "now is the time";
+		String t = StringMethods.replace(s, "[x-z]", "", 99999);
+		assert(s == t); // i.e. returns original string
+		t = StringMethods.replace(s, "[a-z]", "", 0);
+		assert(s == t); // i.e. returns original string
 	}
 
 	private static void replace(String s, String pat, String rep, String result) {
