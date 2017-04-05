@@ -71,9 +71,12 @@ public class Dir {
 			pattern = Pattern.compile(convert(s), Pattern.CASE_INSENSITIVE);
 		}
 
+		private static Pattern SPECIAL_REGEX_CHARS =
+				Pattern.compile("[{}()\\[\\].+^$\\\\|]");
 		private static String convert(String s) {
-			return s.replace("*.*", "*") // for compatibility with windows
-					.replace(".", "\\.").replace("?", ".").replace("*", ".*");
+			s = s.replace("*.*", "*"); // for compatibility with windows
+			s = SPECIAL_REGEX_CHARS.matcher(s).replaceAll("\\\\$0");
+			return s.replace("?", ".").replace("*", ".*");
 		}
 
 		@Override
