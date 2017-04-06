@@ -77,18 +77,17 @@ public class Errlog {
 		System.out.println(sid + prefix +
 				s + (s.isEmpty() ? "" : " ") +
 				(e == null ? "" : e));
-		try (FileWriter fw = new FileWriter("error.log", true)) {
-			fw.append(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()))
+		try (PrintWriter pw = new PrintWriter(new FileWriter("error.log", true))) {
+			pw.append(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()))
 				.append(" ")
 				.append(sid)
 				.append(prefix + s)
-				.append("\n");
+				.println();
 			if (e != null) {
-				PrintWriter out = new PrintWriter(fw);
 				if (e instanceof CallstackProvider)
-					((CallstackProvider)e).printCallstack(out);
+					((CallstackProvider)e).printCallstack(pw);
 				else
-					e.printStackTrace(out);
+					e.printStackTrace(pw);
 			}
 		} catch (IOException e2) {
 			System.err.println("can't write to error.log " + e2);
