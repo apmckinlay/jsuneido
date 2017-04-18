@@ -14,14 +14,14 @@ import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.Map;
 
+import com.google.common.collect.ImmutableMap;
+
 import suneido.SuContainer;
 import suneido.SuInternalError;
 import suneido.SuValue;
 import suneido.runtime.builtin.ContainerMethods;
 import suneido.runtime.builtin.NumberMethods;
 import suneido.runtime.builtin.StringMethods;
-
-import com.google.common.collect.ImmutableMap;
 
 // MAYBE add support for @Aka("...") e.g. string.StartsWith and Prefix?
 
