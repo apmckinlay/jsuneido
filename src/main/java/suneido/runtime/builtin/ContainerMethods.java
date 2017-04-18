@@ -11,8 +11,6 @@ import static suneido.util.Util.array;
 
 import java.math.BigDecimal;
 import java.util.AbstractMap;
-import java.util.ConcurrentModificationException;
-import java.util.Iterator;
 import java.util.Map;
 
 import suneido.SuContainer;
@@ -225,54 +223,7 @@ public final class ContainerMethods {
 	}
 
 	public static Object Iter(Object self) {
-		return new Iterate(toContainer(self));
-	}
-
-	private static final class Iterate extends SuValue {
-		SuContainer c;
-		Iterator<Object> iter;
-
-		Iterate(SuContainer c) {
-			this.c = c;
-			iter = c.iterator();
-		}
-
-		@Override
-		public String typeName() {
-			return "ObjectIter";
-		}
-
-		@Override
-		public SuValue lookup(String method) {
-			return IterateMethods.singleton.lookup(method);
-		}
-	}
-
-	public static final class IterateMethods extends BuiltinMethods {
-		public static final SuValue singleton = new IterateMethods();
-
-		protected IterateMethods() {
-			super("objectiter", IterateMethods.class, null);
-		}
-
-		public static Object Next(Object self) {
-			Iterate iter = (Iterate) self;
-			try {
-				return iter.iter.hasNext() ? iter.iter.next() : self;
-			} catch (ConcurrentModificationException e) {
-				throw new SuException("object modified during iteration");
-			}
-		}
-
-		public static Object Rewind(Object self) {
-			Iterate iter = (Iterate) self;
-			iter.iter = iter.c.iterator();
-			return null;
-		}
-
-		public static Object Iter(Object self) {
-			return self;
-		}
+		return new IterJtoS(toContainer(self));
 	}
 
 	@Params("string = ''")

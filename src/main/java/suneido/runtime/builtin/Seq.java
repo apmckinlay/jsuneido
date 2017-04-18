@@ -13,7 +13,7 @@ import suneido.runtime.*;
 
 public final class Seq extends BuiltinClass {
 	private static final FunctionSpec initFS =
-			ArgsArraySpec.from("from, to = false, by = 1");
+			ArgsArraySpec.from("from = false, to = false, by = 1");
 
 	public Seq() {
 		super("Seq", initFS);
@@ -31,8 +31,15 @@ public final class Seq extends BuiltinClass {
 		private final Object by;
 
 		SuSeq(Object from, Object to, Object by) {
-			this.from = (to == FALSE) ? 0 : from;
-			this.to = (to == FALSE) ? from : to;
+			if (from == FALSE) {
+				from = 0;
+				to = Integer.MAX_VALUE;
+			} else if (to == FALSE) {
+				to = from;
+				from = 0;
+			}
+			this.from = from;
+			this.to = to;
 			this.by = by;
 		}
 
