@@ -59,6 +59,7 @@ public class Builtins {
 			.put("Display", function(Display.class))
 			.put("Dll?", function(DllQ.class))
 			.put("DoWithoutTriggers", function(DoWithoutTriggers.class))
+			.put("ErrorLog", function(ErrorLog.class))
 			.put("ExePath", function(ExePath.class))
 			.put("Exit", function(Exit.class))
 			.put("File", SuFile.clazz)
