@@ -1,0 +1,9 @@
+component_depth: 4
+languages:
+- java
+  production:
+    exclude:
+     - /src/main/java/suneido/jsdi/.*\.java
+  test:
+    include:
+      - /src/test/.*\.java
