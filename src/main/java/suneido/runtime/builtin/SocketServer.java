@@ -213,7 +213,8 @@ public class SocketServer extends SuClass {
 						name + "-connection-" + nconn + " " + extra);
 				super.lookup("Run").eval0(this);
 			} catch (Exception e) {
-				Errlog.error("in SocketServer:", e);
+				if (! Suneido.exiting)
+					Errlog.error("in SocketServer:", e);
 			} finally {
 				Thread.currentThread().setName("SocketServer-thread-pool");
 				socket.close();
