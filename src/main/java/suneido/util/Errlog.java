@@ -16,7 +16,8 @@ import suneido.debug.CallstackProvider;
 
 public class Errlog {
 	private static Supplier<String> extra = () -> "";
-	private static AtomicInteger count = new AtomicInteger(); // for tests
+	private static AtomicInteger count = new AtomicInteger();
+	private static final int LIMIT = 1000;
 
 	public static void setExtra(Supplier<String> extra) {
 		Errlog.extra = extra;
@@ -68,7 +69,12 @@ public class Errlog {
 	}
 
 	private static synchronized void log(String prefix, String s, Throwable e) {
-		count.incrementAndGet();
+		if (count.get() > LIMIT)
+			return;
+		if (count.getAndAdd(1) == LIMIT) {
+			s = "too many errors, stopping logging";
+			e = null;
+		} 
 		if (! prefix.isEmpty())
 			prefix = prefix + ": ";
 		String sid = extra.get();
