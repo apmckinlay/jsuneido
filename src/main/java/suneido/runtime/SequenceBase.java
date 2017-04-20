@@ -29,6 +29,8 @@ public abstract class SequenceBase extends SuContainer {
 	/** to get a Suneido compatible iterator with Next */
 	abstract protected Object iter();
 
+	abstract protected boolean infinite();
+
 	@Override
 	public SuValue lookup(String method) {
 		SuValue x;

@@ -7,6 +7,7 @@ package suneido.runtime;
 import java.util.Iterator;
 
 import suneido.SuContainer;
+import suneido.SuException;
 import suneido.SuValue;
 import suneido.runtime.builtin.SuSequence;
 
@@ -31,6 +32,8 @@ public class Sequence extends SequenceBase {
 	protected void instantiate() {
 		if (instantiated)
 			return;
+		if (infinite())
+			throw new SuException("can't instantiate infinite sequence");
 		addAll(iterable);
 		instantiated = true;
 	}
@@ -46,6 +49,23 @@ public class Sequence extends SequenceBase {
 	public Iterator<Object> iterator() {
 		duped = true;
 		return instantiated ? super.iterator() : iterable.iterator();
+	}
+
+	@Override
+	protected boolean infinite() {
+		return (iterable instanceof Infinitable &&
+				((Infinitable) iterable).infinite());
+	}
+
+	public static interface Infinitable {
+		boolean infinite();
+	}
+
+	@Override
+	public String toString() {
+		if (infinite())
+			return "Sequence(" + iterable + ")";
+		return super.toString();
 	}
 
 }

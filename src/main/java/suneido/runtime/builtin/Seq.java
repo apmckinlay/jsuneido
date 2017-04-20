@@ -25,13 +25,14 @@ public final class Seq extends BuiltinClass {
 		return new Sequence(new SuSeq(args[0], args[1], args[2]));
 	}
 
-	private static class SuSeq implements Iterable<Object> {
+	private static class SuSeq implements Iterable<Object>, Sequence.Infinitable {
 		private final Object from;
 		private final Object to;
 		private final Object by;
+		private final boolean infinite;
 
 		SuSeq(Object from, Object to, Object by) {
-			if (from == FALSE) {
+			if (infinite = (from == FALSE)) {
 				from = 0;
 				to = Integer.MAX_VALUE;
 			} else if (to == FALSE) {
@@ -45,7 +46,9 @@ public final class Seq extends BuiltinClass {
 
 		@Override
 		public String toString() {
-			return "Seq(" + from + ", " + to + ", " + by + ")";
+			return infinite
+					? "Seq()"
+					: "Seq(" + from + ", " + to + ", " + by + ")";
 		}
 
 		@Override
@@ -75,6 +78,11 @@ public final class Seq extends BuiltinClass {
 				throw new UnsupportedOperationException();
 			}
 
+		}
+
+		@Override
+		public boolean infinite() {
+			return infinite;
 		}
 
 	}
