@@ -372,13 +372,13 @@ public final class Ops {
 			return 1;
 		if (x == Boolean.FALSE)
 			return 0;
-		throw new SuException("can't convert : " + typeName(x) + " to boolean");
+		throw new SuException("expected boolean, got " + typeName(x));
 	}
 
 	public static Boolean toBoolean(Object x) {
 		if (x instanceof Boolean)
 			return (Boolean) x;
-		throw new SuException("can't convert " + typeName(x) + " to boolean");
+		throw new SuException("expected boolean, got " + typeName(x));
 	}
 
 	public static boolean toBoolean_(Object x) {
@@ -386,7 +386,7 @@ public final class Ops {
 			return true;
 		else if (x == Boolean.FALSE)
 			return false;
-		throw new SuException("can't convert " + typeName(x) + " to boolean");
+		throw new SuException("expected boolean, got " + typeName(x));
 	}
 
 	public static int toInt(Object x) {
