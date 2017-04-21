@@ -1,4 +1,6 @@
 component_depth: 4
+exclude:
+  - /src/main/java/suneido/intfc/database/DatabasePackage\.java
 languages:
 - name: java
   production:
