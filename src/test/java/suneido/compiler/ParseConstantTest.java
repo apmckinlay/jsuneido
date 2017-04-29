@@ -9,11 +9,6 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 import suneido.SuException;
-import suneido.compiler.AstGenerator;
-import suneido.compiler.AstNode;
-import suneido.compiler.Generator;
-import suneido.compiler.Lexer;
-import suneido.compiler.ParseConstant;
 
 public class ParseConstantTest {
 	@Test
@@ -85,7 +80,11 @@ public class ParseConstantTest {
 		constant("#(1, 'a', b: 2)",
 			"(OBJECT (MEMBER null (NUMBER=1)) (MEMBER null (STRING=a)) (MEMBER (STRING=b) (NUMBER=2)))");
 		constant("#({})",
-			"(OBJECT (MEMBER null (RECORD)))");
+				"(OBJECT (MEMBER null (RECORD)))");
+		constant("#([])",
+				"(OBJECT (MEMBER null (RECORD)))");
+		constant("#([a:])",
+				"(OBJECT (MEMBER null (RECORD (MEMBER (STRING=a) (TRUE)))))");
 		constant("#(class: 123)",
 			"(OBJECT (MEMBER (STRING=class) (NUMBER=123)))");
 	}

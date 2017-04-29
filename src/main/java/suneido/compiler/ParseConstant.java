@@ -5,6 +5,7 @@
 package suneido.compiler;
 
 import static suneido.compiler.Token.*;
+
 import suneido.compiler.Generator.MType;
 import suneido.jsdi.DllInterface;
 
@@ -147,7 +148,8 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		T value = null;
 		if (name != null && canBeFunction && token == L_PAREN)
 			value = functionWithoutKeyword(inClass);
-		else if (token != COMMA && token != R_PAREN && token != R_CURLY) {
+		else if (token != COMMA &&
+				token != R_PAREN && token != R_CURLY && token != R_BRACKET) {
 			if (token == FUNCTION) {
 				matchSkipNewlines(FUNCTION);
 				value = functionWithoutKeyword(inClass);
