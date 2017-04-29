@@ -21,12 +21,12 @@ import suneido.debug.Frame;
  * Consider the following Suneido-language code:
  * <pre>    try
  *        f()
- *    catch (e /* internally, e is an instance of Except *&#47;)
+ *    catch (e) // internally, e is an instance of Except
  *    {
  *        Print(Display(e.Callstack());
  *    }
  * </p>
- * 
+ *
  * @author Andrew McKinlay, Victor Schappert
  */
 public final class Except extends String2 {
@@ -47,6 +47,7 @@ public final class Except extends String2 {
 	}
 
 	public Except(String message, Throwable throwable) {
+		assert message != null;
 		this.message = message;
 		this.throwable = throwable;
 	}

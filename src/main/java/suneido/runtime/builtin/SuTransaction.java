@@ -183,7 +183,7 @@ public class SuTransaction extends SuValue {
 	}
 
 	// used by Transaction for block form
-	public void block_complete() {
+	private void block_complete() {
 		if (!t.isEnded()) {
 			conflict = t.complete();
 			if (conflict != null)
@@ -202,10 +202,6 @@ public class SuTransaction extends SuValue {
 
 	public boolean isEnded() {
 		return t.isEnded();
-	}
-
-	public String conflict() {
-		return conflict;
 	}
 
 	private void checkNotEnded(String op) {
