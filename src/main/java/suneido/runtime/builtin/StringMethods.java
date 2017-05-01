@@ -239,13 +239,25 @@ public class StringMethods extends BuiltinMethods {
 			//       that the contents of the buffer can be overwritten with
 			//       other data. However, the *length* of any character sequence
 			//       cannot change once the object is created.
-			return iter.index < iter.length ? Character.toString(
-					iter.seq.charAt(iter.index++)) : self;
+			return iter.index < iter.length
+					? Character.toString(iter.seq.charAt(iter.index++)) : self;
 		}
 
 		public static Object Iter(Object self) {
 			return self;
 		}
+	}
+
+	@Params("pos")
+	public static Object LineFromPosition(Object self, Object a) {
+		String s = toStr(self);
+		int sn = s.length();
+		int pos = Math.min(sn, toInt(a));
+		int line = 0;
+		for (int i = 0; i < pos; ++i)
+			if (s.charAt(i) == '\n')
+				++line;
+		return line;
 	}
 
 	public static Object Lower(Object self) {
@@ -295,6 +307,23 @@ public class StringMethods extends BuiltinMethods {
 			ob.add(SuContainer.of(start, result.end[i] - start));
 		}
 		return ob;
+	}
+
+	@Params("n")
+	public static Object NthLine(Object self, Object a) {
+		String s = toStr(self);
+		int sn = s.length();
+		int n = toInt(a);
+		int i = 0;
+		for (; i < sn && n > 0; ++i)
+			if (s.charAt(i) == '\n')
+				--n;
+		int end = i;
+		while (end < sn && s.charAt(end) != '\n')
+			++end;
+		while (end > i && s.charAt(end - 1) == '\r')
+			--end;
+		return s.substring(i, end);
 	}
 
 	public static Object NumberQ(Object self) {
