@@ -81,6 +81,19 @@ public class StringMethods extends BuiltinMethods {
 		return Compiler.compile("stringCompile", toStr(self), warnings);
 	}
 
+	@Params("c")
+	public static Object CountChar(Object self, Object a) {
+		String s = toStr(self);
+		String sc = toStr(a);
+		if (sc.length() != 1)
+			throw new SuException("usage: string.CountChar(c)");
+		char c = sc.charAt(0);
+		int n = 0;
+		for (int i = 0; (i = s.indexOf(c, i)) != -1; ++i)
+			++n;
+		return n;
+	}
+
 	@Params("string")
 	public static Object HasQ(Object self, Object a) {
 		return (toStr(self)).contains(toStr(a));
@@ -246,18 +259,6 @@ public class StringMethods extends BuiltinMethods {
 		public static Object Iter(Object self) {
 			return self;
 		}
-	}
-
-	@Params("pos")
-	public static Object LineFromPosition(Object self, Object a) {
-		String s = toStr(self);
-		int sn = s.length();
-		int pos = Math.min(sn, toInt(a));
-		int line = 0;
-		for (int i = 0; i < pos; ++i)
-			if (s.charAt(i) == '\n')
-				++line;
-		return line;
 	}
 
 	public static Object Lower(Object self) {
