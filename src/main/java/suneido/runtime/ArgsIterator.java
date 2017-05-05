@@ -11,12 +11,12 @@ import static suneido.runtime.Args.Special.EACH1;
 import static suneido.runtime.Args.Special.NAMED;
 
 import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Map;
 
 import suneido.runtime.builtin.ContainerMethods;
 import suneido.util.NullIterator;
-
-import com.google.common.collect.Iterators;
 
 /**
  * Iterates through the arguments passed to a Suneido function.
@@ -68,8 +68,20 @@ public class ArgsIterator implements Iterator<Object>, Iterable<Object> {
 
 	/** @return the remaining arguments as Object[] */
 	public Object[] rest() {
-		named = false;
-		return Iterators.toArray(this, Object.class);
+		ArrayList<Object> args = new ArrayList<>();
+		while (hasNext()) {
+			Object x = next();
+			if (x instanceof Map.Entry) {
+				@SuppressWarnings("unchecked")
+				Map.Entry<Object,Object> e = (Map.Entry<Object, Object>) x;
+				args.add(NAMED);
+				args.add(e.getKey());
+				args.add(e.getValue());
+			}
+			else
+				args.add(x);
+		}
+		return args.toArray();
 	}
 
 	@Override

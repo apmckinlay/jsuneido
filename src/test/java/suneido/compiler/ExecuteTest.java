@@ -349,6 +349,13 @@ public class ExecuteTest {
 		needsThis("x = #(a, z: 4); #Size(@+1 x)");
 	}
 
+	@Test
+	public void test_eval_args_each() {
+		test("fn = function(a = false) { return a };" +
+				"args = Object(fn, a:);" +
+				"Object().Eval(@args)", "true");
+	}
+
 	private static void needsThis(String expr) {
 		assertThrew(() -> eval(expr), SuException.class,
 				"string call requires 'this' argument");
