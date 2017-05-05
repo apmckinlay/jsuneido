@@ -126,7 +126,7 @@ public abstract class SequenceBase extends SuContainer {
 
 	@Override
 	public String typeName() {
-		return "Seq";
+		return "Object";
 	}
 
 }
