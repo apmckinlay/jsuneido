@@ -7,6 +7,7 @@ package suneido.runtime;
 import java.nio.ByteBuffer;
 
 import suneido.SuContainer;
+import suneido.SuException;
 import suneido.SuValue;
 
 /**
@@ -21,7 +22,7 @@ public abstract class SequenceBase extends SuContainer {
 	protected boolean instantiated = false;
 	protected boolean duped = false;
 
-	abstract protected void instantiate();
+	abstract protected void instantiate(); // only SequenceBase should call this
 
 	/** called when not instantiated */
 	abstract protected SuValue copy();
@@ -38,7 +39,7 @@ public abstract class SequenceBase extends SuContainer {
 		if (override(method) && null != (x = methods.getMethod(method)))
 			return x;
 		else {
-			instantiate();
+			ck_instantiate();
 			return super.lookup(method);
 		}
 	}
@@ -61,7 +62,11 @@ public abstract class SequenceBase extends SuContainer {
 			// avoid two copies (instantiate & copy)
 			// for common usage: for m in ob.Members().Copy()
 			SequenceBase seq = (SequenceBase) self;
-			return seq.instantiated ? new SuContainer(seq) : seq.copy();
+			if (seq.instantiated)
+				return new SuContainer(seq);
+			if (seq.infinite())
+				throw new SuException("can't instantiate infinite sequence");
+			return seq.copy();
 		}
 
 		@Params("string = ''")
@@ -82,45 +87,54 @@ public abstract class SequenceBase extends SuContainer {
 
 	}
 
+	protected void ck_instantiate() {
+		if (instantiated)
+			return;
+		if (infinite())
+			throw new SuException("can't instantiate infinite sequence");
+		instantiate();
+		instantiated = true;
+	}
+
 	@Override
 	public boolean equals(Object other) {
-		instantiate();
+		ck_instantiate();
 		return super.equals(other);
 	}
 
 	@Override
 	public int hashCode() {
-		instantiate();
+		ck_instantiate();
 		return super.hashCode();
 	}
 
 	@Override
 	public String toString() {
-		instantiate();
+		ck_instantiate();
 		return super.toString();
 	}
 
 	@Override
 	public void pack(ByteBuffer buf) {
-		instantiate();
+		ck_instantiate();
 		super.pack(buf);
 	}
 
 	@Override
 	public int packSize(int nest) {
-		instantiate();
+		ck_instantiate();
 		return super.packSize(nest);
 	}
 
 	@Override
 	public Object get(Object key) {
-		instantiate();
+		ck_instantiate();
 		return super.get(key);
 	}
 
 	@Override
 	public SuContainer toContainer() {
-		instantiate();
+		ck_instantiate();
 		return this;
 	}
 

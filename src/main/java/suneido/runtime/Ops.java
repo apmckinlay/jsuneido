@@ -115,14 +115,14 @@ public final class Ops {
 
 		if (xClass == SuRecord.class)
 			xClass = SuContainer.class;
-		if (xClass == Sequence.class) {
-			((Sequence) x).instantiate();
+		if (x instanceof SequenceBase) {
+			((SequenceBase) x).ck_instantiate();
 			xClass = SuContainer.class;
 		}
 		if (yClass == SuRecord.class)
 			yClass = SuContainer.class;
-		if (yClass == Sequence.class) {
-			((Sequence) y).instantiate();
+		if (y instanceof SequenceBase) {
+			((Sequence) y).ck_instantiate();
 			yClass = SuContainer.class;
 		}
 		if (x instanceof CharSequence) {
