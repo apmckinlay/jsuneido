@@ -23,6 +23,10 @@ public class Errlog {
 		Errlog.extra = extra;
 	}
 
+	public static void uncounted(String s) {
+		log_uncounted("", s, null);
+	}
+
 	public static void bare(String s) {
 		log("", s, null);
 	}
@@ -74,7 +78,11 @@ public class Errlog {
 		if (count.getAndAdd(1) == LIMIT) {
 			s = "too many errors, stopping logging";
 			e = null;
-		} 
+		}
+		log_uncounted(prefix, s, e);
+	}
+
+	private static void log_uncounted(String prefix, String s, Throwable e) {
 		if (! prefix.isEmpty())
 			prefix = prefix + ": ";
 		String sid = extra.get();

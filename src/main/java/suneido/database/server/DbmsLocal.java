@@ -180,7 +180,7 @@ public class DbmsLocal extends Dbms {
 
 	@Override
 	public void log(String s) {
-		Errlog.bare(s);
+		Errlog.uncounted(s);
 	}
 
 	@Override
