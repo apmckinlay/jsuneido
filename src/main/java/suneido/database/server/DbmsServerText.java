@@ -105,8 +105,7 @@ public class DbmsServerText {
 				ByteBuffer buf = tlbuf.get();
 				String line = readline(channel, buf);
 				if (line == null) { // disconnected
-					channel.close();
-					close();
+					close(channel);
 					return;
 				}
 				String word = firstWord(line);
@@ -138,10 +137,17 @@ public class DbmsServerText {
 				send(channel, writeBufs);
 				reregister.accept(channel, this);
 			} catch (IOException e) {
-				try {
-					channel.close();
-				} catch (IOException e1) {
-				}
+				Errlog.info("server got: " + e);
+				close(channel);
+			}
+		}
+
+		private void close(Channel channel) {
+			close();
+			try {
+				channel.close();
+			} catch (IOException e) {
+				Errlog.warn("server channel.close got: " + e);
 			}
 		}
 

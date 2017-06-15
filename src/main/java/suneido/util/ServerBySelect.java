@@ -180,7 +180,7 @@ public class ServerBySelect {
 			if (info.idleSince == 0)
 				info.idleSince = t;
 			else if (t - info.idleSince > idleTimeoutMs) {
-				Print.timestamped("closing idle connection " + info.handler);
+				Errlog.info("closing idle connection " + info.handler);
 				info.handler.close();
 				key.channel().close();
 			}
