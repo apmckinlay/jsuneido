@@ -2,7 +2,7 @@
 # Need to supply output jSuneido finished JAR as -outjars on the command line
 -injars lib/asm-all-5.0.4.jar (!META-INF/MANIFEST.MF)
 -injars lib/jsr305-1.3.9.jar (!META-INF/MANIFEST.MF)
--injars lib/guava-20.0.jar (!META-INF/MANIFEST.MF)
+-injars lib/guava-22.0.jar (!META-INF/MANIFEST.MF)
 -injars lib/trove-3.0.3.jar (!META-INF/MANIFEST.MF)
 -libraryjars lib/lucene-core-4.10.3.jar
 -libraryjars lib/lucene-analyzers-common-4.10.3.jar
