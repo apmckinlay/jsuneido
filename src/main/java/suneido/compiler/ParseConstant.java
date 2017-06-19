@@ -89,9 +89,10 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 	private String classBase() {
 		if (lexer.getKeyword() == CLASS) {
 			matchSkipNewlines(CLASS);
-			if (!matchIf(COLON))
-				return "";
+			matchIf(COLON);
 		}
+		if (token == L_CURLY)
+			return "";
 		String base = lexer.getValue();
 		int i = base.startsWith("_") ? 1 : 0;
 		if (!Character.isUpperCase(base.charAt(i)))
