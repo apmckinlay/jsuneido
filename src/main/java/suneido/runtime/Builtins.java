@@ -64,6 +64,7 @@ public class Builtins {
 			.put("Exit", function(Exit.class))
 			.put("File", SuFile.clazz)
 			.put("FileExists?", function(FileExistsQ.class))
+			.put("Finally", function(Finally.class))
 			.put("Frame", function(Frame.class))
 			.put("Function?", function(FunctionQ.class))
 			.put("GetComputerName", function(GetComputerName.class))
