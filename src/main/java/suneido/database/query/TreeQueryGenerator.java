@@ -292,11 +292,6 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	}
 
 	@Override
-	public Object symbol(String identifier, int lineNumber) {
-		return identifier;
-	}
-
-	@Override
 	public Object unaryExpression(Token op, Object expression) {
 		return new UnOp(op, (Expr) expression);
 	}

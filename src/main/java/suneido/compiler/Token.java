@@ -43,7 +43,7 @@ public enum Token {
 	LSHIFTEQ("<<=", ASSIGN, I), RSHIFTEQ(">>=", ASSIGN, I),
 	BITOREQ("|=", ASSIGN, I), BITANDEQ("&=", ASSIGN, I), BITXOREQ("^=", ASSIGN, I),
 	RANGETO(".."), RANGELEN("::"),
-	
+
 	// keywords
 	IF("if"), ELSE("else"),
 	WHILE("while"), DO("do"), FOR("for"), FOREVER("forever"),
@@ -57,24 +57,24 @@ public enum Token {
 	IN("in"), THIS("this"),
 	// TODO include bool, int8, int16, int32, int64, pointer, callback, etc.
 	//      for compatibility with cSuneido scanner...
-	
+
 	// for queries
-	ALTER("alter"), AVERAGE("average", SUMOP), BY("by"), 
-	CASCADE("cascade"), COUNT("count", SUMOP), CREATE("create"), 
-	DELETE("delete"), DROP("drop"), ENSURE("ensure"), 
-	EXTEND("extend"), HISTORY("history"), INDEX("index"), 
-	INSERT("insert"), INTERSECT("intersect"), INTO("into"), 
+	ALTER("alter"), AVERAGE("average", SUMOP), BY("by"),
+	CASCADE("cascade"), COUNT("count", SUMOP), CREATE("create"),
+	DELETE("delete"), DROP("drop"), ENSURE("ensure"),
+	EXTEND("extend"), HISTORY("history"), INDEX("index"),
+	INSERT("insert"), INTERSECT("intersect"), INTO("into"),
 	JOIN("join"), KEY("key"), LEFTJOIN("leftjoin"),
 	LIST("list", SUMOP), MAX("max", SUMOP), MIN("min", SUMOP),
-	MINUS("minus"), PROJECT("project"),	REMOVE("remove"), 
-	RENAME("rename"), REVERSE("reverse"), SET("set"), 
-	SORT("sort"), SUMMARIZE("summarize"), SVIEW("sview"), 
-	TIMES("times"), TO("to"), TOTAL("total", SUMOP), 
-	UPDATE("update"), UNION("union"), UNIQUE("unique"), 
+	MINUS("minus"), PROJECT("project"),	REMOVE("remove"),
+	RENAME("rename"), REVERSE("reverse"), SET("set"),
+	SORT("sort"), SUMMARIZE("summarize"), SVIEW("sview"),
+	TIMES("times"), TO("to"), TOTAL("total", SUMOP),
+	UPDATE("update"), UNION("union"), UNIQUE("unique"),
 	VIEW("view"), WHERE("where"),
-	
+
 	// for AST
-	DATE, SYMBOL, CALL, MEMBER, SUBSCRIPT, ARG, FOR_IN, RECORD, OBJECT, BINARYOP,
+	DATE, CALL, MEMBER, SUBSCRIPT, ARG, FOR_IN, RECORD, OBJECT, BINARYOP,
 	SELFREF, ASSIGNOP, PREINCDEC, POSTINCDEC, BLOCK, RVALUE, METHOD,
 	NOT_(NOT, "not_", B_), IS_(IS, "is_", B_), ISNT_(ISNT, "isnt_", B_),
 	MATCH_(MATCH, "match_", B_), MATCHNOT_(MATCHNOT, "matchnot_", B_),

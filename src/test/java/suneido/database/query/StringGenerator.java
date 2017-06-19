@@ -9,6 +9,7 @@ import static suneido.compiler.Token.ADD;
 import static suneido.compiler.Token.AND;
 import static suneido.compiler.Token.OR;
 import static suneido.compiler.Token.SUB;
+
 import suneido.SuValue;
 import suneido.compiler.Token;
 
@@ -90,11 +91,6 @@ public class StringGenerator extends QueryGenerator<String> {
 	@Override
 	public String date(String value, int lineNumber) {
 		return "d(" + value + ")";
-	}
-
-	@Override
-	public String symbol(String value, int lineNumber) {
-		return "sym(" + value + ")";
 	}
 
 	@Override

@@ -82,7 +82,6 @@ public class AstCompile {
 		case FALSE:
 			return Boolean.FALSE;
 		case STRING:
-		case SYMBOL:
 			return ast.value;
 		case NUMBER:
 			return Numbers.stringToNumber(ast.value);

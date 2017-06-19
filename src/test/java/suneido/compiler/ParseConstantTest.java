@@ -22,7 +22,7 @@ public class ParseConstantTest {
 		constant("'xyz'",
 			"(STRING=xyz)");
 		constant("#abc",
-			"(SYMBOL=abc)");
+			"(STRING=abc)");
 		constant("#()",
 			"(OBJECT)");
 		constant("#{}",
@@ -32,7 +32,8 @@ public class ParseConstantTest {
 		constant("#{name: fred}",
 			"(RECORD (MEMBER (STRING=name) (STRING=fred)))");
 		constant("#(1, 'x', a: #y, b: true)",
-			"(OBJECT (MEMBER null (NUMBER=1)) (MEMBER null (STRING=x)) (MEMBER (STRING=a) (SYMBOL=y)) (MEMBER (STRING=b) (TRUE)))");
+			"(OBJECT (MEMBER null (NUMBER=1)) (MEMBER null (STRING=x)) " +
+			"(MEMBER (STRING=a) (STRING=y)) (MEMBER (STRING=b) (TRUE)))");
 		constant("+123",
 			"(NUMBER=123)");
 		constant("-123",
@@ -40,9 +41,7 @@ public class ParseConstantTest {
 		constant("#20090219",
 			"(DATE=20090219)");
 		constant("#foo",
-			"(SYMBOL=foo)");
-		constant("#'foo bar'",
-			"(SYMBOL=foo bar)");
+			"(STRING=foo)");
 		constant("Global",
 			"(STRING=Global)");
 		constant("function () { }",

@@ -235,11 +235,6 @@ public class AstGenerator extends Generator<AstNode> {
 	}
 
 	@Override
-	public AstNode symbol(String identifier, int lineNumber) {
-		return new AstNode(Token.SYMBOL, identifier, lineNumber);
-	}
-
-	@Override
 	public AstNode bool(boolean value, int lineNumber) {
 		return new AstNode(value ? Token.TRUE : Token.FALSE, lineNumber);
 	}

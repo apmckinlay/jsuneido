@@ -80,8 +80,6 @@ public abstract class Generator<T> {
 
 	public abstract T date(String value, int lineNumber);
 
-	public abstract T symbol(String identifier, int lineNumber);
-
 	public abstract T bool(boolean value, int lineNumber); // Actual boolean literal in source
 
 	public T boolTrue(int lineNumber) { // Synthetic true literal inserted by the compiler

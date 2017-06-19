@@ -4,11 +4,6 @@
 
 package suneido.compiler;
 
-import suneido.compiler.Generator;
-import suneido.compiler.Lexer;
-import suneido.compiler.ParseConstant;
-import suneido.compiler.Token;
-
 public class TestGenerator extends Generator<Object> {
 
 	private static void print(Object... args) {
@@ -119,12 +114,6 @@ public class TestGenerator extends Generator<Object> {
 	public Object string(String value) {
 		print("string", value);
 		return value;
-	}
-
-	@Override
-	public Object symbol(String identifier, int lineNumber) {
-		print("symbol", identifier);
-		return identifier;
 	}
 
 	@Override

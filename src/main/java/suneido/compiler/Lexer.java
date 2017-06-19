@@ -98,8 +98,6 @@ public class Lexer implements Doesc.Src {
 		char c = source.charAt(si);
 		++si;
 		switch (c) {
-		case '#':
-			return HASH;
 		case '(':
 			return L_PAREN;
 		case ')':
@@ -167,6 +165,13 @@ public class Lexer implements Doesc.Src {
 		case '\n':
 		case '\r':
 			return whitespace(c);
+		case '#':
+			if (! Character.isLetter(charAt(si)))
+				return HASH;
+			skipIdentifier();
+			value = source.substring(prev + 1, si);
+			valueIsSubstr = true;
+			return STRING;
 		case '_':
 			return identifier();
 		default:
@@ -230,6 +235,19 @@ public class Lexer implements Doesc.Src {
 	}
 
 	private Token identifier() {
+		skipIdentifier();
+		value(null);
+		keyword = ignoreCase
+				? Token.lookupIgnoreCase(value) : Token.lookup(value);
+		if (charAt(si) == ':' &&
+				(keyword == Token.IS || keyword == Token.ISNT ||
+				keyword == Token.AND || keyword == Token.OR || keyword == Token.NOT))
+			keyword = null;
+		return keyword != null && keyword.isOperator()
+				? keyword : IDENTIFIER;
+	}
+
+	private void skipIdentifier() {
 		char c;
 		while (true) {
 			c = charAt(si);
@@ -240,15 +258,6 @@ public class Lexer implements Doesc.Src {
 		}
 		if (c == '?' || c == '!')
 			++si;
-		value(null);
-		keyword = ignoreCase
-				? Token.lookupIgnoreCase(value) : Token.lookup(value);
-		if (charAt(si) == ':' &&
-				(keyword == Token.IS || keyword == Token.ISNT ||
-				keyword == Token.AND || keyword == Token.OR || keyword == Token.NOT))
-			keyword = null;
-		return keyword != null && keyword.isOperator()
-				? keyword : IDENTIFIER;
 	}
 
 	private Token number() {
