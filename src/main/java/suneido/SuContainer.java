@@ -564,9 +564,9 @@ public class SuContainer extends SuValue
 		return Pack.unpack(buf2);
 	}
 
-	public synchronized void setReadonly() {
+	public synchronized SuContainer setReadonly() {
 		if (readonly)
-			return;
+			return this;
 		readonly = true;
 		// recurse
 		for (Object x : vec)
@@ -575,6 +575,7 @@ public class SuContainer extends SuValue
 		for (Object x : map.values())
 			if (x instanceof SuContainer)
 				((SuContainer) x).setReadonly();
+		return this;
 	}
 
 	public synchronized boolean getReadonly() {
