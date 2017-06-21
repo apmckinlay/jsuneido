@@ -57,7 +57,7 @@ public class DbmsLocal extends Dbms {
 	@Override
 	public SuContainer connections() {
 		return Suneido.server == null ? SuContainer.EMPTY
-				: new SuContainer(Suneido.server.connections());
+				: new SuContainer(Suneido.server.connections()).setReadonly();
 	}
 
 	@Override

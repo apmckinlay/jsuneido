@@ -176,7 +176,7 @@ public class DbmsClientText extends Dbms {
 	@Override
 	public SuContainer connections() {
 		writeLine("CONNECTIONS");
-		return (SuContainer) readValue();
+		return ((SuContainer) readValue()).setReadonly();
 	}
 
 	@Override
