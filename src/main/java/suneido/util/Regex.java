@@ -472,8 +472,8 @@ public class Regex {
 		}
 
 		private boolean matchRange() {
-			if (src.charAt(si + 1) == '-' &&
-					si+2 < sn && src.charAt(si + 2) != ']') {
+			if (si+2 < sn &&
+					src.charAt(si + 1) == '-' && src.charAt(si + 2) != ']') {
 				si += 3;
 				return true;
 			} else
@@ -506,7 +506,7 @@ public class Regex {
 			else if (match("xdigit:]"))
 				return xdigit;
 			else
-				throw new RuntimeException("bad posix class");
+				throw new RuntimeException("regex: bad posix class");
 		}
 
 		// helpers

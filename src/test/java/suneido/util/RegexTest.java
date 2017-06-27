@@ -50,10 +50,6 @@ public class RegexTest {
 		test(".\\5.", ". \\5 .");
 		test("(?i)\\5", "i\\5");
 
-//		except("(?i)[5-M]", "range invalid");
-//		except("(?i)[M-}]", "range invalid");
-//		except("(?i)[5-}]", "range invalid");
-
 		test("a[.]b", "'a.b'");
 
 		test("a(?q).(?-q).c(?q).(?-q).", "'a.' . 'c.' .");
@@ -67,6 +63,15 @@ public class RegexTest {
 
 		test("[^][]", "CharMatcher.anyOf(\"\\u005D\\u005B\").negate()");
 		test("[x\\]y]", "CharMatcher.anyOf(\"\\u005D\\u0078\\u0079\")");
+
+		except("[", "missing ']'");
+		except("[a", "missing ']'");
+		except("[a-", "missing ']'");
+		except("[a-z", "missing ']'");
+
+		except("[[:foo:]]", "bad posix class");
+
+		except("foobar)", "closing ) without opening (");
 	}
 
 	void test(String rx, String expected) {
@@ -76,9 +81,11 @@ public class RegexTest {
 	void except(String rx, String expected) {
 		try {
 			Regex.compile(rx);
-			assert false : "expected exception";
+			assert false : "expected exception: " + expected;
 		} catch (RuntimeException e) {
-			assert e.toString().contains(expected);
+			assert e.getMessage().startsWith("regex: ");
+			assert e.getMessage().contains(expected) :
+				"`" + e.getMessage() + "` does not contain `" + expected + "`";
 		}
 	}
 
