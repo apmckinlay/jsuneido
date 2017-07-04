@@ -297,9 +297,12 @@ public class SuContainer extends SuValue
 		StringBuilder sb = new StringBuilder(before);
 		for (Object x : vec)
 			sb.append(Ops.display(x)).append(", ");
-		for (Map.Entry<Object, Object> e : map.entrySet())
-			sb.append(keyToString(e.getKey()) + ": " + Ops.display(e.getValue()))
-					.append(", ");
+		for (Map.Entry<Object, Object> e : map.entrySet()) {
+			sb.append(keyToString(e.getKey())).append(":");
+			if (e.getValue() != Boolean.TRUE)
+				sb.append(" ").append(Ops.display(e.getValue()));
+			sb.append(", ");
+		}
 		if (size() > 0)
 			sb.delete(sb.length() - 2, sb.length());
 		return sb.append(after).toString();
