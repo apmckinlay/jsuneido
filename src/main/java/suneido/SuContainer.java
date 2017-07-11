@@ -749,15 +749,18 @@ public class SuContainer extends SuValue
 		RecordBuilder rec = dbpkg.recordBuilder();
 		Object x;
 		String ts = hdr.timestamp_field();
+		Object tsval = null;
 		for (String f : hdr.output_fldsyms())
 			if (f == "-")
 				rec.addMin();
 			else if (f.equals(ts))
-				rec.add(TheDbms.dbms().timestamp());
+				rec.add(tsval = TheDbms.dbms().timestamp());
 			else if (null != (x = get(f)))
 				rec.add(x);
 			else
 				rec.addMin();
+		if (tsval != null && ! getReadonly())
+			put(ts, tsval);
 		return rec.build();
 	}
 

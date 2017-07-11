@@ -274,17 +274,20 @@ public abstract class SuRecordOld extends SuContainer {
 		RecordBuilder rb = dbpkg.recordBuilder();
 		Object x;
 		String ts = hdr.timestamp_field();
+		Object tsval = null;
 		for (String f : fldsyms)
 			if (f == null)
 				rb.addMin();
 			else if (f.equals(ts))
-				rb.add(TheDbms.dbms().timestamp());
+				rb.add(tsval = TheDbms.dbms().timestamp());
 			else if (deps.containsKey(f))
 				rb.add(commaJoiner.join(deps.get(f)));
 			else if (null != (x = get(f)))
 				rb.add(x);
 			else
 				rb.addMin();
+		if (tsval != null && ! getReadonly())
+			put(ts, tsval);
 		return rb.build();
 	}
 
