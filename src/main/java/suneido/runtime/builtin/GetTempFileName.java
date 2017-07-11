@@ -17,15 +17,14 @@ public class GetTempFileName {
 	public static String GetTempFileName(Object a, Object b) {
 		String path = Ops.toStr(a);
 		String prefix = Ops.toStr(b);
-		if (prefix.length() < 3)
-			prefix = (prefix + "___").substring(0, 3);
+		prefix = (prefix + "___").substring(0, 3);
 		try {
 			File tmpfile = File.createTempFile(prefix, "", new File(path));
 			tmpfile.deleteOnExit();
 			return tmpfile.getPath().replace('\\', '/');
 		} catch (IOException e) {
 			throw new SuException(
-					"GetTempFileName(" + path + ", " + prefix + ")", e);
+					"GetTempFileName('" + path + "', '" + prefix + "')", e);
 		}
 	}
 
