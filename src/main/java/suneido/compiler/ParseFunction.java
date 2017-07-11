@@ -6,6 +6,9 @@ package suneido.compiler;
 
 import static suneido.compiler.Token.*;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 
 	public ParseFunction(Lexer lexer, G generator) {
@@ -41,6 +44,7 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 			params = generator.parameters(params, "@" + lexer.getValue(), null);
 			match(IDENTIFIER);
 		} else {
+			Set<String> names = new HashSet<>();
 			T defaultValue = null;
 			while (token != R_PAREN) {
 				boolean dot = matchIf(DOT);
@@ -54,6 +58,8 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 					defaultValue = constant();
 				} else if (defaultValue != null)
 					syntaxError("default parameters must come last");
+				if (! names.add(name))
+					syntaxError("duplicate function parameter (" + name + ")");
 				params = generator.parameters(params, name, defaultValue);
 				matchIf(COMMA);
 			}
