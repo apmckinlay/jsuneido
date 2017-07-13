@@ -11,6 +11,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 
 import suneido.SuContainer;
+import suneido.SuException;
 import suneido.TheDbms;
 import suneido.database.query.Header;
 import suneido.database.query.Query.Dir;
@@ -44,7 +45,7 @@ public enum CommandBinary {
 		@Override
 		public void execute(SuChannel io) {
 			int tn = io.getInt();
-			DbmsTran t = tran(tn);
+			DbmsTran t = tran(tn, "ABORT");
 			ServerData.forThread().endTransaction(tn);
 			t.abort();
 			io.put(true);
@@ -113,7 +114,7 @@ public enum CommandBinary {
 		@Override
 		public void execute(SuChannel io) {
 			int tn = io.getInt();
-			DbmsTran t = tran(tn);
+			DbmsTran t = tran(tn, "COMMIT");
 			ServerData.forThread().endTransaction(tn);
 			String result = t.complete();
 			io.put(true);
@@ -183,7 +184,7 @@ public enum CommandBinary {
 	ERASE {
 		@Override
 		public void execute(SuChannel io) {
-			DbmsTran t = tran(io);
+			DbmsTran t = tran(io, "ERASE");
 			int recadr = io.getInt();
 			t.erase(recadr);
 			io.put(true);
@@ -264,7 +265,7 @@ public enum CommandBinary {
 			int tn = io.getInt();
 			String query = io.getString();
 			HeaderAndRow hr = isTran(tn)
-					? tran(tn).get(dir, query, one)
+					? tran(tn, "GET1").get(dir, query, one)
 					: dbms().get(dir, query, one);
 			if (hr == null)
 				io.put(true).put(false);
@@ -419,7 +420,7 @@ public enum CommandBinary {
 		public void execute(SuChannel io) {
 			int tn = io.getInt();
 			String query = io.getString();
-			DbmsQuery q = tran(tn).query(query);
+			DbmsQuery q = tran(tn, "QUERY").query(query);
 			int qn = ServerData.forThread().addQuery(tn, q);
 			io.put(true).put(qn);
 		}
@@ -432,7 +433,7 @@ public enum CommandBinary {
 	READCOUNT {
 		@Override
 		public void execute(SuChannel io) {
-			int result = tran(io).readCount();
+			int result = tran(io, "READCOUNT").readCount();
 			io.put(true).put(result);
 		}
 	},
@@ -446,7 +447,7 @@ public enum CommandBinary {
 	REQUEST {
 		@Override
 		public void execute(SuChannel io) {
-			DbmsTran t = tran(io);
+			DbmsTran t = tran(io, "REQUEST");
 			String request = io.getString();
 			int n = t.request(request);
 			io.put(true).put(n);
@@ -561,7 +562,7 @@ public enum CommandBinary {
 	UPDATE {
 		@Override
 		public void execute(SuChannel io) {
-			DbmsTran t = tran(io);
+			DbmsTran t = tran(io, "UPDATE");
 			int recadr = io.getInt();
 			Record rec = getRecord(io);
 			recadr = t.update(recadr, rec);
@@ -576,7 +577,7 @@ public enum CommandBinary {
 	WRITECOUNT {
 		@Override
 		public void execute(SuChannel io) {
-			DbmsTran t = tran(io);
+			DbmsTran t = tran(io, "WRITECOUNT");
 			int result = t.writeCount();
 			io.put(true).put(result);
 		}
@@ -628,13 +629,16 @@ public enum CommandBinary {
 		return dbms;
 	}
 
-	private static DbmsTran tran(int tn) {
-		return ServerData.forThread().getTransaction(tn);
+	private static DbmsTran tran(int tn, String cmd) {
+		DbmsTran tran = ServerData.forThread().getTransaction(tn);
+		if (tran == null)
+			throw new SuException(cmd + ": transaction not found");
+		return tran;
 	}
 
-	private static DbmsTran tran(SuChannel io) {
+	private static DbmsTran tran(SuChannel io, String cmd) {
 		int tn = io.getInt();
-		return ServerData.forThread().getTransaction(tn);
+		return tran(tn, cmd);
 	}
 
 	private static Record getRecord(SuChannel io) {
