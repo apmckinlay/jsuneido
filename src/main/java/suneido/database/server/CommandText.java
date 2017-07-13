@@ -65,6 +65,8 @@ public enum CommandText {
 			int tn = new Reader(line).ck_getnum('T');
 			DbmsTran tran = ServerData.forThread().getTransaction(tn);
 			ServerData.forThread().endTransaction(tn);
+			if (tran == null)
+				throw new SuException("ABORT: transaction not found");
 			tran.abort();
 			return ok();
 		}
@@ -118,6 +120,8 @@ public enum CommandText {
 			int tn = new Reader(line).ck_getnum('T');
 			DbmsTran tran = ServerData.forThread().getTransaction(tn);
 			ServerData.forThread().endTransaction(tn);
+			if (tran == null)
+				throw new SuException("COMMIT: transaction not found");
 			String conflict = tran.complete();
 			return conflict == null ? ok() : stringToBuffer(conflict + "\r\n");
 		}
@@ -178,7 +182,7 @@ public enum CommandText {
 		public ByteBuffer execute(String line, ByteBuffer extra,
 				Consumer<ByteBuffer> output) {
 			Reader rdr = new Reader(line);
-			DbmsTran tran = rdr.getTran();
+			DbmsTran tran = rdr.ckGetTran("ERASE");
 			int recadr = rdr.ck_getnum('A');
 			tran.erase(recadr);
 			return ok();
@@ -377,7 +381,7 @@ public enum CommandText {
 		@Override
 		public ByteBuffer execute(String line, ByteBuffer extra,
 				Consumer<ByteBuffer> output) {
-			DbmsTran tran = new Reader(line).getTran();
+			DbmsTran tran = new Reader(line).ckGetTran("READCOUNT");
 			return stringToBuffer("C" + (tran.readCount()) + "\r\n");
 		}
 	},
@@ -392,7 +396,7 @@ public enum CommandText {
 		@Override
 		public ByteBuffer execute(String line, ByteBuffer extra,
 				Consumer<ByteBuffer> output) {
-			DbmsTran tran = new Reader(line).getTran();
+			DbmsTran tran = new Reader(line).ckGetTran("REQUEST");
 			int n = tran.request(bufferToString(extra));
 			return stringToBuffer("R" + n + "\r\n");
 		}
@@ -502,7 +506,7 @@ public enum CommandText {
 		public ByteBuffer execute(String line, ByteBuffer extra,
 				Consumer<ByteBuffer> output) {
 			Reader rdr = new Reader(line);
-			DbmsTran tran = rdr.getTran();
+			DbmsTran tran = rdr.ckGetTran("UPDATE");
 			int recadr = rdr.ck_getnum('A');
 			recadr = tran.update(recadr, makeRecord(extra));
 			return stringToBuffer("U" + recadr + "\r\n");
@@ -512,7 +516,7 @@ public enum CommandText {
 		@Override
 		public ByteBuffer execute(String line, ByteBuffer extra,
 				Consumer<ByteBuffer> output) {
-			DbmsTran tran = new Reader(line).getTran();
+			DbmsTran tran = new Reader(line).ckGetTran("WRITECOUNT");
 			return stringToBuffer("C" + (tran.writeCount()) + "\r\n");
 		}
 	};
@@ -606,6 +610,13 @@ public enum CommandText {
 		private DbmsTran getTran() {
 			int tn = ck_getnum('T');
 			return ServerData.forThread().getTransaction(tn);
+		}
+
+		private DbmsTran ckGetTran(String cmd) {
+			DbmsTran tran = getTran();
+			if (tran == null)
+				throw new SuException(cmd + ": transaction not found");
+			return tran;
 		}
 
 		private DbmsQuery q_or_c() {
