@@ -16,8 +16,8 @@ import suneido.runtime.builtin.StringMethods;
  * <p>
  * NOTE: Buffer does not extend String2
  */
-public abstract class String2 extends SuValue implements Comparable<String2>,
-		CharSequence {
+public abstract class String2 extends SuValue
+		implements Comparable<String2>, CharSequence {
 
 	@Override
 	public Object call(Object... args) {
