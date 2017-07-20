@@ -92,6 +92,26 @@ public class Compiler {
 		return Ops.call0(compile("", "eval", "function () { " + s + "\n}", context));
 	}
 
+	public static boolean pt_constant(String... args) {
+		assert args.length == 3;
+		String s = args[0];
+		String type = args[1];
+		String expected = args[2];
+		try {
+			Object x = compile("", s);
+			if (!type.equals(Ops.typeName(x)))
+				return false;
+			if (!expected.equals(Ops.display(x)))
+				return false;
+		} catch (RuntimeException e) {
+			if (!type.equals("Exception"))
+				return false;
+			if (!e.getMessage().contains(expected))
+				return false;
+		}
+		return true;
+	}
+
 //	public static void main(String[] args) /*throws IOException*/ {
 ////		String s = Files.toString(new java.io.File("tmp.txt"), Charsets.UTF_8);
 ////		String s = "function () { c = class { New(.P) { } A() { .P } }; i = c(123); i.A() }";

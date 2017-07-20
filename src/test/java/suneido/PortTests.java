@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import suneido.compiler.Compiler;
 import suneido.compiler.ExecuteTest;
 import suneido.compiler.Lexer;
 import suneido.compiler.Token;
@@ -172,6 +173,7 @@ public class PortTests {
 		addTest("execute", ExecuteTest::pt_execute);
 		addTest("lang_sub", ExecuteTest::pt_lang_sub);
 		addTest("lang_range", ExecuteTest::pt_lang_range);
+		addTest("constant", Compiler::pt_constant);
 
 		System.out.println("'" + TestDir.path + "'");
 		for (String filename : new File(TestDir.path).list())
