@@ -14,9 +14,6 @@ import java.util.List;
 
 import org.junit.Test;
 
-import suneido.compiler.Lexer;
-import suneido.compiler.Token;
-
 import com.google.common.collect.Lists;
 
 public class LexerTest {
@@ -135,7 +132,7 @@ public class LexerTest {
 				{ "'\\n'", "\n" },
 				{ "'\\r'", "\r" },
 				{ "'\\t'", "\t" },
-				{ "'\\015'", "\r" },
+				{ "'\\0'", "\000" },
 				{ "'\\x0a'", "\n" },
 				{ "`\\`", "\\" }
 			};

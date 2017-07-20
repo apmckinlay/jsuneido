@@ -13,11 +13,11 @@ public class Doesc {
 		char at(int d);
 		void move(int d);
 	};
-	
+
 	private static class StrSrc implements Src {
 		String s;
 		int i = 0;
-		
+
 		StrSrc(String s) {
 			this.s = s;
 		}
@@ -31,7 +31,7 @@ public class Doesc {
 		public void move(int d) {
 			i += d;
 		}
-		
+
 		String doesc() {
 			StringBuilder sb = new StringBuilder(s.length());
 			for (; i < s.length(); ++i) {
@@ -44,15 +44,18 @@ public class Doesc {
 			return sb.toString();
 		}
 	}
-	
+
 	public static String doesc(String s) {
 		return new StrSrc(s).doesc();
 	}
 
 	public static char doesc(Src src) {
+		assert src.at(0) == '\\';
 		src.move(1); // backslash
-		int dig1, dig2, dig3;
+		int dig1, dig2;
 		switch (src.charAt()) {
+		case '0' :
+			return 0;
 		case 'n' :
 			return '\n';
 		case 't' :
@@ -73,15 +76,8 @@ public class Doesc {
 		case '\'' :
 			return src.charAt();
 		default :
-			if (-1 != (dig1 = Character.digit(src.at(0), 8)) &&
-					-1 != (dig2 = Character.digit(src.at(1), 8)) &&
-					-1 != (dig3 = Character.digit(src.at(2), 8))) {
-				src.move(2);
-				return (char) (64 * dig1 + 8 * dig2 + dig3);
-			} else {
-				src.move(-1);
-				return src.charAt();
-			}
+			src.move(-1);
+			return src.charAt();
 		}
 	}
 }
