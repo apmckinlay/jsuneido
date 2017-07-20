@@ -268,9 +268,16 @@ public class Lexer implements Doesc.Src {
 		if (matchIf('.'))
 			matchWhileDigit();
 		exponent();
-		if (source.charAt(si - 1) == '.')
+		if (source.charAt(si - 1) == '.' && nonWhiteRemaining())
 			--si; // don't absorb trailing period
 		return value(NUMBER);
+	}
+
+	private boolean nonWhiteRemaining() {
+		for (int i = si; i < source.length(); ++i)
+			if (! Character.isWhitespace(source.charAt(i)))
+				return true;
+		return false;
 	}
 
 	private boolean hexNumber() {

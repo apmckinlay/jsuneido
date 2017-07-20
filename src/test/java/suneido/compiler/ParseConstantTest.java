@@ -19,6 +19,12 @@ public class ParseConstantTest {
 			"(FALSE)");
 		constant("123",
 			"(NUMBER=123)");
+		constant("+123",
+			"(NUMBER=123)");
+		constant("-123",
+			"(NUMBER=-123)");
+		constant("123.",
+			"(NUMBER=123.)");
 		constant("'xyz'",
 			"(STRING=xyz)");
 		constant("#abc",
@@ -96,14 +102,14 @@ public class ParseConstantTest {
 
 	static void constant(String code, String expected) {
 //System.out.println("\tcode(\"" + code.replace("\n", "\\n") + "\",");
-				Lexer lexer = new Lexer(code);
-				AstGenerator generator = new AstGenerator();
-				ParseConstant<AstNode, Generator<AstNode>> pc =
-						new ParseConstant<AstNode, Generator<AstNode>>(lexer, generator);
-				AstNode ast = pc.parse();
-				String actual = ast.toString().replace("\n", " ").replaceAll(" +", " ");
+		Lexer lexer = new Lexer(code);
+		AstGenerator generator = new AstGenerator();
+		ParseConstant<AstNode, Generator<AstNode>> pc =
+				new ParseConstant<AstNode, Generator<AstNode>>(lexer, generator);
+		AstNode ast = pc.parse();
+		String actual = ast.toString().replace("\n", " ").replaceAll(" +", " ");
 //System.out.println("\t\t\"" + actual.substring(23, actual.length() - 2) + "\");");
-				assertEquals(expected, actual);
+		assertEquals(expected, actual);
 	}
 
 }
