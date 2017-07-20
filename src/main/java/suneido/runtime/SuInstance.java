@@ -163,10 +163,24 @@ public class SuInstance extends SuValue {
 
 	@Override
 	public String display() {
+		String s = userDefToString();
+		return s != null ? s : myclass.internalName() + "()";
+	}
+
+	/**
+	 * Calls the user defined ToString for the class, if it exists.
+	 * @return The result of ToString if it is a string, otherwise null
+	 */
+	public String userDefToString() {
 		Object toString = myclass.get2("ToString");
-		if (toString instanceof SuCallable)
-			return Ops.toStr(((SuCallable) toString).eval(this));
-		return myclass.internalName() + "()";
+		if (toString instanceof SuCallable) {
+			Object x = ((SuCallable) toString).eval(this);
+			if (x instanceof CharSequence)
+				return x.toString();
+			else
+				throw new SuException("ToString should return a string");
+		}
+		return null;
 	}
 
 	@Override

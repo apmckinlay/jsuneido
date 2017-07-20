@@ -420,6 +420,11 @@ public final class Ops {
 			return toStringBD((BigDecimal) x);
 		if (isString(x) || x instanceof Number || x instanceof Buffer)
 			return x.toString();
+		if (x instanceof SuInstance) {
+			String s = ((SuInstance) x).userDefToString();
+			if (s != null)
+				return s;
+		}
 		throw new SuException("can't convert " + typeName(x) + " to String");
 	}
 
