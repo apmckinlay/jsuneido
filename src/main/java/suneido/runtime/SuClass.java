@@ -271,7 +271,7 @@ public class SuClass extends SuValue {
 	}
 
 	boolean hasMember(Object k) {
-		return get2(Ops.toStr(k)) != null;
+		return get2(k) != null;
 	}
 
 	@Params("key")

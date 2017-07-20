@@ -1,6 +1,8 @@
 package suneido.compiler;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static suneido.runtime.CallableType.BLOCK;
+import static suneido.runtime.CallableType.FUNCTION;
 
 import org.junit.Test;
 
@@ -8,7 +10,6 @@ import suneido.SuException;
 import suneido.debug.Callstack;
 import suneido.debug.Frame;
 import suneido.runtime.CallableType;
-import static suneido.runtime.CallableType.*;
 
 /**
  * Test to ensure compiled Suneido source code is tagged with the correct line
@@ -56,18 +57,18 @@ public class LineNumbersCompileTest {
 
 	@Test
 	public void testFunctionIf() {
-		test("x = 4\nif 3 < x\nthrow x", 3, "4", FUNCTION);
+		test("x = 4\nif 3 < x\nthrow ''$x", 3, "4", FUNCTION);
 	}
 
 	@Test
 	public void testFunctionElse() {
-		test("x = 4\nif x < 3\n\tthrow false\nelse\n\tthrow x", 5, "4",
+		test("x = 4\nif x < 3\n\tthrow 'false'\nelse\n\tthrow ''$x", 5, "4",
 				FUNCTION);
 	}
 
 	@Test
 	public void testFunctionLoop() {
-		test("for (k = 0; k < 10; ++k)\n\tif 5 < k\n\t\tthrow k", 3, "6",
+		test("for (k = 0; k < 10; ++k)\n\tif 5 < k\n\t\tthrow ''$k", 3, "6",
 				FUNCTION);
 	}
 
@@ -83,18 +84,18 @@ public class LineNumbersCompileTest {
 
 	@Test
 	public void testBlockIf() {
-		test("x = {\n y = 4\nif 3 < y\nthrow y\n}\nx()", 4, "4", BLOCK);
+		test("x = {\n y = 4\nif 3 < y\nthrow ''$y\n}\nx()", 4, "4", BLOCK);
 	}
 
 	@Test
 	public void testBlockElse() {
-		test("x = {\n y = 4\nif y < 3\nthrow false\nelse\nthrow y\n}\nx()", 6,
+		test("x = {\n y = 4\nif y < 3\nthrow 'false'\nelse\nthrow ''$y\n}\nx()", 6,
 				"4", BLOCK);
 	}
 
 	@Test
 	public void testBlockLoop() {
-		test("x = {\n for (y = 0; y < 10; ++y)\nif 9 <= y\nthrow y\n}\nx()", 4,
+		test("x = {\n for (y = 0; y < 10; ++y)\nif 9 <= y\nthrow ''$y\n}\nx()", 4,
 				"9", BLOCK);
 	}
 

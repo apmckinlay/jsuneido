@@ -127,13 +127,13 @@ public class RunPiped extends SuValue {
 
 	@Params("string")
 	public static Object Write(Object self, Object a) {
-		((RunPiped) self).out.append(Ops.toStr(a));
+		((RunPiped) self).out.append(Ops.coerceStr(a));
 		return null;
 	}
 
 	@Params("string")
 	public static Object Writeline(Object self, Object a) {
-		((RunPiped) self).out.println(Ops.toStr(a));
+		((RunPiped) self).out.println(Ops.coerceStr(a));
 		return null;
 	}
 

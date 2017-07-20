@@ -11,8 +11,6 @@ import java.math.BigDecimal;
 import org.junit.Test;
 
 import suneido.runtime.Ops;
-import suneido.runtime.builtin.NumberMethods;
-
 
 public class NumberMethodsTest {
 
@@ -46,7 +44,7 @@ public class NumberMethodsTest {
 	private static void frac(String num, String expected) {
 		BigDecimal bd = new BigDecimal(num);
 		Object result = Ops.invoke0(bd, "Frac");
-		assertEquals(expected, Ops.toStr(result));
+		assertEquals(expected, Ops.display(result));
 	}
 
 	@Test

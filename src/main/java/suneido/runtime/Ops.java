@@ -233,7 +233,7 @@ public final class Ops {
 	private static Object cat2(Object x, Object y) {
 		if (x instanceof Concats)
 			return ((Concats) x).append(y);
-		Object result = cat(toStr(x), toStr(y));
+		Object result = cat(coerceStr(x), coerceStr(y));
 		if (x instanceof Except)
 			return Except.As(x, result);
 		if (y instanceof Except)
@@ -390,11 +390,6 @@ public final class Ops {
 	}
 
 	public static int toInt(Object x) {
-		// TODO: determine whether it is possible and desirable in jSuneido
-		//       to hold a reference to types Long, Short, and Byte (noting
-		//       that literal processing via AstCompile.fold() and Numbers.
-		//       stringToNumber() can only produce either an 'int' or a
-		//       BigDecimal.
 		if (x instanceof Integer || x instanceof Short || x instanceof Byte)
 			return ((Number) x).intValue();
 		if (x instanceof Long)
@@ -410,16 +405,13 @@ public final class Ops {
 		throw new SuException("can't convert " + Ops.typeName(x) + " to integer");
 	}
 
-	// used by string operations to coerce arguments
-	// automatic conversion is only done from booleans and numbers
 	public static String toStr(Object x) {
-		String s = toStr2(x);
-		if (s == null)
-			throw new SuException("can't convert " + typeName(x) + " to String");
-		return s;
+		if (x instanceof CharSequence)
+			return x.toString();
+		throw new SuException("can't convert " + typeName(x) + " to String");
 	}
 
-	public static String toStr2(Object x) {
+	public static String coerceStr(Object x) {
 		if (x == Boolean.TRUE)
 			return "true";
 		if (x == Boolean.FALSE)
@@ -428,7 +420,7 @@ public final class Ops {
 			return toStringBD((BigDecimal) x);
 		if (isString(x) || x instanceof Number || x instanceof Buffer)
 			return x.toString();
-		return null;
+		throw new SuException("can't convert " + typeName(x) + " to String");
 	}
 
 	public static String toStringBD(BigDecimal n) {
@@ -461,9 +453,8 @@ public final class Ops {
 			return displayString(x);
 		if (x instanceof SuValue)
 			return ((SuValue) x).display();
-		String s = toStr2(x);
-		if (s != null)
-			return s;
+		if (x instanceof BigDecimal)
+			return toStringBD((BigDecimal) x);
 		return x.toString();
 	}
 

@@ -29,7 +29,7 @@ public final class Concats extends String2 {
 	}
 
 	public Concats append(Object x) {
-		CharSequence s = x instanceof CharSequence ? (CharSequence) x : Ops.toStr(x);
+		CharSequence s = x instanceof CharSequence ? (CharSequence) x : Ops.coerceStr(x);
 		if (s.length() == 0)
 			return this;
 		synchronized (sb) {

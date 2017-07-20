@@ -131,7 +131,7 @@ public class SocketClient extends SuValue {
 
 	@Params("string")
 	public static Object Write(Object self, Object a) {
-		String data = Ops.toStr(a);
+		String data = Ops.coerceStr(a);
 		try {
 			socketClient(self).output.write(Util.stringToBytes(data));
 		} catch (IOException e) {
@@ -144,7 +144,7 @@ public class SocketClient extends SuValue {
 
 	@Params("string")
 	public static Object Writeline(Object self, Object a) {
-		String data = Ops.toStr(a);
+		String data = Ops.coerceStr(a);
 		try {
 			socketClient(self).output.write(Util.stringToBytes(data));
 			socketClient(self).output.write(newline);

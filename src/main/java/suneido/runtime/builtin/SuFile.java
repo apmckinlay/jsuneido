@@ -157,7 +157,7 @@ public class SuFile extends SuValue {
 
 	@Params("string")
 	public static Object Write(Object self, Object a) {
-		((SuFile) self).write(Ops.toStr(a));
+		((SuFile) self).write(Ops.coerceStr(a));
 		return a;
 	}
 
@@ -175,7 +175,7 @@ public class SuFile extends SuValue {
 
 	@Params("string")
 	public static Object Writeline(Object self, Object a) {
-		((SuFile) self).writeline(Ops.toStr(a));
+		((SuFile) self).writeline(Ops.coerceStr(a));
 		return a;
 	}
 
