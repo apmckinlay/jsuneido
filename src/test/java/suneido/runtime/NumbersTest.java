@@ -28,7 +28,7 @@ public class NumbersTest {
 	public void test_stringToNumber() {
 		assertThat(Numbers.stringToNumber(""), equalTo(0));
 		assertThat(Numbers.stringToNumber("123"), equalTo(123));
-		assertThat(Numbers.stringToNumber("0100"), equalTo(64));
+		assertThat(Numbers.stringToNumber("0100"), equalTo(100)); // NOT octal
 		assertThat(Numbers.stringToNumber("0x100"), equalTo(256));
 		assertThrows(() -> Numbers.stringToNumber("xxx"));
 		assertThrows(() -> Numbers.stringToNumber(".f"));

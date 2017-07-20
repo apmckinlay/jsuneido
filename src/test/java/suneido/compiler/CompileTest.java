@@ -37,8 +37,6 @@ public class CompileTest {
 				"123, ARETURN");
 		test("0xffffffff",
 				"-1, ARETURN");
-		test("037777777777",
-				"-1, ARETURN");
 		test("0.1",
 				"const0, ARETURN");
 		test("true",
