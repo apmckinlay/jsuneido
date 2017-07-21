@@ -42,11 +42,10 @@ public class SuValueTest {
 	@Test
 	public void math() {
 		int[] ints = { 0, 1, -1, 123, -123 };
-		Object[] values = new Object[ints.length * 3];
+		Object[] values = new Object[ints.length * 2];
 		for (int i = 0; i < ints.length; ++i) {
-			values[3 * i] = ints[i];
-			values[3 * i + 1] = new BigDecimal(ints[i]);
-			values[3 * i + 2] = Integer.toString(ints[i]);
+			values[2 * i] = ints[i];
+			values[2 * i + 1] = new BigDecimal(ints[i]);
 		}
 		for (Object x : values)
 			for (Object y : values)

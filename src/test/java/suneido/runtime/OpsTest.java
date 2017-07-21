@@ -126,8 +126,6 @@ public class OpsTest {
 	@Test
 	public void test_add() {
 		assertEquals(579, add(x, y));
-		assertEquals(579, add(x, "456"));
-		assertEquals(579, add("123", y));
 		assertEquals(new BigDecimal("456.9"), add(z, y));
 		assertEquals(new BigDecimal("123.9"), add(x, z));
 		assertEquals(new BigDecimal("1.8"), add(z, z));
@@ -136,8 +134,6 @@ public class OpsTest {
 		assertEquals(INF, add(x, INF));
 		assertEquals(INF, add(INF, z));
 		assertEquals(INF, add(z, INF));
-		assertEquals(INF, add(INF, "1"));
-		assertEquals(INF, add("1", INF));
 		assertEquals(INF, add(INF, INF));
 		assertEquals(0, add(INF, MINUS_INF));
 
@@ -153,8 +149,6 @@ public class OpsTest {
 	public void test_sub() {
 		assertEquals(-333, sub(x, y));
 		assertEquals(333, sub(y, x));
-		assertEquals(-333, sub(x, "456"));
-		assertEquals(-333, sub("123", y));
 		assertEquals(new BigDecimal("-455.1"), sub(z, y));
 		assertEquals(new BigDecimal("122.1"), sub(x, z));
 		is(ZERO, sub(z, z));
@@ -163,8 +157,6 @@ public class OpsTest {
 		assertEquals(MINUS_INF, sub(x, INF));
 		assertEquals(INF, sub(INF, z));
 		assertEquals(MINUS_INF, sub(z, INF));
-		assertEquals(INF, sub(INF, "1"));
-		assertEquals(MINUS_INF, sub("1", INF));
 		assertEquals(0, sub(INF, INF));
 		assertEquals(INF, sub(INF, MINUS_INF));
 

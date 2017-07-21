@@ -266,31 +266,20 @@ public class Numbers {
 	public static Number toNum(Object x) {
 		if (x instanceof Number)
 			return (Number) x;
-		if (x instanceof CharSequence)
-			return stringToPlainNumber(x.toString());
-		if (x instanceof Boolean)
-			return (Boolean) x ? 1 : 0;
+		if (x == Boolean.FALSE ||
+				(x instanceof CharSequence && ((CharSequence) x).length() == 0))
+			return 0;
 		throw new SuException("can't convert " + Ops.typeName(x) + " to number");
 	}
 
 	/**
-	 * Handles hex (0x...) and octal (0...) in addition to integers and BigDecimal
+	 * Handles hex (0x...) in addition to integers and BigDecimal
 	 * @return The string converted to a Number
 	 */
 	public static Number stringToNumber(String s) {
 		try {
 			if (s.startsWith("0x"))
 				return (int) Long.parseLong(s.substring(2), 16);
-		} catch (NumberFormatException e) {
-			throw new SuException("can't convert to number: " + s);
-		}
-		return Numbers.stringToPlainNumber(s);
-	}
-
-	private static Number stringToPlainNumber(String s) {
-		if (s.length() == 0)
-			return 0;
-		try {
 			if (s.indexOf('.') == -1 && s.indexOf('e') == -1
 					&& s.indexOf("E") == -1 && s.length() < 10)
 				return Integer.parseInt(s);

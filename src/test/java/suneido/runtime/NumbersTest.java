@@ -15,9 +15,6 @@ public class NumbersTest {
 		assertThat(Numbers.toNum(0), equalTo(0));
 		assertThat(Numbers.toNum(123), equalTo(123));
 		assertThat(Numbers.toNum(""), equalTo(0));
-		assertThat(Numbers.toNum("123"), equalTo(123));
-		assertThat(Numbers.toNum("0100"), equalTo(100));
-		assertThat(Numbers.toNum(true), equalTo(1));
 		assertThat(Numbers.toNum(false), equalTo(0));
 		assertThrows(() -> Numbers.toNum("xxx"));
 		assertThrows(() -> Numbers.toNum(".f"));
@@ -26,7 +23,6 @@ public class NumbersTest {
 
 	@Test
 	public void test_stringToNumber() {
-		assertThat(Numbers.stringToNumber(""), equalTo(0));
 		assertThat(Numbers.stringToNumber("123"), equalTo(123));
 		assertThat(Numbers.stringToNumber("0100"), equalTo(100)); // NOT octal
 		assertThat(Numbers.stringToNumber("0x100"), equalTo(256));
