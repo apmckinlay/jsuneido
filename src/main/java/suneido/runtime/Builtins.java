@@ -26,8 +26,6 @@ public class Builtins {
 
 	static {
 		builtins = new ImmutableMap.Builder<String,Object>()
-			.put("True", Boolean.TRUE)
-			.put("False", Boolean.FALSE)
 			.put("Suneido", new SuContainer())
 			.put("Adler32", Adler32.clazz)
 			.put("AssertionError",
