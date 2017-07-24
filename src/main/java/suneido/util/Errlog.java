@@ -12,8 +12,6 @@ import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
-import suneido.debug.CallstackProvider;
-
 public class Errlog {
 	private static Supplier<String> extra = () -> "";
 	private static AtomicInteger count = new AtomicInteger();
@@ -98,10 +96,7 @@ public class Errlog {
 				.append(prefix + s)
 				.println();
 			if (e != null) {
-				if (e instanceof CallstackProvider)
-					((CallstackProvider)e).printCallstack(pw);
-				else
-					e.printStackTrace(pw);
+				e.printStackTrace(pw);
 			}
 		} catch (IOException e2) {
 			System.err.println("can't write to error.log " + e2);

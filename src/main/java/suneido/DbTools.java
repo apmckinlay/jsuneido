@@ -183,7 +183,7 @@ public class DbTools {
 			// couldn't rebuild from data + indexes, try from just data
 			cmd = "-rebuild-" + dbFilename + SEPARATOR + tempfile;
 			if (! Jvm.runWithNewJvm(cmd))
-				Errlog.fatal("Rebuild FAILED " + Jvm.runWithNewJvmCmd(cmd));
+				Errlog.fatal("Rebuild FAILED " + cmd);
 		}
 		dbpkg.renameDbWithBackup(tempfile.toString(), dbFilename);
 		tempfile.delete();

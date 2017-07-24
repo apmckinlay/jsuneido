@@ -7,11 +7,10 @@ package suneido.compiler;
 import static suneido.compiler.Token.CALLBACK;
 import static suneido.compiler.Token.EOF;
 import static suneido.compiler.Token.L_PAREN;
-import suneido.jsdi.DllInterface;
 
 /**
  * Parser for Suneido <code>callback</code> type (part of the DLL interface).
- * 
+ *
  * @author Victor Schappert
  * @since 20130710
  * @see ParseStruct
@@ -22,7 +21,6 @@ import suneido.jsdi.DllInterface;
  * @param <G>
  *            Result type generator class (<em>ie</em> {@link AstGenerator}).
  */
-@DllInterface
 public final class ParseCallback<T, G extends Generator<T>> extends ParseDllEntity<T, G> {
 
 	//

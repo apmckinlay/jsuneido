@@ -15,8 +15,6 @@ import java.util.Map;
 
 import javax.annotation.concurrent.Immutable;
 
-import suneido.jsdi.DllInterface;
-
 @Immutable
 public enum Token {
 	NIL, EOF, ERROR(1000),
@@ -50,8 +48,7 @@ public enum Token {
 	BREAK("break"), CONTINUE("continue"),
 	SWITCH("switch"), CASE("case"), DEFAULT("default"),
 	FUNCTION("function"), CLASS("class"), CATCH("catch"),
-	@DllInterface DLL("dll"), @DllInterface STRUCT("struct"),
-	@DllInterface CALLBACK("callback"),
+	DLL("dll"), STRUCT("struct"), CALLBACK("callback"),
 	NEW("new"), RETURN("return"), TRY("try"), THROW("throw"),
 	SUPER("super"), TRUE("true"), FALSE("false"),
 	IN("in"), THIS("this"),
@@ -81,8 +78,7 @@ public enum Token {
 	LT_(LT, "lt_", B_), LTE_(LTE, "lte_", B_), GT_(GT, "gt_", B_), GTE_(GTE, "gte_", B_),
 	CLOSURE,
 	// for AST (DLL interface)
-	@DllInterface VALUETYPE, @DllInterface ARRAYTYPE,
-	@DllInterface POINTERTYPE,
+	VALUETYPE, ARRAYTYPE, POINTERTYPE,
 	;
 
 	Token other;

@@ -5,11 +5,10 @@
 package suneido.compiler;
 
 import static suneido.compiler.Token.*;
-import suneido.jsdi.DllInterface;
 
 /**
  * Parser for Suneido <code>dll</code> entity (part of the DLL interface).
- * 
+ *
  * @author Victor Schappert
  * @since 20130705
  * @see ParseStruct
@@ -20,7 +19,6 @@ import suneido.jsdi.DllInterface;
  * @param <G>
  *            Result type generator class (<em>ie</em> {@link AstGenerator}).
  */
-@DllInterface
 public final class ParseDll<T, G extends Generator<T>> extends ParseDllEntity<T, G> {
 
 	//

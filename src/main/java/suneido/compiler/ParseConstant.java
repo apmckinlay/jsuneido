@@ -7,7 +7,6 @@ package suneido.compiler;
 import static suneido.compiler.Token.*;
 
 import suneido.compiler.Generator.MType;
-import suneido.jsdi.DllInterface;
 
 // TODO change to build and return the actual value, rather than AstNode tree
 // inefficient to build AST and then traverse it to build e.g. object
@@ -228,7 +227,6 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		return result;
 	}
 
-	@DllInterface
 	private T struct() {
 		ParseStruct<T, G> p = new ParseStruct<>(this);
 		T result = p.struct();
@@ -236,7 +234,6 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		return result;
 	}
 
-	@DllInterface
 	private T dll() {
 		ParseDll<T, G> p = new ParseDll<>(this);
 		T result = p.dll();
@@ -244,7 +241,6 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		return result;
 	}
 
-	@DllInterface
 	private T callback() {
 		ParseCallback<T, G> p = new ParseCallback<>(this);
 		T result = p.callback();

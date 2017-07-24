@@ -34,19 +34,3 @@
 -dontwarn org.codehaus.mojo.animal_sniffer.IgnoreJRERequirement
 
 -keepattributes *Annotation*
-
-################################################################################
-#                                     JDI
-################################################################################
-
-# This section is only needed for JDI, which is used by the backup debug system.
-
--injars lib/tools.jar (META-INF/services/*.Connector,META-INF/services/*.TransportService,META-INF/services/*.AttachProvider,**/jdi/**.class,**/attach/**.class,**/jvmstat/monitor/**.class)
--dontnote com.sun.tools.jdi.SharedMemoryTransportService
--keep,includedescriptorclasses public class **.jdi.** {
-    public protected *;
-}
--keep,includedescriptorclasses class com.sun.tools.jdi.JDWP* {
-    *;
-}
-

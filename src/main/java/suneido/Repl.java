@@ -7,7 +7,6 @@ package suneido;
 import java.io.*;
 
 import suneido.compiler.Compiler;
-import suneido.jsdi.JSDI;
 import suneido.runtime.Ops;
 import suneido.util.Errlog;
 
@@ -34,7 +33,7 @@ public class Repl {
 	public static void repl2() throws IOException {
 		PrintWriter out = new PrintWriter(System.out);
 		try {
-			Compiler.eval("Init()"); // will not return if JSDI
+			Compiler.eval("Init()");
 		} catch (SuException e) {
 			if (e.getMessage().equals("can't find Init"))
 				out.println("WARNING: can't find Init");
@@ -43,9 +42,6 @@ public class Repl {
 		}
 		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 		out.print("Built: " + Build.desc());
-		if (JSDI.isInitialized())
-			out.print(" JSDI: " + JSDI.getInstance().whenBuilt());
-		out.print(" debug: " + Suneido.cmdlineoptions.debugModel);
 		out.println();
 
 		StringBuilder code = new StringBuilder(1024);

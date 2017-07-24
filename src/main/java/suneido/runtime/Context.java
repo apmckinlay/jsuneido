@@ -20,8 +20,8 @@ import suneido.SuException;
  * Values are cached.<p>
  * Derived classes must define fetch(name)
  *
- * @see ContextLayered
- * @see ContextModules
+ * @see ContextLayered - the current system
+ * @see ContextModules - a possible future system, not currently used
  */
 @ThreadSafe
 public abstract class Context {
@@ -71,10 +71,7 @@ public abstract class Context {
 		return tryget(slotForName(name));
 	}
 
-	/** Get the value for a slot. If no cached value, then do lookup
-	 *  VCS 20130702 -- public because it is needed by the jsdi package
-	 */
-	public synchronized final Object tryget(int slot) {
+	private synchronized final Object tryget(int slot) {
 		Object value = values.get(slot);
 		if (value == null) {
 			values.set(slot, nonExistent); // in case fetch fails
@@ -86,7 +83,6 @@ public abstract class Context {
 		return value == nonExistent ? null : value;
 	}
 
-	/** VCS 20130702 - public because it is needed by the jsdi package. */
 	public synchronized final String nameForSlot(int slot) {
 		return names.get(slot);
 	}

@@ -16,8 +16,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.objectweb.asm.Label;
 
 import suneido.*;
-import suneido.jsdi.*;
-import suneido.jsdi.type.*;
 import suneido.runtime.*;
 
 /**
@@ -256,118 +254,16 @@ public class AstCompile {
 		return fn;
 	}
 
-	/**
-	 * @see suneido.jsdi.type.Type#throwNotValidForCallback()
-	 */
-	@DllInterface
-	private static void throwNotValidForCallback(String typeName)
-			throws SuException {
-		throw new SuException(typeName
-				+ " is not a valid callback parameter type");
+	private static Object foldStruct(String name, AstNode ast) {
+		throw new SuException("jSuneido does not implement struct");
 	}
 
-	@DllInterface
-	private TypeList typeList(Token listType, List<AstNode> list) {
-		boolean isParams = true;
-		if (Token.STRUCT == listType) {
-			isParams = false;
-		}
-		TypeList.Args args = new TypeList.Args(isParams, list.size());
-		for (AstNode member : list) {
-			String memberName = member.value;
-			AstNode typeInfo = member.first();
-			StorageType storageType = StorageType.fromToken(typeInfo.token);
-			String typeName = typeInfo.first().value;
-			int numElems = StorageType.ARRAY != storageType ? 1 : Numbers
-					.stringToNumber(typeInfo.first().first().value).intValue();
-			if (numElems < 1) {
-				throw new SuException("array must have at least one element");
-			}
-			boolean inModifier = Boolean.parseBoolean(typeInfo.first().second().value);
-			assert Token.DLL == listType || !inModifier : "[in] modifier is only supported for dll string parameters";
-			BasicType basicType = BasicType.fromName(typeName);
-			Type type = null;
-			if (null != basicType) {
-				type = JSDI.getInstance().getFactory()
-						.makeBasicType(basicType, storageType, numElems);
-			} else if (StringType.IDENTIFIER_STRING.equals(typeName)) {
-				type = JSDI
-						.getInstance()
-						.getFactory()
-						.makeStringType(storageType, numElems, true, inModifier);
-			} else if (StringType.IDENTIFIER_BUFFER.equals(typeName)) {
-				if (Token.CALLBACK == listType && StorageType.VALUE == storageType) {
-					throwNotValidForCallback(StringType.IDENTIFIER_BUFFER);
-				}
-				type = JSDI
-						.getInstance()
-						.getFactory()
-						.makeStringType(storageType, numElems, false,
-								inModifier);
-			} else if (ResourceType.IDENTIFIER.equals(typeName)) {
-				if (Token.CALLBACK == listType && StorageType.VALUE == storageType) {
-					throwNotValidForCallback(ResourceType.IDENTIFIER);
-				}
-				type = JSDI
-						.getInstance()
-						.getFactory()
-						.makeResourceType(storageType, numElems, false,
-								inModifier);
-			} else { // otherwise it's a name which may be undefined, so proxy
-			         // it with a late-binding wrapper
-				type = new LateBinding(context, context.slotForName(typeName),
-						storageType, numElems);
-			}
-			if (type != InString.INSTANCE && inModifier) {
-				throw new SuException("[in] modifier not permitted with "
-						+ type.getDisplayName());
-			}
-			args.add(memberName, type);
-		}
-		return JSDI.getInstance().getFactory().makeTypeList(args);
+	private static Object foldDll(String name, AstNode ast) {
+		throw new SuException("jSuneido does not implement dll");
 	}
 
-	@DllInterface
-	private Object foldStruct(String name, AstNode ast) {
-		nameBegin(name, "$s");
-		TypeList members = typeList(Token.STRUCT, ast.first().children);
-		Structure struct = JSDI.getInstance().getFactory()
-				.makeStruct(curName, members);
-		nameEnd();
-		return struct;
-	}
-
-	@DllInterface
-	private Object foldDll(String name, AstNode ast) {
-		nameBegin(name, CallableType.DLL.compilerNameSuffix());
-		TypeList params = typeList(Token.DLL, ast.fourth().children);
-		Type returnType = null;
-		String returnTypeName = ast.third().value;
-		BasicType bt = BasicType.fromName(returnTypeName);
-		if (null != bt) {
-			returnType = JSDI.getInstance().getFactory()
-					.makeBasicType(bt, StorageType.VALUE, 1);
-		} else if (VoidType.IDENTIFIER.equals(returnTypeName)) {
-			returnType = VoidType.INSTANCE;
-		} else if (StringType.IDENTIFIER_STRING.equals(returnTypeName)) {
-			returnType = InOutString.INSTANCE;
-		} else {
-			throw new SuException("invalid dll return type: " + returnTypeName);
-		}
-		Factory factory = JSDI.getInstance().getFactory();
-		Dll dll = factory.makeDll(ast.first().value, ast.second().value,
-				params, returnType);
-		nameEnd();
-		return dll.setSource(library, globalName, sourceCode);
-	}
-
-	@DllInterface
-	private Object foldCallback(String name, AstNode ast) {
-		nameBegin(name, "$C");
-		TypeList params = typeList(Token.CALLBACK, ast.first().children);
-		Callback callback = JSDI.getInstance().getFactory()
-				.makeCallback(curName, params);
-		return callback;
+	private static Object foldCallback(String name, AstNode ast) {
+		throw new SuException("jSuneido does not implement callback");
 	}
 
 	/**
@@ -403,8 +299,6 @@ public class AstCompile {
 			return cg.end(suClass).setSource(library, globalName, sourceCode);
 		} catch (Error e) {
 			throw new SuException("error compiling " + curName, e);
-// TODO: should be an SuInternalError but getting less descriptive info that way
-//			throw new SuInternalError("error compiling " + curName, e);
 		}
 	}
 

@@ -4,8 +4,6 @@
 
 package suneido;
 
-import suneido.debug.DebugModel;
-
 /*
  * WARNING: setting debug from here doesn't work properly
  * because {@link Bootstrap} does its own command line option handling.
@@ -24,13 +22,11 @@ public class CommandLineOptions {
 	public Action action;
 	public String actionArg;
 	public int serverPort = -1;
-	public DebugModel debugModel = DebugModel.OFF;
 	public String remainder = "";
 	private static final int DEFAULT_TIMEOUT = 4 * 60; // 4 hours
 	public int timeoutMin = DEFAULT_TIMEOUT;
 	public int max_update_tran_sec = 0;
 	public int max_writes_per_tran = 0;
-	public boolean jsdi = false;
 	public boolean unattended = false;
 
 	public static CommandLineOptions parse(String... args) {
@@ -106,10 +102,6 @@ public class CommandLineOptions {
 				max_update_tran_sec = getIntArg();
 			else if (arg.equals("-mw"))
 				max_writes_per_tran = getIntArg();
-			else if (arg.equals("-debug"))
-				debugModel = getDebugModelArg();
-			else if (arg.equals("-jsdi"))
-				jsdi = true;
 			else if (arg.equals("-unattended") || arg.equals("-u"))
 				unattended = true;
 			else
@@ -131,16 +123,6 @@ public class CommandLineOptions {
 			return Integer.parseInt(arg);
 		} catch (NumberFormatException e) {
 			return -1;
-		}
-	}
-
-	private DebugModel getDebugModelArg() {
-		try {
-			String arg = getArg();
-			return DebugModel.fromCommandLineOption(arg);
-		} catch (IllegalArgumentException e) {
-			error(e.getMessage());
-			return null;
 		}
 	}
 
@@ -181,24 +163,12 @@ public class CommandLineOptions {
 	private void defaults() {
 		if (action == null)
 			action = Action.REPL;
-		if (debugModel == null) {
-			debugModel = (Action.REPL == action || Action.CLIENT == action)
-					? DebugModel.ON : DebugModel.OFF;
-		}
 		if (serverPort == -1
 				&& (action == Action.SERVER || action == Action.CLIENT))
 			serverPort = DEFAULT_PORT;
-		if (action == Action.SERVER)
-			jsdi = false;
 	}
 
 	private void validate() {
-		if (debugModel != DebugModel.OFF
-				&& !(action == Action.REPL || action == Action.CLIENT || action == Action.SERVER)) {
-			debugModel = DebugModel.OFF; // Don't start debugging if startup error
-			error("debug model '" + debugModel.getCommandLineOption()
-					+ "' can only be used with actions that run code");
-		}
 		if (serverPort != -1 && action != Action.SERVER
 				&& action != Action.CLIENT)
 			error("port should only be specifed with -server or -client, not "

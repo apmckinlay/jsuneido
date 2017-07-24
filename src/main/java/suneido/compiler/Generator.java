@@ -4,8 +4,6 @@
 
 package suneido.compiler;
 
-import suneido.jsdi.DllInterface;
-
 public abstract class Generator<T> {
 
 	public T assignment(T term, Token op, T expression) {
@@ -205,23 +203,19 @@ public abstract class Generator<T> {
 	// DLL INTERFACE PARSING...
 	//
 
-	@DllInterface
 	public T struct(T structMembers, int lineNumber) {
 		return null;
 	}
 
-	@DllInterface
 	public T dll(String libraryName, String userFunctionName, String returnType,
 			T dllParams, int lineNumber) {
 		return null;
 	}
 
-	@DllInterface
 	public T callback(T dllParams, int lineNumber) {
 		return null;
 	}
 
-	@DllInterface
 	public T typeList(T list, String name, boolean inTag, String baseType,
 			Token storageType, String numElems) {
 		return null;

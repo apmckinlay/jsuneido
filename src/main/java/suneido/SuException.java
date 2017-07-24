@@ -4,12 +4,6 @@
 
 package suneido;
 
-import java.io.PrintWriter;
-
-import suneido.debug.Callstack;
-import suneido.debug.CallstackProvider;
-import suneido.debug.DebugManager;
-import suneido.debug.Frame;
 import suneido.runtime.Ops;
 
 /**
@@ -30,13 +24,13 @@ import suneido.runtime.Ops;
  * @see SuInternalError
  */
 @SuppressWarnings("serial")
-public class SuException extends RuntimeException implements CallstackProvider {
+public class SuException extends RuntimeException {
 
 	//
 	// DATA
 	//
 
-	private final Callstack callstack;
+//	private final Callstack callstack;
 
 	//
 	// CONSTRUCTORS
@@ -69,7 +63,7 @@ public class SuException extends RuntimeException implements CallstackProvider {
 	 * constructed.</li>
 	 * </ol>
 	 * </p>
-	 * 
+	 *
 	 * @param message
 	 *            Message explaining exception
 	 * @param cause
@@ -125,18 +119,18 @@ public class SuException extends RuntimeException implements CallstackProvider {
 		if (isSuneidoRethrown) {
 			assert null != cause : "Cause cannot be null if this is a rethrown exception";
 			assert wantCallstack : "All rethrown exceptions must have callstacks";
-			if (cause instanceof CallstackProvider) {
-				callstack = ((CallstackProvider) cause).getCallstack();
-			} else {
-				callstack = DebugManager.getInstance()
-						.makeCallstackFromThrowable(cause);
-			}
+//			if (cause instanceof CallstackProvider) {
+//				callstack = ((CallstackProvider) cause).getCallstack();
+//			} else {
+//				callstack = DebugManager.getInstance()
+//						.makeCallstackFromThrowable(cause);
+//			}
 		} else if (wantCallstack) {
 			super.fillInStackTrace();
-			callstack = DebugManager.getInstance()
-					.makeCallstackForCurrentThread(this);
+//			callstack = DebugManager.getInstance()
+//					.makeCallstackForCurrentThread(this);
 		} else /* this branch is for block:break and block:continue */{
-			callstack = Callstack.EMPTY;
+//			callstack = Callstack.EMPTY;
 		}
 	}
 
@@ -159,7 +153,7 @@ public class SuException extends RuntimeException implements CallstackProvider {
 
 	/**
 	 * Convenience method for creating a "method not found" error.
-	 * 
+	 *
 	 * @param object
 	 *            Type of the object on which the method call was attempted
 	 * @param method
@@ -176,19 +170,19 @@ public class SuException extends RuntimeException implements CallstackProvider {
 	// INTERFACE: CallstackProvider
 	//
 
-	@Override
-	public Callstack getCallstack() {
-		return callstack;
-	}
-
-	@Override
-	public void printCallstack(PrintWriter p) {
-		p.println(getMessage());
-		for (Frame frame : callstack) {
-			p.print("\t at ");
-			p.println(frame);
-		}
-	}
+//	@Override
+//	public Callstack getCallstack() {
+//		return callstack;
+//	}
+//
+//	@Override
+//	public void printCallstack(PrintWriter p) {
+//		p.println(getMessage());
+//		for (Frame frame : callstack) {
+//			p.print("\t at ");
+//			p.println(frame);
+//		}
+//	}
 
 	//
 	// ANCESTOR CLASS: Throwable

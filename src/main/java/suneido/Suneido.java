@@ -16,11 +16,9 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import suneido.compiler.Compiler;
 import suneido.database.server.DbmsServer;
-import suneido.debug.DebugManager;
 import suneido.immudb.Dump;
 import suneido.intfc.database.Database;
 import suneido.intfc.database.DatabasePackage;
-import suneido.jsdi.JSDI;
 import suneido.runtime.ContextLayered;
 import suneido.runtime.Contexts;
 import suneido.util.Errlog;
@@ -58,7 +56,6 @@ public class Suneido {
 			dbpkg.setOption("max_update_tran_sec", cmdlineoptions.max_update_tran_sec);
 		if (cmdlineoptions.max_writes_per_tran != 0)
 			dbpkg.setOption("max_writes_per_tran", cmdlineoptions.max_writes_per_tran);
-		DebugManager.getInstance().setDebugModel(cmdlineoptions.debugModel);
 		try {
 			doAction();
 		} catch (Throwable e) {
@@ -129,9 +126,6 @@ public class Suneido {
 			break;
 		case VERSION:
 			System.out.println("jSuneido " + Build.desc());
-			if (JSDI.isInitialized()) {
-				System.out.println("JSDI " + JSDI.getInstance().whenBuilt());
-			}
 			System.out.println("Java " + System.getProperty("java.version")
 					+ System.getProperty("java.vm.name").replace("Java", ""));
 			break;
@@ -198,8 +192,6 @@ public class Suneido {
 		System.out.println("-c[lient]                 run as client");
 		System.out.println("-p[ort] #                 the TCP/IP port for server or client (default 3147)");
 		System.out.println("-repl                     (default) interactive read-eval-print-loop command line");
-		System.out.println("-jsdi                     ensable JSDI dll interface");
-		System.out.println("-debug on|off             default is 'off'");
 		System.out.println("-d[ump] [table]           dump to database.su or <table> to <table>.su");
 		System.out.println("-l[oad] [table]           load from database.su or <table> from <table>.su");
 		System.out.println("-check                    check the database integrity");

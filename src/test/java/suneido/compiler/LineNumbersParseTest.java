@@ -9,13 +9,6 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import suneido.compiler.AstGenerator;
-import suneido.compiler.AstNode;
-import suneido.compiler.Lexer;
-import suneido.compiler.ParseConstant;
-import suneido.jsdi.DllInterface;
-import suneido.util.testing.Assumption;
-
 /**
  * Test to ensure the abstract syntax tree nodes are tagged with the correct
  * line numbers where needed.
@@ -29,13 +22,6 @@ public class LineNumbersParseTest {
 	@Test
 	public void testBasicCases() {
 		runTests(BASIC_TEST_CASES);
-	}
-
-	@Test
-	@DllInterface
-	public void testJSDICases() {
-		Assumption.jsdiIsAvailable();
-		runTests(JSDI_TEST_CASES);
 	}
 
 	//
@@ -214,21 +200,6 @@ public class LineNumbersParseTest {
 				"\t\t\t\t\t\tNUMBER=4@3\n" +
 				"\t\t\t\t\t\tDATE=20140828@5",
 	};
-
-	@DllInterface
-	private static final String[] JSDI_TEST_CASES = {
-		"struct {}",
-		"STRUCT@1\n\tLIST@?",
-
-		"dll void void:fakeFunction()",
-		"DLL@1\n\tIDENTIFIER=void@?\n\tSTRING=fakeFunction@?\n\tIDENTIFIER=void@?\n\tLIST@?",
-
-		"callback()",
-		"CALLBACK@1\n\tLIST@?",
-	};
-
-	
-	
 
 	//
 	// INTERNALS

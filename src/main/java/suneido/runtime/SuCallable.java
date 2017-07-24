@@ -181,22 +181,6 @@ public class SuCallable extends SuValue {
 
 	@Override
 	public SuValue lookup(String method) {
-		// WARNING: The reason this class is subclassing SuBuiltinMethod0 for
-		// its built-ins instead of using BuiltinMethods.methods() is
-		// that I encountered JVM instability leading to random crashes
-		// when the following conditions obtained:
-		// 1) SuCallable is loaded by a native agent on VMInit
-		// (the "jsdebug" agent does this when it is loaded on
-		// JVM startup to provide Suneido debugging support)
-		// 2) SuCallable has a private static member whose
-		// initializer calls BuiltinMethods.methods(SuCallable.class, ...)
-		// 3) Java 1.8.0_20 on Windows or Linux (didn't test other
-		// versions)
-		// From the little I could glean from the crash logs, there is
-		// likely a bug in the JVM where class loading, agent loading,
-		// and method handle initialization don't play well together.
-		// I tried to reproduce the bug using a stripped down project
-		// but wasn't able to do so... -- VCS @ 20140914
 		switch (method) {
 		case "Params":
 			return Params;

@@ -7,7 +7,6 @@ package suneido.compiler;
 import static suneido.compiler.Token.EOF;
 import static suneido.compiler.Token.L_CURLY;
 import static suneido.compiler.Token.STRUCT;
-import suneido.jsdi.DllInterface;
 
 /**
  * Parser for Suneido <code>struct</code> type (part of the DLL interface).
@@ -19,7 +18,6 @@ import suneido.jsdi.DllInterface;
  * @param <T> Parse result type (<em>ie</em> {@link AstNode}).
  * @param <G> Result type generator class (<em>ie</em> {@link AstGenerator}).
  */
-@DllInterface
 public final class ParseStruct<T, G extends Generator<T>> extends ParseDllEntity<T, G> {
 
 	//

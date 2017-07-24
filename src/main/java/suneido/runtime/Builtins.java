@@ -11,9 +11,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 
 import suneido.SuContainer;
-import suneido.jsdi.Buffer;
-import suneido.jsdi.ThunkManager;
-import suneido.jsdi.com.COMobject;
 import suneido.runtime.builtin.*;
 import suneido.util.Errlog;
 
@@ -32,15 +29,10 @@ public class Builtins {
 						function(suneido.runtime.builtin.AssertionError.class))
 			.put("AstParse", function(AstParse.class))
 			.put("Boolean?", function(BooleanQ.class))
-			.put("Buffer", Buffer.clazz)
-			.put("Buffer?", function(BufferQ.class))
 			.put("Built", function(Built.class))
 			.put("BuiltinNames", function(BuiltinNames.class))
-			.put("COMobject", COMobject.clazz)
-			.put("Callbacks", function(ThunkManager.Callbacks.class))
 			.put("CircLog", function(CircLog.class))
 			.put("Class?", function(ClassQ.class))
-			.put("ClearCallback", function(ThunkManager.ClearCallback.class))
 			.put("Cmdline", function(Cmdline.class))
 			.put("Construct", function(Construct.class))
 			.put("CopyFile", function(CopyFile.class))
@@ -55,7 +47,6 @@ public class Builtins {
 			.put("Dir", function(Dir.class))
 			.put("DirExists?", function(DirExistsQ.class))
 			.put("Display", function(Display.class))
-			.put("Dll?", function(DllQ.class))
 			.put("DoWithoutTriggers", function(DoWithoutTriggers.class))
 			.put("ErrorLog", function(ErrorLog.class))
 			.put("ExePath", function(ExePath.class))
@@ -73,7 +64,6 @@ public class Builtins {
 			.put("GetMacAddresses", function(GetMacAddresses.class))
 			.put("GetTempFileName", function(GetTempFileName.class))
 			.put("GetTempPath", function(GetTempPath.class))
-			.put("JSDI", JSDI.singleton)
 			.put("Libraries", function(Libraries.class))
 			.put("Locals", function(Locals.class))
 			.put("Lucene", lucene())
@@ -113,7 +103,6 @@ public class Builtins {
 			.put("SocketServer", SocketServer.singleton)
 			.put("Spawn", function(Spawn.class))
 			.put("String?", function(StringQ.class))
-			.put("Struct?", function(StructQ.class))
 			.put("Synchronized", function(Synchronized.class))
 			.put("System", function(SystemFunction.class))
 			.put("SystemMemory", function(SystemMemory.class))

@@ -1,7 +1,6 @@
 package suneido.runtime;
 
 import suneido.SuValue;
-import suneido.jsdi.DllInterface;
 
 /**
  * Enumerates broad classes of callable objects. Mainly used for display
@@ -31,35 +30,35 @@ public enum CallableType {
 	METHOD_NOT_FOUND("NotFound", "", true),
 	/**
 	 * Callable is a plain function.
-	 * 
+	 *
 	 * @see #BUILTIN_FUNCTION
 	 * @see #METHOD
 	 */
 	FUNCTION("Function", "function", "$f", false),
 	/**
 	 * Callable is a method.
-	 * 
+	 *
 	 * @see #BUILTIN_METHOD
 	 * @see #FUNCTION
 	 */
 	METHOD("Method", "method", "$m", false),
 	/**
 	 * Callable is a built-in function.
-	 * 
+	 *
 	 * @see #FUNCTION
 	 * @see #BUILTIN_METHOD
 	 */
 	BUILTIN_FUNCTION("Builtin", "builtin function", false),
 	/**
 	 * Callable is a method of a built-in class.
-	 * 
+	 *
 	 * @see #METHOD
 	 * @see #BUILTIN_FUNCTION
 	 */
 	BUILTIN_METHOD("Method", "builtin method", false),
 	/**
 	 * Callable is a block.
-	 * 
+	 *
 	 * @see #CLOSURE
 	 * @see #WRAPPED_BLOCK
 	 */
@@ -84,12 +83,12 @@ public enum CallableType {
 	 * @see #METHOD
 	 * @see #BUILTIN_METHOD
 	 */
-	BOUND_METHOD("Method", "method", true),
+	BOUND_METHOD("Method", "method", true);
 	/**
 	 * Callable is a dll function.
 	 */
-	@DllInterface
-	DLL("Dll", "dll", "$d", false);
+//	@DllInterface
+//	DLL("Dll", "dll", "$d", false);
 
 	//
 	// DATA

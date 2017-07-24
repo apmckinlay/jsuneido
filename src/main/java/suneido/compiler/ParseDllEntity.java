@@ -6,8 +6,8 @@ package suneido.compiler;
 
 import static suneido.SuInternalError.unreachable;
 import static suneido.compiler.Token.*;
+
 import suneido.SuException;
-import suneido.jsdi.DllInterface;
 
 /**
  * Shared members and functionality for matching entities that form part of the
@@ -16,7 +16,6 @@ import suneido.jsdi.DllInterface;
  * @author Victor Schappert
  * @since 20130621
  */
-@DllInterface
 public abstract class ParseDllEntity<T, G extends Generator<T>> extends Parse<T, G> {
 
 	//

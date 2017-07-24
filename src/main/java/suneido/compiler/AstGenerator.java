@@ -6,8 +6,6 @@ package suneido.compiler;
 
 import java.util.ArrayList;
 
-import suneido.jsdi.DllInterface;
-
 public class AstGenerator extends Generator<AstNode> {
 	private static final AstNode NIL_STATEMENT = new AstNode(Token.NIL);
 	private static final AstNode EMPTY_LIST = new AstNode(Token.LIST);
@@ -322,14 +320,14 @@ public class AstGenerator extends Generator<AstNode> {
 		return new AstNode(type, from, to);
 	}
 
-	@Override @DllInterface
+	@Override
 	public AstNode struct(AstNode structMembers, int lineNumber) {
 		if (null == structMembers)
 			structMembers = EMPTY_LIST;
 		return new AstNode(Token.STRUCT, lineNumber, structMembers);
 	}
 
-	@Override @DllInterface
+	@Override
 	public AstNode dll(String libraryName, String userFunctionName,
 			String returnType, AstNode dllParams, int lineNumber) {
 		if (null == dllParams)
@@ -339,14 +337,14 @@ public class AstGenerator extends Generator<AstNode> {
 				new AstNode(Token.IDENTIFIER, returnType), dllParams);
 	}
 
-	@Override @DllInterface
+	@Override
 	public AstNode callback(AstNode callbackParams, int lineNumber) {
 		if (null == callbackParams)
 			callbackParams = EMPTY_LIST;
 		return new AstNode(Token.CALLBACK, lineNumber, callbackParams);
 	}
 
-	@Override @DllInterface
+	@Override
 	public AstNode typeList(AstNode list, String name, boolean inTag,
 			String baseType, Token storageType, String numElems) {
 		AstNode type = new AstNode(storageType, new AstNode(Token.IDENTIFIER,

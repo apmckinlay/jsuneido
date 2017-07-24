@@ -19,7 +19,6 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 
 import suneido.*;
-import suneido.jsdi.Buffer;
 import suneido.runtime.builtin.NumberMethods;
 import suneido.runtime.builtin.StringMethods;
 import suneido.util.RegexCache;
@@ -59,7 +58,7 @@ public final class Ops {
 
 		// This check is because the left-hand side object might be a String,
 		// and String.equals() will return false for non-String.
-		if (y instanceof String2 || y instanceof Buffer)
+		if (y instanceof String2)
 			return y.equals(x);
 
 		// Default: use the equals method of the left-hand side Object.
@@ -418,7 +417,7 @@ public final class Ops {
 			return "false";
 		if (x instanceof BigDecimal)
 			return toStringBD((BigDecimal) x);
-		if (isString(x) || x instanceof Number || x instanceof Buffer)
+		if (isString(x) || x instanceof Number)
 			return x.toString();
 		if (x instanceof SuInstance) {
 			String s = ((SuInstance) x).userDefToString();

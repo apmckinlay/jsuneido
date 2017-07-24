@@ -27,7 +27,6 @@ import com.google.common.base.Strings;
 
 import suneido.SuException;
 import suneido.compiler.ExecuteTest;
-import suneido.jsdi.Buffer;
 
 public class OpsTest {
 
@@ -46,8 +45,6 @@ public class OpsTest {
 	public void test_display() {
 		assertThat(Ops.display("hello"), equalTo("'hello'"));
 		assertThat(Ops.display("hello\000"), equalTo("'hello\\x00'"));
-		assertThat(Ops.display(new Buffer(5, "hello")), equalTo("'hello'"));
-		assertThat(Ops.display(new Buffer(7, "hello")), equalTo("'hello\\x00\\x00'"));
 		assertThat(Ops.display(new Concats("hello", "world")), equalTo("'helloworld'"));
 	}
 
@@ -65,7 +62,6 @@ public class OpsTest {
 		is(123, BigDecimal.valueOf(123));
 		is("hello", "hello");
 		is("hello", new Concats("hel", "lo"));
-		is("hello", new Buffer(5, "hello"));
 		is("hello", new Except("hello", null));
 	}
 	private static void is(Object x, Object y) {

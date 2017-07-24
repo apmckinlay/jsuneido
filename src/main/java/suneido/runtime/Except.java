@@ -4,12 +4,12 @@
 
 package suneido.runtime;
 
+import java.util.ArrayList;
+
+import com.google.common.collect.Lists;
+
 import suneido.SuContainer;
 import suneido.SuValue;
-import suneido.debug.Callstack;
-import suneido.debug.CallstackProvider;
-import suneido.debug.DebugManager;
-import suneido.debug.Frame;
 
 /**
  * <p>
@@ -117,26 +117,35 @@ public final class Except extends String2 {
 	}
 
 	public static Object Callstack(Object self) {
-		Throwable t = ((Except) self).throwable;
-		Callstack s = t instanceof CallstackProvider ? ((CallstackProvider) t)
-		        .getCallstack() : DebugManager.getInstance()
-		        .makeCallstackFromThrowable(t);
-		SuContainer c = new SuContainer(s.size());
-		for (Frame f : s) {
-			c.add(callob(f));
-		}
-		return c;
+		Throwable e = ((Except) self).throwable;
+		ArrayList<StackTraceElement> stack = Lists.newArrayList();
+		getStack(e, stack);
+		SuContainer calls = new SuContainer();
+		for (int i = stack.size() - 1; i >= 0; --i)
+			if (!stack.get(i).toString().contains(".java:"))
+				calls.add(callob(stack.get(i)));
+		return calls;
 	}
 
-	private static SuContainer callob(Frame x) {
+	private static void getStack(Throwable e, ArrayList<StackTraceElement> dest) {
+		if (e.getCause() != null)
+			getStack(e.getCause(), dest); // bottom up
+		StackTraceElement[] stackTrace = e.getStackTrace();
+		// skip duplication with cause
+		int i = stackTrace.length - 1;
+		for (int idest = 0; i >= 0 && idest < dest.size()
+				&& stackTrace[i].equals(dest.get(idest)); --i, ++idest) {
+		}
+		for (; i >= 0; --i)
+			dest.add(stackTrace[i]); // reverse order
+	}
+
+	private static SuContainer callob(StackTraceElement x) {
 		SuContainer call = new SuContainer();
-		call.put("locals", x.getLocalsContainer());
-		call.put("fn", x.getFrame());
-		int lineNumber = x.getLineNumber();
-		call.put("line", 0 < lineNumber ? lineNumber : Boolean.FALSE);
+		call.put("fn", x.toString());
+		call.put("locals", new SuContainer());
 		return call;
 	}
-
 	private static String translateMsgToSuneido(Throwable throwable) {
 		// Some Java exceptions have special names in Suneido. This method
 		// converts the Java-style message to a Suneido-style message where

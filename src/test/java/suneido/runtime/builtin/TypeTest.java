@@ -21,7 +21,6 @@ public class TypeTest {
 		test("Type(class { })", "Class");
 		test("Type(new class { })", "Object");
 		test("Type(function () { })", "Function");
-		test("Type(Buffer(10, ''))", "Buffer");
 	}
 
 	public static void test(String expr, String result) {
