@@ -371,7 +371,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			else
 				args = argumentList(R_PAREN);
 		}
-		if (token == NEWLINE && !expectingCompound && lookAhead() == L_CURLY)
+		while (token == NEWLINE && !expectingCompound && lookAhead() == L_CURLY)
 			match();
 		if (token == L_CURLY) {
 			args = generator.argumentList(args, generator.string("block"), block());
