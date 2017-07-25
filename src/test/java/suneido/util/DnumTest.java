@@ -253,7 +253,7 @@ public class DnumTest {
 	public static boolean pt_dnum_sub(String... args) {
 		return pt_dnum_test(args, (x, y, z) ->
 			ck(Dnum::sub, x, y, z) &&
-				(z.equals(Dnum.ZERO) || ck(Dnum::sub, y, x, z.neg())));
+				(z.equals(Dnum.Zero) || ck(Dnum::sub, y, x, z.neg())));
 	}
 
 	public static boolean pt_dnum_mul(String... args) {
