@@ -52,7 +52,8 @@ public class AstParse {
 					for (AstNode child : node.children)
 						if (child != null)
 							c2.put(i++, new AstWrapper(child));
-						else if (node.token == Token.FOR)
+						else if (node.token == Token.FOR ||
+								node.token == Token.IF)
 							i++;
 					c.put("Children", c2);
 				}
