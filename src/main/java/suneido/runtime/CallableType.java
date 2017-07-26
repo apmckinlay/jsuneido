@@ -105,8 +105,8 @@ public enum CallableType {
 	// CONSTRUCTORS
 	//
 
-	private CallableType(String typeName, String displayString,
-			String compilerNameSuffix, boolean isWrapper) {
+	CallableType(String typeName, String displayString,
+				 String compilerNameSuffix, boolean isWrapper) {
 		this.typeName = typeName;
 		this.displayString = displayString;
 		this.compilerNameSuffix = compilerNameSuffix;
@@ -115,8 +115,8 @@ public enum CallableType {
 		this.isBuiltin = displayString.startsWith("builtin");
 	}
 
-	private CallableType(String typeName, String displayString,
-			boolean isWrapper) {
+	CallableType(String typeName, String displayString,
+				 boolean isWrapper) {
 		this(typeName, displayString, null, isWrapper);
 	}
 

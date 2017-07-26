@@ -61,7 +61,7 @@ public class Lucene extends BuiltinClass {
 	public static Object AvailableQ(Object self, Object a) {
 		String path = Ops.toStr(a);
 		try (FSDirectory dir = FSDirectory.open(new File(path));
-				DirectoryReader reader = DirectoryReader.open(dir);) {
+				DirectoryReader reader = DirectoryReader.open(dir)) {
 			new IndexSearcher(reader);
 			return true;
 		} catch (IOException e) {
@@ -101,7 +101,7 @@ public class Lucene extends BuiltinClass {
 			IndexWriter writer = ((Updater) self).writer;
 			Document doc = new Document();
 			doc.add(new StringField("key", Ops.toStr(key), Field.Store.YES));
-			
+
 			FieldType type = new FieldType();
 	        type.setIndexed(true);
 	        type.setIndexOptions(FieldInfo.IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS);
@@ -129,7 +129,7 @@ public class Lucene extends BuiltinClass {
 			Insert(self, key, text);
 			return null;
 		}
-		
+
 		@Params("key")
 		public static Object Remove(Object self, Object key) {
 			IndexWriter writer = ((Updater) self).writer;
@@ -178,21 +178,21 @@ public class Lucene extends BuiltinClass {
 			SimpleHTMLFormatter htmlFormatter = new SimpleHTMLFormatter();
 			Highlighter highlighter = new Highlighter(htmlFormatter, new QueryScorer(query));
 			ScoreDoc[] hits = results.scoreDocs;
-			for (ScoreDoc hit : hits) {	
+			for (ScoreDoc hit : hits) {
 				int id = hit.doc;
 				Document doc  = ir.document(id);
 				String key = doc.get("key");
 				String content = doc.get("content");
 				TokenStream tokenStream = TokenSources.getAnyTokenStream(searcher.getIndexReader(), id, "content", analyzer);
-				TextFragment[] frag = highlighter.getBestTextFragments(tokenStream, content, false, 4); 
+				TextFragment[] frag = highlighter.getBestTextFragments(tokenStream, content, false, 4);
 				SuContainer fragments = new SuContainer();
-				
+
 				for (int j = 0; j < frag.length; j++) {
 					if ((frag[j] != null) && (frag[j].getScore() > 0)) {
 						fragments.add(frag[j].toString());
 					}
 				}
-				
+
 				Ops.call2(d, key, fragments);
 			}
 			return null;

@@ -121,7 +121,7 @@ public class Regex {
 
 	public interface ForEach {
 		/** @return The index to continue searching at. */
-		public int each(Result result);
+		int each(Result result);
 	}
 
 	@Immutable

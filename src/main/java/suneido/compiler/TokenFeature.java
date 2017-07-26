@@ -5,6 +5,6 @@
 package suneido.compiler;
 
 public enum TokenFeature {
-	BINOP, ASSIGN, TERMOP, SUMOP;
+	BINOP, ASSIGN, TERMOP, SUMOP
 	// ASSIGNC is for commutative assignment operators
 }

@@ -262,9 +262,8 @@ public class Join extends Query2 {
 				return null;
 			row2 = source2.get(dir);
 			if (should_output(row2)) {
-				if (row2 != null)
-					assert (row1.project(hdr1, joincols).equals(
-							row2.project(source2.header(), joincols)));
+				assert row2 == null || (row1.project(hdr1, joincols).equals(
+						row2.project(source2.header(), joincols)));
 				return new Row(row1, row2 == null ? empty2 : row2);
 			}
 		}

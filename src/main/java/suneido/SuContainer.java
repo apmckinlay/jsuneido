@@ -592,7 +592,7 @@ public class SuContainer extends SuValue
 		return c;
 	}
 
-	public static enum IterWhich { LIST, NAMED, ALL };
+	public enum IterWhich { LIST, NAMED, ALL }
 
 	@Override
 	public synchronized Iterator<Object> iterator() {
@@ -632,9 +632,9 @@ public class SuContainer extends SuValue
 	@SuppressWarnings({ "rawtypes" })
 	private static final NullIterator nullIter = new NullIterator();
 
-	public static enum IterResult {
+	public enum IterResult {
 		KEY, VALUE, ASSOC, ENTRY
-	};
+	}
 
 	static class Iter implements Iterator<Object> {
 		private final Iterator<Object> veciter;

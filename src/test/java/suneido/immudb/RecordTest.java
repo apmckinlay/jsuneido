@@ -27,9 +27,9 @@ public class RecordTest {
 		Record r = new RecordBuilder().add(123).add("hello").build();
 		assertThat(r.size(), equalTo(2));
 		assertThat(r.get(0), instanceOf(Integer.class));
-		assertThat((Integer) r.get(0), equalTo(123));
+		assertThat(r.get(0), equalTo(123));
 		assertThat(r.get(1), instanceOf(String.class));
-		assertThat((String) r.get(1), equalTo("hello"));
+		assertThat(r.get(1), equalTo("hello"));
 	}
 
 	@Test

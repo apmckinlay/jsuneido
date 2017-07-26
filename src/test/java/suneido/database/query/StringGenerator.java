@@ -253,7 +253,7 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	private static String str(String x) {
-		return x == null ? "" : (String) x;
+		return x == null ? "" : x;
 	}
 
 	protected String str(String s, Object x, String t) {

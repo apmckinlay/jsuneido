@@ -117,7 +117,7 @@ public class UtilTest {
 
 	@Test
 	public void test_lowerBound() {
-		assertEquals(0, lowerBound(Collections.<Integer> emptyList(), 123));
+		assertEquals(0, lowerBound(Collections.emptyList(), 123));
 		assertEquals(0, lowerBound(asList(456), 123));
 		assertEquals(0, lowerBound(asList(123), 123));
 		assertEquals(0, lowerBound(asList(123, 123, 456), 123));
@@ -128,7 +128,7 @@ public class UtilTest {
 
 	@Test
 	public void test_upperBound() {
-		assertEquals(0, upperBound(Collections.<Integer> emptyList(), 123));
+		assertEquals(0, upperBound(Collections.emptyList(), 123));
 		assertEquals(0, upperBound(asList(456), 123));
 		assertEquals(1, upperBound(asList(123), 123));
 		assertEquals(2, upperBound(asList(123, 123, 456), 123));
@@ -139,7 +139,7 @@ public class UtilTest {
 
 	@Test
 	public void test_equalRange() {
-		assertEquals(new Range(0,0), equalRange(Collections.<Integer> emptyList(), 123));
+		assertEquals(new Range(0,0), equalRange(Collections.emptyList(), 123));
 		assertEquals(new Range(0,0), equalRange(asList(456), 123));
 		assertEquals(new Range(0, 1), equalRange(asList(123), 123));
 		assertEquals(new Range(0, 2), equalRange(asList(123, 123, 456), 123));

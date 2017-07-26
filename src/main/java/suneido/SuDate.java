@@ -747,7 +747,7 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 		}
 	}
 
-	static enum Field {
+	enum Field {
 		YEAR(0, 3000), MONTH(1, 12), DAY(1, 31),
 		HOUR(0, 23), MINUTE(0, 59), SECOND(0, 59), MILLISECOND(0, 999),
 		UNK(0, 0);

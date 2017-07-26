@@ -164,8 +164,7 @@ abstract class BtreeNode {
 
 	private int checkTree(Tran tran, BtreeKey from, BtreeKey to) {
 		assert get(0).isMinimalKey() : "not minimal " + get(0);
-		if (size() > 1)
-			assert from.compareTo(get(1)) <= 0;
+		assert size() <= 1 || from.compareTo(get(1)) <= 0;
 		assert to == null || to.compareTo(get(size() - 1)) > 0;
 		int nnodes = 1;
 		to = 1 < size() ? get(1) : null;
@@ -183,14 +182,12 @@ abstract class BtreeNode {
 			from = new BtreeKey(from.key);
 			assert get(0).compareTo(from) > 0
 					: "first " + get(0) + " NOT > " + from;
-			if (to != null )
-				assert get(size() - 1).compareTo(to) <= 0
-						: "last " + get(size() - 1) + " NOT <= " + to;
+			assert to == null || get(size() - 1).compareTo(to) <= 0
+					: "last " + get(size() - 1) + " NOT <= " + to;
 		}
 		for (int i = 1; i < size(); ++i) {
 			int adr = get(i).adr();
-			if (IntRefs.isIntRef(adr))
-				assert tran.intToRef(adr) instanceof Record;
+			assert !IntRefs.isIntRef(adr) || tran.intToRef(adr) instanceof Record;
 		}
 		return 1;
 	}

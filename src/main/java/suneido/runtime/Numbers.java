@@ -92,7 +92,7 @@ public class Numbers {
 	}
 
 	public static boolean isZero(Object x) {
-		return x instanceof Number ? signum((Number) x) == 0 : false;
+		return x instanceof Number && signum((Number) x) == 0;
 	}
 
 	public static boolean isZero(Number n) {

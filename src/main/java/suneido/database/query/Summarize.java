@@ -26,7 +26,8 @@ public class Summarize extends Query1 {
 	private final List<String> cols;
 	final List<String> funcs;
 	final List<String> on;
-	private enum Strategy { NONE, SEQ, MAP, IDX };
+	private enum Strategy { NONE, SEQ, MAP, IDX }
+
 	private Strategy strategy = Strategy.NONE;
 	List<String> via;
 	private boolean first = true;

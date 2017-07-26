@@ -37,7 +37,7 @@ public class Project extends Query1 {
 		Strategy(String name) {
 			this.name = name;
 		}
-	};
+	}
 
 	Project(Query source, List<String> flds) {
 		this(source, flds, false);

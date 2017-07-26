@@ -20,7 +20,7 @@ import suneido.SuException;
  */
 @ThreadSafe
 public class Args {
-	public static enum Special {
+	public enum Special {
 		EACH, EACH1, NAMED
 	}
 

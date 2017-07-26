@@ -52,7 +52,7 @@ public class SimpleQueryTest extends TestBase {
 		Query q = CompileQuery.query(t, serverData, "columns sort column");
 		Header hdr = q.header();
 		Row row = q.get(Dir.NEXT);
-		assertThat((String) row.getval(hdr, "column"), equalTo("column"));
+		assertThat(row.getval(hdr, "column"), equalTo("column"));
 	}
 
 	@After

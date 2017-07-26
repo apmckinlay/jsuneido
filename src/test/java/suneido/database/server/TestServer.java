@@ -197,7 +197,7 @@ public class TestServer {
 
 	} // end of Output
 
-	static enum Command {
+	enum Command {
 
 		GET1 {
 			private final ByteBuffer response

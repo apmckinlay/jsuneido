@@ -33,7 +33,7 @@ public class AstVariables {
 			case FUNCTION:
 			case CLASS:
 			case BLOCK:
-				return ast == root ? true : false;
+				return ast == root;
 			case IDENTIFIER:
 			case FOR_IN:
 			case CATCH:

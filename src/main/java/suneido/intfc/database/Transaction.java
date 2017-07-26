@@ -43,7 +43,7 @@ public interface Transaction {
 
 	void addRecord(String table, Record r);
 
-	static enum Blocking { BLOCK, NO_BLOCK };
+	enum Blocking { BLOCK, NO_BLOCK }
 
 	int updateRecord(int recadr, Record rec, Blocking blocking);
 	default int updateRecord(int recadr, Record rec) {

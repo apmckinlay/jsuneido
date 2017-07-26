@@ -63,7 +63,7 @@ class TableInfo extends DbHashTrie.Entry {
 
 	/** When a table is dropped, its table info is replaced by an empty entry */
 	static TableInfo empty(int tblnum) {
-		return new TableInfo(tblnum, 0, 0, 0, ImmutableList.<IndexInfo>of());
+		return new TableInfo(tblnum, 0, 0, 0, ImmutableList.of());
 	}
 
 	@Override

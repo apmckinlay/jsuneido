@@ -193,9 +193,8 @@ public class PersistentList<T> extends AbstractSequentialList<T> {
 		 * The Builder cannot be used after calling build()
 		 * @return The list
 		 */
-		@SuppressWarnings("unchecked")
 		public PersistentList<T> build() {
-			return buildOnto((PersistentList<T>) nil());
+			return buildOnto(nil());
 		}
 
 		public PersistentList<T> buildOnto(PersistentList<T> tail) {

@@ -6,13 +6,13 @@ package suneido.compiler;
 
 // The rather odd design is so that it can be used by Lexer
 public class Doesc {
-	public static interface Src {
+	public interface Src {
 		default char charAt() {
 			return at(0);
 		}
 		char at(int d);
 		void move(int d);
-	};
+	}
 
 	private static class StrSrc implements Src {
 		String s;

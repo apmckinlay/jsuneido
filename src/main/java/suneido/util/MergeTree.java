@@ -115,7 +115,7 @@ public class MergeTree<T> {
 		return new Iter();
 	}
 
-	private enum Dir { NEXT, PREV };
+	private enum Dir { NEXT, PREV }
 
 	public class Iter {
 		private final int n;

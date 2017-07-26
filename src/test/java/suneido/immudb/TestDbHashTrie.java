@@ -62,7 +62,7 @@ public class TestDbHashTrie {
 				if (entries.containsKey(j))
 					assertThat(e.value(), equalTo(entries.get(j)));
 				else
-					assertThat(e, equalTo((Entry) null));
+					assertThat(e, equalTo(null));
 			}
 		} catch (Throwable e) {
 			e.printStackTrace();

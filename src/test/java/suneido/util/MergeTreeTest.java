@@ -77,7 +77,7 @@ public class MergeTreeTest {
 
 		MergeTree<Integer>.Iter iter = mt.iter();
 		assertThat(iter.next(), equalTo(0));
-		assertThat(iter.prev(), equalTo((Integer) null));
+		assertThat(iter.prev(), equalTo(null));
 		assertThat(iter.next(), equalTo(0));
 
 		iter = mt.iter();
@@ -144,7 +144,7 @@ public class MergeTreeTest {
 			for (int i = 0; i < NKEYS / 5; ++i) {
 				assertThat(iter.next(), equalTo(keys.get(i)));
 			}
-			assertThat(iter.next(), equalTo((Integer) null));
+			assertThat(iter.next(), equalTo(null));
 		}
 	}
 

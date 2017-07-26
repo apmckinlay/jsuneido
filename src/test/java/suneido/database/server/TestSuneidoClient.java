@@ -17,7 +17,7 @@ public class TestSuneidoClient {
 	private static final int MAXDATA = 1000;
 
 	public static void main(String... args)
-			throws UnknownHostException, IOException {
+			throws IOException {
 		String address = args.length == 0 ? "localhost" : args[0];
 		for (int i = 0; i < NTHREADS; ++i)
 			new Thread(new Run(address)).start();
@@ -43,7 +43,7 @@ public class TestSuneidoClient {
 				e.printStackTrace();
 			}
 		}
-		private void run2() throws UnknownHostException, IOException {
+		private void run2() throws IOException {
 			try (Socket socket = new Socket(address, 3147)) {
 				socket.setSoTimeout(2000);
 				DataInputStream inputstream = new DataInputStream(socket.getInputStream());

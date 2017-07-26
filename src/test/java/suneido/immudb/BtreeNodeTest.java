@@ -244,7 +244,7 @@ public class BtreeNodeTest {
 		ByteBuffer buf = ByteBuffer.allocate(node.length());
 		node.pack(buf);
 		BtreeNode dbnode = new BtreeDbNode(0, buf, 0);
-		assertThat(dbnode, equalTo((BtreeNode) node));
+		assertThat(dbnode, equalTo(node));
 	}
 
 	@Test

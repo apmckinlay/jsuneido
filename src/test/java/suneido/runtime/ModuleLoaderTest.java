@@ -23,16 +23,16 @@ public class ModuleLoaderTest {
 
 		ModuleLoader m = new ModuleLoader("mod", loader);
 
-		assertThat(m.get("Name"), equalTo((Object) "foobar"));
+		assertThat(m.get("Name"), equalTo("foobar"));
 		verify(loader, times(1)).load("mod", "Name");
-		assertThat(m.get("Name"), equalTo((Object) "foobar"));
+		assertThat(m.get("Name"), equalTo("foobar"));
 		verify(loader, times(1)).load("mod", "Name");
 
 		m.clear("Name");
-		assertThat(m.get("Name"), equalTo((Object) "foobar"));
+		assertThat(m.get("Name"), equalTo("foobar"));
 		verify(loader, times(2)).load("mod", "Name");
 
-		assertThat(m.get("Name2"), equalTo((Object) 123));
+		assertThat(m.get("Name2"), equalTo(123));
 	}
 
 }

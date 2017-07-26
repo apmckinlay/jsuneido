@@ -29,7 +29,8 @@ import suneido.intfc.database.Transaction;
 public abstract class Query {
 	private final Cache cache = new Cache();
 	private List<String> tempindex;
-	public enum Dir { NEXT, PREV };
+	public enum Dir { NEXT, PREV }
+
 	protected static final List<String> noFields = Collections.emptyList();
 	protected static final Set<String> noNeeds = Collections.emptySet();
 	// cost of writing index relative to reading data

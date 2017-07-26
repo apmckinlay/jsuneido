@@ -171,7 +171,7 @@ public class DbmsChannel {
 		}
 	}
 
-	private static interface IoRunnable {
+	private interface IoRunnable {
 		void run() throws IOException;
 	}
 

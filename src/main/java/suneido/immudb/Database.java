@@ -37,7 +37,8 @@ class Database implements suneido.intfc.database.Database, AutoCloseable {
 	volatile State state;
 	private State lastPersistState;
 	private boolean corrupt = false;
-	private static enum Ck { CHECK, NOCHECK };
+	private enum Ck { CHECK, NOCHECK }
+
 	private volatile boolean closed = false;
 
 	// create

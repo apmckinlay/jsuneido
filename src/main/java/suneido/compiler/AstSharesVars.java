@@ -50,7 +50,7 @@ final class AstSharesVars {
 			case CLASS:
 				return false;
 			case FUNCTION:
-				return ast == root ? true : false;
+				return ast == root;
 			case BLOCK:
 				blocks.push(new BlockInfo(ast));
 				break;

@@ -33,7 +33,8 @@ public abstract class SuRecordOld extends SuContainer {
 	private Header hdr;
 	private SuTransaction tran;
 	private int recadr;
-	enum Status { NEW, OLD, DELETED };
+	enum Status { NEW, OLD, DELETED }
+
 	private Status status;
 	private final List<Object> observers = Lists.newArrayList();
 	private final Set<Object> invalid = Sets.newHashSet(); // used by rules

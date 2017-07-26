@@ -29,7 +29,7 @@ public final class FileFinder {
 	/**
 	 * Stage of the search currently being done.
 	 */
-	public static enum SearchStage {
+	public enum SearchStage {
 		/**
 		 * Search by iterating over each explicit search path property name,
 		 * splitting it into paths, and iterating over each path. If the file is

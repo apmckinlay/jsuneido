@@ -20,25 +20,25 @@ public class DbCheckTest extends TestBase {
 		makeTable(99);
 
 		ReadTransaction t = readTransaction();
-		t.getIndex(1, new int[] { 0 }).check();
-		t.getIndex(1, new int[] { 1 }).check();
-		t.getIndex(2, new int[] { 0,2 }).check();
-		t.getIndex(3, new int[] { 0,1 }).check();
-		t.getIndex(4, new int[] { 0 }).check();
-		t.getIndex(5, new int[] { 0 }).check();
-		t.getIndex(5, new int[] { 1,0 }).check();
+		t.getIndex(1, 0).check();
+		t.getIndex(1, 1).check();
+		t.getIndex(2, 0,2).check();
+		t.getIndex(3, 0,1).check();
+		t.getIndex(4, 0).check();
+		t.getIndex(5, 0).check();
+		t.getIndex(5, 1,0).check();
 		t.ck_complete();
 
 		((Database) db).persist();
 
 		t = readTransaction();
-		t.getIndex(1, new int[] { 0 }).check();
-		t.getIndex(1, new int[] { 1 }).check();
-		t.getIndex(2, new int[] { 0,2 }).check();
-		t.getIndex(3, new int[] { 0,1 }).check();
-		t.getIndex(4, new int[] { 0 }).check();
-		t.getIndex(5, new int[] { 0 }).check();
-		t.getIndex(5, new int[] { 1,0 }).check();
+		t.getIndex(1, 0).check();
+		t.getIndex(1, 1).check();
+		t.getIndex(2, 0,2).check();
+		t.getIndex(3, 0,1).check();
+		t.getIndex(4, 0).check();
+		t.getIndex(5, 0).check();
+		t.getIndex(5, 1,0).check();
 		t.ck_complete();
 
 		dbcheck();

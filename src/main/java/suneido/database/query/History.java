@@ -70,14 +70,14 @@ public class History extends Query {
 	@Override
 	List<List<String>> indexes() {
 		if (indexes == null)
-			indexes = ImmutableList.of((List<String>) ImmutableList.of("_date"));
+			indexes = ImmutableList.of(ImmutableList.of("_date"));
 		return indexes;
 	}
 
 	@Override
 	public List<List<String>> keys() {
 		if (keys == null)
-			keys = ImmutableList.of((List<String>) ImmutableList.of("_date"));
+			keys = ImmutableList.of(ImmutableList.of("_date"));
 		return keys;
 	}
 

@@ -39,7 +39,8 @@ public interface DatabasePackage {
 	/** @return the number of records loaded */
 	int loadTable(Database db, String tablename, ReadableByteChannel in);
 
-	enum Status { OK, CORRUPTED, UNRECOVERABLE };
+	enum Status { OK, CORRUPTED, UNRECOVERABLE }
+
 	interface Observer {
 		void print(String msg);
 	}
@@ -60,7 +61,7 @@ public interface DatabasePackage {
 
 	Observer nullObserver = (String msg) -> { };
 
-	static class StringObserver implements Observer {
+	class StringObserver implements Observer {
 		StringBuilder sb = new StringBuilder();
 
 		@Override

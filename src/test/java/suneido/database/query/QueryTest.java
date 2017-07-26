@@ -304,5 +304,5 @@ public class QueryTest extends TestBase {
 			sb.append("\n");
 		}
 		return sb.toString();
-	};
+	}
 }

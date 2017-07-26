@@ -90,7 +90,7 @@ public class StringRequestGenerator implements RequestGenerator<String> {
 	}
 
 	private static String str(String x) {
-		return x == null ? "" : (String) x;
+		return x == null ? "" : x;
 	}
 
 	private static String str(String s, String x, String t) {

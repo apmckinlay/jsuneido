@@ -43,7 +43,7 @@ public class Union extends Compatible {
 	private List<Fixed> fix;
 	enum Strategy {
 		NONE, MERGE, LOOKUP
-	};
+	}
 
 	Union(Query source1, Query source2) {
 		super(source1, source2);

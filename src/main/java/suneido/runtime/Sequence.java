@@ -51,7 +51,7 @@ public class Sequence extends SequenceBase {
 				((Infinitable) iterable).infinite());
 	}
 
-	public static interface Infinitable {
+	public interface Infinitable {
 		boolean infinite();
 	}
 

@@ -64,7 +64,7 @@ public class Select extends Query1 {
 	private List<Keyrange> ranges = Collections.emptyList();
 	private int range_i = 0;
 	private final Keyrange sel = new Keyrange();
-	private boolean newrange = true;;
+	private boolean newrange = true;
 	int n_in = 0;
 	int n_out = 0;
 	private TIntHashSet filterSet;
@@ -270,7 +270,7 @@ public class Select extends Query1 {
 		List<String> exprflds = expr.fields();
 		List<String> missing = difference(exprflds, srcflds);
 		return expr.replace(missing,
-				Collections.nCopies(missing.size(), (Expr) Constant.EMPTY));
+				Collections.nCopies(missing.size(), Constant.EMPTY));
 	}
 
 	private boolean distribute(Query2 q2) {
@@ -952,7 +952,8 @@ public class Select extends Query1 {
 
 	// Iselect ------------------------------------------------------
 
-	enum IselType { RANGE, VALUES };
+	enum IselType { RANGE, VALUES }
+
 	private static class Iselect {
 		IselType type = IselType.RANGE;
 		// range
@@ -976,9 +977,7 @@ public class Select extends Query1 {
 			if (org_cmp > 0 || (org_cmp == 0 && org.d != 0))
 				return false;
 			int end_cmp = bufferUcompare(end.x, x);
-			if (end_cmp < 0 || (end_cmp == 0 && end.d != 0))
-				return false;
-			return true;
+			return end_cmp >= 0 && (end_cmp != 0 || end.d == 0);
 		}
 		void and_with(Iselect r) {
 			if (type == IselType.RANGE && r.type == IselType.RANGE) {

@@ -120,9 +120,7 @@ public class BinOp extends Expr {
 	private boolean isTerm2(List<String> fields) {
 		if (! op.termop())
 			return false;
-		if (left.isField(fields) && right instanceof Constant)
-			return true;
-		return false;
+		return left.isField(fields) && right instanceof Constant;
 	}
 
 	@Override

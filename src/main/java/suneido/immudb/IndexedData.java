@@ -22,7 +22,8 @@ import suneido.intfc.database.Transaction.Blocking;
  * Coordinates index updates for a table.
  */
 class IndexedData {
-	enum Mode { KEY, UNIQUE, DUPS };
+	enum Mode { KEY, UNIQUE, DUPS }
+
 	private final ReadWriteTransaction t;
 	private final Tran tran;
 	private final List<AnIndex> indexes = new ArrayList<>();

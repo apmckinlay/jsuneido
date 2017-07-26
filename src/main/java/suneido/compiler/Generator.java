@@ -175,7 +175,7 @@ public abstract class Generator<T> {
 		return null;
 	}
 
-	public enum MType { OBJECT, RECORD };
+	public enum MType { OBJECT, RECORD }
 
 	public abstract T object(MType which, T members, int lineNumber);
 

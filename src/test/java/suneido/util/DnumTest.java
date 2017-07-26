@@ -221,8 +221,8 @@ public class DnumTest {
 
 	// PortTests --------------------------------------------------------------
 
-	private static interface DnumCk {
-		public boolean ck(Dnum x, Dnum y, Dnum z);
+	private interface DnumCk {
+		boolean ck(Dnum x, Dnum y, Dnum z);
 	}
 
 	private static boolean pt_dnum_test(String[] args, DnumCk ck) {
@@ -233,8 +233,8 @@ public class DnumTest {
 		return ck.ck(x, y, z);
 	}
 
-	private static interface DnumOp {
-		public Dnum op(Dnum x, Dnum y);
+	private interface DnumOp {
+		Dnum op(Dnum x, Dnum y);
 	}
 
 	private static boolean ck(DnumOp op, Dnum x, Dnum y, Dnum z) {

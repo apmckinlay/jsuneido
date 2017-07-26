@@ -100,7 +100,7 @@ public class DbTools {
 	public static void loadTablePrint(DatabasePackage dbpkg, String dbFilename,
 			String tablename) {
 		try (Database db = dbpkg.dbExists(dbFilename)
-				? dbpkg.open(dbFilename) : dbpkg.create(dbFilename);) {
+				? dbpkg.open(dbFilename) : dbpkg.create(dbFilename)) {
 			if (db == null)
 				throw new RuntimeException("can't open database");
 			int n = loadTable(dbpkg, db, tablename);

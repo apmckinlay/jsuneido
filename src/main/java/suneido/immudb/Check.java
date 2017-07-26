@@ -78,8 +78,7 @@ class Check {
 					0 != (istor.sizeFrom(0) % Storage.ALIGN))
 				return false;
 			int adr = findLast(FAST_NPERSISTS);
-			return (adr == CORRUPT) ? false
-					: (adr == EMPTY) ? true : checkFrom(lastadr, adr);
+			return (adr != CORRUPT) && ((adr == EMPTY) || checkFrom(lastadr, adr));
 		} catch (Throwable e) {
 			Errlog.error("fastcheck", e);
 			return false;

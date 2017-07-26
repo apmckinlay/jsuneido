@@ -18,7 +18,7 @@ import com.google.common.base.Splitter;
  * Stores the parameters for callable entities: functions, methods, bare blocks,
  * and blocks that are closures.
  * </p>
- * 
+ *
  * <p>
  * Created by {@link ClassGen}.
  * </p>
@@ -35,7 +35,7 @@ import com.google.common.base.Splitter;
  * call stack frame.
  * </li>
  * </ul>
- * </p> 
+ * </p>
  *
  * @author Andrew McKinlay, Victor Schappert
  * @see ArgsArraySpec
@@ -62,7 +62,7 @@ public class FunctionSpec {
 	static final Object[] NO_DEFAULTS = new Object[0];
 
 	public static final FunctionSpec NO_PARAMS =
-			new FunctionSpec(new String[0]);
+			new FunctionSpec();
 	public static final FunctionSpec VALUE =
 			new FunctionSpec("value");
 	public static final FunctionSpec VALUE2 =
@@ -79,7 +79,7 @@ public class FunctionSpec {
 
 	//
 	// CONSTRUCTORS
-	// 
+	//
 
 	public FunctionSpec(String... params) {
 		this(params, NO_DEFAULTS, false, null);
@@ -220,7 +220,7 @@ public class FunctionSpec {
 	 * <li>unquoted or single quoted strings</li>
 	 * </ul>
 	 * </p>
-	 * 
+	 *
 	 * <p><strong>WARNING</strong>: Doesn't handle commas in string defaults</p>
 	 *
 	 * @param spec String description of parameters

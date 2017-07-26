@@ -30,7 +30,8 @@ public class SuRecordNew extends SuObservers {
 	private Header hdr;
 	private SuTransaction tran;
 	private int recadr;
-	enum Status { NEW, OLD, DELETED };
+	enum Status { NEW, OLD, DELETED }
+
 	private Status status;
 
 	{ defval = ""; }

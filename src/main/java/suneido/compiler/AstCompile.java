@@ -710,11 +710,11 @@ public class AstCompile {
 
 	private enum ExprOption {
 		POP, INTBOOL
-	};
+	}
 
 	private enum ExprType {
 		INTBOOL, VALUE
-	};
+	}
 
 	/** leaves a value on the stack unless ExprOption.POP */
 	private ExprType expression(ClassGen cg, AstNode ast, ExprOption option) {

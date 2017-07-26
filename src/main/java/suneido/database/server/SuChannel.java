@@ -32,7 +32,8 @@ public class SuChannel extends Serializer {
 	private ByteBuffer buf;
 	private ArrayList<ByteBuffer> bufs = Lists.newArrayList();
 	private static final ByteBuffer[] empty = new ByteBuffer[0];
-	enum Mode { READ, WRITE };
+	enum Mode { READ, WRITE }
+
 	private Mode mode = Mode.WRITE;
 
 	public SuChannel(Channel channel) {

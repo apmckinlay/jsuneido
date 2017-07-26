@@ -249,7 +249,7 @@ public class SocketServer extends SuClass {
 		public static Object RemoteUser(Object self) {
 			Instance instance = (Instance) self;
 			return instance.socket.getInetAddress();
-		};
+		}
 	}
 
 }

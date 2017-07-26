@@ -15,7 +15,7 @@ public class TestClient {
 	private static final long DURATION = 10 * 60 * 1000; // 10 minutes
 
 	public static void main(String... args)
-			throws UnknownHostException, IOException {
+			throws IOException {
 		String address = args.length == 0 ? "localhost" : args[0];
 		for (int i = 0; i < NTHREADS; ++i)
 			new Thread(new Run(address)).start();
@@ -38,7 +38,7 @@ public class TestClient {
 				e.printStackTrace();
 			}
 		}
-		private void run2() throws UnknownHostException, IOException {
+		private void run2() throws IOException {
 			try (Socket socket = new Socket(address, 3147)) {
 				socket.setSoTimeout(5000);
 				DataInputStream inputstream = new DataInputStream(socket.getInputStream());

@@ -108,9 +108,7 @@ public class AstNode {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof AstNode
-			? equals((AstNode)other)
-			: false
+		return other instanceof AstNode && equals((AstNode) other)
 			;
 	}
 
