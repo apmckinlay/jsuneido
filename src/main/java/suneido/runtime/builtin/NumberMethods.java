@@ -7,6 +7,7 @@ package suneido.runtime.builtin;
 import static suneido.runtime.Numbers.*;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import suneido.runtime.BuiltinMethods;
 import suneido.runtime.Numbers;
@@ -208,20 +209,20 @@ public class NumberMethods extends BuiltinMethods {
 
 	@Params("number")
 	public static Object Round(Object self, Object d) {
-		return round(self, d, BigDecimal.ROUND_HALF_UP);
+		return round(self, d, RoundingMode.HALF_UP);
 	}
 
 	@Params("number")
 	public static Object RoundDown(Object self, Object d) {
-		return round(self, d, BigDecimal.ROUND_DOWN);
+		return round(self, d, RoundingMode.DOWN);
 	}
 
 	@Params("number")
 	public static Object RoundUp(Object self, Object d) {
-		return round(self, d, BigDecimal.ROUND_UP);
+		return round(self, d, RoundingMode.UP);
 	}
 
-	private static Object round(Object self, Object d, int mode) {
+	private static Object round(Object self, Object d, RoundingMode mode) {
 		BigDecimal n = toBigDecimal(self);
 		if (n.signum() == 0)
 			return self;
