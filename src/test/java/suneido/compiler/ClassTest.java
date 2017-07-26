@@ -309,7 +309,7 @@ public class ClassTest {
 			eval(expr);
 			fail();
 		} catch (Exception e) {
-			assert e.toString().startsWith("member not found");
+			assert e.toString().startsWith("uninitialized member");
 		}
 	}
 

@@ -50,7 +50,7 @@ public class SuClass extends SuValue {
 	public Object get(SuValue self, Object member) {
 		Object value = get1(self, member);
 		if (value == null)
-			throw new SuException("member not found: " + member);
+			throw new SuException("uninitialized member: " + member);
 		return value;
 	}
 
