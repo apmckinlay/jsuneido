@@ -14,6 +14,7 @@ import static org.junit.Assert.assertTrue;
 import static suneido.Suneido.dbpkg;
 import static suneido.util.ByteBuffers.bufferToString;
 import static suneido.util.ByteBuffers.stringToBuffer;
+import static suneido.util.RegexMatcher.matches;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -23,7 +24,6 @@ import java.util.function.Consumer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.internal.matchers.Matches;
 
 import suneido.TheDbms;
 import suneido.database.query.Header;
@@ -35,10 +35,6 @@ import suneido.runtime.Ops;
 import suneido.runtime.Pack;
 
 public class CommandTextTest {
-
-	public static Matches matches(String regex){
-		return new Matches(regex);
-	}
 
 	@Before
 	public void before() {
