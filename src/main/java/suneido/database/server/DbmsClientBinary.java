@@ -16,10 +16,7 @@ import java.util.List;
 
 import com.google.common.collect.ImmutableList;
 
-import suneido.SuContainer;
-import suneido.SuDate;
-import suneido.SuException;
-import suneido.SuInternalError;
+import suneido.*;
 import suneido.database.query.Header;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Row;
@@ -313,7 +310,8 @@ public class DbmsClientBinary extends Dbms {
 		if ("".equals(s) && sessionid != null)
 			return sessionid; // use cached value
 		send(SESSIONID, s);
-		return sessionid = io.getString();
+		sessionid = io.getString();
+		return TheDbms.setMainSessionId(sessionid, owner);
 	}
 
 	@Override

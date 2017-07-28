@@ -18,10 +18,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
-import suneido.SuContainer;
-import suneido.SuDate;
-import suneido.SuException;
-import suneido.SuInternalError;
+import suneido.*;
 import suneido.database.query.Header;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Row;
@@ -190,7 +187,8 @@ public class DbmsClientText extends Dbms {
 		if ("".equals(s))
 			return sessionid;
 		writeLine("SESSIONID", s);
-		return sessionid = io.readLine();
+		sessionid = io.readLine();
+		return TheDbms.setMainSessionId(sessionid, owner);
 	}
 
 	@Override

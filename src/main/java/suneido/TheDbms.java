@@ -28,6 +28,7 @@ public class TheDbms {
 	private static final ThreadLocal<byte[]> authToken = new ThreadLocal<>();
 	private static final ThreadLocal<String> lastSessionId =
 			ThreadLocal.withInitial(() -> "");
+	private static String mainSessionId = "";
 
 	public static Dbms dbms() {
 		if (ip == null)
@@ -56,7 +57,9 @@ public class TheDbms {
 		dbms = new DbmsClient(ip, port);
 		dbmsRemotes.add(dbms);
 		remoteDbms.set(dbms);
-		dbms.sessionid(dbms.sessionid("") + ":" + Thread.currentThread().getName());
+		if (mainSessionId == "")
+			mainSessionId = dbms.sessionid("");
+		dbms.sessionid(mainSessionId + ":" + Thread.currentThread().getName());
 		// auth will only succeed if parent was authorized
 		byte[] token = authToken.get();
 		if (token != null)
@@ -68,6 +71,12 @@ public class TheDbms {
 	public static String sessionid() {
 		DbmsClient dbms = remoteDbms.get();
 		return dbms == null ? lastSessionId.get() : dbms.sessionid();
+	}
+
+	public static String setMainSessionId(String sessionid, Thread owner) {
+		if (owner.getId() == 1)
+			mainSessionId = sessionid;
+		return sessionid;
 	}
 
 	// used when starting a client
