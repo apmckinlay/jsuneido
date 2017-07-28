@@ -7,6 +7,7 @@ package suneido.compiler;
 import static org.objectweb.asm.Opcodes.*;
 
 import java.io.PrintWriter;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -767,8 +768,9 @@ public class ClassGen {
 			Class<?> sc = loader.defineClass(COMPILED_CODE_PACKAGE_DOTS + name,
 					byteCode);
 			try {
-				callable = (SuCompiledCallable) sc.newInstance();
-			} catch (InstantiationException | IllegalAccessException e) {
+				callable = (SuCompiledCallable) sc.getDeclaredConstructor().newInstance();
+			} catch (InstantiationException | IllegalAccessException |
+					NoSuchMethodException | InvocationTargetException e) {
 				throw new SuException("newInstance error: " + e);
 			}
 		} finally {
