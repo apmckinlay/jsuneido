@@ -38,7 +38,7 @@ public class DateClass extends BuiltinClass {
 			if (args[0] instanceof SuDate)
 				return args[0];
 			SuDate d;
-			String s = Ops.toStr(args[0]);
+			String s = Ops.coerceStr(args[0]);
 			if (args[1] == NA) {
 				if (s.startsWith("#"))
 					d = SuDate.fromLiteral(s);
