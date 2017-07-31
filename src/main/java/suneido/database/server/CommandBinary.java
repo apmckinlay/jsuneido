@@ -647,7 +647,7 @@ public enum CommandBinary {
 	}
 
 	private static void valueResult(SuChannel io, Object result) {
-		io.put(true);
+		io.put(true); // no exception
 		if (result == null)
 			io.put(false);
 		else
