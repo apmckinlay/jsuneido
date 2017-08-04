@@ -679,7 +679,12 @@ public final class Ops {
 	private static Object getString(CharSequence s, Object m) {
 		if (m instanceof Range)
 			return ((Range) m).substr(s);
-		int i = toInt(m);
+		int i;
+		try {
+			i = toInt(m);
+		} catch (SuException e) {
+			throw new SuException("string subscripts must be integers");
+		}
 		int len = s.length();
 		if (i < 0)
 			i += len;
