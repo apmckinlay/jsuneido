@@ -100,7 +100,7 @@ public final class DateMethods {
 
 	@Params("firstDay=sun")
 	public static Object WeekDay(Object self, Object a) {
-		int i = (Ops.isString(a))
+		int i = Ops.isString(a)
 				? dayNumber(Ops.toStr(a).toLowerCase())
 				: Ops.toInt(a);
 		return (((SuDate) self).weekday() - i + 6) % 7;
