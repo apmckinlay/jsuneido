@@ -317,21 +317,4 @@ public class Numbers {
 			return Integer.MAX_VALUE;
 		return n.intValue();
 	}
-
-	static int toIntFromString(String s) {
-		// TODO use Integer.decode (handles hex and octal)
-		if (s.equals(""))
-			return 0;
-		String t = s;
-		int radix = 10;
-		if (s.startsWith("0x") || s.startsWith("0X")) {
-			radix = 16;
-			t = s.substring(2);
-		}
-		try {
-			return Integer.parseInt(t, radix);
-		} catch (NumberFormatException e) {
-			throw new SuException("can't convert string to integer: " + s);
-		}
-	}
 }
