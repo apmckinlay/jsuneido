@@ -328,12 +328,10 @@ public class SuContainer extends SuValue
 	 * CharSequence (String, Concat, SuException) is converted to String
 	 */
 	private static Object canonical(Object x) {
-		// changes here must also be made in index
+		// must match index(x)
 		if (x instanceof Number) {
 			if (x instanceof Integer)
 				return x;
-			if (x instanceof Byte || x instanceof Short)
-				return ((Number) x).intValue();
 			if (x instanceof Long) {
 				long i = (Long) x;
 				if (Integer.MIN_VALUE <= i && i <= Integer.MIN_VALUE)
@@ -457,9 +455,27 @@ public class SuContainer extends SuValue
 		map.clear();
 	}
 
-	private static int index(Object x) {
-		x = canonical(x);
-		return x instanceof Integer ? (Integer) x : -1;
+	/** @return The integer value of x, or -1 if the value is not an integer
+	 * so it will not be in range for the vector
+	 */
+	static int index(Object x) {
+		// must match the behavior of canonical
+		if (x instanceof Number) {
+			if (x instanceof Integer)
+				return (Integer) x;
+			else if (x instanceof Long) {
+				long i = (Long) x;
+				if (Integer.MIN_VALUE <= i && i <= Integer.MIN_VALUE)
+					return (int) i;
+			} else {
+		 		try {
+					return toBigDecimal(x).intValueExact();
+				} catch (ArithmeticException e) {
+					// ignore, fall through
+				}
+			}
+		}
+		return -1;
 	}
 
 	public synchronized int vecSize() {
