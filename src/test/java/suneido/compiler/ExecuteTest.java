@@ -9,8 +9,6 @@ import static org.junit.Assert.fail;
 import static suneido.compiler.Compiler.eval;
 import static suneido.util.testing.Throwing.assertThrew;
 
-import java.util.Arrays;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -385,19 +383,36 @@ public class ExecuteTest {
 
 	/**
 	 * PortTests fixture.
-	 * First argument is an expression to evaluate.
-	 * Optional second argument is the expected result, default is true.
 	 */
 	public static boolean pt_execute(String... args) {
 		Ops.default_single_quotes = true;
 		try {
-			String result = Ops.display(eval(args[0]));
-			String expected = "true";
+			String expected = "**notfalse**";
 			if (args.length > 1)
 				expected = args[1];
-			boolean ok = result.equals(expected);
+			String result;
+			boolean ok;
+			if (expected.equals("throws")) {
+				expected = "throws: " + args[2];
+				try {
+					result = Ops.display(eval(args[0]));
+					ok = false;
+				} catch (RuntimeException e) {
+					result = e.getMessage();
+					ok = result.contains(args[2]);
+				}
+			} else if (expected.equals("**notfalse**")) {
+				Object resultOb = eval(args[0]);
+				result = Ops.display(resultOb);
+				ok = resultOb != Boolean.FALSE;
+			} else {
+				Object resultOb = eval(args[0]);
+				Object expectedOb = eval(expected);
+				result = Ops.display(resultOb);
+				expected = Ops.display(expectedOb);
+				ok = result.equals(expected);
+			}
 			if (! ok) {
-				System.out.println("for: " + Arrays.toString(args));
 				System.out.println("got: " + result);
 				System.out.println("expected: " + expected);
 			}
@@ -413,8 +428,8 @@ public class ExecuteTest {
 	 */
 	public static boolean pt_lang_range(String... args) {
 		String s = args[0];
-		int from = Ops.toInt(args[1]);
-		int to = Ops.toInt(args[2]);
+		int from = Integer.parseInt(args[1]);
+		int to = Integer.parseInt(args[2]);
 		String expected = args[3];
 		Range r = new Range.RangeTo(from, to);
 		if (!r.substr(s).equals(expected))
@@ -430,8 +445,8 @@ public class ExecuteTest {
 	 */
 	public static boolean pt_lang_sub(String... args) {
 		String s = args[0];
-		int i = Ops.toInt(args[1]);
-		int n = args.length == 4 ? Ops.toInt(args[2]) : 9999;
+		int i = Integer.parseInt(args[1]);
+		int n = args.length == 4 ? Integer.parseInt(args[2]) : 9999;
 		String expected = args[args.length - 1];
 
 		if (!StringMethods.Substr(s, i, n).equals(expected))

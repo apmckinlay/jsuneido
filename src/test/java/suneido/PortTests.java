@@ -64,6 +64,7 @@ public class PortTests {
 		} catch (Throwable e) {
 			throw new RuntimeException("PortTests can't get " + TestDir.path + file);
 		}
+		System.out.println(file);
 		return new Parser(src).run();
 	}
 
