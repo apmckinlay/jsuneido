@@ -266,10 +266,7 @@ public class Numbers {
 	public static Number toNum(Object x) {
 		if (x instanceof Number)
 			return (Number) x;
-		if (x == Boolean.FALSE ||
-				(x instanceof CharSequence && ((CharSequence) x).length() == 0))
-			return 0;
-		throw new SuException("can't convert " + Ops.typeName(x) + " to number");
+		return Ops.likeZero(x);
 	}
 
 	/**

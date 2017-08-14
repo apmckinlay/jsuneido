@@ -397,11 +397,16 @@ public final class Ops {
 			return toIntFromBD((BigDecimal) x);
 		if (x instanceof BigInteger)
 			return toIntFromBI((BigInteger) x);
-		if (x instanceof CharSequence)
-			return toIntFromString(x.toString());
-		if (x instanceof Boolean)
-			return x == Boolean.TRUE ? 1 : 0;
-		throw new SuException("can't convert " + Ops.typeName(x) + " to integer");
+		return likeZero(x);
+	}
+
+	static int likeZero(Object x) {
+		if (x == Boolean.FALSE ||
+				(x instanceof CharSequence && ((CharSequence) x).length() == 0))
+			return 0;
+		throw new SuException((x == Boolean.TRUE)
+			? "can't convert true to number"
+			: "can't convert " + Ops.typeName(x) + " to number");
 	}
 
 	public static String toStr(Object x) {
@@ -679,13 +684,13 @@ public final class Ops {
 	private static Object getString(CharSequence s, Object m) {
 		if (m instanceof Range)
 			return ((Range) m).substr(s);
-		int i;
-		try {
-			i = toInt(m);
-		} catch (SuException e) {
+		if (! Numbers.integral(m))
 			throw new SuException("string subscripts must be integers");
-		}
+		long n = ((Number) m).longValue();
 		int len = s.length();
+		if (n < -len || len < n)
+			return "";
+		int i = (int) n;
 		if (i < 0)
 			i += len;
 		return 0 <= i && i < len ? s.subSequence(i, i + 1) : "";
