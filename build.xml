@@ -79,6 +79,7 @@
 				includeAntRuntime="false"
 				target="1.8"
 				debug="true"
+				listfiles="true"
 		>
 		</javac>
 	</target>
