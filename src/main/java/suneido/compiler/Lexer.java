@@ -346,7 +346,7 @@ public class Lexer implements Doesc.Src {
 	}
 
 	public String matched() {
-		return source.substring(prev, si);
+		return source.substring(prev, Math.min(si, source.length()));
 	}
 
 	// implement Src for Doesc
