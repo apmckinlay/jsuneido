@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import com.google.common.base.CharMatcher;
+
 import suneido.*;
 import suneido.compiler.Compiler;
 import suneido.database.query.CompileQuery;
@@ -180,7 +182,7 @@ public class DbmsLocal extends Dbms {
 
 	@Override
 	public void log(String s) {
-		Errlog.uncounted(s);
+		Errlog.uncounted(CharMatcher.whitespace().trimTrailingFrom(s));
 	}
 
 	@Override
