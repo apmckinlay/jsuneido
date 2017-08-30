@@ -60,7 +60,7 @@ public abstract class Dbms {
 	}
 
 	/** @return null on eof */
-	// overridden by DbmsClientBinary so transaction is only on server
+	// overridden by DbmsClient so transaction is only on server
 	public HeaderAndRow get(Dir dir, String query, boolean one) {
 		DbmsTran tran = transaction(false);
 		try {

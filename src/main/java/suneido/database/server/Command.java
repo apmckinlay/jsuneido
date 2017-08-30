@@ -23,9 +23,9 @@ import suneido.intfc.database.RecordBuilder;
 import suneido.runtime.builtin.ServerEval;
 
 /**
- * Server side of the *binary* client-server protocol.
- * See {@link DbmsServerBinary} for the actual server.
- * {@link DbmsClientBinary} is the client side.
+ * Server side of the client-server protocol.
+ * See {@link DbmsServer} for the actual server.
+ * {@link DbmsClient} is the client side.
  * Uses {@link SuChannel} which uses {@link Serializer}.
  * <p>
  * Commands (requests) are identified by their ordinal.
@@ -35,7 +35,7 @@ import suneido.runtime.builtin.ServerEval;
  * Successful responses are preceded by a boolean value of true.
  * Exceptions are returned as false followed by an exception string.
  */
-public enum CommandBinary {
+public enum Command {
 	/**
 	 * Abort a transaction ({@link DbmsTran#abort})
 	 * <p>

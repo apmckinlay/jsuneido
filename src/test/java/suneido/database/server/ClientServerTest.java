@@ -16,25 +16,25 @@ import suneido.TheDbms;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Row;
 import suneido.database.server.Dbms.HeaderAndRow;
-import suneido.database.server.DbmsServerBinary.ServerDataSet;
+import suneido.database.server.DbmsServer.ServerDataSet;
 import suneido.intfc.database.Record;
 
 /**
- * Test the client and server components by connecting DbmsClientBinary to
- * DbmsServerBinary Handler and CommandBinary using TestChannel
+ * Test the client and server components by connecting DbmsClient to
+ * DbmsServer Handler and Command using TestChannel
  */
 public class ClientServerTest {
 	private TestChannel channel;
-	private DbmsServerBinary.DbmsServerHandler handler;
+	private DbmsServer.DbmsServerHandler handler;
 
 	@Test
 	public void test() {
 		TheDbms.set(dbpkg.testdb()); // local dbms for server, used by Command
 
 		channel = new TestChannel(this::serverHandler);
-		handler = new DbmsServerBinary.DbmsServerHandler(channel, new ServerDataSet());
+		handler = new DbmsServer.DbmsServerHandler(channel, new ServerDataSet());
 
-		DbmsClientBinary dbmsClient = new DbmsClientBinary(channel);
+		DbmsClient dbmsClient = new DbmsClient(channel);
 
 		Object result;
 		DbmsTran t;

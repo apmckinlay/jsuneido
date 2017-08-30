@@ -12,7 +12,7 @@ import java.util.Random;
 
 /**
  * Takes the place of a SocketChannel for connecting
- * {@link DbmsClientBinary} to {@link DbmsServer}
+ * {@link DbmsClient} to {@link DbmsServer}
  */
 public class TestChannel
 		implements Channel, ReadableByteChannel, GatheringByteChannel {
