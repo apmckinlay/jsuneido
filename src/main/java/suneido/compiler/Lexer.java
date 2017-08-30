@@ -52,7 +52,7 @@ public class Lexer implements Doesc.Src {
 
 	// Simpler to update on demand rather than track during lexing
 	public int getLineNumber() {
-		lineNum += cm_nl.countIn(source.substring(lineNumPos, prev));
+		lineNum += cm_nl.countIn(srcsub(lineNumPos, prev));
 		lineNumPos = prev;
 		return lineNum;
 	}
@@ -169,7 +169,7 @@ public class Lexer implements Doesc.Src {
 			if (! Character.isLetter(charAt(si)))
 				return HASH;
 			skipIdentifier();
-			value = source.substring(prev + 1, si);
+			value = srcsub(prev + 1, si);
 			valueIsSubstr = true;
 			return STRING;
 		case '_':
@@ -215,7 +215,7 @@ public class Lexer implements Doesc.Src {
 			++si;
 		if (si < source.length())
 			++si;	// skip closing quote
-		value = source.substring(prev + 1, si - 1);
+		value = srcsub(prev + 1, si - 1);
 		valueIsSubstr = true;
 		return STRING;
 	}
@@ -323,7 +323,7 @@ public class Lexer implements Doesc.Src {
 	}
 
 	private Token value(Token token) {
-		value = source.substring(prev, si);
+		value = srcsub(prev, si);
 		valueIsSubstr = true;
 		return token;
 	}
@@ -334,7 +334,7 @@ public class Lexer implements Doesc.Src {
 
 	public String remaining() {
 		si = source.length();
-		return source.substring(prev);
+		return srcsub(prev, si);
 	}
 
 	public int end() {
@@ -346,7 +346,14 @@ public class Lexer implements Doesc.Src {
 	}
 
 	public String matched() {
-		return source.substring(prev, Math.min(si, source.length()));
+		return srcsub(prev, si);
+	}
+
+	private String srcsub(int from, int to) {
+		int len = source.length();
+		return (from >= len || to <= 0 || from >= to)
+			? ""
+			: source.substring(Math.max(0, from), Math.min(to, len));
 	}
 
 	// implement Src for Doesc
