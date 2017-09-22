@@ -80,6 +80,7 @@ public class DbmsServer {
 		}
 
 		DbmsServerHandler(Channel channel, ServerDataSet serverDataSet) {
+			sendHello(channel);
 			this.serverDataSet = serverDataSet;
 			serverData = new ServerData(channel);
 			if (channel instanceof SocketChannel) {
@@ -87,7 +88,6 @@ public class DbmsServer {
 				serverData.setSessionId(adr.getHostAddress());
 			}
 			serverDataSet.add(serverData);
-			sendHello(channel);
 		}
 
 		private static void sendHello(Channel channel) {
