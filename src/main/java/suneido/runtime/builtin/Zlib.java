@@ -56,7 +56,7 @@ public class Zlib extends BuiltinClass {
 			try {
 				count = inflater.inflate(buffer);
 			} catch (DataFormatException e) {
-				throw new RuntimeException("Zlib Compress error", e);
+				throw new RuntimeException("Zlib Uncompress error", e);
 			}
 			outputStream.write(buffer, 0, count);
 		}
