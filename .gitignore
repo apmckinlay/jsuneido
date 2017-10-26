@@ -26,3 +26,9 @@ clindex_suneidoc/*
 *.apps
 
 *.DMP
+
+.idea
+
+.gradle
+build/
+out/
