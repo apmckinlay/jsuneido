@@ -70,7 +70,9 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 
 	private TableBuilder createTable() {
 		verify(t.getTable(tableName) == null,
-				"create table: table already exists: " + tableName);
+				"create table: table already exists");
+		verify(tblnum < Short.MAX_VALUE,
+				"create table: next table number exceeds limit, need to compact");
 		t.addRecord(TN.TABLES, Table.toRecord(tblnum, tableName));
 		return this;
 	}
@@ -367,7 +369,7 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 			fail(msg);
 	}
 	private void fail(String msg) {
-		fail(t, msg + " in " + tableName);
+		fail(t, msg + " (" + tableName + ")");
 	}
 	private static SuException fail(ReadTransaction t, String msg) {
 		t.abort();
