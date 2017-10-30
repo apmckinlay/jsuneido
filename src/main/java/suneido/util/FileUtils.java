@@ -123,8 +123,10 @@ public class FileUtils {
 		if (file.exists() && ! file.renameTo(bakfile))
 			throw new RuntimeException("can't rename " + file + " to " + bakfile);
 		if (! tmpfile.renameTo(file)) {
-			bakfile.renameTo(file);
-			throw new RuntimeException("can't rename " + tmpfile + " to " + file);
+			String err = "can't rename " + tmpfile + " to " + file;
+			if (! bakfile.renameTo(file))
+				err += ", couldn't rename " + bakfile + " back to " + file;
+			throw new RuntimeException(err);
 		}
 	}
 
