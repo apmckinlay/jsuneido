@@ -32,3 +32,6 @@ clindex_suneidoc/*
 .gradle
 build/
 out/
+
+gradlew
+gradle/
