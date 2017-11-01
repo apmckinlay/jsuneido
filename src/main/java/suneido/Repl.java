@@ -67,8 +67,16 @@ public class Repl {
 			// Evaluate the code
 			try {
 				Object result = Compiler.eval(code);
-				if (result != null)
-					out.println(" => " + Ops.display(result));
+				if (result != null) {
+					String type = Ops.typeName(result);
+					if (type.equals("String") || type.equals("Number") ||
+							type.equals("Boolean") || type.equals("Date"))
+						type = "";
+					else
+						type = " <" + type + ">";
+					out.println(" => " + Ops.display(result) + type);
+
+				}
 			} catch (Throwable e) {
 				Errlog.error("Repl", e);
 			}

@@ -63,13 +63,13 @@ public abstract class BuiltinClass extends BuiltinMethods {
 	protected abstract Object newInstance(Object... args);
 
 	@Override
-	public String typeName() {
-		return getClass().getName().replace(Builtin.PACKAGE_NAME + '.', "");
+	public String toString() {
+		return super.typeName() + " /* builtin class */";
 	}
 
 	@Override
-	public String toString() {
-		return typeName() + " /* builtin class */";
+	public String typeName() {
+		return "BuiltinClass";
 	}
 
 }

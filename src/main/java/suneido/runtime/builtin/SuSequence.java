@@ -71,7 +71,7 @@ public class SuSequence extends SequenceBase {
 	@Override
 	public String toString() {
 		if (infinite())
-			return "Sequence(" + iter + ")";
+			return "infiniteSequence";
 		return super.toString();
 	}
 

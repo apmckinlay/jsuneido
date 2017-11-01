@@ -48,7 +48,7 @@ public enum CallableType {
 	 * @see #FUNCTION
 	 * @see #BUILTIN_METHOD
 	 */
-	BUILTIN_FUNCTION("Builtin", "builtin function", false),
+	BUILTIN_FUNCTION("BuiltinFunction", "builtin function", false),
 	/**
 	 * Callable is a method of a built-in class.
 	 *

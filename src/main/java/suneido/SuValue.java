@@ -51,24 +51,25 @@ public class SuValue implements Packable {
 	}
 
 	public String typeName() {
-		String s = getClass().getName();
+		return simplifyType(getClass().getName());
+	}
+
+	static String simplifyType(String s) {
+		// prefix
 		assert(s.startsWith("suneido."));
-		if (s.startsWith("code.", 8)) {
-			// Compiled code is in the package suneido.code
-			return s.endsWith("$") ? s.substring(13, s.length() - 1) : s.substring(13);
-		} else if (s.startsWith("runtime.", 8)) {
-			// Runtime support classes are in suneido.runtime or sub-packages
-			if (s.startsWith("builtin.", 16)) {
-				// Package suneido.runtime.builtin has the built-in classes
-				// and functions
-				return s.endsWith("Instance") ? s.substring(24,
-						s.length() - 8) : s.substring(24);
-			} else {
-				return s.substring(16);
-			}
-		} else {
-			return s.substring(8);
-		}
+		int i = s.lastIndexOf('.');
+		s = s.substring(i + 1);
+		if (s.startsWith("Su"))
+			s = s.substring(2);
+
+		// suffix
+		i = s.indexOf('$');
+		if (i != -1)
+			s = s.substring(0, i);
+		if (s.endsWith("Class"))
+			s = s.substring(0, s.length() - 5);
+
+		return s;
 	}
 
 	/**

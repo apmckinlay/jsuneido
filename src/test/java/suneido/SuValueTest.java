@@ -4,7 +4,9 @@
 
 package suneido;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static suneido.runtime.Numbers.MC;
 import static suneido.runtime.Ops.*;
@@ -69,6 +71,19 @@ public class SuValueTest {
 		BigDecimal expected =
 				BigDecimal.valueOf(i).divide(BigDecimal.valueOf(j), MC);
 		assertTrue(i + " / " + j + " should be " + z, is(expected, z));
+	}
+
+	@Test
+	public void simplifyType() {
+		stest("suneido.code.Foo", "Foo");
+		stest("suneido.runtime.builtin.Lucene", "Lucene");
+		stest("suneido.runtime.builtin.SuThread", "Thread");
+		stest("suneido.runtime.builtin.DateClass", "Date");
+		stest("suneido.runtime.builtin.Adler32$1", "Adler32");
+	}
+
+	private static void stest(String s, String expected) {
+		assertThat(SuValue.simplifyType(s), equalTo(expected));
 	}
 
 }

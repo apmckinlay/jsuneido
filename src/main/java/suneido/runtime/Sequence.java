@@ -58,7 +58,7 @@ public class Sequence extends SequenceBase {
 	@Override
 	public String toString() {
 		if (infinite())
-			return "Sequence(" + iterable + ")";
+			return "infiniteSequence";
 		return super.toString();
 	}
 

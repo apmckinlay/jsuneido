@@ -1,7 +1,3 @@
-/* Copyright 2009 (c) Suneido Software Corp. All rights reserved.
- * Licensed under GPLv2.
- */
-
 package suneido.runtime.builtin;
 
 import static java.lang.Boolean.FALSE;
@@ -9,20 +5,15 @@ import static java.lang.Boolean.FALSE;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import suneido.runtime.*;
+import suneido.runtime.Ops;
+import suneido.runtime.Params;
+import suneido.runtime.Sequence;
 
-public final class Seq extends BuiltinClass {
-	private static final FunctionSpec initFS =
-			ArgsArraySpec.from("from = false, to = false, by = 1");
+public class Seq {
 
-	public Seq() {
-		super("Seq", initFS);
-	}
-
-	@Override
-	public Object newInstance(Object... args) {
-		args = Args.massage(initFS, args);
-		return new Sequence(new SuSeq(args[0], args[1], args[2]));
+	@Params("from = false, to = false, by = 1")
+	public static Object Seq(Object from, Object to, Object by) {
+		return new Sequence(new SuSeq(from, to, by));
 	}
 
 	private static class SuSeq implements Iterable<Object>, Sequence.Infinitable {
@@ -84,7 +75,5 @@ public final class Seq extends BuiltinClass {
 		public boolean infinite() {
 			return infinite;
 		}
-
 	}
-
 }
