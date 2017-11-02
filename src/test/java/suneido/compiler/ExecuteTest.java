@@ -6,6 +6,7 @@ package suneido.compiler;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static suneido.compiler.Compiler.compile;
 import static suneido.compiler.Compiler.eval;
 import static suneido.util.testing.Throwing.assertThrew;
 
@@ -390,7 +391,7 @@ public class ExecuteTest {
 			String expected = "**notfalse**";
 			if (args.length > 1)
 				expected = args[1];
-			String result;
+			Object result;
 			boolean ok;
 			if (expected.equals("throws")) {
 				expected = "throws: " + args[2];
@@ -399,21 +400,18 @@ public class ExecuteTest {
 					ok = false;
 				} catch (RuntimeException e) {
 					result = e.getMessage();
-					ok = result.contains(args[2]);
+					ok = e.getMessage().contains(args[2]);
 				}
 			} else if (expected.equals("**notfalse**")) {
-				Object resultOb = eval(args[0]);
-				result = Ops.display(resultOb);
-				ok = resultOb != Boolean.FALSE;
+				result = eval(args[0]);
+				ok = result != Boolean.FALSE;
 			} else {
-				Object resultOb = eval(args[0]);
-				Object expectedOb = eval(expected);
-				result = Ops.display(resultOb);
-				expected = Ops.display(expectedOb);
-				ok = result.equals(expected);
+				result = eval(args[0]);
+			 	Object expectedOb = compile("", expected);
+				ok = Ops.is(result, expectedOb);
 			}
 			if (! ok) {
-				System.out.println("got: " + result);
+				System.out.println("got: " + Ops.display(result));
 				System.out.println("expected: " + expected);
 			}
 			return ok;
