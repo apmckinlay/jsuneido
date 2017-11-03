@@ -29,7 +29,7 @@ public class Database extends BuiltinClass {
 		args = Args.massage(requestFS, args);
 		String request = Ops.toStr(args[0]);
 		TheDbms.dbms().admin(request);
-		return Boolean.TRUE;
+		return null;
 	}
 
 	public static Object Connections(Object self) {
