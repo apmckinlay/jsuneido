@@ -21,6 +21,7 @@ import suneido.immudb.DbRebuild.RebuildTransaction;
 import suneido.immudb.TranIndex.Iter;
 import suneido.intfc.database.IndexIter;
 import suneido.util.Errlog;
+import suneido.util.StepTimer;
 import suneido.util.ThreadConfined;
 
 /**
@@ -36,6 +37,7 @@ import suneido.util.ThreadConfined;
  */
 @ThreadConfined
 class UpdateTransaction extends ReadWriteTransaction {
+	private static final int COMMIT_LIMIT = 10 * 1000; // 10 sec
 	private final long asof;
 	private volatile long commitTime = Long.MAX_VALUE;
 	private final Map<Index,TransactionReads> reads = Maps.newHashMap();
@@ -208,25 +210,28 @@ class UpdateTransaction extends ReadWriteTransaction {
 	@Override
 	protected void commit() {
 		checkLimits();
-		Stopwatch sw = Stopwatch.createStarted();
+		StepTimer st = new StepTimer("transaction commit", COMMIT_LIMIT);
 		buildReads();
+		st.step();
 		db.withCommitLock(() -> {
+			st.step();
 			if (db.state.schema != dbstate.schema)
 				throw new Conflict("schema changed");
 			checkForConflicts();
+			st.step();
 			storeData();
+			st.step();
 			try {
 				updateBtrees();
+				st.step();
 				updateDbInfo();
+				st.step();
 				finish();
 			} catch (Throwable e) {
 				tran.abortIncompleteStore();
 				throw e;
 			}
 		});
-		long secs = sw.elapsed(TimeUnit.SECONDS);
-		if (secs > Transactions.MAX_UPDATE_TRAN_DURATION_SEC/2)
-			Errlog.warn("long duration commit (" + secs + " secs)");
 	}
 
 	private void checkLimits() {
