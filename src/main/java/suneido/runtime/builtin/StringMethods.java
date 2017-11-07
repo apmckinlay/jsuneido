@@ -213,6 +213,11 @@ public class StringMethods extends BuiltinMethods {
 		return Boolean.FALSE;
 	}
 
+	/** null method on jSuneido, implemented on cSuneido */
+	public static Object Instantiate(Object self) {
+		return self;
+	}
+
 	public static Object Iter(Object self) {
 		return new Iterate((CharSequence) self);
 	}
