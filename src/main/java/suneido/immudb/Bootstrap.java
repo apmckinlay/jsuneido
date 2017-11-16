@@ -19,7 +19,10 @@ class Bootstrap {
 	static class TN
 			{ static final int TABLES = 1, COLUMNS = 2, INDEXES = 3, VIEWS = 4; }
 	static final int[][] indexColumns =
-			new int[][] { { }, { 0 }, { 0,2 }, { 0,1 } };
+			new int[][] { { },
+					{ 0 }, // [TABLES] table
+					{ 0,2 }, // [COLUMNS] table,column
+					{ 0,1 } }; // [INDEXES] table,columns
 
 	static void create(SchemaTransaction t) {
 		try {

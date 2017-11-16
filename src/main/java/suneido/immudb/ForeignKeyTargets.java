@@ -9,13 +9,14 @@ import java.util.Set;
 
 import javax.annotation.concurrent.Immutable;
 
-import suneido.util.PersistentMap;
-
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 
+import suneido.util.PersistentMap;
+
+/** Map<ForeignKey, ImmutableSet<ForeignKeyTarget>> */
 @Immutable
 class ForeignKeyTargets {
 	private final PersistentMap<ForeignKey, ImmutableSet<ForeignKeyTarget>> targets;
