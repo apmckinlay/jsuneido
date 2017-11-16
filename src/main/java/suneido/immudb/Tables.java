@@ -4,14 +4,16 @@
 
 package suneido.immudb;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.concurrent.Immutable;
 
-import suneido.util.PersistentMap;
-
 import com.google.common.collect.Maps;
+
+import suneido.util.PersistentMap;
 
 /**
  * Stores the database schema in memory.
@@ -87,6 +89,7 @@ class Tables {
 		private final PersistentMap.Builder<String, Table> byname =
 				PersistentMap.builder();
 		private final Map<String, Table> tables = Maps.newHashMap();
+		private final List<Table> list = new ArrayList<>(); // in order of num
 		int maxTblnum;
 
 		Builder(int maxTblnum) {
@@ -99,6 +102,7 @@ class Tables {
 			if (tbl.num > maxTblnum)
 				maxTblnum = tbl.num;
 			tables.put(tbl.name, tbl);
+			list.add(tbl);
 		}
 
 		Tables build() {
@@ -107,12 +111,12 @@ class Tables {
 
 		private ForeignKeyTargets buildFkdsts() {
 			ForeignKeyTargets.Builder fkdsts = ForeignKeyTargets.builder();
-			for (Table tbl : tables.values()) {
+			for (Table tbl : list) {
 				for (Index idx : tbl.indexesList()) {
 					ForeignKeySource fksrc = idx.fksrc;
 					if (fksrc != null)
 						fkdsts.add(fksrc,
-							new ForeignKeyTarget(tbl.num, tbl.name, idx.colNums, fksrc.mode));
+								new ForeignKeyTarget(tbl.num, tbl.name, idx.colNums, fksrc.mode));
 				}
 			 }
 			return fkdsts.build();
