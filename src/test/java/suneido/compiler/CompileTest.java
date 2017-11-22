@@ -153,6 +153,8 @@ public class CompileTest {
 				"&a, const0, DUP_X2, AASTORE, ARETURN");
 		test("; { ; a ; } ;",
 				"a, POP");
+		test("a[b .. c]",
+				"a, b, c, rangeTo, ARETURN");
 	}
 
 	@Test

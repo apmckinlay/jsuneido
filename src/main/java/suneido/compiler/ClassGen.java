@@ -37,7 +37,6 @@ public class ClassGen {
 	private static final String CLASS_GEN_INTERNAL_NAME = Type.getInternalName(ClassGen.class);
 	private static final String OPS_INTERNAL_NAME = Type.getInternalName(Ops.class);
 	private static final String DYNAMIC_INTERNAL_NAME = Type.getInternalName(Dynamic.class);
-	private static final String RANGE_DESCRIPTOR = Type.getDescriptor(Range.class);
 	private static final String EXCEPT_DESCRIPTOR = Type.getDescriptor(Except.class);
 	private static final String BLOCK_RETURN_EXCEPTION_INTERNAL_NAME = Type.getInternalName(BlockReturnException.class);
 	private static final String BLOCK_RETURN_EXCEPTION_DESCRIPTOR = Type.getDescriptor(BlockReturnException.class);
@@ -293,11 +292,13 @@ public class ClassGen {
 
 	void rangeTo() {
 		mv.visitMethodInsn(INVOKESTATIC, OPS_INTERNAL_NAME, "rangeTo",
-				"(Ljava/lang/Object;Ljava/lang/Object;)" + RANGE_DESCRIPTOR, false);
+				"(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)"
+				+ "Ljava/lang/Object;", false);
 	}
 	void rangeLen() {
 		mv.visitMethodInsn(INVOKESTATIC, OPS_INTERNAL_NAME, "rangeLen",
-				"(Ljava/lang/Object;Ljava/lang/Object;)" + RANGE_DESCRIPTOR, false);
+				"(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)"
+				+ "Ljava/lang/Object;", false);
 	}
 
 	void localLoad(String name) {

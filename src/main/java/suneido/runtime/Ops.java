@@ -682,8 +682,6 @@ public final class Ops {
 	}
 
 	private static Object getString(CharSequence s, Object m) {
-		if (m instanceof Range)
-			return ((Range) m).substr(s);
 		if (! Numbers.integral(m))
 			throw new SuException("string subscripts must be integers");
 		long n = ((Number) m).longValue();
@@ -696,11 +694,37 @@ public final class Ops {
 		return 0 <= i && i < len ? s.subSequence(i, i + 1) : "";
 	}
 
-	public static Range rangeTo(Object from, Object to) {
-		return new Range.RangeTo(toInt(from), toInt(to));
+	public static Object rangeTo(Object x, Object i, Object j) {
+		if (x instanceof CharSequence)
+			return rangeToString((CharSequence) x, toInt(i), toInt(j));
+		else if (x instanceof SuValue)
+			return ((SuValue) x).rangeTo(toInt(i), toInt(j));
+		else
+			throw new SuException(typeName(x) + " "
+					+ " does not support range");
 	}
-	public static Range rangeLen(Object from, Object to) {
-		return new Range.RangeLen(toInt(from), toInt(to));
+	private static Object rangeToString(CharSequence s, int i, int j) {
+		int size = s.length();
+		int f = Range.prepFrom(i, size);
+		int t = Range.prepTo(f, j, size);
+		return s.subSequence(f, t);
+	}
+
+	public static Object rangeLen(Object x, Object i, Object n) {
+		if (x instanceof CharSequence)
+			return rangeLenString((CharSequence) x, toInt(i), toInt(n));
+		else if (x instanceof SuValue)
+			return ((SuValue) x).rangeLen(toInt(i), toInt(n));
+		else
+			throw new SuException(typeName(x) + " "
+					+ " does not support range");
+	}
+
+	private static Object rangeLenString(CharSequence s, int i, int n) {
+		int size = s.length();
+		int f = Range.prepFrom(i, size);
+		int t = f + Range.prepLen(n, size - f);
+		return s.subSequence(f, t);
 	}
 
 	public static Object iterator(Object x) {

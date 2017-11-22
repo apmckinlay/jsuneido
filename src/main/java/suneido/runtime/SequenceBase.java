@@ -133,6 +133,18 @@ public abstract class SequenceBase extends SuContainer {
 	}
 
 	@Override
+	public Object rangeTo(int i, int j) {
+		ck_instantiate();
+		return super.rangeTo(i, j);
+	}
+
+	@Override
+	public Object rangeLen(int i, int n) {
+		ck_instantiate();
+		return super.rangeLen(i, n);
+	}
+
+	@Override
 	public SuContainer toContainer() {
 		ck_instantiate();
 		return this;

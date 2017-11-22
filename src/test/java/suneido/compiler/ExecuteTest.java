@@ -19,7 +19,6 @@ import suneido.SuException;
 import suneido.Suneido;
 import suneido.runtime.BlockReturnException;
 import suneido.runtime.Ops;
-import suneido.runtime.Range;
 import suneido.runtime.SuBoundMethod;
 import suneido.runtime.builtin.ContainerMethods;
 import suneido.runtime.builtin.StringMethods;
@@ -429,12 +428,11 @@ public class ExecuteTest {
 		int from = Integer.parseInt(args[1]);
 		int to = Integer.parseInt(args[2]);
 		String expected = args[3];
-		Range r = new Range.RangeTo(from, to);
-		if (!r.substr(s).equals(expected))
+		if (!Ops.rangeTo(s, from, to).equals(expected))
 			return false;
 		SuContainer list = stringToCharList(s);
 		SuContainer expectedList = stringToCharList(expected);
-		return r.sublist(list).equals(expectedList);
+		return Ops.rangeTo(list, from, to).equals(expectedList);
 	}
 
 	/**
@@ -449,15 +447,14 @@ public class ExecuteTest {
 
 		if (!StringMethods.Substr(s, i, n).equals(expected))
 			return false;
-		Range r = new Range.RangeLen(i, n);
-		if (!r.substr(s).equals(expected))
+		if (!Ops.rangeLen(s, i, n).equals(expected))
 			return false;
 
 		SuContainer list = stringToCharList(s);
 		SuContainer expectedList = stringToCharList(expected);
 		if (!ContainerMethods.Slice(list, i, n).equals(expectedList))
 			return false;
-		return r.sublist(list).equals(expectedList);
+		return Ops.rangeLen(list, i, n).equals(expectedList);
 	}
 
 	private static SuContainer stringToCharList(String s) {

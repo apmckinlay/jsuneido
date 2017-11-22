@@ -111,6 +111,14 @@ public class SuValue implements Packable {
 		throw new SuException(typeName() + " does not support put");
 	}
 
+	public Object rangeTo(int i, int j) {
+		throw new SuException(typeName() + " does not support range");
+	}
+
+	public Object rangeLen(int i, int n) {
+		throw new SuException(typeName() + " does not support range");
+	}
+
 	public int packSize() {
 		return packSize(0);
 	}

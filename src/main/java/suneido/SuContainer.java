@@ -180,10 +180,7 @@ public class SuContainer extends SuValue
 
 	@Override
 	public synchronized Object get(Object key) {
-		if (key instanceof Range)
-			return ((Range) key).sublist(this);
-		else
-			return getDefault(key, defval);
+		return getDefault(key, defval);
 	}
 
 	/**
@@ -258,6 +255,22 @@ public class SuContainer extends SuValue
 				return vec.get(at);
 		}
 		return map.isEmpty() ? null : map.get(at);
+	}
+
+	@Override
+	public synchronized Object rangeTo(int i, int j) {
+		int size = vec.size();
+		int f = Range.prepFrom(i, size);
+		int t = Range.prepTo(f, j, size);
+		return subList(f, t);
+	}
+
+	@Override
+	public synchronized Object rangeLen(int i, int n) {
+		int size = vec.size();
+		int f = Range.prepFrom(i, size);
+		int t = f + Range.prepLen(n, size - f);
+		return subList(f, t);
 	}
 
 	public synchronized boolean containsKey(Object key) {
