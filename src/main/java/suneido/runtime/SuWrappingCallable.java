@@ -14,33 +14,16 @@ package suneido.runtime;
  * @see SuCompiledCallable
  */
 public class SuWrappingCallable extends SuCallable {
-
-	//
-	// DATA
-	//
-
 	protected final SuCallable wrapped;
-
-	//
-	// CONSTRUCTORS
-	//
 
 	protected SuWrappingCallable(SuCallable wrapped) {
 		this.wrapped = wrapped;
 	}
 
-	//
-	// ANCESTOR CLASS: SuCallable
-	//
-
 	@Override
 	public String sourceCode() {
 		return wrapped.sourceCode();
 	}
-
-	//
-	// ANCESTOR CLASS: SuValue
-	//
 
 	@Override
 	public String display() {

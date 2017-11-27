@@ -7,7 +7,7 @@ package suneido.runtime;
 /**
  * <p>
  * A block in which some of the local variables are "upvalues" that belong to
- * a higher lexical scope. Wraps a block, which is a subclass of either 
+ * a higher lexical scope. Wraps a block, which is a subclass of either
  * {@link SuCallBase} (if no {@code this} reference) or {@link SuEvalBase}
  * (if there's a {@code this} reference).
  * </p>
@@ -26,10 +26,6 @@ public class SuClosure extends SuWrappingCallable {
 		this.self = self;
 		this.locals = locals;
 	}
-
-	//
-	// ANCESTOR CLASS: SuValue
-	//
 
 	@Override
 	public Object call(Object... args) {
