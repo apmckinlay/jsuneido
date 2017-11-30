@@ -71,6 +71,8 @@ public class Builtins {
 			.put("Md5", new Digest.Clazz("MD5", "Md5"))
 			.put("MemoryArena", function(MemoryArena.class))
 			.put("MoveFile", function(MoveFile.class))
+			.put("MultiByteToWideChar", BuiltinMethods.functions(WideChar.class)
+					.get("MultiByteToWideChar"))
 			.put("Name", function(Name.class))
 			.put("NullPointerException",
 						function(suneido.runtime.builtin.NullPointerException.class))
@@ -119,6 +121,8 @@ public class Builtins {
 			.put("UnixTime", function(UnixTime.class))
 			.put("Use", function(Use.class))
 			.put("UuidString", function(UuidString.class))
+			.put("WideCharToMultiByte", BuiltinMethods.functions(WideChar.class)
+					.get("WideCharToMultiByte"))
 			.put("Zlib", Zlib.singleton)
 			.build();
 	}

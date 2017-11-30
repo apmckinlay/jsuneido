@@ -490,7 +490,7 @@ public class StringMethods extends BuiltinMethods {
 		return s.subSequence(i, i + n);
 	}
 
-	private static final Charset Windows1252 = Charset.forName("windows-1252");
+	static final Charset Windows1252 = Charset.forName("windows-1252");
 
 	public static Object ToUtf8(Object self) {
 		CharBuffer cb = Windows1252.decode(
