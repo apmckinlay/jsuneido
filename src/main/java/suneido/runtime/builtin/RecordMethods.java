@@ -41,7 +41,7 @@ public class RecordMethods {
 	public static Object Delete(Object self, Object... args) {
 		if (! new ArgsIterator(args).hasNext()) {
 			((SuRecord) self).delete();
-			return Boolean.TRUE;
+			return null;
 		} else
 			return ContainerMethods.delete(self, args);
 	}
@@ -101,7 +101,7 @@ public class RecordMethods {
 		SuRecord rec = (SuRecord) self;
 		SuContainer newrec = (a == Boolean.FALSE) ? rec : Ops.toContainer(a);
 		rec.update(newrec);
-		return Boolean.TRUE;
+		return null;
 	}
 
 	@Params("field, rule")

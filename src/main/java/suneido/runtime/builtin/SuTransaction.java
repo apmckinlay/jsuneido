@@ -54,13 +54,15 @@ public class SuTransaction extends SuValue {
 	}
 
 	public static Object Complete(Object self) {
-		return ((SuTransaction) self).complete();
+		((SuTransaction) self).complete();
+		return null;
 	}
 
-	private boolean complete() {
+	private void complete() {
 		checkNotEnded("Complete");
 		conflict = t.complete();
-		return conflict == null;
+		if (conflict != null)
+			throw new SuException("transaction.Complete failed: " + conflict);
 	}
 
 	public static Object Conflict(Object self) {

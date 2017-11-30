@@ -124,7 +124,7 @@ public class SuQuery extends SuValue {
 			throw new SuException("can't convert " + Ops.typeName(a) + " to object");
 		DbmsQuery q = ((SuQuery) self).q;
 		q.output(rec.toDbRecord(q.header()));
-		return Boolean.TRUE;
+		return null;
 	}
 
 	public static Object Order(Object self) {
