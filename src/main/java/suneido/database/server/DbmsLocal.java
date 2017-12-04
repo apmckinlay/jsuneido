@@ -138,7 +138,7 @@ public class DbmsLocal extends Dbms {
 			get(Dir.NEXT, library + " project group, name, text", false);
 			admin("ensure " + library + " key(name,group)");
 		} catch (RuntimeException e) {
-			return false;
+			throw new SuException("Use failed: " + e);
 		}
 		libraries.add(library);
 		return true;
