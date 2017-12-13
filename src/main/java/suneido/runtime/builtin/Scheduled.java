@@ -12,7 +12,7 @@ import suneido.runtime.Params;
 
 public class Scheduled {
 
-	@Params("ms, function")
+	@Params("ms, block")
 	public static Object Delayed(Object ms, Object fn) {
 		Suneido.schedule(new Run(fn),
 				Ops.toInt(ms), TimeUnit.MILLISECONDS);
@@ -29,7 +29,5 @@ public class Scheduled {
 			Ops.call(fn);
 		}
 	}
-
-	// TODO return a Timer object with a Kill method
 
 }
