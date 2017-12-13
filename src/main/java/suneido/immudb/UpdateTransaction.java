@@ -219,19 +219,21 @@ class UpdateTransaction extends ReadWriteTransaction {
 				throw new Conflict("schema changed");
 			checkForConflicts();
 			st.step();
-			storeData();
-			st.step();
+			tran.startStore(); // everything after this must be in try block
 			try {
+				storeData();
+				st.step();
 				updateBtrees();
 				st.step();
 				updateDbInfo();
 				st.step();
-				finish();
+				finish(); // does tran.endStore()
 			} catch (Throwable e) {
 				tran.abortIncompleteStore();
 				throw e;
 			}
 		});
+		st.finish();
 	}
 
 	private void checkLimits() {
@@ -304,7 +306,6 @@ class UpdateTransaction extends ReadWriteTransaction {
 	// store data --------------------------------------------------------------
 
 	protected void storeData() {
-		tran.startStore();
 		startCommit();
 		storeActions();
 		endCommit(tran.dstor);
