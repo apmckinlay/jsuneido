@@ -94,8 +94,6 @@ public class SuClass extends SuValue {
 			return initMethod;
 		case "CallClass":
 			return newInstanceMethod;
-		case "Eval":
-			return eval;
 		}
 		f = userGeneralMethods.getMethod(method);
 		if (f != null)
@@ -103,19 +101,20 @@ public class SuClass extends SuValue {
 		return new NotFound(method);
 	}
 
-	private static final SuCallable initMethod = new SuBuiltinMethod(
-			"class.New", null) {
-		@Override
-		public Object eval(Object self, Object... args) {
-			return init(args);
-		}
+	private static final SuCallable initMethod =
+			new SuBuiltinMethod("class.New", null) {
+				@Override
+				public Object eval(Object self, Object... args) {
+					return init(args);
+				}
 	};
 
-	private final SuCallable newInstanceMethod = new SuBuiltinMethod("class.CallClass", null) {
-		@Override
-		public Object eval(Object self, Object... args) {
-			return newInstance(args);
-		}
+	private final SuCallable newInstanceMethod =
+			new SuBuiltinMethod("class.CallClass", null) {
+				@Override
+				public Object eval(Object self, Object... args) {
+					return newInstance(args);
+				}
 	};
 
 	@Override
@@ -232,7 +231,13 @@ public class SuClass extends SuValue {
 		return base().hasBase(base);
 	}
 
-	private static SuCallable eval = ContainerMethods.lookup("Eval");
+	public static Object Eval(Object self, Object... args) {
+		return ContainerMethods.Eval(self, args);
+	}
+
+	public static Object Eval2(Object self, Object... args) {
+		return ContainerMethods.Eval2(self, args);
+	}
 
 	@Params("key, block")
 	public static Object GetDefault(Object self, Object a, Object b) {
