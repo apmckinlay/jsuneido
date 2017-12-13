@@ -16,6 +16,7 @@ import java.util.Arrays;
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuException;
+import suneido.util.StepTimer;
 
 /**
  * Memory mapped file access.
@@ -143,6 +144,7 @@ class MmapFile extends Storage {
 		if (storSize == starting_file_size) // nothing written
 			return;
 
+		StepTimer st = new StepTimer("MmapFile.force", 5000); // 5 seconds
 		for (int i = last_force; i <= offsetToChunk(storSize); ++i)
 			if (chunks[i] != null)
 				try {
@@ -151,7 +153,7 @@ class MmapFile extends Storage {
 				} catch (Exception e) {
 					// ignore intermittent IoExceptions on Windows
 				}
-
+		st.step();
 		// this is needed to update file last modified time on Windows
 		try {
 			fin.seek(storSize);
@@ -159,6 +161,7 @@ class MmapFile extends Storage {
 		} catch (IOException e) {
 			// ignore
 		}
+		st.finish();
 	}
 
 	@Override
