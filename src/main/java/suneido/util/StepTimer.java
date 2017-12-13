@@ -11,12 +11,12 @@ import com.google.common.base.Stopwatch;
 
 /**
  * Track the duration (in milliseconds) of multiple steps of a process.
- * Throw a RuntimeException if a specified limit is exceeded.
+ * Log an error if a specified limit is exceeded.
  */
 public class StepTimer {
 	private final Stopwatch sw = Stopwatch.createStarted();
 	private final String desc;
-	private final long limit;
+	private long limit;
 	private final ArrayList<Long> steps = new ArrayList<>();
 
 	/**
@@ -31,9 +31,11 @@ public class StepTimer {
 	public void step() {
 		long t = sw.elapsed(TimeUnit.MILLISECONDS);
 		steps.add(t);
-		if (t > limit)
-			throw new RuntimeException(desc + " exceeded time limit " +
+		if (t > limit) {
+			Errlog.error(desc + " exceeded time limit " +
 					t + "ms > " + limit + " " + steps());
+			limit = Long.MAX_VALUE; // prevent further logging
+		}
 	}
 
 	public ArrayList<Long> finish() {
