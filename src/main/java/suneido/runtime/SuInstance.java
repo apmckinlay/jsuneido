@@ -243,6 +243,7 @@ public class SuInstance extends SuValue {
 
 	@Override
 	public int hashCode() {
+		//FIXME - all instances of a class have the same hash
 		return myclass.hashCode();
 	}
 
