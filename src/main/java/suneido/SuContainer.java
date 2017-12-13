@@ -313,14 +313,16 @@ public class SuContainer extends SuValue
 	@Override
 	public synchronized int hashCode() {
 		int h = hashCodeContrib();
-		if (! vec.isEmpty()) {
-			// The nice thing about vectors: they have a canonical ordering, so
-			// we know we can satisfy the hashCode() contract by just looking at
-			// an arbitrary number of elements.
+		// The nice thing about vectors: they have a canonical ordering, so
+		// we know we can satisfy the hashCode() contract by just looking at
+		// an arbitrary number of elements.
+		if (vec.size() > 0)
 			h = 31 * h + Ops.hashCodeContrib(vec.get(0));
-		} else if (map.size() <= 5) {
-			// The nasty thing about maps: no canonical ordering. If we want to
-			// look at any of the members, we have to look at all of them.
+		if (vec.size() > 1)
+			h = 31 * h + Ops.hashCodeContrib(vec.get(1));
+		if (map.size() <= 5) {
+			// The nasty thing about hash maps: no canonical ordering.
+			// If we look at any members, we have to look at all of them.
 			for (Map.Entry<Object, Object> entry : map.entrySet()) {
 				h = 31 * h + Ops.hashCodeContrib(entry.getKey())
 						^ Ops.hashCodeContrib(entry.getValue());
