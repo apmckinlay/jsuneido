@@ -28,7 +28,7 @@ public class SuThread extends BuiltinClass {
 		throw new SuException("cannot create instances of Thread");
 	}
 
-	private static final FunctionSpec callableFS = new FunctionSpec("callable");
+	private static final FunctionSpec callableFS = new FunctionSpec("block");
 
 	@Override
 	public Object call(Object... args) {
