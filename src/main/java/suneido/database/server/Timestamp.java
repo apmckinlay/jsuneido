@@ -4,7 +4,6 @@
 
 package suneido.database.server;
 
-import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 import suneido.SuDate;
@@ -12,8 +11,9 @@ import suneido.SuDate;
 @ThreadSafe
 public class Timestamp {
 
-	@GuardedBy("this")
-	private static SuDate prev = SuDate.now();
+	private volatile static SuDate prev = SuDate.now();
+	// not sure why this needs to be volatile when using synchronized
+	// but got duplicate timestamps without it ???
 
 	public static synchronized SuDate next() {
 		SuDate ts = SuDate.now();
