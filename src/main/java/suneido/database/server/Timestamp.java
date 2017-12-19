@@ -11,9 +11,7 @@ import suneido.SuDate;
 @ThreadSafe
 public class Timestamp {
 
-	private volatile static SuDate prev = SuDate.now();
-	// not sure why this needs to be volatile when using synchronized
-	// but got duplicate timestamps without it ???
+	private static SuDate prev = SuDate.now();
 
 	public static synchronized SuDate next() {
 		SuDate ts = SuDate.now();
