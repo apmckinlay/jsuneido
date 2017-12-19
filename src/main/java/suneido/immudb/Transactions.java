@@ -160,7 +160,7 @@ class Transactions {
 			t = utrans.first();
 		}
 		// abort outside synchronized to avoid deadlock
-		abort(t, "too many concurrent update transactions");
+		abort(t, "too many overlapping update transactions");
 	}
 
 	private void limitUpdateDuration() {
