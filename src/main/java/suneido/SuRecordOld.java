@@ -147,12 +147,10 @@ public abstract class SuRecordOld extends SuContainer {
 	@Override
 	public synchronized void put(Object key, Object value) {
 		invalid.remove(key); // before get
-		if (containsKey(key)) {
-			Object old = super.get(key);
-			if (old != null && old.equals(value))
-				return;
-		}
+		Object old = containsKey(key) ? super.get(key) : null;
 		super.put(key, value);
+		if (old != null && old.equals(value))
+			return;
 		invalidateDependents(key);
 		callObservers(key);
 	}
