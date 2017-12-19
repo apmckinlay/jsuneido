@@ -16,17 +16,33 @@ import com.google.common.primitives.UnsignedInts;
 
 /**
  * Chunked storage access. Abstract base class for MemStorage and MmapFile.
+ * <ul>
  * <li>derived classes must set storSize
  * <li>data is aligned to multiples of ALIGN (8)
  * <li>maximum allocation is CHUNK_SIZE
  * <li>allocations cannot straddle chunks and will be bumped to next chunk
  * <li>long offsets are divided by ALIGN and passed as int "addresses" (adr),
- * to reduce the space to store them.
- * Addresses are really unsigned ints, but we use int since that's all Java has.
- * To keep 0 as a special value, addresses start at 1.
- * See offsetToAdr and adrToOffset.
+ * 		to reduce the space to store them.
+ *		 Addresses are really unsigned ints, but we use int since that's all Java has.
+ * 		To keep 0 as a special value, addresses start at 1.
+ * 		See offsetToAdr and adrToOffset.
  * <li>therefore maximum file size is unsigned int max * ALIGN (32gb)
  * <li>blocks should not start with (long) 0 since that is used to detect padding
+ * </ul>
+ * Most operations are <b>not</b> synchronized.
+ * In particular, access to chunks is <b>not</b> thread safe.
+ * Thread safety and visibility is ensured externally.
+ * <ul>
+ * <li>For visibility, readers must acquire a lock when starting
+ * 		and writers must release the <b>same</b> lock when ending
+ * <li>Writers must hold the commit lock (only one writer at a time)
+ * <li>Update transactions call trans.commit/abort at end,
+ * 		read transactions call trans.add at beginning
+ * <li>Database.check gets commit lock at start,
+ * 		writers release commit lock at end
+ * <li>MmapFile.force calls synchronized Storage.sync at start,
+ * 		writers call synchronized Storage.protectAll at end
+ * </ul>
  */
 abstract class Storage implements AutoCloseable {
 	protected final static int FIRST_ADR = 2;
@@ -53,20 +69,24 @@ abstract class Storage implements AutoCloseable {
 	 * Allocate a block of storage.
 	 * It will be aligned, and may require advancing to next chunk.
 	 * (Leaving padding filled with zero bytes.)
+	 * <p>Assumption: alloc is not concurrent
 	 * @param n The size of the block required.
 	 * @return The "address" of the block. (Not just an offset.)
 	 */
-	synchronized int alloc(int n) {
+	int alloc(int n) {
 		assert n < CHUNK_SIZE : n + " not < " + CHUNK_SIZE;
 		n = align(n);
 
-		// if insufficient room in this chunk, advance to next
-		int remaining = CHUNK_SIZE - (int) (storSize % CHUNK_SIZE);
-		if (n > remaining)
-			storSize += remaining;
+		long size = storSize; // read volatile once
 
-		long offset = storSize;
-		storSize += n;
+		// if insufficient room in this chunk, advance to next
+		int remaining = CHUNK_SIZE - (int) (size % CHUNK_SIZE);
+		if (n > remaining)
+			size += remaining;
+
+		long offset = size;
+		size += n;
+		storSize = size; // write volatile once
 
 		return offsetToAdr(offset);
 	}
@@ -144,9 +164,14 @@ abstract class Storage implements AutoCloseable {
 		protect = storSize;
 	}
 
-	void protectAll() {
+	/** should be called at the end of all write procedures */
+	synchronized void protectAll() {
 		assert protect != Integer.MAX_VALUE;
 		protect = Integer.MAX_VALUE;
+	}
+
+	/** used by readers to ensure visibility of chunks */
+	synchronized void sync() {
 	}
 
 	protected ByteBuffer buf(long offset) {
@@ -165,11 +190,14 @@ abstract class Storage implements AutoCloseable {
 		int chunk = offsetToChunk(offset);
 		if (chunk >= chunks.length)
 			growChunks(chunk);
-		if (chunks[chunk] == null) {
-			chunks[chunk] = get(chunk);
-			chunks[chunk].order(ByteOrder.BIG_ENDIAN);
+		ByteBuffer bb = chunks[chunk];
+		if (bb == null) {
+			assert protect != Integer.MAX_VALUE;
+			bb = get(chunk);
+			bb.order(ByteOrder.BIG_ENDIAN);
+			chunks[chunk] = bb;
 		}
-		return chunks[chunk];
+		return bb;
 	}
 
 	protected int offsetToChunk(long offset) {

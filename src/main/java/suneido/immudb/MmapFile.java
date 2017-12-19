@@ -13,25 +13,20 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 import suneido.SuException;
 import suneido.util.StepTimer;
 
 /**
  * Memory mapped file access.
- * <p>
- * When opening, trailing zero bytes are ignored.
  * @see HeapStorage
  */
-@ThreadSafe
 class MmapFile extends Storage {
-	private static final int MMAP_CHUNK_SIZE = 64 * 1024 * 1024;
+	private static final int MMAP_CHUNK_SIZE = 64 * 1024 * 1024; // 64 mb
 	private final FileChannel.MapMode mode;
 	private final RandomAccessFile fin;
 	private final FileChannel fc;
 	private final long starting_file_size;
-	private int last_force;
+	private volatile int last_force;
 	private volatile boolean open = false;
 	static final byte[] MAGIC = { 's', 'n', 'd', 'o' };
 	static final int VERSION = 1;
@@ -124,9 +119,13 @@ class MmapFile extends Storage {
 		}
 	}
 
-	/** @return the file mapping containing the specified offset */
+	/**
+	 * Does the actual memory mapping. Cached by Storage.
+	 *
+	 * @return the file mapping containing the specified offset
+	 */
 	@Override
-	protected synchronized ByteBuffer get(int chunk) {
+	protected ByteBuffer get(int chunk) {
 		if (! open)
 			throw new RuntimeException("can't access database - it is not open");
 		long pos = (long) chunk * CHUNK_SIZE;
@@ -140,10 +139,11 @@ class MmapFile extends Storage {
 	}
 
 	@Override
-	synchronized void force() {
+	void force() {
 		if (storSize == starting_file_size) // nothing written
 			return;
 
+		sync(); // ensure visibility of chunks
 		StepTimer st = new StepTimer("MmapFile.force", 5000); // 5 seconds
 		for (int i = last_force; i <= offsetToChunk(storSize); ++i)
 			if (chunks[i] != null)
@@ -156,8 +156,8 @@ class MmapFile extends Storage {
 		st.step();
 		// this is needed to update file last modified time on Windows
 		try {
-			fin.seek(storSize);
-			fin.writeLong(0); // long since findEnd reads longs
+			fin.seek(0);
+			fin.write(MAGIC);
 		} catch (IOException e) {
 			// ignore
 		}
