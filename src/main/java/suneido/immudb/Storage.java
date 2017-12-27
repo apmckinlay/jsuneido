@@ -190,14 +190,17 @@ abstract class Storage implements AutoCloseable {
 		int chunk = offsetToChunk(offset);
 		if (chunk >= chunks.length)
 			growChunks(chunk);
-		ByteBuffer bb = chunks[chunk];
-		if (bb == null) {
-			assert protect != Integer.MAX_VALUE;
-			bb = get(chunk);
-			bb.order(ByteOrder.BIG_ENDIAN);
-			chunks[chunk] = bb;
-		}
-		return bb;
+		// DANGER: double-checked locking without volatile
+		// however, reference assignments are atomic
+		// and double get shouldn't hurt
+		if (chunks[chunk] == null)
+			synchronized(chunks) {
+				// re-check inside lock in case another thread was get'ing
+				// or we didn't have visibility
+				if (chunks[chunk] == null)
+					chunks[chunk] = get(chunk).order(ByteOrder.BIG_ENDIAN);
+			}
+		return chunks[chunk];
 	}
 
 	protected int offsetToChunk(long offset) {

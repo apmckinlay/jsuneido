@@ -121,7 +121,6 @@ class MmapFile extends Storage {
 
 	/**
 	 * Does the actual memory mapping. Cached by Storage.
-	 *
 	 * @return the file mapping containing the specified offset
 	 */
 	@Override
