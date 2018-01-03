@@ -29,4 +29,10 @@ public class SuWrappingCallable extends SuCallable {
 	public String display() {
 		return wrapped.display();
 	}
+	
+	@Override
+	public String internalName() {
+		return wrapped.internalName();
+	}
+
 }

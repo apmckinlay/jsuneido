@@ -145,7 +145,7 @@ public class SuValue implements Packable {
 		return false;
 	}
 
-	protected String internalName() {
+	public String internalName() {
 		return null;
 	}
 

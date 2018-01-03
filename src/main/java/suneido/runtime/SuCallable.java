@@ -10,8 +10,6 @@ import suneido.compiler.Disassembler;
 /**
  * <p>
  * A Suneido value that is callable by a Suneido language call expression.
- * </p>
- *
  * <p>
  * Examples:
  * <ul>
@@ -25,7 +23,6 @@ import suneido.compiler.Disassembler;
  * <li>a built-in function : see {@link Builtin}</li>
  * <li>a built-in method : see {@link Builtin}</li>
  * </ul>
- * </p>
  *
  * @author Andrew McKinlay, Victor Schappert
  */
@@ -162,7 +159,7 @@ public class SuCallable extends SuValue {
 	}
 
 	@Override
-	protected final String internalName() {
+	public String internalName() {
 		return name;
 	}
 

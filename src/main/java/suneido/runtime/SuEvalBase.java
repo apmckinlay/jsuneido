@@ -53,6 +53,12 @@ public abstract class SuEvalBase extends SuCompiledCallable {
 			return super.display();
 		}
 	}
+	
+	@Override
+	public String internalName() {
+		return getClass().getSimpleName()
+				.replace(AstCompile.METHOD_SEPARATOR, '.');
+	}
 
 	@Override
 	public abstract Object eval(Object self, Object... args);
