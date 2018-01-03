@@ -19,17 +19,9 @@ public class SuBoundMethod extends SuWrappingCallable {
 		callableType = CallableType.BOUND_METHOD;
 	}
 
-	//
-	// ACCESSORS
-	//
-
 	public SuCallable method() {
 		return wrapped;
 	}
-
-	//
-	// ANCESTOR CLASS: SuValue
-	//
 
 	@Override
 	public Object call(Object... args) {
@@ -45,10 +37,6 @@ public class SuBoundMethod extends SuWrappingCallable {
 	public SuValue lookup(String methodName) {
 		return this.wrapped.lookup(methodName);
 	}
-
-	//
-	// ANCESTOR CLASS: Object
-	//
 
 	@Override
 	public boolean equals(Object other) {
