@@ -51,7 +51,6 @@ class Tran implements Translator {
 	}
 
 	void allowStore() {
-		dstor.protect(); // enable output
 		head_adr = dstor.alloc(HEAD_SIZE); // to hold size and datetime
 	}
 
@@ -70,7 +69,7 @@ class Tran implements Translator {
 
 		int cksum = dstor.checksum(head_adr);
 		dstor.buffer(tail_adr).putInt(cksum).putInt(sizeInt);
-		dstor.protectAll(); // can't output outside tran
+		dstor.protect(); // can't output outside tran
 
 		return new StoreInfo(cksum, head_adr);
 		}
@@ -86,7 +85,7 @@ class Tran implements Translator {
 		int sizeInt = Storage.sizeToInt(dstor.sizeFrom(head_adr));
 		dstor.buffer(head_adr).putInt(sizeInt).putInt(0); // zero date
 		dstor.buffer(tail_adr).putInt(0).putInt(sizeInt); // zero checksum
-		dstor.protectAll(); // can't output outside tran
+		dstor.protect(); // can't output outside tran
 		head_adr = 0;
 	}
 

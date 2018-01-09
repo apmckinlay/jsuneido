@@ -12,9 +12,10 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import suneido.SuException;
-import suneido.util.StepTimer;
+import suneido.util.Errlog;
 
 /**
  * Memory mapped file access.
@@ -22,14 +23,15 @@ import suneido.util.StepTimer;
  */
 class MmapFile extends Storage {
 	private static final int MMAP_CHUNK_SIZE = 64 * 1024 * 1024; // 64 mb
+	static final byte[] MAGIC = { 's', 'n', 'd', 'o' };
+	static final int VERSION = 1;
 	private final FileChannel.MapMode mode;
 	private final RandomAccessFile fin;
 	private final FileChannel fc;
-	private final long starting_file_size;
-	private volatile int last_force;
-	private volatile boolean open = false;
-	static final byte[] MAGIC = { 's', 'n', 'd', 'o' };
-	static final int VERSION = 1;
+	private final CopyOnWriteArrayList<MappedByteBuffer> toForce =
+			new CopyOnWriteArrayList<>();
+	private boolean open = false;
+	private long lastForceSize;
 
 	/** @param mode Must be "r" or "rw" */
 	MmapFile(String filename, String mode) {
@@ -62,10 +64,12 @@ class MmapFile extends Storage {
 		if (mode.equals("rw"))
 			lock();
 		open = true;
+		storSize = fileLength();
+		mapAll();
 		findEnd();
 		version();
-		starting_file_size = storSize;
-		last_force = offsetToChunk(storSize);
+		protect();
+		lastForceSize = storSize;
 	}
 
 	private void lock() {
@@ -95,28 +99,34 @@ class MmapFile extends Storage {
 		}
 	}
 
+	private long fileLength() {
+		try {
+			return Math.max(fin.length(), ALIGN);
+		} catch (IOException e) {
+			throw new SuException("can't get file length", e);
+		}
+	}
+
+	void mapAll() {
+		int n = offsetToChunk(storSize - 1);
+		for (int i = 0; i <= n; ++i)
+			chunks[i] = _get(i);
+		toForce.add((MappedByteBuffer) chunks[n]);
+	}
+
 	/** handle zero padding caused by memory mapping */
 	private void findEnd() {
-		storSize = Math.max(fileLength(), ALIGN);
 		if (storSize <= ALIGN)
 			return;
 		if (0 != (storSize % ALIGN))
 			return; // not aligned
-		ByteBuffer buf = map(storSize - 1);
+		ByteBuffer buf = chunks[offsetToChunk(storSize - 1)];
 		int i = (int) ((storSize - 1) % CHUNK_SIZE) + 1;
 		assert ALIGN >= 8;
 		while (i >= 8 && buf.getLong(i - 8) == 0)
 			i -= 8;
 		int chunk = (int) ((storSize - 1) / CHUNK_SIZE);
 		storSize = (long) chunk * CHUNK_SIZE + align(i);
-	}
-
-	private long fileLength() {
-		try {
-			return fin.length();
-		} catch (IOException e) {
-			throw new SuException("can't get file length", e);
-		}
 	}
 
 	/**
@@ -127,6 +137,12 @@ class MmapFile extends Storage {
 	protected ByteBuffer get(int chunk) {
 		if (! open)
 			throw new RuntimeException("can't access database - it is not open");
+		MappedByteBuffer bb = _get(chunk);
+		toForce.add(bb);
+		return bb;
+	}
+
+	private MappedByteBuffer _get(int chunk) {
 		long pos = (long) chunk * CHUNK_SIZE;
 		long len = mode == FileChannel.MapMode.READ_WRITE
 				? CHUNK_SIZE : Math.min(CHUNK_SIZE, storSize - pos);
@@ -139,20 +155,22 @@ class MmapFile extends Storage {
 
 	@Override
 	void force() {
-		if (storSize == starting_file_size) // nothing written
+		if (storSize == lastForceSize) // nothing written
 			return;
-
-		sync(); // ensure visibility of chunks
-		StepTimer st = new StepTimer("MmapFile.force", 5000); // 5 seconds
-		for (int i = last_force; i <= offsetToChunk(storSize); ++i)
-			if (chunks[i] != null)
-				try {
-					((MappedByteBuffer) chunks[i]).force();
-					last_force = i;
-				} catch (Exception e) {
-					// ignore intermittent IoExceptions on Windows
-				}
-		st.step();
+		int n = 0;
+		// snapshot iterator is only view of toForce
+		// since it will be changing concurrently
+		for (MappedByteBuffer bb : toForce)
+			try {
+				bb.force();
+				++n;
+				lastForceSize = storSize;
+			} catch (Exception e) {
+				// ignore intermittent IoExceptions on Windows
+			}
+		// all but the last can no longer change
+		for (int i = n - 2; i >= 0; --i)
+			toForce.remove(i);
 		// this is needed to update file last modified time on Windows
 		try {
 			fin.seek(0);
@@ -160,7 +178,11 @@ class MmapFile extends Storage {
 		} catch (IOException e) {
 			// ignore
 		}
-		st.finish();
+	}
+
+	@Override
+	protected void growChunks(int chunk) {
+		Errlog.fatal("MmapFile chunks should not grow");
 	}
 
 	@Override

@@ -57,7 +57,6 @@ class Persist {
 
 	/** also called by BulkTransaction */
 	void startStore() {
-		istor.protect(); // enable output
 		head_adr = istor.alloc(HEAD_SIZE); // to hold size and datetime
 	}
 
@@ -102,7 +101,7 @@ class Persist {
 
 		int cksum = istor.checksum(head_adr);
 		istor.buffer(tail_adr).putInt(cksum).putInt(size);
-		istor.protectAll();
+		istor.protect();
 
 		db.setState(dbinfoadr, dbinfo, schema, lastcksum, lastadr);
 		db.setPersistState();
@@ -145,7 +144,7 @@ class Persist {
 		int sizeInt = Storage.sizeToInt(istor.sizeFrom(head_adr));
 		istor.buffer(head_adr).putInt(sizeInt).putInt(0);
 		istor.buffer(tail_adr).putInt(0).putInt(sizeInt);
-		istor.protectAll();
+		istor.protect();
 	}
 
 	/** used by Database open */

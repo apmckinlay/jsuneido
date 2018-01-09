@@ -29,9 +29,9 @@ import com.google.common.primitives.UnsignedInts;
  * <li>therefore maximum file size is unsigned int max * ALIGN (32gb)
  * <li>blocks should not start with (long) 0 since that is used to detect padding
  * </ul>
- * Most operations are <b>not</b> synchronized.
+ * WARNING: Operations are <b>not</b> synchronized.
  * In particular, access to chunks is <b>not</b> thread safe.
- * Thread safety and visibility is ensured externally.
+ * Thread safety and visibility must be ensured externally.
  * <ul>
  * <li>For visibility, readers must acquire a lock when starting
  * 		and writers must release the <b>same</b> lock when ending
@@ -40,8 +40,6 @@ import com.google.common.primitives.UnsignedInts;
  * 		read transactions call trans.add at beginning
  * <li>Database.check gets commit lock at start,
  * 		writers release commit lock at end
- * <li>MmapFile.force calls synchronized Storage.sync at start,
- * 		writers call synchronized Storage.protectAll at end
  * </ul>
  */
 abstract class Storage implements AutoCloseable {
@@ -54,12 +52,11 @@ abstract class Storage implements AutoCloseable {
 	/** INIT_CHUNKS should be the max for database chunk size & align
 	 * i.e. unsigned int max * align / chunk size
 	 * so that chunks never grow, to avoid concurrency issues.
-	 * (map is not synchronized)
 	 * Ok to grow for temp index storage since it's not concurrent */
 	protected final int INIT_CHUNKS = 512;
 	protected ByteBuffer[] chunks = new ByteBuffer[INIT_CHUNKS];
-	protected volatile long storSize = ALIGN; // one unit reserved
-	private volatile long protect = 0;
+	protected long storSize = ALIGN; // one unit reserved
+	private long protect = 0;
 
 	Storage(int chunkSize) {
 		CHUNK_SIZE = align(chunkSize);
@@ -69,25 +66,25 @@ abstract class Storage implements AutoCloseable {
 	 * Allocate a block of storage.
 	 * It will be aligned, and may require advancing to next chunk.
 	 * (Leaving padding filled with zero bytes.)
-	 * <p>Assumption: alloc is not concurrent
+	 * This is where chunks are mapped by calling get.
 	 * @param n The size of the block required.
 	 * @return The "address" of the block. (Not just an offset.)
 	 */
 	int alloc(int n) {
-		assert n < CHUNK_SIZE : n + " not < " + CHUNK_SIZE;
+		assert 0 <= n && n < CHUNK_SIZE;
 		n = align(n);
 
-		long size = storSize; // read volatile once
-
 		// if insufficient room in this chunk, advance to next
-		int remaining = CHUNK_SIZE - (int) (size % CHUNK_SIZE);
+		int remaining = CHUNK_SIZE - (int) (storSize % CHUNK_SIZE);
 		if (n > remaining)
-			size += remaining;
-
-		long offset = size;
-		size += n;
-		storSize = size; // write volatile once
-
+			storSize += remaining;
+		int chunk = offsetToChunk(storSize);
+		if (chunk >= chunks.length)
+			growChunks(chunk);
+		if (chunks[chunk] == null)
+			chunks[chunk] = get(chunk).order(ByteOrder.BIG_ENDIAN); // map
+		long offset = storSize;
+		storSize += n;
 		return offsetToAdr(offset);
 	}
 
@@ -151,7 +148,7 @@ abstract class Storage implements AutoCloseable {
 	 * @return The buffer containing the address.
 	 */
 	ByteBuffer bufferBase(int adr) {
-		return map(adrToOffset(adr));
+		return chunks[offsetToChunk(adrToOffset(adr))];
 	}
 
 	/** @return The position of adr in bufferBase */
@@ -160,22 +157,11 @@ abstract class Storage implements AutoCloseable {
 	}
 
 	void protect() {
-		assert protect == 0 || protect == Integer.MAX_VALUE;
 		protect = storSize;
 	}
 
-	/** should be called at the end of all write procedures */
-	synchronized void protectAll() {
-		assert protect != Integer.MAX_VALUE;
-		protect = Integer.MAX_VALUE;
-	}
-
-	/** used by readers to ensure visibility of chunks */
-	synchronized void sync() {
-	}
-
 	protected ByteBuffer buf(long offset) {
-		ByteBuffer buf = map(offset);
+		ByteBuffer buf = chunks[offsetToChunk(offset)];
 		buf = (offset < protect) ? buf.asReadOnlyBuffer() : buf.duplicate();
 		buf.position((int) (offset % CHUNK_SIZE));
 		long startOfLastChunk = (storSize / CHUNK_SIZE) * CHUNK_SIZE;
@@ -184,30 +170,11 @@ abstract class Storage implements AutoCloseable {
 		return buf.slice();
 	}
 
-	/** @return the chunk containing the specified offset */
-	protected ByteBuffer map(long offset) {
-		assert 0 <= offset && offset < storSize;
-		int chunk = offsetToChunk(offset);
-		if (chunk >= chunks.length)
-			growChunks(chunk);
-		// DANGER: double-checked locking without volatile
-		// however, reference assignments are atomic
-		// and double get shouldn't hurt
-		if (chunks[chunk] == null)
-			synchronized(chunks) {
-				// re-check inside lock in case another thread was get'ing
-				// or we didn't have visibility
-				if (chunks[chunk] == null)
-					chunks[chunk] = get(chunk).order(ByteOrder.BIG_ENDIAN);
-			}
-		return chunks[chunk];
-	}
-
 	protected int offsetToChunk(long offset) {
 		return (int) (offset / CHUNK_SIZE);
 	}
 
-	private void growChunks(int chunk) {
+	protected void growChunks(int chunk) {
 		chunks = Arrays.copyOf(chunks, (3 * chunk) / 2);
 	}
 
