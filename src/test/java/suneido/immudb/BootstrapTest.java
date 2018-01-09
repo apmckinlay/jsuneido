@@ -40,9 +40,14 @@ public class BootstrapTest {
 		assertThat(((TableInfo) dbinfo.get(TN.COLUMNS)).nrows(), equalTo(13));
 		assertThat(((TableInfo) dbinfo.get(TN.INDEXES)).nrows(), equalTo(5));
 
-		assertThat(new CheckTable(db, "tables").call(), equalTo(""));
-		assertThat(new CheckTable(db, "columns").call(), equalTo(""));
-		assertThat(new CheckTable(db, "indexes").call(), equalTo(""));
+		ReadTransaction t = db.readTransaction();
+		try {
+			assertThat(new CheckTable(t, "tables").call(), equalTo(""));
+			assertThat(new CheckTable(t, "columns").call(), equalTo(""));
+			assertThat(new CheckTable(t, "indexes").call(), equalTo(""));
+		} finally {
+			t.abort();
+		}
 	}
 
 }

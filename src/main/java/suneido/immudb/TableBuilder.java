@@ -31,17 +31,22 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 	private Index firstIndex;
 	private int nextField = 0;
 
+	// used by Bootstrap
 	static TableBuilder create(SchemaTransaction t, String tableName, int tblnum) {
 		return new TableBuilder(t, tableName, tblnum).createTable();
+	}
+
+	static TableBuilder create(SchemaTransaction t, String tableName) {
+		return new TableBuilder(t, tableName, t.nextTableNum()).createTable();
 	}
 
 	static TableBuilder alter(SchemaTransaction t, String tableName) {
 		return new TableBuilder(t, tableName);
 	}
 
-	static TableBuilder ensure(SchemaTransaction t, String tableName, int tblnum) {
+	static TableBuilder ensure(SchemaTransaction t, String tableName) {
 		return (t.getTable(tableName) == null)
-				? create(t, tableName, tblnum)
+				? create(t, tableName)
 				: alter(t, tableName);
 	}
 

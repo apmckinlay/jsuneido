@@ -49,10 +49,12 @@ class DbCheck {
 	static Status check(String filename, Storage dstor, Storage istor, Observer ob) {
 		return new DbCheck(filename, dstor, istor, ob).check();
 	}
-	static Status check(String filename, Storage dstor, Storage istor,
+
+	// from Database.check, with active database
+	static Status check(String filename, Database db,
 			int dUpTo, int iUpTo, Observer ob) {
-		Check check = new Check(dstor, istor).upTo(dUpTo, iUpTo);
-		return new DbCheck(filename, dstor, istor, ob).check(check);
+		Check check = new Check(db.dstor, db.istor).upTo(dUpTo, iUpTo);
+		return new DbCheck(filename, db.dstor, db.istor, ob).check(check, db);
 	}
 
 	DbCheck(String filename, Storage dstor, Storage istor, Observer ob) {
@@ -63,16 +65,17 @@ class DbCheck {
 	}
 
 	Status check() {
-		return check(new Check(dstor, istor));
+		Database db = Database.openWithoutCheck("", dstor, istor);
+		return check(new Check(dstor, istor), db);
 	}
 
-	private Status check(Check check) {
+	private Status check(Check check, Database db) {
 		println("checksums...");
 		Status status = Status.CORRUPTED;
 		boolean ok = check.fullcheck();
 		last_good_commit = check.lastOkDate();
 		if (ok) {
-			if (check_data_and_indexes())
+			if (check_data_and_indexes(db))
 				status = Status.OK;
 		} else
 			print(check.status());
@@ -98,13 +101,13 @@ class DbCheck {
 	private static final int BAD_LIMIT = 10;
 	private static final int N_THREADS = Runtime.getRuntime().availableProcessors();
 
-	protected boolean check_data_and_indexes() {
+	protected boolean check_data_and_indexes(Database db) {
 		println("indexes...");
 		ExecutorService executor = Executors.newFixedThreadPool(N_THREADS);
 		ExecutorCompletionService<String> ecs = new ExecutorCompletionService<>(executor);
-		Database db = Database.openWithoutCheck("", dstor, istor);
+		ReadTransaction t = db.readTransaction();
 		try {
-			int ntables = submitTasks(ecs, db);
+			int ntables = submitTasks(ecs, t);
 			int nbad = getResults(executor, ecs, ntables);
 			return nbad == 0;
 		} catch (Throwable e) {
@@ -112,17 +115,19 @@ class DbCheck {
 			return false;
 		} finally {
 			executor.shutdown();
+			t.complete();
 		}
 	}
 
-	private static int submitTasks(ExecutorCompletionService<String> ecs, Database db) {
+	private static int submitTasks(ExecutorCompletionService<String> ecs,
+			ReadTransaction t) {
 		int ntables = 0;
-		int maxTblnum = db.nextTableNum();
+		int maxTblnum = t.nextTableNum();
 		for (int tblnum = 0; tblnum < maxTblnum; ++tblnum) {
-			Table table = db.schema().get(tblnum);
+			Table table = t.getTable(tblnum);
 			if (table == null)
 				continue;
-			ecs.submit(new CheckTable(db, table.name));
+			ecs.submit(new CheckTable(t, table.name));
 			++ntables;
 		}
 		return ntables;

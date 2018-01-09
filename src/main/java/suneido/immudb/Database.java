@@ -188,7 +188,7 @@ class Database implements suneido.intfc.database.Database, AutoCloseable {
 			upto.i = istor.upTo();
 		});
 		StringObserver so = new StringObserver();
-		Status status = DbCheck.check(filename, dstor, istor, upto.d, upto.i, so);
+		Status status = DbCheck.check(filename, this, upto.d, upto.i, so);
 		if (status != Status.OK) {
 			HttpServerMonitor.corrupt();
 			corrupt = true; // prevent writing dbc file
@@ -199,11 +199,6 @@ class Database implements suneido.intfc.database.Database, AutoCloseable {
 
 	void dump(boolean detail) {
 		Dump.dump(dstor, istor, detail);
-	}
-
-	// used by DbCheck
-	Tables schema() {
-		return state.schema;
 	}
 
 	@Override
@@ -245,11 +240,7 @@ class Database implements suneido.intfc.database.Database, AutoCloseable {
 	@Override
 	public TableBuilder createTable(String tableName) {
 		checkForSystemTable(tableName, "create");
-		return TableBuilder.create(schemaTransaction(), tableName, nextTableNum());
-	}
-
-	int nextTableNum() {
-		return state.schema.maxTblnum + 1;
+		return TableBuilder.create(schemaTransaction(), tableName);
 	}
 
 	@Override
@@ -261,7 +252,7 @@ class Database implements suneido.intfc.database.Database, AutoCloseable {
 	@Override
 	public TableBuilder ensureTable(String tableName) {
 		checkForSystemTable(tableName, "ensure");
-		return TableBuilder.ensure(schemaTransaction(), tableName, nextTableNum());
+		return TableBuilder.ensure(schemaTransaction(), tableName);
 	}
 
 	@Override

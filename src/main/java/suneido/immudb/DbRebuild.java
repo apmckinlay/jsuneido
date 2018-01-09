@@ -86,7 +86,8 @@ class DbRebuild {
 	private static boolean check_data_and_indexes(Storage dstor, Storage istor) {
 		System.out.println("tables...");
 		DbCheck dbCheck = new DbCheck("", dstor, istor, DatabasePackage.printObserver);
-		boolean ok = dbCheck.check_data_and_indexes();
+		Database db = Database.openWithoutCheck("", dstor, istor);
+		boolean ok = dbCheck.check_data_and_indexes(db);
 		System.out.print(dbCheck.details);
 		return ok;
 	}

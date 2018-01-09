@@ -201,9 +201,9 @@ public class RequestTest {
 	public void drop_table() {
 		req("ensure tbl " + SCHEMA);
 		req("drop tbl");
-		assertNull(db.schema().get("tbl"));
+		assertNull(db.getSchema("tbl"));
 		db = db.reopen();
-		assertNull(db.schema().get("tbl"));
+		assertNull(db.getSchema("tbl"));
 	}
 
 	@Test

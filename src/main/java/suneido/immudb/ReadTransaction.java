@@ -159,6 +159,10 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 		return (TableInfo) dbinfo.get(tblnum);
 	}
 
+	int nextTableNum() {
+		return dbstate.schema.maxTblnum + 1;
+	}
+
 	/** @return view definition, else null if view not found */
 	@Override
 	public String getView(String name) {
