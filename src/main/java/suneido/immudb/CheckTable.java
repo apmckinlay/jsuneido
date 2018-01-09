@@ -13,19 +13,24 @@ import suneido.intfc.database.IndexIter;
  * Run in parallel by {@link DbCheck}.
  */
 class CheckTable implements Callable<String> {
-	private final ReadTransaction t;
+	private final Database db;
 	private final String tableName;
 	private String details = "";
 
-	CheckTable(ReadTransaction t, String tableName) {
-		this.t = t;
+	CheckTable(Database db, String tableName) {
+		this.db = db;
 		this.tableName = tableName;
 	}
 
 	/** @return "" if ok, otherwise a description of problems */
 	@Override
 	public String call() {
-		checkTable(t);
+		ReadTransaction t = db.readTransaction();
+		try {
+			checkTable(t);
+		} finally {
+			t.complete();
+		}
 		return details;
 	}
 

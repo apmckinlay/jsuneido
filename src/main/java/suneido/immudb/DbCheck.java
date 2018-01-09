@@ -105,9 +105,8 @@ class DbCheck {
 		println("indexes...");
 		ExecutorService executor = Executors.newFixedThreadPool(N_THREADS);
 		ExecutorCompletionService<String> ecs = new ExecutorCompletionService<>(executor);
-		ReadTransaction t = db.readTransaction();
 		try {
-			int ntables = submitTasks(ecs, t);
+			int ntables = submitTasks(ecs, db);
 			int nbad = getResults(executor, ecs, ntables);
 			return nbad == 0;
 		} catch (Throwable e) {
@@ -115,22 +114,26 @@ class DbCheck {
 			return false;
 		} finally {
 			executor.shutdown();
-			t.complete();
 		}
 	}
 
 	private static int submitTasks(ExecutorCompletionService<String> ecs,
-			ReadTransaction t) {
-		int ntables = 0;
-		int maxTblnum = t.nextTableNum();
-		for (int tblnum = 0; tblnum < maxTblnum; ++tblnum) {
-			Table table = t.getTable(tblnum);
-			if (table == null)
-				continue;
-			ecs.submit(new CheckTable(t, table.name));
-			++ntables;
+			Database db) {
+		ReadTransaction t = db.readTransaction();
+		try {
+			int ntables = 0;
+			int maxTblnum = t.nextTableNum();
+			for (int tblnum = 0; tblnum < maxTblnum; ++tblnum) {
+				Table table = t.getTable(tblnum);
+				if (table == null)
+					continue;
+				ecs.submit(new CheckTable(db, table.name));
+				++ntables;
+			}
+			return ntables;
+		} finally {
+			t.complete();
 		}
-		return ntables;
 	}
 
 	private int getResults(ExecutorService executor,
