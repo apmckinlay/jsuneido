@@ -22,9 +22,11 @@ import suneido.util.Errlog;
  * @see HeapStorage
  */
 class MmapFile extends Storage {
-	private static final int MMAP_CHUNK_SIZE = 64 * 1024 * 1024; // 64 mb
+	static final int MMAP_CHUNK_SIZE = 64 * 1024 * 1024; // 64 mb
 	static final byte[] MAGIC = { 's', 'n', 'd', 'o' };
+	static final ByteBuffer magic = ByteBuffer.allocate(4).put(MAGIC);
 	static final int VERSION = 1;
+	private final File file;
 	private final FileChannel.MapMode mode;
 	private final RandomAccessFile fin;
 	private final FileChannel fc;
@@ -41,6 +43,7 @@ class MmapFile extends Storage {
 	/** @param mode Must be "r" or "rw" */
 	MmapFile(File file, String mode) {
 		super(MMAP_CHUNK_SIZE);
+		this.file = file;
 		switch (mode) {
 		case "r":
 			if (!file.canRead())
@@ -172,12 +175,8 @@ class MmapFile extends Storage {
 		for (int i = n - 2; i >= 0; --i)
 			toForce.remove(i);
 		// this is needed to update file last modified time on Windows
-		try {
-			fin.seek(0);
-			fin.write(MAGIC);
-		} catch (IOException e) {
-			// ignore
-		}
+		if (!file.setLastModified(System.currentTimeMillis()))
+			Errlog.error("failed to setLastModified on " + file);
 	}
 
 	@Override
