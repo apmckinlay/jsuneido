@@ -15,7 +15,7 @@ import suneido.util.Util;
 public class Dump {
 
 	public static void dump() {
-		Database db = Database.openReadonly("suneido.db");
+		Database db = Database.openReadonlyWithoutCheck("suneido.db");
 	    db.dump(true);
 	    db.close();
 	    System.err.println("dumped suneido.dbd to dump-data.txt and "

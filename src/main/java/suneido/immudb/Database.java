@@ -78,6 +78,10 @@ class Database implements suneido.intfc.database.Database, AutoCloseable {
 		return open(filename, "r");
 	}
 
+	static Database openReadonlyWithoutCheck(String filename) {
+		return open(filename, "r", Ck.NOCHECK);
+	}
+
 	static Database open(String filename, String mode) {
 		return open(filename, mode, Ck.CHECK);
 	}
