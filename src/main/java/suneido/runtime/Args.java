@@ -46,46 +46,48 @@ public class Args {
 
 		Object[] locals = new Object[nlocals];
 
-		if (fs.atParam && args_each) {
-			// function (@params) (@args)
-			SuContainer c = Ops.toContainer(args[1]);
-			if (c == null)
-				throw new SuException("@args requires object");
-			locals[0] = c.slice(args[0] == EACH ? 0 : 1);
-		} else if (fs.atParam) {
-			// function (@params)
-			SuContainer c = new SuContainer();
-			locals[0] = c;
-			collectArgs(c, args);
-		} else {
-			assert nlocals >= fs.paramNames.length;
-			int li = 0;
-			for (int i = 0; i < args.length; ++i) {
-				if (args[i] == NAMED) {
-					for (int j = 0; j < fs.paramNames.length; ++j)
-						if (fs.paramNames[j].equals(args[i + 1]))
-							locals[j] = args[i + 2];
-					// else ignore named arg not matching param
-					i += 2;
-				}
-				else if (args[i] == EACH || args[i] == EACH1) {
-					int start = args[i] == EACH ? 0 : 1;
-					SuContainer c = Ops.toContainer(args[++i]);
-					if (c.vecSize() - start > nlocals - li)
-						throw new SuException("too many arguments");
-					for (int j = start; j < c.vecSize(); ++j)
-						locals[li++] = c.vecGet(j);
-					for (int j = 0; j < fs.paramNames.length; ++j) {
-						Object x = c.getIfPresent(fs.paramNames[j]);
-						if (x != null)
-							locals[j] = x;
-					}
-				}
-				else if (li < fs.paramNames.length)
-					locals[li++] = args[i];
-				else
-					throw new SuException("too many arguments");
+		if (fs.atParam) {
+			if (args_each) {
+				// function (@params) (@args)
+				SuContainer c = Ops.toContainer(args[1]);
+				if (c == null)
+					throw new SuException("@args requires object");
+				locals[0] = c.slice(args[0] == EACH ? 0 : 1);
+			} else {
+				// function (@params)
+				SuContainer c = new SuContainer();
+				locals[0] = c;
+				collectArgs(c, args);
 			}
+			return locals;
+		}
+		assert nlocals >= fs.paramNames.length;
+		int li = 0;
+		for (int i = 0; i < args.length; ++i) {
+			if (args[i] == NAMED) {
+				for (int j = 0; j < fs.paramNames.length; ++j)
+					if (fs.paramNames[j].equals(args[i + 1]))
+						locals[j] = args[i + 2];
+				// else ignore named arg not matching param
+				i += 2;
+			}
+			else if (args[i] == EACH || args[i] == EACH1) {
+				int start = args[i] == EACH ? 0 : 1;
+				SuContainer c = Ops.toContainer(args[++i]);
+				if (c.vecSize() - start > nlocals - li)
+					throw new SuException("too many arguments");
+				for (int j = start; j < c.vecSize(); ++j)
+					locals[li++] = c.vecGet(j);
+				for (int j = 0; j < fs.paramNames.length; ++j) {
+					Object x = c.getIfPresent(fs.paramNames[j]);
+					if (x != null)
+						locals[j] = x;
+				}
+			}
+			else if (li < fs.paramNames.length)
+				locals[li++] = args[i];
+			else
+				throw new SuException("too many arguments");
 		}
 
 		dynamicImplicits(fs, locals);
