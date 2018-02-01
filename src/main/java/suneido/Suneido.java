@@ -173,7 +173,10 @@ public class Suneido {
 				Errlog.fatal("could not open database after rebuild");
 		}
 		TheDbms.set(db);
-		Runtime.getRuntime().addShutdownHook(new Thread(() -> Suneido.db.close()));
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			exiting = true;
+			Suneido.db.close();
+		}));
 		scheduleAtFixedRate(db::limitOutstandingTransactions, 1, TimeUnit.SECONDS);
 		scheduleAtFixedRate(db::force, 1, TimeUnit.MINUTES);
 	}
