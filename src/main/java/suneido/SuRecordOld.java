@@ -95,9 +95,8 @@ public abstract class SuRecordOld extends SuContainer {
 			addField(field, rec.getRaw(i++));
 	}
 
-	@Override
 	public synchronized void clear() {
-		super.clear();
+		super.deleteAll();
 		hdr = null;
 		tran = null;
 		recadr = 0;

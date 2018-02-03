@@ -464,7 +464,7 @@ public class SuContainer extends SuValue
 		return true;
 	}
 
-	public synchronized void clear() {
+	public synchronized void deleteAll() {
 		checkReadonly();
 		vec.clear();
 		map.clear();

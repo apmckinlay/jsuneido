@@ -145,7 +145,7 @@ public final class ContainerMethods {
 			if (! "all".equals(e.getKey()))
 				deleteUsage();
 			if (e.getValue() == Boolean.TRUE)
-				c.clear();
+				c.deleteAll();
 		} else {
 			c.delete(arg);
 			while (iter.hasNext()) {

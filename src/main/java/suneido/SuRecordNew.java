@@ -81,9 +81,8 @@ public class SuRecordNew extends SuObservers {
 			addField(field, rec.getRaw(i++));
 	}
 
-	@Override
 	public void clear() {
-		super.clear();
+		deleteAll();
 		hdr = null;
 		tran = null;
 		recadr = 0;
