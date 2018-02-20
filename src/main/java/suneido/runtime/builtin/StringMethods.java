@@ -151,63 +151,70 @@ public class StringMethods extends BuiltinMethods {
 		return result.group(s, part_i);
 	}
 
-	@Params("s, i = 0")
+	@Params("s, pos = 0")
 	public static Object Find(Object self, Object a, Object b) {
 		String s = toStr(self);
-		int i = s.indexOf(toStr(a), toInt(b));
+		int pos = toInt(b);
+		int i = s.indexOf(toStr(a), pos);
 		return i == -1 ? s.length() : i;
 	}
 
-	@Params("s, i = false")
+	@Params("s, pos = false")
 	public static Object FindLast(Object self, Object a, Object b) {
-		int pos = (b == Boolean.FALSE) ? Integer.MAX_VALUE : toInt(b);
-		int i = toStr(self).lastIndexOf(toStr(a), pos);
+		String s = toStr(self);
+		String sub = toStr(a);
+		int pos = (b == Boolean.FALSE) ? s.length() - 1 : toInt(b);
+		int i = s.lastIndexOf(sub, pos);
 		return i == -1 ? Boolean.FALSE : i;
 	}
 
-	@Params("string")
-	public static Object Find1of(Object self, Object a) {
+	@Params("string, pos = 0")
+	public static Object Find1of(Object self, Object a, Object b) {
 		String s = toStr(self);
 		String set = Ops.toStr(a);
-		for (int i = 0; i < s.length(); ++i) {
-			int j = set.indexOf(s.charAt(i));
-			if (j != -1)
+		int pos = toInt(b);
+		for (int i = Math.max(0, pos); i < s.length(); ++i) {
+			if (-1 != set.indexOf(s.charAt(i)))
 				return i;
 		}
 		return s.length();
 	}
 
-	@Params("string")
-	public static Object Findnot1of(Object self, Object a) {
+	@Params("string, pos = 0")
+	public static Object Findnot1of(Object self, Object a, Object b) {
 		String s = toStr(self);
 		String set = Ops.toStr(a);
-		for (int i = 0; i < s.length(); ++i) {
-			int j = set.indexOf(s.charAt(i));
-			if (j == -1)
+		int pos = toInt(b);
+		for (int i = Math.max(0, pos); i < s.length(); ++i) {
+			if (-1 == set.indexOf(s.charAt(i)))
 				return i;
 		}
 		return s.length();
 	}
 
-	@Params("string")
-	public static Object FindLast1of(Object self, Object a) {
+	@Params("string, pos = false")
+	public static Object FindLast1of(Object self, Object a, Object b) {
 		String s = toStr(self);
 		String set = Ops.toStr(a);
-		for (int i = s.length() - 1; i >= 0; --i) {
-			int j = set.indexOf(s.charAt(i));
-			if (j != -1)
+		int pos = (b == Boolean.FALSE)
+				? s.length() - 1
+				: Math.min(toInt(b), s.length() - 1);
+		for (int i = pos; i >= 0; --i) {
+			if (-1 != set.indexOf(s.charAt(i)))
 				return i;
 		}
 		return Boolean.FALSE;
 	}
 
-	@Params("string")
-	public static Object FindLastnot1of(Object self, Object a) {
+	@Params("string, pos = false")
+	public static Object FindLastnot1of(Object self, Object a, Object b) {
 		String s = toStr(self);
 		String set = Ops.toStr(a);
-		for (int i = s.length() - 1; i >= 0; --i) {
-			int j = set.indexOf(s.charAt(i));
-			if (j == -1)
+		int pos = (b == Boolean.FALSE)
+				? s.length() - 1
+				: Math.min(toInt(b), s.length() - 1);
+		for (int i = pos; i >= 0; --i) {
+			if (-1 == set.indexOf(s.charAt(i)))
 				return i;
 		}
 		return Boolean.FALSE;
