@@ -290,29 +290,29 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 
 	@Override
 	public void addRecord(String table, suneido.intfc.database.Record r) {
-		throw new UnsupportedOperationException();
+		throw new SuException("can't output to read-only transaction");
 	}
 
 	@Override
 	public int updateRecord(int recadr, suneido.intfc.database.Record rec,
 			Blocking blocking) {
-		throw new UnsupportedOperationException();
+		throw new SuException("can't update from read-only transaction");
 	}
 
 	@Override
 	public int updateRecord(int tblnum, suneido.intfc.database.Record oldrec,
 			suneido.intfc.database.Record newrec, Blocking blocking) {
-		throw new UnsupportedOperationException();
+		throw new SuException("can't update from read-only transaction");
 	}
 
 	@Override
 	public void removeRecord(int off) {
-		throw new UnsupportedOperationException();
+		throw new SuException("can't delete from read-only transaction");
 	}
 
 	@Override
 	public void removeRecord(int tblnum, suneido.intfc.database.Record rec) {
-		throw new UnsupportedOperationException();
+		throw new SuException("can't delete from read-only transaction");
 	}
 
 	@Override
