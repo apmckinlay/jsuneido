@@ -165,11 +165,6 @@ public class SocketClient extends SuValue {
 		return sc;
 	}
 
-	@Override
-	protected void finalize() throws Throwable {
-		close();
-	}
-
 	private static final FunctionSpec newFS = new FunctionSpec(array("address",
 			"port", "timeout", "timeoutConnect"), 60, 0);
 

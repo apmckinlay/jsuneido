@@ -210,11 +210,6 @@ public class SuFile extends SuValue {
 	}
 
 	@Override
-	protected void finalize() throws Throwable {
-		close();
-	}
-
-	@Override
 	public String toString() {
 		return "File(" + filename + ", " + mode + ")";
 	}

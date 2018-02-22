@@ -138,11 +138,6 @@ public class RunPiped extends SuValue {
 	}
 
 	@Override
-	protected void finalize() throws Throwable {
-		close();
-	}
-
-	@Override
 	public String toString() {
 		return "RunPiped(" + cmd + ")";
 	}
