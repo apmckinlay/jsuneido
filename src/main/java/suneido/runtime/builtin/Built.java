@@ -4,12 +4,12 @@
 
 package suneido.runtime.builtin;
 
-import suneido.Build;
+import suneido.Suneido;
 
 public class Built {
 
 	public static String Built() {
-		return Build.desc();
+		return Suneido.built;
 	}
 
 }

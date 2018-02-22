@@ -24,7 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import com.google.common.base.Strings;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
-import suneido.Build;
+import suneido.Suneido;
 import suneido.SuException;
 import suneido.util.Errlog;
 import suneido.util.ServerBySelect;
@@ -101,7 +101,7 @@ public class DbmsServer {
 		}
 
 		private static ByteBuffer hello() {
-			String hello = "Suneido " + Build.desc() + "\r\n";
+			String hello = "Suneido " + Suneido.built + "\r\n";
 			assert hello.length() < helloSize;
 			return stringToBuffer(Strings.padEnd(hello, helloSize, '\000'));
 		}

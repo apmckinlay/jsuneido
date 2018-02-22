@@ -18,6 +18,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
+import suneido.Suneido;
 import suneido.runtime.builtin.SuThread;
 import suneido.util.Errlog;
 
@@ -105,7 +106,7 @@ public class HttpServerMonitor {
 				sb.append("<h2 style=\"color: red;\">DATABASE DAMAGE DETECTED - "
 						+ "OPERATING IN READ-ONLY MODE</h2>\r\n");
 			sb.append("<p>Built: ")
-					.append(Build.desc())
+					.append(Suneido.built)
 					.append("</p>\r\n");
 			sb.append("<p>Heap Size: ")
 					.append(mb(Runtime.getRuntime().totalMemory()))

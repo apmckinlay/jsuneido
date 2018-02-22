@@ -41,7 +41,7 @@ public class Repl {
 				throw e;
 		}
 		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-		out.print("Built: " + Build.desc());
+		out.print("Built: " + Suneido.built);
 		out.println();
 
 		StringBuilder code = new StringBuilder(1024);

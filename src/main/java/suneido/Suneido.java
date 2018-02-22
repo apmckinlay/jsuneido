@@ -11,6 +11,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
@@ -40,6 +43,7 @@ public class Suneido {
 	public static ThreadGroup threadGroup = new ThreadGroup("Suneido");
 	public static DbmsServer server;
 	public static volatile boolean exiting = false;
+	public static final String built = built();
 
 	public static void main(String[] args) {
 		ClassLoader.getSystemClassLoader().setPackageAssertionStatus("suneido", true);
@@ -125,7 +129,7 @@ public class Suneido {
 			Dump.dump();
 			break;
 		case VERSION:
-			System.out.println("jSuneido " + Build.desc());
+			System.out.println("jSuneido " + built);
 			System.out.println("Java " + System.getProperty("java.version")
 					+ System.getProperty("java.vm.name").replace("Java", ""));
 			break;
@@ -223,6 +227,18 @@ public class Suneido {
 	public static void exit(int status) {
 		exiting = true;
 		System.exit(status);
+	}
+
+	private static String built() {
+		try {
+			Date d = new Date(Suneido.class
+					.getResource("Suneido.class")
+					.openConnection()
+					.getLastModified());
+			return new SimpleDateFormat("MMM d yyyy HH:mm").format(d) + " (Java)";
+		} catch (IOException e) {
+			return "??? (Java)";
+		}
 	}
 
 }
