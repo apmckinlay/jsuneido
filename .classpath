@@ -13,7 +13,6 @@
 			<attribute name="javadoc_location" value="jar:platform:/resource/jsuneido/lib/junit-4.12-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="lib/asm-all-5.0.4.jar"/>
 	<classpathentry kind="lib" path="lib/lucene-analyzers-common-4.10.3.jar"/>
 	<classpathentry kind="lib" path="lib/lucene-core-4.10.3.jar"/>
 	<classpathentry kind="lib" path="lib/lucene-queryparser-4.10.3.jar"/>
@@ -32,11 +31,17 @@
 	<classpathentry kind="lib" path="lib/byte-buddy-1.7.1.jar"/>
 	<classpathentry kind="lib" path="lib/byte-buddy-agent-1.7.1.jar"/>
 	<classpathentry kind="lib" path="lib/objenesis-2.6.jar"/>
-	<classpathentry kind="lib" path="lib/guava-23.2-jre.jar" sourcepath="lib/guava-23.2-jre-sources.jar">
+	<classpathentry kind="lib" path="lib/asm-all-5.2.jar"/>
+	<classpathentry kind="lib" path="lib/guava-24.0-jre.jar" sourcepath="lib/guava-24.0-jre-sources.jar">
 		<attributes>
-			<attribute name="javadoc_location" value="jar:platform:/resource/jsuneido/lib/guava-23.2-jre-javadoc.jar!/"/>
+			<attribute name="javadoc_location" value="jar:platform:/resource/jsuneido/lib/guava-24.0-jre-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/checker-compat-qual-2.3.1.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="target"/>
 </classpath>
