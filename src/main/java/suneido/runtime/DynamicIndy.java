@@ -48,9 +48,10 @@ public class DynamicIndy extends ClassLoader {
 
     mv.visitInvokeDynamicInsn(name, descriptor,
         new org.objectweb.asm.Handle(H_INVOKESTATIC,
-            bsmClass.getName().replace('.', '/'),
-            bsmName,
-            bsmType.toMethodDescriptorString()),
+              bsmClass.getName().replace('.', '/'),
+              bsmName,
+              bsmType.toMethodDescriptorString(),
+              false),
             bsmArgs);
 
     Type returnType = Type.getReturnType(descriptor);
