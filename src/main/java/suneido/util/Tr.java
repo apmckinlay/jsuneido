@@ -6,7 +6,7 @@ package suneido.util;
 
 import java.util.concurrent.TimeUnit;
 
-import javax.annotation.concurrent.ThreadSafe;
+import suneido.util.ThreadSafe;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;

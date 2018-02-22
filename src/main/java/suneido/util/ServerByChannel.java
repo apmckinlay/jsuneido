@@ -11,7 +11,7 @@ import java.net.ServerSocket;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import suneido.util.NotThreadSafe;
 
 /**
  * Socket server framework using blocking NIO channels (but not Selector).

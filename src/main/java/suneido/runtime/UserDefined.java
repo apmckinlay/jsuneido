@@ -4,7 +4,7 @@
 
 package suneido.runtime;
 
-import javax.annotation.concurrent.ThreadSafe;
+import suneido.util.ThreadSafe;
 
 import suneido.SuException;
 import suneido.Suneido;

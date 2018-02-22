@@ -11,7 +11,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.annotation.concurrent.Immutable;
+import suneido.util.Immutable;
 
 /**
  * A persistent immutable map.<p>

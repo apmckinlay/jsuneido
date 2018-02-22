@@ -9,8 +9,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-import javax.annotation.concurrent.Immutable;
-import javax.annotation.concurrent.NotThreadSafe;
+import suneido.util.Immutable;
+import suneido.util.NotThreadSafe;
 
 import com.google.common.base.Strings;
 

@@ -13,7 +13,7 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import javax.annotation.concurrent.ThreadSafe;
+import suneido.util.ThreadSafe;
 
 import suneido.*;
 

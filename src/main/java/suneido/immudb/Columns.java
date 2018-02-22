@@ -12,7 +12,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.annotation.concurrent.Immutable;
+import suneido.util.Immutable;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;

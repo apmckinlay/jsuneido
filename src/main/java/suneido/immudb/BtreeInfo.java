@@ -6,7 +6,7 @@ package suneido.immudb;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import javax.annotation.concurrent.Immutable;
+import suneido.util.Immutable;
 
 import com.google.common.base.MoreObjects;
 

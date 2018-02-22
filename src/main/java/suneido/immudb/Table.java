@@ -8,7 +8,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 
-import javax.annotation.concurrent.Immutable;
+import suneido.util.Immutable;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;

@@ -3,7 +3,7 @@ package suneido.util;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
-import javax.annotation.concurrent.ThreadSafe;
+import suneido.util.ThreadSafe;
 
 /**
  * Demonstration of delta day calculations.

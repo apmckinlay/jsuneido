@@ -7,7 +7,7 @@ package suneido.immudb;
 import java.io.IOException;
 import java.io.Writer;
 
-import javax.annotation.concurrent.Immutable;
+import suneido.util.Immutable;
 
 import suneido.util.CommaStringBuilder;
 

@@ -7,7 +7,7 @@ package suneido.util;
 import java.util.AbstractList;
 import java.util.ArrayList;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import suneido.util.NotThreadSafe;
 
 import com.google.common.collect.Lists;
 

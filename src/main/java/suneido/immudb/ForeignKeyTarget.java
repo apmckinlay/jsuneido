@@ -6,7 +6,7 @@ package suneido.immudb;
 
 import java.util.Arrays;
 
-import javax.annotation.concurrent.Immutable;
+import suneido.util.Immutable;
 
 import suneido.intfc.database.Fkmode;
 

@@ -7,7 +7,7 @@ package suneido.immudb;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.concurrent.Immutable;
+import suneido.util.Immutable;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableSet;

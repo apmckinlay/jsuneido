@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import suneido.util.NotThreadSafe;
 
 /**
  * Socket server framework using NIO Selector for accept and readability.

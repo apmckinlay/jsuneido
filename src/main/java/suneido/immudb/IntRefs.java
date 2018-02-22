@@ -7,7 +7,7 @@ package suneido.immudb;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import suneido.util.NotThreadSafe;
 
 /**
  * Used to assign integer values to in-memory references

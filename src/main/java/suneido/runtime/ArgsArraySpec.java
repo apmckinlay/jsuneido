@@ -1,6 +1,6 @@
 package suneido.runtime;
 
-import javax.annotation.concurrent.Immutable;
+import suneido.util.Immutable;
 
 import suneido.SuInternalError;
 

@@ -7,7 +7,7 @@ package suneido.util;
 import java.nio.ByteBuffer;
 import java.util.zip.Adler32;
 
-import javax.annotation.concurrent.ThreadSafe;
+import suneido.util.ThreadSafe;
 
 @ThreadSafe
 public class Checksum {

@@ -6,7 +6,7 @@ package suneido;
 
 import java.util.List;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import suneido.util.NotThreadSafe;
 
 import suneido.database.query.Header;
 import suneido.database.query.Row;

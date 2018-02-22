@@ -9,8 +9,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.annotation.concurrent.Immutable;
-import javax.annotation.concurrent.ThreadSafe;
+import suneido.util.Immutable;
+import suneido.util.ThreadSafe;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;

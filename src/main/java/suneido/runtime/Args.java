@@ -8,7 +8,7 @@ import static suneido.runtime.Args.Special.EACH;
 import static suneido.runtime.Args.Special.EACH1;
 import static suneido.runtime.Args.Special.NAMED;
 
-import javax.annotation.concurrent.ThreadSafe;
+import suneido.util.ThreadSafe;
 
 import suneido.SuContainer;
 import suneido.SuException;

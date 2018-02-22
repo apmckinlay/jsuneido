@@ -4,7 +4,7 @@
 
 package suneido.immudb;
 
-import javax.annotation.concurrent.Immutable;
+import suneido.util.Immutable;
 
 import suneido.immudb.Bootstrap.TN;
 

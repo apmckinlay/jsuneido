@@ -6,7 +6,7 @@ package suneido.runtime;
 
 import static suneido.util.Util.array;
 
-import javax.annotation.concurrent.Immutable;
+import suneido.util.Immutable;
 
 import suneido.SuException;
 import suneido.compiler.ClassGen;

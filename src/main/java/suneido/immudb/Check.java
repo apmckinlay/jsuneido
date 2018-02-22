@@ -7,7 +7,7 @@ package suneido.immudb;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
-import javax.annotation.concurrent.Immutable;
+import suneido.util.Immutable;
 
 import com.google.common.base.MoreObjects;
 

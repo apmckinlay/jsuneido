@@ -9,7 +9,7 @@ import static suneido.util.Verify.verify;
 import java.io.Closeable;
 import java.util.*;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import suneido.util.NotThreadSafe;
 
 import suneido.util.Errlog;
 

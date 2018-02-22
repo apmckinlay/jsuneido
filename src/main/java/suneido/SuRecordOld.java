@@ -12,7 +12,7 @@ import static suneido.util.Verify.verify;
 import java.nio.ByteBuffer;
 import java.util.*;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import suneido.util.NotThreadSafe;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.*;

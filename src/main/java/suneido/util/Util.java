@@ -8,8 +8,8 @@ import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import javax.annotation.concurrent.GuardedBy;
-import javax.annotation.concurrent.ThreadSafe;
+import suneido.util.GuardedBy;
+import suneido.util.ThreadSafe;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;

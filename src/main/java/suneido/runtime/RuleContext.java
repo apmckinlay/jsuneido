@@ -7,8 +7,8 @@ package suneido.runtime;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-import javax.annotation.concurrent.Immutable;
-import javax.annotation.concurrent.ThreadSafe;
+import suneido.util.Immutable;
+import suneido.util.ThreadSafe;
 
 import suneido.SuContainer;
 

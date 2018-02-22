@@ -4,7 +4,7 @@
 
 package suneido.immudb;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import suneido.util.NotThreadSafe;
 
 import com.google.common.base.MoreObjects;
 

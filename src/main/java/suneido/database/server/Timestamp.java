@@ -4,7 +4,7 @@
 
 package suneido.database.server;
 
-import javax.annotation.concurrent.ThreadSafe;
+import suneido.util.ThreadSafe;
 
 import suneido.SuDate;
 

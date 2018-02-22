@@ -6,8 +6,8 @@ package suneido;
 
 import java.util.*;
 
-import javax.annotation.concurrent.Immutable;
-import javax.annotation.concurrent.ThreadSafe;
+import suneido.util.Immutable;
+import suneido.util.ThreadSafe;
 
 import com.google.common.collect.*;
 

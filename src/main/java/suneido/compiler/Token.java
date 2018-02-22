@@ -13,7 +13,7 @@ import static suneido.compiler.TokenResultType.*;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.concurrent.Immutable;
+import suneido.util.Immutable;
 
 @Immutable
 public enum Token {

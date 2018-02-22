@@ -6,7 +6,7 @@ package suneido.compiler;
 
 import java.io.PrintWriter;
 
-import javax.annotation.concurrent.ThreadSafe;
+import suneido.util.ThreadSafe;
 
 import suneido.SuContainer;
 import suneido.Suneido;

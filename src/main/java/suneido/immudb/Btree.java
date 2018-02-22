@@ -12,7 +12,7 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import suneido.util.NotThreadSafe;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;

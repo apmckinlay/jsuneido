@@ -8,7 +8,7 @@ import static suneido.util.Util.commaSplitter;
 
 import java.util.Arrays;
 
-import javax.annotation.concurrent.Immutable;
+import suneido.util.Immutable;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Iterables;
