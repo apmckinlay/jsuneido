@@ -457,6 +457,10 @@ public class StringMethods extends BuiltinMethods {
 		}
 	}
 
+	public static Object Reverse(Object self) {
+		return new StringBuilder(toStr(self)).reverse().toString();
+	}
+
 	public static Object ServerEval(Object self) {
 		return TheDbms.dbms().run(toStr(self));
 	}
