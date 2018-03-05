@@ -19,7 +19,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import suneido.compiler.Compiler;
 import suneido.database.server.DbmsServer;
-import suneido.immudb.Dump;
+import suneido.database.immudb.Dump;
 import suneido.intfc.database.Database;
 import suneido.intfc.database.DatabasePackage;
 import suneido.runtime.ContextLayered;
@@ -28,7 +28,7 @@ import suneido.util.Errlog;
 import suneido.util.Print;
 
 public class Suneido {
-	public static DatabasePackage dbpkg = suneido.immudb.DatabasePackage.dbpkg;
+	public static DatabasePackage dbpkg = suneido.database.immudb.DatabasePackage.dbpkg;
 	private static final ThreadFactory threadFactory =
 		new ThreadFactoryBuilder()
 			.setDaemon(true)

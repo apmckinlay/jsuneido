@@ -21,7 +21,7 @@
     public static java.lang.Throwable exception(java.lang.Object);
 }
 
--keep class suneido.immudb.BtreeKey
+-keep class suneido.database.immudb.BtreeKey
 -keep class suneido.compiler.ParseFunction$Context
 
 -keep class org.objectweb.asm.MethodVisitor
