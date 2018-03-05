@@ -94,20 +94,10 @@ public class StringMethods extends BuiltinMethods {
 		return n;
 	}
 
-	@Params("string")
-	public static Object HasQ(Object self, Object a) {
-		return (toStr(self)).contains(toStr(a));
-	}
-
 	private static final int TABWIDTH = 4;
 
 	public static Object Detab(Object self) {
 		return Tabs.detab(toStr(self), TABWIDTH);
-	}
-
-	@Params("string")
-	public static Object SuffixQ(Object self, Object a) {
-		return toStr(self).endsWith(toStr(a));
 	}
 
 	public static Object Entab(Object self) {
@@ -218,6 +208,19 @@ public class StringMethods extends BuiltinMethods {
 				return i;
 		}
 		return Boolean.FALSE;
+	}
+
+	static final Charset Windows1252 = Charset.forName("windows-1252");
+
+	public static Object FromUtf8(Object self) {
+		CharBuffer cb = Charsets.UTF_8.decode(
+				ByteBuffer.wrap(Util.stringToBytes(toStr(self))));
+		return Util.bytesToString(Windows1252.encode(cb));
+	}
+
+	@Params("string")
+	public static Object HasQ(Object self, Object a) {
+		return (toStr(self)).contains(toStr(a));
 	}
 
 	/** null method on jSuneido, implemented on cSuneido */
@@ -385,6 +388,17 @@ public class StringMethods extends BuiltinMethods {
 		return Compiler.parse(toStr(self)).toString();
 	}
 
+	@Params("s, i = 0")
+	public static Object PrefixQ(Object self, Object a, Object b) {
+		String s = toStr(self);
+		int len = s.length();
+		int i = toInt(b);
+		if (i < 0)
+			i += len;
+		i = max(0, min(i, len));
+		return s.startsWith(toStr(a), i);
+	}
+
 	@Params("n")
 	public static Object Repeat(Object self, Object a) {
 		return Strings.repeat(toStr(self), Math.max(0, toInt(a)));
@@ -398,7 +412,7 @@ public class StringMethods extends BuiltinMethods {
 		return replace(s, pat, b, n);
 	}
 
-	public static String replace(String s, String p, Object r, int n) {
+	static String replace(String s, String p, Object r, int n) {
 		if (n <= 0)
 			return s;
 		Regex.Pattern pat = RegexCache.getPattern(p);
@@ -471,17 +485,6 @@ public class StringMethods extends BuiltinMethods {
 		return ob;
 	}
 
-	@Params("s, i = 0")
-	public static Object PrefixQ(Object self, Object a, Object b) {
-		String s = toStr(self);
-		int len = s.length();
-		int i = toInt(b);
-		if (i < 0)
-			i += len;
-		i = max(0, min(i, len));
-		return s.startsWith(toStr(a), i);
-	}
-
 	@Params("i, n = INTMAX")
 	public static Object Substr(Object self, Object a, Object b) {
 		CharSequence s = toSeq(self);
@@ -497,18 +500,15 @@ public class StringMethods extends BuiltinMethods {
 		return s.subSequence(i, i + n);
 	}
 
-	static final Charset Windows1252 = Charset.forName("windows-1252");
+	@Params("string")
+	public static Object SuffixQ(Object self, Object a) {
+		return toStr(self).endsWith(toStr(a));
+	}
 
 	public static Object ToUtf8(Object self) {
 		CharBuffer cb = Windows1252.decode(
 				ByteBuffer.wrap(Util.stringToBytes(toStr(self))));
 		return Util.bytesToString(Charsets.UTF_8.encode(cb));
-	}
-
-	public static Object FromUtf8(Object self) {
-		CharBuffer cb = Charsets.UTF_8.decode(
-				ByteBuffer.wrap(Util.stringToBytes(toStr(self))));
-		return Util.bytesToString(Windows1252.encode(cb));
 	}
 
 	@Params("from, to = ''")
