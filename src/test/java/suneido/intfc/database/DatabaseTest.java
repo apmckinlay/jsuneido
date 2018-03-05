@@ -15,6 +15,8 @@ import java.util.List;
 
 import org.junit.Test;
 
+import suneido.database.immudb.Fkmode;
+
 public class DatabaseTest extends TestBase {
 
 	@Test

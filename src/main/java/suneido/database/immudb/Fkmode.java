@@ -2,7 +2,7 @@
  * Licensed under GPLv2.
  */
 
-package suneido.intfc.database;
+package suneido.database.immudb;
 
 public class Fkmode {
 	public static final int
@@ -20,5 +20,4 @@ public class Fkmode {
 		default: throw new RuntimeException("unknown fkmode " + mode);
 		}
 	}
-
 }

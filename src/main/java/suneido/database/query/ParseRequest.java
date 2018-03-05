@@ -9,7 +9,7 @@ import static suneido.compiler.Token.*;
 import suneido.compiler.Lexer;
 import suneido.compiler.Parse;
 import suneido.compiler.Token;
-import suneido.intfc.database.Fkmode;
+import suneido.database.immudb.Fkmode;
 
 public class ParseRequest<T> extends Parse<T, RequestGenerator<T>> {
 	public ParseRequest(Lexer lexer, RequestGenerator<T> generator) {

@@ -4,7 +4,7 @@
 
 package suneido.database.query;
 
-import suneido.intfc.database.Fkmode;
+import suneido.database.immudb.Fkmode;
 
 public class StringRequestGenerator implements RequestGenerator<String> {
 

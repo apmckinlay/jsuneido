@@ -14,8 +14,6 @@ import org.junit.Test;
 
 import com.google.common.collect.Ordering;
 
-import suneido.intfc.database.Fkmode;
-
 public class ForeignKeyTest {
 	private Database db = DatabasePackage.dbpkg.testdb();
 

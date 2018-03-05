@@ -16,7 +16,6 @@ import com.google.common.primitives.Ints;
 
 import suneido.database.immudb.Bootstrap.TN;
 import suneido.database.immudb.IndexedData.Mode;
-import suneido.intfc.database.Fkmode;
 
 /**
  * Wrapper for a record from the indexes table, i.e. the schema

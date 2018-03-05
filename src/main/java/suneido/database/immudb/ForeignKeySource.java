@@ -6,8 +6,6 @@ package suneido.database.immudb;
 
 import suneido.util.Immutable;
 
-import suneido.intfc.database.Fkmode;
-
 import com.google.common.base.MoreObjects;
 
 /**

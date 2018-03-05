@@ -15,7 +15,6 @@ import java.util.Set;
 
 import gnu.trove.set.hash.TIntHashSet;
 import suneido.SuException;
-import suneido.intfc.database.Fkmode;
 import suneido.intfc.database.Transaction.Blocking;
 
 /**
