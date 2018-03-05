@@ -20,6 +20,9 @@ import org.junit.Test;
 
 import suneido.intfc.database.DatabasePackage.Status;
 import suneido.util.FileUtils;
+import suneido.database.immudb.Record;
+import suneido.database.immudb.Table;
+
 
 public class DbRebuildTest extends TestBase {
 	protected String filename;

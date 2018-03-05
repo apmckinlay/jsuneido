@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import suneido.Suneido;
+import suneido.database.immudb.Record;
+import suneido.database.immudb.RecordBuilder;
+import suneido.database.immudb.Table;
 
 public class TestBase {
 	private static final String DEFAULT_TABLENAME = "test";

@@ -16,9 +16,9 @@ import java.util.regex.Pattern;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
+import suneido.database.immudb.Record;
+import suneido.database.immudb.RecordBuilder;
 import suneido.database.query.Header;
-import suneido.intfc.database.Record;
-import suneido.intfc.database.RecordBuilder;
 import suneido.runtime.Ops;
 import suneido.runtime.Pack;
 import suneido.runtime.Range;

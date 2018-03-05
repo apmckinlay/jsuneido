@@ -4,6 +4,10 @@
 
 package suneido.intfc.database;
 
+import suneido.database.immudb.HistoryIterator;
+import suneido.database.immudb.Record;
+import suneido.database.immudb.Table;
+
 public interface Transaction {
 
 	boolean isReadonly();
@@ -56,7 +60,7 @@ public interface Transaction {
 	}
 
 	void removeRecord(int recadr);
-	void removeRecord(int tblnum, Record rec);
+	int removeRecord(int tblnum, Record rec);
 
 	Record input(int adr);
 
@@ -83,4 +87,5 @@ public interface Transaction {
 	default int writeCount() {
 		return 0;
 	}
+
 }

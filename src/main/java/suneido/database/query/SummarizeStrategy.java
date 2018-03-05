@@ -9,10 +9,10 @@ import static suneido.Suneido.dbpkg;
 import java.util.ArrayList;
 import java.util.List;
 
+import suneido.database.immudb.Record;
+import suneido.database.immudb.RecordBuilder;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Summarize.Summary;
-import suneido.intfc.database.Record;
-import suneido.intfc.database.RecordBuilder;
 
 public abstract class SummarizeStrategy {
 	Summarize q;

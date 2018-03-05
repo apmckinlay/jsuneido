@@ -7,13 +7,13 @@ package suneido.database.query;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
+
 import suneido.SuException;
 import suneido.SuRecord;
+import suneido.database.immudb.Record;
 import suneido.database.query.expr.Expr;
-import suneido.intfc.database.Record;
 import suneido.intfc.database.Transaction;
-
-import com.google.common.collect.ImmutableSet;
 
 public class Update extends QueryAction {
 	private final Transaction tran;

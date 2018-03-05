@@ -12,7 +12,7 @@ import org.junit.Test;
 
 import suneido.database.query.Query.Dir;
 import suneido.database.server.ServerData;
-import suneido.intfc.database.Record;
+import suneido.database.immudb.Record;
 import suneido.intfc.database.Transaction;
 
 public class SimpleQueryTest extends TestBase {

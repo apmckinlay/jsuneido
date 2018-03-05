@@ -13,7 +13,7 @@ import java.util.Iterator;
 
 import org.junit.Test;
 
-import suneido.intfc.database.Record;
+import suneido.database.immudb.Record;
 
 public class RowTest {
 

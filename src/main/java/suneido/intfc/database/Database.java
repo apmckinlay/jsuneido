@@ -6,6 +6,8 @@ package suneido.intfc.database;
 
 import java.util.List;
 
+import suneido.database.immudb.TableBuilder;
+
 public interface Database extends AutoCloseable {
 
 	Transaction readTransaction();

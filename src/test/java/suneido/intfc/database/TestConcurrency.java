@@ -15,15 +15,17 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.google.common.base.Stopwatch;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+
 import suneido.Suneido;
+import suneido.database.immudb.Record;
+import suneido.database.immudb.RecordBuilder;
 import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.ServerData;
 import suneido.database.server.Timestamp;
 import suneido.intfc.database.DatabasePackage.Status;
-
-import com.google.common.base.Stopwatch;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 public class TestConcurrency {
 	static final DatabasePackage dbpkg = Suneido.dbpkg;

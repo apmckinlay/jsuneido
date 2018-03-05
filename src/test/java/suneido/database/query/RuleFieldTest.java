@@ -10,8 +10,9 @@ import static suneido.Suneido.dbpkg;
 
 import org.junit.Test;
 
-import suneido.intfc.database.Record;
+import suneido.database.immudb.Record;
 import suneido.intfc.database.Transaction;
+import suneido.database.immudb.Table;
 
 public class RuleFieldTest extends TestBase {
 
@@ -24,7 +25,7 @@ public class RuleFieldTest extends TestBase {
 		adm("create withrule (a,B) key(a)");
 
 		Transaction t = db.readTransaction();
-		suneido.intfc.database.Table tbl = t.ck_getTable("withrule");
+		Table tbl = t.ck_getTable("withrule");
 		assertEquals("[b, a]", tbl.getColumns().toString());
 		t.complete();
 

@@ -9,15 +9,15 @@ import static suneido.Suneido.dbpkg;
 import java.util.List;
 import java.util.Set;
 
-import suneido.intfc.database.HistoryIterator;
-import suneido.intfc.database.Record;
-import suneido.intfc.database.Transaction;
-
 import com.google.common.collect.ImmutableList;
+
+import suneido.database.immudb.HistoryIterator;
+import suneido.database.immudb.Record;
+import suneido.intfc.database.Transaction;
 
 public class History extends Query {
 	private final String tablename;
-	private final suneido.intfc.database.Table tbl;
+	private final suneido.database.immudb.Table tbl;
 	private List<String> columns = null;
 	private Header header = null;
 	private List<List<String>> indexes;

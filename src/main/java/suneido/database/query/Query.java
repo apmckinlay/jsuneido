@@ -19,8 +19,8 @@ import java.util.Set;
 import com.google.common.collect.ImmutableSet;
 
 import suneido.SuException;
-import suneido.intfc.database.Record;
-import suneido.intfc.database.RecordBuilder;
+import suneido.database.immudb.Record;
+import suneido.database.immudb.RecordBuilder;
 import suneido.intfc.database.Transaction;
 
 /**

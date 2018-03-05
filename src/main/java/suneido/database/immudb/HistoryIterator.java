@@ -10,17 +10,18 @@ import java.nio.ByteBuffer;
 import java.util.Date;
 
 import suneido.SuDate;
-import suneido.intfc.database.Record;
 import suneido.util.IntArraysList;
 
 /**
+ * Iterate through creates and deletes of versions of data records
+ * for a specific table.
  * Each commit is read into memory as a list of addresses.
  * Note: This could be quite large for bulk transactions like an initial load.
  * This isn't necessary for reading forwards
  * but to handle changing direction it's easier to always do it.
  * Similar to {@link StorageIterator} but bidirectional.
  */
-class HistoryIterator implements suneido.intfc.database.HistoryIterator {
+public class HistoryIterator {
 	private final Storage dstor;
 	private final int tblnum;
 	private boolean rewound;
@@ -35,14 +36,17 @@ class HistoryIterator implements suneido.intfc.database.HistoryIterator {
 		rewind();
 	}
 
-	@Override
 	public void rewind() {
 		rewound = true;
 		rlist = new IntArraysList();
 		ri = -1;
 	}
 
-	@Override
+	/**
+	 * @return null at eof, else a pair of Record's
+	 * the first containing the date/time and "create" or "delete"
+	 * and the second the actual data record
+	 */
 	public Record[] getNext() {
 		while (true) {
 			if (ri + 1 >= rlist.size())
@@ -77,7 +81,11 @@ class HistoryIterator implements suneido.intfc.database.HistoryIterator {
 		return true;
 	}
 
-	@Override
+	/**
+	 * @return null at eof, else a pair of Record's
+	 * the first containing the date/time and "create" or "delete"
+	 * and the second the actual data record
+	 */
 	public Record[] getPrev() {
 		if (rewound) {
 			rewound = false;

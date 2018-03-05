@@ -9,7 +9,7 @@ import suneido.compiler.Generator;
 import suneido.compiler.Lexer;
 import suneido.compiler.ParseConstant;
 import suneido.database.query.StringGenerator;
-import suneido.intfc.database.Record;
+import suneido.database.immudb.Record;
 
 public class ParseDump implements DumpReader.Processor {
 	int name;

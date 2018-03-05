@@ -130,7 +130,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 
 	@Override
 	public DataRecord lookup(
-			int tblnum, String index, suneido.intfc.database.Record key) {
+			int tblnum, String index, Record key) {
 		TranIndex bti = getIndex(tblnum, index);
 		if (bti == null)
 			return null;
@@ -235,21 +235,19 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	}
 
 	@Override
-	public float rangefrac(int tblnum, String columns,
-			suneido.intfc.database.Record from, suneido.intfc.database.Record to) {
+	public float rangefrac(int tblnum, String columns, Record from, Record to) {
 		Index index = index(tblnum, columns);
 		if (index.mode() == Mode.KEY && sameKey(from, to)) {
 			int n = tableCount(tblnum);
 			return n > 0 ? 1.0f / n : Btree.MIN_FRAC;
 		}
-		return getIndex(index).rangefrac((Record) from, (Record) to);
+		return getIndex(index).rangefrac(from, to);
 	}
 
-	private static boolean sameKey(
-			suneido.intfc.database.Record from, suneido.intfc.database.Record to) {
+	private static boolean sameKey(Record from, Record to) {
 		if (from.size() != to.size() - 1)
 			return false;
-		if (!to.getRaw(to.size() - 1).equals(suneido.intfc.database.Record.MAX_FIELD))
+		if (!to.getRaw(to.size() - 1).equals(Record.MAX_FIELD))
 			return false;
 		for (int i = 0; i < from.size(); ++i)
 			if (! from.getRaw(i).equals(to.getRaw(i)))
@@ -289,19 +287,19 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	}
 
 	@Override
-	public void addRecord(String table, suneido.intfc.database.Record r) {
+	public void addRecord(String table, Record r) {
 		throw new SuException("can't output to read-only transaction");
 	}
 
 	@Override
-	public int updateRecord(int recadr, suneido.intfc.database.Record rec,
+	public int updateRecord(int recadr, Record rec,
 			Blocking blocking) {
 		throw new SuException("can't update from read-only transaction");
 	}
 
 	@Override
-	public int updateRecord(int tblnum, suneido.intfc.database.Record oldrec,
-			suneido.intfc.database.Record newrec, Blocking blocking) {
+	public int updateRecord(int tblnum, Record oldrec,
+			Record newrec, Blocking blocking) {
 		throw new SuException("can't update from read-only transaction");
 	}
 
@@ -311,7 +309,7 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	}
 
 	@Override
-	public void removeRecord(int tblnum, suneido.intfc.database.Record rec) {
+	public int removeRecord(int tblnum, Record rec) {
 		throw new SuException("can't delete from read-only transaction");
 	}
 
@@ -321,11 +319,9 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 	}
 
 	@Override
-	public void callTrigger(suneido.intfc.database.Table table,
-			suneido.intfc.database.Record oldrec,
-			suneido.intfc.database.Record newrec) {
+	public void callTrigger(Table table, Record oldrec, Record newrec) {
 		if (table != null)
-			db.callTrigger(this, (Table) table, (Record) oldrec, (Record) newrec);
+			db.callTrigger(this, table, oldrec, newrec);
 	}
 
 	@Override
@@ -352,9 +348,8 @@ class ReadTransaction implements suneido.intfc.database.Transaction {
 
 	//PERF if key and org == end, could use get instead of iterator
 	@Override
-	public IndexIter iter(int tblnum, String columns,
-			suneido.intfc.database.Record org, suneido.intfc.database.Record end) {
-		return getIndex(tblnum, columns).iterator((Record) org, (Record) end);
+	public IndexIter iter(int tblnum, String columns, Record org, Record end) {
+		return getIndex(tblnum, columns).iterator(org, end);
 	}
 
 	@Override

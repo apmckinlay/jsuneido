@@ -7,20 +7,13 @@ package suneido.database.query;
 import static java.util.Arrays.asList;
 import static suneido.SuInternalError.unreachable;
 import static suneido.Suneido.dbpkg;
-import static suneido.util.Util.addUnique;
-import static suneido.util.Util.concat;
-import static suneido.util.Util.intersect;
-import static suneido.util.Util.nil;
-import static suneido.util.Util.setIntersect;
-import static suneido.util.Util.setUnion;
-import static suneido.util.Util.startsWith;
-import static suneido.util.Util.union;
+import static suneido.util.Util.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import suneido.intfc.database.Record;
+import suneido.database.immudb.Record;
 import suneido.runtime.Ops;
 
 public class Union extends Compatible {

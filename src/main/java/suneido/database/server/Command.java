@@ -13,13 +13,13 @@ import java.util.List;
 import suneido.SuContainer;
 import suneido.SuException;
 import suneido.TheDbms;
+import suneido.database.immudb.Record;
+import suneido.database.immudb.RecordBuilder;
 import suneido.database.query.Header;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Row;
 import suneido.database.server.Dbms.HeaderAndRow;
 import suneido.database.server.Dbms.LibGet;
-import suneido.intfc.database.Record;
-import suneido.intfc.database.RecordBuilder;
 import suneido.runtime.builtin.ServerEval;
 
 /**

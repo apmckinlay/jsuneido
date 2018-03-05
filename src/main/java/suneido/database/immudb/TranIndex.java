@@ -4,8 +4,6 @@
 
 package suneido.database.immudb;
 
-import suneido.intfc.database.IndexIter;
-
 /**
  * Common interface for {@link Btree} and {@link OverlayIndex}
  */
@@ -25,17 +23,14 @@ interface TranIndex {
 
 	Iter iterator(Record org, Record end);
 
-	Iter iterator(IndexIter iter);
+	Iter iterator(suneido.intfc.database.IndexIter iter);
 
 	int totalSize();
 	float rangefrac(Record from, Record to);
 
 	BtreeInfo info();
 
-	interface Iter extends IndexIter {
-
-		@Override
-		Record curKey();
+	interface Iter extends suneido.intfc.database.IndexIter {
 
 		void rewind();
 

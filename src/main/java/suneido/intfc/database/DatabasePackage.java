@@ -8,6 +8,11 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 
+import suneido.database.immudb.Record;
+import suneido.database.immudb.RecordBuilder;
+import suneido.database.immudb.RecordStore;
+
+
 public interface DatabasePackage {
 
 	/** default database file name */

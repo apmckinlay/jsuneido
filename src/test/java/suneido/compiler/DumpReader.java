@@ -15,7 +15,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import suneido.SuException;
-import suneido.intfc.database.Record;
+import suneido.database.immudb.Record;
 
 class DumpReader {
 	private final InputStream fin;

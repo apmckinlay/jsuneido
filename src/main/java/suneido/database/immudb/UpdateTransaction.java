@@ -143,10 +143,9 @@ class UpdateTransaction extends ReadWriteTransaction {
 	}
 
 	@Override
-	public IndexIter iter(int tblnum, String columns,
-			suneido.intfc.database.Record org, suneido.intfc.database.Record end) {
+	public IndexIter iter(int tblnum, String columns, Record org, Record end) {
 		Index index = index(tblnum, columns);
-		Iter iter = getIndex(index).iterator((Record) org, (Record) end);
+		Iter iter = getIndex(index).iterator(org, end);
 		trackReads(index, iter);
 		return iter;
 	}

@@ -17,10 +17,10 @@ import java.util.List;
 import com.google.common.collect.ImmutableList;
 
 import suneido.*;
+import suneido.database.immudb.Record;
 import suneido.database.query.Header;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Row;
-import suneido.intfc.database.Record;
 
 /**
  * Client side of the client-server protocol.

@@ -4,6 +4,8 @@
 
 package suneido.intfc.database;
 
+import suneido.database.immudb.Record;
+
 public interface IndexIter {
 
 	boolean eof();

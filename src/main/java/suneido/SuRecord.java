@@ -5,7 +5,7 @@
 package suneido;
 
 import static suneido.Suneido.dbpkg;
-import static suneido.intfc.database.Table.isSpecialField;
+import static suneido.database.immudb.Table.isSpecialField;
 import static suneido.util.Util.commaJoiner;
 import static suneido.util.Verify.verify;
 
@@ -15,11 +15,11 @@ import java.util.*;
 import com.google.common.base.Objects;
 import com.google.common.collect.*;
 
+import suneido.database.immudb.Record;
+import suneido.database.immudb.RecordBuilder;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
 import suneido.database.server.DbmsTran;
-import suneido.intfc.database.Record;
-import suneido.intfc.database.RecordBuilder;
 import suneido.runtime.*;
 import suneido.runtime.builtin.RecordMethods;
 import suneido.runtime.builtin.SuTransaction;

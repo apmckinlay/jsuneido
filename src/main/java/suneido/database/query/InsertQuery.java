@@ -8,7 +8,7 @@ import static suneido.Suneido.dbpkg;
 
 import java.util.List;
 
-import suneido.intfc.database.RecordBuilder;
+import suneido.database.immudb.RecordBuilder;
 import suneido.intfc.database.Transaction;
 
 public class InsertQuery extends QueryAction {

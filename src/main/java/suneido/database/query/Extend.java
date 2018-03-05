@@ -13,13 +13,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import suneido.SuException;
-import suneido.database.query.expr.Constant;
-import suneido.database.query.expr.Expr;
-import suneido.intfc.database.RecordBuilder;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
+
+import suneido.SuException;
+import suneido.database.immudb.RecordBuilder;
+import suneido.database.query.expr.Constant;
+import suneido.database.query.expr.Expr;
 
 public class Extend extends Query1 {
 	List<String> flds; // modified by Project.transform

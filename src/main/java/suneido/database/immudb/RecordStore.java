@@ -4,19 +4,19 @@
 
 package suneido.database.immudb;
 
-import suneido.intfc.database.Record;
-
-class RecordStore implements suneido.intfc.database.RecordStore {
+/**
+ * Used to store key records for TempIndex and Project
+ * to avoid per-object overhead for large numbers of keys.
+ */
+public class RecordStore {
 	private final HeapStorage stor = new HeapStorage(16 * 1024);
 
-	@Override
 	public int add(Record rec) {
 		int adr = stor.alloc(rec.packSize());
 		rec.pack(stor.buffer(adr));
 		return adr;
 	}
 
-	@Override
 	public Record get(int adr) {
 		return new BufRecord(stor.buffer(adr));
 	}

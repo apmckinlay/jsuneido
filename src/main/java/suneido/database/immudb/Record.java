@@ -19,8 +19,20 @@ import suneido.util.CommaStringBuilder;
  * Abstract base class for {@link BufRecord} and {@link ArrayRecord}.
  * @see RecordBuilder
  */
-abstract class Record implements suneido.intfc.database.Record {
+public abstract class Record
+		implements suneido.Packable, Comparable<Record>, Iterable<ByteBuffer> {
 	static final Record EMPTY = new RecordBuilder().bufRec();
+	public static final ByteBuffer MIN_FIELD =
+			ByteBuffer.allocate(0);
+	public static final ByteBuffer MAX_FIELD =
+			ByteBuffer.allocate(1).put(0, (byte) 0x7f).asReadOnlyBuffer();
+
+	/** @return The number of fields in the Record */
+	public abstract int size();
+
+	abstract int packSize();
+
+	public abstract ByteBuffer getBuffer();
 
 	protected Record() {
 	}
@@ -52,7 +64,6 @@ abstract class Record implements suneido.intfc.database.Record {
 	abstract int fieldOffset(int i);
 
 	/** Number of bytes e.g. for storing */
-	@Override
 	public int bufSize() {
 		return packSize();
 	}
@@ -77,12 +88,12 @@ abstract class Record implements suneido.intfc.database.Record {
 	}
 
 	@Override
-	public int compareTo(suneido.intfc.database.Record that) {
+	public int compareTo(Record that) {
 		int len1 = this.size();
 		int len2 = that.size();
 		int n = Math.min(len1, len2);
 		for (int i = 0; i < n; ++i) {
-			int cmp = compare1(this, (Record) that, i);
+			int cmp = compare1(this, that, i);
 			if (cmp != 0)
 				return cmp;
 		}
@@ -107,7 +118,6 @@ abstract class Record implements suneido.intfc.database.Record {
 		return len1 - len2;
 	}
 
-	@Override
 	public Object get(int i) {
 		if (i >= size())
 			return "";
@@ -129,7 +139,6 @@ abstract class Record implements suneido.intfc.database.Record {
 		//PERF change unpack to take buf,i,n and not mutate to eliminate duplicate()
 	}
 
-	@Override
 	public int getInt(int i) {
 		long n = getLong(i);
 		if (n < Integer.MIN_VALUE || Integer.MAX_VALUE < n)
@@ -146,7 +155,6 @@ abstract class Record implements suneido.intfc.database.Record {
 		//PERF change unpackLong to take buf,i,n and not mutate to eliminate duplicate
 	}
 
-	@Override
 	public String getString(int i) {
 		return (String) get(i);
 	}
@@ -183,24 +191,20 @@ abstract class Record implements suneido.intfc.database.Record {
 		}
 	}
 
-	@Override
 	public ByteBuffer getRaw(int i) {
 		if (i >= size())
 			return ByteBuffers.EMPTY_BUF;
 		return ByteBuffers.slice(fieldBuffer(i), fieldOffset(i), fieldLength(i));
 	}
 
-	@Override
 	public boolean isEmpty() {
 		return size() == 0;
 	}
 
-	@Override
 	public Object getRef() {
 		return getBuffer();
 	}
 
-	@Override
 	public int address() {
 		return 0;
 	}

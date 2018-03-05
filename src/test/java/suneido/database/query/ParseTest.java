@@ -8,7 +8,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import suneido.intfc.database.TableBuilder;
+import suneido.database.immudb.TableBuilder;
 import suneido.intfc.database.Transaction;
 
 //TODO parse object constants

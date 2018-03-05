@@ -16,9 +16,9 @@ import java.util.NoSuchElementException;
 import com.google.common.base.MoreObjects;
 
 import suneido.SuRecord;
+import suneido.database.immudb.Record;
+import suneido.database.immudb.RecordBuilder;
 import suneido.database.server.DbmsTran;
-import suneido.intfc.database.Record;
-import suneido.intfc.database.RecordBuilder;
 import suneido.intfc.database.Transaction;
 import suneido.runtime.Pack;
 import suneido.util.Util;
@@ -145,7 +145,7 @@ public class Row {
 		Which w = find(hdr, col);
 		if (w != null || ! hdr.cols.contains(col))
 			return Pack.unpack(getraw(w));
-		if (suneido.intfc.database.Table.isSpecialField(col)) {
+		if (suneido.database.immudb.Table.isSpecialField(col)) {
 			String base = Util.beforeLast(col, "_");
 			w = find(hdr, base);
 			return (w == null) ? ""

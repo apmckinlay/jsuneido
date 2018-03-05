@@ -44,7 +44,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	// add ---------------------------------------------------------------------
 
 	@Override
-	public void addRecord(String table, suneido.intfc.database.Record r) {
+	public void addRecord(String table, Record r) {
 		Table tbl = getTable(table);
 		DataRecord rec = truncateRecord(tbl.num, r);
 		addRecord(tbl.num, rec);
@@ -61,7 +61,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	}
 
 	/** for client-server extend bug */
-	private DataRecord truncateRecord(int tblnum, suneido.intfc.database.Record r) {
+	private DataRecord truncateRecord(int tblnum, Record r) {
 		if (tblnum > 3) {
 			TableInfo ti = getTableInfo(tblnum);
 			if (r.size() > ti.nextfield)
@@ -73,7 +73,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	// update ------------------------------------------------------------------
 
 	@Override
-	public int updateRecord(int fromadr, suneido.intfc.database.Record to,
+	public int updateRecord(int fromadr, Record to,
 			Blocking blocking) {
 		if (fromadr == 1)
 			throw new SuException("can't update the same record multiple times");
@@ -84,8 +84,8 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 
 	@Override
 	public int updateRecord(int tblnum,
-			suneido.intfc.database.Record from,
-			suneido.intfc.database.Record r, Blocking blocking) {
+			Record from,
+			Record r, Blocking blocking) {
 		DataRecord to = truncateRecord(tblnum, r);
 		updateRecord2(tblnum, (DataRecord) from, to, blocking);
 		// must be final step - may throw
@@ -127,11 +127,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	}
 
 	@Override
-	public void removeRecord(int tblnum, suneido.intfc.database.Record rec) {
-		removeRecord(tblnum, (Record) rec);
-	}
-
-	protected int removeRecord(int tblnum, Record rec) {
+	public int removeRecord(int tblnum, Record rec) {
 		if (rec.address() == 1)
 			throw new SuException("can't update the same record multiple times");
 		check(tblnum, "delete");

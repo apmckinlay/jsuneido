@@ -8,7 +8,7 @@ import static suneido.SuInternalError.unreachable;
 
 import java.util.List;
 
-import suneido.intfc.database.Record;
+import suneido.database.immudb.Record;
 
 public abstract class QueryAction extends Query1 {
 

@@ -9,7 +9,7 @@ import static suneido.Suneido.dbpkg;
 
 import org.junit.Test;
 
-import suneido.intfc.database.Record;
+import suneido.database.immudb.Record;
 
 public class KeyrangeTest {
 	@Test

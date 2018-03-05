@@ -19,7 +19,7 @@ import org.junit.Test;
 
 import suneido.SuDate;
 import suneido.database.query.expr.Expr;
-import suneido.intfc.database.Record;
+import suneido.database.immudb.Record;
 import suneido.runtime.Ops;
 
 public class ExprTest {

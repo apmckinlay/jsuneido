@@ -13,10 +13,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import suneido.SuException;
-import suneido.intfc.database.Record;
-
 import com.google.common.collect.ImmutableSet;
+
+import suneido.SuException;
+import suneido.database.immudb.Record;
 
 public class Rename extends Query1 {
 	List<String> from;

@@ -8,7 +8,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import suneido.intfc.database.Record;
+import suneido.database.immudb.Record;
 import suneido.intfc.database.Transaction;
 
 public class HistoryIteratorTest extends TestBase {

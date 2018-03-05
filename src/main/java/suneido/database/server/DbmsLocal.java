@@ -14,12 +14,12 @@ import com.google.common.base.CharMatcher;
 
 import suneido.*;
 import suneido.compiler.Compiler;
+import suneido.database.immudb.Record;
+import suneido.database.immudb.Table;
 import suneido.database.query.CompileQuery;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Request;
 import suneido.intfc.database.Database;
-import suneido.intfc.database.Record;
-import suneido.intfc.database.Table;
 import suneido.intfc.database.Transaction;
 import suneido.runtime.builtin.ServerEval;
 import suneido.util.Errlog;

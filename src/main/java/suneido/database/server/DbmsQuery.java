@@ -6,10 +6,10 @@ package suneido.database.server;
 
 import java.util.List;
 
+import suneido.database.immudb.Record;
 import suneido.database.query.Header;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Row;
-import suneido.intfc.database.Record;
 
 public interface DbmsQuery {
 

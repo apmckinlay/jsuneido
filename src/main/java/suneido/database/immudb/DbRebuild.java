@@ -377,9 +377,7 @@ class DbRebuild {
 			id.index(btree, index.mode(), index.colNums, colNames);
 		}
 		@Override
-		public void callTrigger(suneido.intfc.database.Table table,
-				suneido.intfc.database.Record oldrec,
-				suneido.intfc.database.Record newrec) {
+		public void callTrigger(Table table, Record oldrec, Record newrec) {
 		}
 	}
 

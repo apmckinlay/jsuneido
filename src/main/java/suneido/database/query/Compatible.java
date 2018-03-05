@@ -10,7 +10,7 @@ import static suneido.util.Util.union;
 
 import java.util.List;
 
-import suneido.intfc.database.Record;
+import suneido.database.immudb.Record;
 
 public abstract class Compatible extends Query2 {
 	protected List<String> ki;

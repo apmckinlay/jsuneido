@@ -5,10 +5,11 @@
 package suneido.database.query;
 
 import static suneido.Suneido.dbpkg;
-import suneido.intfc.database.Record;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+
+import suneido.database.immudb.Record;
 
 public class Keyrange {
 	Record org;

@@ -14,9 +14,13 @@ import org.junit.After;
 import org.junit.Before;
 
 import suneido.Suneido;
+import suneido.database.immudb.Record;
+import suneido.database.immudb.Table;
 import suneido.database.server.ServerData;
-import suneido.intfc.database.*;
-import suneido.intfc.database.Table;
+import suneido.intfc.database.Database;
+import suneido.intfc.database.DatabasePackage;
+import suneido.intfc.database.IndexIter;
+import suneido.intfc.database.Transaction;
 import suneido.runtime.Ops;
 
 public class TestBase {

@@ -8,9 +8,9 @@ import static suneido.Suneido.dbpkg;
 
 import java.util.List;
 
+import suneido.database.immudb.Record;
+import suneido.database.immudb.RecordBuilder;
 import suneido.database.query.Query.Dir;
-import suneido.intfc.database.Record;
-import suneido.intfc.database.RecordBuilder;
 
 public class SummarizeStrategyIdx extends SummarizeStrategy {
 	List<String> selIndex;

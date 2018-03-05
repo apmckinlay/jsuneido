@@ -13,8 +13,8 @@ import java.util.List;
 
 import suneido.SuException;
 import suneido.Suneido;
-import suneido.intfc.database.Record;
-import suneido.intfc.database.RecordStore;
+import suneido.database.immudb.Record;
+import suneido.database.immudb.RecordStore;
 import suneido.intfc.database.Transaction;
 import suneido.util.ArraysList;
 import suneido.util.IntComparator;

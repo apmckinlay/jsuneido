@@ -20,16 +20,16 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 import suneido.Suneido;
+import suneido.database.immudb.Record;
+import suneido.database.immudb.RecordBuilder;
 import suneido.intfc.database.IndexIter;
-import suneido.intfc.database.Record;
-import suneido.intfc.database.RecordBuilder;
 import suneido.intfc.database.Transaction;
 import suneido.util.CommaStringBuilder;
 import suneido.util.Util;
 
 public class Table extends Query {
 	private final String table;
-	final suneido.intfc.database.Table tbl;
+	final suneido.database.immudb.Table tbl;
 	private boolean first = true;
 	private boolean rewound = true;
 	private final Keyrange sel = new Keyrange();

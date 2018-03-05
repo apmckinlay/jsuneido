@@ -14,10 +14,10 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
 
+import suneido.database.immudb.Record;
+import suneido.database.immudb.RecordBuilder;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
-import suneido.intfc.database.Record;
-import suneido.intfc.database.RecordBuilder;
 import suneido.runtime.Ops;
 
 public class In extends Expr {

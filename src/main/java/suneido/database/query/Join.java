@@ -16,7 +16,7 @@ import java.util.Set;
 import com.google.common.collect.ImmutableSet;
 
 import suneido.SuException;
-import suneido.intfc.database.Record;
+import suneido.database.immudb.Record;
 
 public class Join extends Query2 {
 	List<String> joincols;

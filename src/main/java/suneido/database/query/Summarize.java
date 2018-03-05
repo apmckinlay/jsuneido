@@ -18,7 +18,7 @@ import com.google.common.collect.Lists;
 import suneido.SuContainer;
 import suneido.SuException;
 import suneido.SuInternalError;
-import suneido.intfc.database.Record;
+import suneido.database.immudb.Record;
 import suneido.runtime.Ops;
 
 public class Summarize extends Query1 {

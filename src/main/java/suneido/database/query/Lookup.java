@@ -7,7 +7,7 @@ package suneido.database.query;
 import java.util.HashMap;
 import java.util.Map;
 
-import suneido.intfc.database.Record;
+import suneido.database.immudb.Record;
 
 class Lookup {
 	Map<Record,Object[]> map = new HashMap<>();

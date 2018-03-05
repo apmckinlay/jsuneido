@@ -4,9 +4,9 @@
 
 package suneido.database.server;
 
+import suneido.database.immudb.Record;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.Dbms.HeaderAndRow;
-import suneido.intfc.database.Record;
 
 public interface DbmsTran {
 	/**

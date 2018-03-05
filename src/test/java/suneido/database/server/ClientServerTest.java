@@ -17,7 +17,7 @@ import suneido.database.query.Query.Dir;
 import suneido.database.query.Row;
 import suneido.database.server.Dbms.HeaderAndRow;
 import suneido.database.server.DbmsServer.ServerDataSet;
-import suneido.intfc.database.Record;
+import suneido.database.immudb.Record;
 
 /**
  * Test the client and server components by connecting DbmsClient to

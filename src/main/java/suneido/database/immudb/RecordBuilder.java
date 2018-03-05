@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import suneido.runtime.Pack;
 
-class RecordBuilder implements suneido.intfc.database.RecordBuilder {
+public class RecordBuilder {
 	private final ArrayList<ByteBuffer> bufs = new ArrayList<>();
 	private final TIntArrayList offs = new TIntArrayList();
 	private final TIntArrayList lens = new TIntArrayList();
@@ -37,42 +37,36 @@ class RecordBuilder implements suneido.intfc.database.RecordBuilder {
 		return this;
 	}
 
-	@Override
 	public RecordBuilder add(int n) {
 		ByteBuffer buf = Pack.packLong(n);
 		add1(buf, 0, buf.remaining());
 		return this;
 	}
 
-	@Override
 	public RecordBuilder add(Object x) {
 		ByteBuffer buf = Pack.pack(x);
 		add1(buf, 0, buf.remaining());
 		return this;
 	}
 
-	@Override
-	public RecordBuilder addAll(suneido.intfc.database.Record rec) {
-		Record r = (Record) rec;
+	public RecordBuilder addAll(Record rec) {
+		Record r = rec;
 		for (int i = 0; i < r.size(); ++i)
 			add1(r.fieldBuffer(i), r.fieldOffset(i), r.fieldLength(i));
 		return this;
 	}
 
-	@Override
 	public RecordBuilder add(ByteBuffer buf) {
 		add1(buf, buf.position(), buf.remaining());
 		return this;
 	}
 
-	@Override
 	public RecordBuilder addMin() {
-		return add(suneido.intfc.database.Record.MIN_FIELD);
+		return add(Record.MIN_FIELD);
 	}
 
-	@Override
 	public RecordBuilder addMax() {
-		return add(suneido.intfc.database.Record.MAX_FIELD);
+		return add(Record.MAX_FIELD);
 	}
 
 	private void add1(ByteBuffer buf, int off, int len) {
@@ -81,7 +75,6 @@ class RecordBuilder implements suneido.intfc.database.RecordBuilder {
 		lens.add(len);
 	}
 
-	@Override
 	public RecordBuilder truncate(int n) {
 		for (int i = bufs.size() - 1; i >= n; --i) {
 			bufs.remove(i);
@@ -91,7 +84,6 @@ class RecordBuilder implements suneido.intfc.database.RecordBuilder {
 		return this;
 	}
 
-	@Override
 	public RecordBuilder trim() {
 		int n = bufs.size();
 		while (n >= 1 && lens.get(n - 1) == 0)
@@ -103,7 +95,6 @@ class RecordBuilder implements suneido.intfc.database.RecordBuilder {
 		return bufs.size();
 	}
 
-	@Override
 	public DataRecord build() {
 		return arrayRec().dataRecord();
 	}

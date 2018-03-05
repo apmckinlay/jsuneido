@@ -12,8 +12,8 @@ import java.util.*;
 import com.google.common.collect.ImmutableList;
 
 import suneido.SuException;
+import suneido.database.immudb.Record;
 import suneido.database.query.expr.Expr;
-import suneido.intfc.database.Record;
 
 public class Project extends Query1 {
 	private List<String> flds;

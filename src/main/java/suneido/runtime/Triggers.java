@@ -4,20 +4,19 @@
 
 package suneido.runtime;
 
-import suneido.util.ThreadSafe;
+import com.google.common.collect.ConcurrentHashMultiset;
+import com.google.common.collect.Multiset;
 
 import suneido.SuException;
 import suneido.SuRecord;
 import suneido.SuValue;
 import suneido.Suneido;
+import suneido.database.immudb.Record;
 import suneido.database.server.DbmsTranLocal;
-import suneido.intfc.database.Record;
-import suneido.intfc.database.Table;
+import suneido.database.immudb.Table;
 import suneido.intfc.database.Transaction;
 import suneido.runtime.builtin.SuTransaction;
-
-import com.google.common.collect.ConcurrentHashMultiset;
-import com.google.common.collect.Multiset;
+import suneido.util.ThreadSafe;
 
 @ThreadSafe
 public class Triggers {

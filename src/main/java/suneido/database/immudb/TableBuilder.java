@@ -4,7 +4,7 @@
 
 package suneido.database.immudb;
 
-import static suneido.intfc.database.Table.isSpecialField;
+import static suneido.database.immudb.Table.isSpecialField;
 import static suneido.util.Util.uncapitalize;
 
 import java.util.Arrays;
@@ -21,7 +21,7 @@ import suneido.SuException;
 import suneido.database.immudb.Bootstrap.TN;
 import suneido.util.Util;
 
-class TableBuilder implements suneido.intfc.database.TableBuilder {
+public class TableBuilder {
 	private final SchemaTransaction t;
 	private final String tableName;
 	private final int tblnum;
@@ -122,14 +122,12 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		firstIndex = indexes.get(0);
 	}
 
-	@Override
 	public TableBuilder ensureColumn(String column) {
 		if (! hasColumn(column))
 			addColumn(column);
 		return this;
 	}
 
-	@Override
 	public TableBuilder addColumn(String column) {
 		verify(! hasColumn(column),
 				"add column: column already exists: " + column);
@@ -155,7 +153,6 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		return -fld - 2; // offset by 2 because 0 and -1 are taken
 	}
 
-	@Override
 	public TableBuilder renameColumn(String from, String to) {
 		verify(hasColumn(from),
 				"rename column: nonexistent column: " + from);
@@ -169,7 +166,6 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		return this;
 	}
 
-	@Override
 	public TableBuilder dropColumn(String column) {
 		verify(hasColumn(column),
 				"drop column: nonexistent column: " + column);
@@ -189,7 +185,6 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		}
 	}
 
-	@Override
 	public TableBuilder ensureIndex(String colNames, boolean isKey, boolean unique,
 			String fktable, String fkcolumns, int fkmode) {
 		int[] colNums = colNums(colNames);
@@ -198,7 +193,6 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		return this;
 	}
 
-	@Override
 	public TableBuilder addIndex(String colNames, boolean isKey, boolean unique,
 			String fktable, String fkcolumns, int fkmode) {
 		int[] colNums = colNums(colNames);
@@ -222,7 +216,6 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		newIndexes.add(index);
 	}
 
-	@Override
 	public TableBuilder dropIndex(String colNames) {
 		int[] colNums = colNums(colNames);
 		verify(hasIndex(colNums),
@@ -293,7 +286,6 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 
 	//--------------------------------------------------------------------------
 
-	@Override
 	public void finish() {
 		try {
 			buildButDontComplete();
@@ -381,7 +373,6 @@ class TableBuilder implements suneido.intfc.database.TableBuilder {
 		throw new SuException(msg);
 	}
 
-	@Override
 	public void abortUnfinished() {
 		t.abortIfNotComplete();
 	}

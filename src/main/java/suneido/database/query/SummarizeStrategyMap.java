@@ -11,9 +11,9 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 
+import suneido.database.immudb.Record;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Summarize.Summary;
-import suneido.intfc.database.Record;
 
 /**
  * accumulate results in memory

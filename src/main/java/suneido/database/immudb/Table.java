@@ -8,12 +8,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 
-import suneido.util.Immutable;
-
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 
 import suneido.database.immudb.Bootstrap.TN;
+import suneido.util.Immutable;
 
 /**
  * Table schema information.
@@ -21,7 +20,7 @@ import suneido.database.immudb.Bootstrap.TN;
  * @see Indexes
  */
 @Immutable
-class Table implements suneido.intfc.database.Table {
+public class Table {
 	static final int TBLNUM = 0, TABLE = 1;
 	final int num;
 	final String name;
@@ -40,6 +39,10 @@ class Table implements suneido.intfc.database.Table {
 		fields = buildFields();
 	}
 
+	public static boolean isSpecialField(String column) {
+		return column.endsWith("_lower!");
+	}
+
 	private static void checkIndexTblnum(int num, Indexes indexes) {
 		for (Index idx : indexes)
 			assert idx.tblnum == num;
@@ -49,12 +52,10 @@ class Table implements suneido.intfc.database.Table {
 		this(record.getInt(TBLNUM), record.getString(TABLE), columns, indexes);
 	}
 
-	@Override
 	public String name() {
 		return name;
 	}
 
-	@Override
 	public int num() {
 		return num;
 	}
@@ -97,22 +98,18 @@ class Table implements suneido.intfc.database.Table {
 		return indexes.getIndex(colNums);
 	}
 
-	@Override
 	public boolean singleton() {
 		return indexes.first().colNums.length == 0;
 	}
 
-	@Override
 	public List<String> getColumns() {
 		return columns.names();
 	}
 
-	@Override
 	public List<List<String>> indexesColumns() {
 		return indexes.columns(columns);
 	}
 
-	@Override
 	public List<List<String>> keysColumns() {
 		return indexes.keysColumns(columns);
 	}
@@ -136,7 +133,6 @@ class Table implements suneido.intfc.database.Table {
 	/**
 	 * @return The physical fields. 1:1 match with records.
 	 */
-	@Override
 	public ImmutableList<String> getFields() {
 		return fields;
 	}
