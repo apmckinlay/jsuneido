@@ -9,7 +9,7 @@ import suneido.compiler.ParseExpression;
 import suneido.database.immudb.Transaction;
 import suneido.database.query.expr.Expr;
 import suneido.database.server.ServerData;
-import suneido.intfc.database.Database;
+import suneido.database.immudb.Database;
 
 public class CompileQuery {
 

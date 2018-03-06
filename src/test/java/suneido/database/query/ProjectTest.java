@@ -20,7 +20,7 @@ import suneido.compiler.Compiler;
 import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Transaction;
 import suneido.database.server.ServerData;
-import suneido.intfc.database.Database;
+import suneido.database.immudb.Database;
 
 public class ProjectTest {
 	private final ServerData serverData = new ServerData();

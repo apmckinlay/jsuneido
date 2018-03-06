@@ -15,7 +15,7 @@ import org.junit.Before;
 import suneido.database.immudb.*;
 import suneido.database.immudb.Table;
 import suneido.database.server.ServerData;
-import suneido.intfc.database.Database;
+import suneido.database.immudb.Database;
 import suneido.runtime.Ops;
 
 public class TestBase {

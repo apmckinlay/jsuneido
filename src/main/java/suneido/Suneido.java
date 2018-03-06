@@ -18,10 +18,10 @@ import java.util.concurrent.TimeUnit;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import suneido.compiler.Compiler;
+import suneido.database.immudb.Database;
 import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Dump;
 import suneido.database.server.DbmsServer;
-import suneido.intfc.database.Database;
 import suneido.runtime.ContextLayered;
 import suneido.runtime.Contexts;
 import suneido.util.Errlog;

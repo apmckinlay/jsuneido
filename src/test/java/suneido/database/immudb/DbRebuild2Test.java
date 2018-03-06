@@ -2,7 +2,7 @@
  * Licensed under GPLv2.
  */
 
-package suneido.intfc.database;
+package suneido.database.immudb;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
@@ -17,15 +17,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Dbpkg.Status;
-import suneido.database.immudb.Record;
-import suneido.database.immudb.Table;
-import suneido.database.immudb.Transaction;
 import suneido.util.FileUtils;
 
-
-public class DbRebuildTest extends TestBase {
+public class DbRebuild2Test extends TestBase {
 	protected String filename;
 	protected String outfilename;
 

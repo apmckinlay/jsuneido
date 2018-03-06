@@ -2,7 +2,7 @@
  * Licensed under GPLv2.
  */
 
-package suneido.intfc.database;
+package suneido.database.immudb;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
@@ -10,7 +10,6 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
-import suneido.database.immudb.Dbpkg;
 import suneido.util.BufferByteChannel;
 
 public class DumpLoadTest extends TestBase {

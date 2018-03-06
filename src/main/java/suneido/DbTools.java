@@ -12,9 +12,9 @@ import java.io.FileOutputStream;
 
 import com.google.common.base.Stopwatch;
 
+import suneido.database.immudb.Database;
 import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Dbpkg.Status;
-import suneido.intfc.database.Database;
 import suneido.util.Errlog;
 import suneido.util.FileUtils;
 import suneido.util.Jvm;

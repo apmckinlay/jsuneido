@@ -2,7 +2,7 @@
  * Licensed under GPLv2.
  */
 
-package suneido.intfc.database;
+package suneido.database.immudb;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;

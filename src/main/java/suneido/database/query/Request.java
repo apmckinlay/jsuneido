@@ -12,9 +12,9 @@ import java.util.List;
 
 import suneido.SuException;
 import suneido.compiler.Lexer;
+import suneido.database.immudb.Database;
 import suneido.database.immudb.TableBuilder;
 import suneido.database.server.ServerData;
-import suneido.intfc.database.Database;
 
 /**
  * Parse and execute database "requests" to create, alter, or drop tables.

@@ -2,7 +2,7 @@
  * Licensed under GPLv2.
  */
 
-package suneido.intfc.database;
+package suneido.database.immudb;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.core.StringContains.containsString;
@@ -17,7 +17,7 @@ import suneido.database.immudb.Record;
 import suneido.database.immudb.Table;
 import suneido.database.immudb.Transaction;
 
-public class TransactionTest extends TestBase {
+public class Transaction2Test extends TestBase {
 
 	@Test
 	public void cleanup() {

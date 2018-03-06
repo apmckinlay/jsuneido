@@ -1,3 +1,3 @@
-suneido.intfc.database.DbRebuildTest
-suneido.intfc.database.DumpLoadTest
+suneido.database.immudb.DbRebuild2Test
+suneido.database.immudb.DumpLoadTest
 suneido.database.immudb.MmapFileTest

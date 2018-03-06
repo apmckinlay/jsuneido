@@ -2,7 +2,7 @@
  * Licensed under GPLv2.
  */
 
-package suneido.intfc.database;
+package suneido.database.immudb;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
@@ -14,8 +14,6 @@ import static org.junit.Assert.fail;
 import java.util.List;
 
 import org.junit.Test;
-
-import suneido.database.immudb.*;
 
 public class DatabaseTest extends TestBase {
 

@@ -14,10 +14,10 @@ import com.google.common.collect.ImmutableList;
 
 import suneido.HttpServerMonitor;
 import suneido.SuException;
-import suneido.database.immudb.Dbpkg.Status;
-import suneido.database.immudb.Dbpkg.StringObserver;
 import suneido.database.immudb.DbHashTrie.Entry;
 import suneido.database.immudb.DbHashTrie.IntEntry;
+import suneido.database.immudb.Dbpkg.Status;
+import suneido.database.immudb.Dbpkg.StringObserver;
 import suneido.runtime.Triggers;
 import suneido.util.Errlog;
 import suneido.util.FileUtils;
@@ -25,7 +25,7 @@ import suneido.util.Immutable;
 import suneido.util.ThreadSafe;
 
 @ThreadSafe
-public class Database implements suneido.intfc.database.Database, AutoCloseable {
+public class Database implements AutoCloseable {
 	final Transactions trans = new Transactions();
 	final String filename;
 	final Storage dstor;
@@ -171,7 +171,6 @@ public class Database implements suneido.intfc.database.Database, AutoCloseable 
 	}
 
 	/** reopens with same Storage */
-	@Override
 	public Database reopen() {
 		persist();
 		return Database.open(filename, dstor, istor);
@@ -182,7 +181,6 @@ public class Database implements suneido.intfc.database.Database, AutoCloseable 
 		int i;
 	}
 
-	@Override
 	public String check() {
 		UpTo upto = new UpTo();
 		withCommitLock(() -> {
@@ -204,13 +202,11 @@ public class Database implements suneido.intfc.database.Database, AutoCloseable 
 		Dump.dump(dstor, istor, detail);
 	}
 
-	@Override
 	public ReadTransaction readTransaction() {
 		int num = trans.nextNum(true);
 		return new ReadTransaction(num, this);
 	}
 
-	@Override
 	public UpdateTransaction updateTransaction() {
 		int num = trans.nextNum(false);
 		return new UpdateTransaction(num, this);
@@ -240,25 +236,21 @@ public class Database implements suneido.intfc.database.Database, AutoCloseable 
 
 	// schema updates ----------------------------------------------------------
 
-	@Override
 	public TableBuilder createTable(String tableName) {
 		checkForSystemTable(tableName, "create");
 		return TableBuilder.create(schemaTransaction(), tableName);
 	}
 
-	@Override
 	public TableBuilder alterTable(String tableName) {
 		checkForSystemTable(tableName, "alter");
 		return TableBuilder.alter(schemaTransaction(), tableName);
 	}
 
-	@Override
 	public TableBuilder ensureTable(String tableName) {
 		checkForSystemTable(tableName, "ensure");
 		return TableBuilder.ensure(schemaTransaction(), tableName);
 	}
 
-	@Override
 	public boolean dropTable(String tableName) {
 		checkForSystemTable(tableName, "drop");
 		SchemaTransaction t = schemaTransaction();
@@ -269,7 +261,6 @@ public class Database implements suneido.intfc.database.Database, AutoCloseable 
 		}
 	}
 
-	@Override
 	public void renameTable(String from, String to) {
 		checkForSystemTable(from, "rename");
 		SchemaTransaction t = schemaTransaction();
@@ -280,7 +271,6 @@ public class Database implements suneido.intfc.database.Database, AutoCloseable 
 		}
 	}
 
-	@Override
 	public void addView(String name, String definition) {
 		checkForSystemTable(name, "create view");
 		// use SchemaTransaction to allow modifying system tables
@@ -333,12 +323,10 @@ public class Database implements suneido.intfc.database.Database, AutoCloseable 
 			DbGood.create(filename + "c", size[0]);
 	}
 
-	@Override
 	public long size() {
 		return dstor.sizeFrom(0) + istor.sizeFrom(0);
 	}
 
-	@Override
 	public String getSchema(String tableName) {
 		ReadTransaction t = readTransaction();
 		try {
@@ -349,36 +337,30 @@ public class Database implements suneido.intfc.database.Database, AutoCloseable 
 		}
 	}
 
-	@Override
 	public List<Integer> tranlist() {
 		if (trans.isLocked())
 			return ImmutableList.of(Integer.valueOf(0));
 		return trans.tranlist();
 	}
 
-	@Override
 	public void limitOutstandingTransactions() {
 		trans.limitOutstanding();
 	}
 
-	@Override
 	public int finalSize() {
 		return trans.finalSize();
 	}
 
-	@Override
 	public void force() {
 		dstor.force();
 		persist();
 		istor.force();
 	}
 
-	@Override
 	public void disableTrigger(String table) {
 		triggers.disableTrigger(table);
 	}
 
-	@Override
 	public void enableTrigger(String table) {
 		triggers.enableTrigger(table);
 	}
@@ -388,7 +370,6 @@ public class Database implements suneido.intfc.database.Database, AutoCloseable 
 		triggers.call(t, table, oldrec, newrec);
 	}
 
-	@Override
 	public void checkTransEmpty() {
 		trans.checkTransEmpty();
 	}
@@ -430,7 +411,7 @@ public class Database implements suneido.intfc.database.Database, AutoCloseable 
 	}
 
 	/** similar to try with resources */
-	public void withCommitLock(Runnable fn) {
+	void withCommitLock(Runnable fn) {
 		Throwable e0 = null;
 		commitLock();
 		try {

@@ -9,10 +9,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import suneido.database.immudb.Database;
 import suneido.database.server.Dbms;
 import suneido.database.server.DbmsClient;
 import suneido.database.server.DbmsLocal;
-import suneido.intfc.database.Database;
 import suneido.runtime.builtin.SocketServer;
 import suneido.util.Errlog;
 import suneido.util.Util;

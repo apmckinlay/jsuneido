@@ -8,8 +8,6 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import suneido.intfc.database.Database;
-
 public class DbCompactTest extends TestBase {
 
 	@Test

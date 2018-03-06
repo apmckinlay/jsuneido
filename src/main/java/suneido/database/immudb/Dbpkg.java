@@ -53,27 +53,26 @@ public class Dbpkg {
 		return DbCheck.check(dbFilename, ob);
 	}
 
-	public static int dumpDatabase(suneido.intfc.database.Database db, WritableByteChannel out) {
-		return DbDump.dumpDatabase((Database) db, out);
+	public static int dumpDatabase(Database db, WritableByteChannel out) {
+		return DbDump.dumpDatabase(db, out);
 	}
 
-	public static int dumpTable(suneido.intfc.database.Database db, String tablename,
+	public static int dumpTable(Database db, String tablename,
 			WritableByteChannel out) {
-		return DbDump.dumpTable((Database) db, tablename, out);
+		return DbDump.dumpTable(db, tablename, out);
 	}
 
-	public static int loadDatabase(suneido.intfc.database.Database db, ReadableByteChannel in) {
-		return DbLoad.loadDatabase((Database) db, in);
+	public static int loadDatabase(Database db, ReadableByteChannel in) {
+		return DbLoad.loadDatabase(db, in);
 	}
 
-	public static int loadTable(suneido.intfc.database.Database db, String tablename,
+	public static int loadTable(Database db, String tablename,
 			ReadableByteChannel in) {
-		return DbLoad.loadTable((Database) db, tablename, in);
+		return DbLoad.loadTable(db, tablename, in);
 	}
 
-	public static int compact(suneido.intfc.database.Database srcdb,
-			suneido.intfc.database.Database dstdb) {
-		return DbCompact.compact((Database) srcdb, (Database) dstdb);
+	public static int compact(Database srcdb, Database dstdb) {
+		return DbCompact.compact(srcdb, dstdb);
 	}
 
 	public static String rebuild(String dbFilename, String tempfilename) {
