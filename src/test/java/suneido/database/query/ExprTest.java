@@ -17,7 +17,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import suneido.SuDate;
-import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Record;
 import suneido.database.immudb.RecordBuilder;
 import suneido.database.query.expr.Expr;

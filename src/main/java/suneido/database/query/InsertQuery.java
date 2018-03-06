@@ -6,7 +6,6 @@ package suneido.database.query;
 
 import java.util.List;
 
-import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.RecordBuilder;
 import suneido.intfc.database.Transaction;
 

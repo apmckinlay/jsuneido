@@ -12,7 +12,6 @@ import com.google.common.base.CharMatcher;
 
 import suneido.*;
 import suneido.compiler.Compiler;
-import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Record;
 import suneido.database.immudb.RecordBuilder;
 import suneido.database.immudb.Table;
