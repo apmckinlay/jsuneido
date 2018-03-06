@@ -5,7 +5,6 @@
 package suneido.database.query;
 
 import static java.util.Arrays.asList;
-import static suneido.Suneido.dbpkg;
 import static suneido.util.Util.*;
 
 import java.util.ArrayList;
@@ -17,6 +16,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 
 import suneido.SuException;
+import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.RecordBuilder;
 import suneido.database.query.expr.Constant;
 import suneido.database.query.expr.Expr;
@@ -127,15 +127,15 @@ public class Extend extends Query1 {
 		Row srcrow = source.get(dir);
 		if (srcrow == null)
 			return null;
-		RecordBuilder rb = dbpkg.recordBuilder();
+		RecordBuilder rb = Dbpkg.recordBuilder();
 		for (int i = 0; i < flds.size(); ++i)
 			if (exprs.get(i) != null) {
-//				Row row = new Row(srcrow, rb.build(), dbpkg.minRecord());
-				Row row = new Row(srcrow, dbpkg.minRecord(), rb.build());
+//				Row row = new Row(srcrow, rb.build(), Dbpkg.MIN_RECORD);
+				Row row = new Row(srcrow, Dbpkg.MIN_RECORD, rb.build());
 				rb.add(exprs.get(i).eval(hdr, row));
 			}
-//		return new Row(srcrow, rb.build(), dbpkg.minRecord());
-		return new Row(srcrow, dbpkg.minRecord(), rb.build());
+//		return new Row(srcrow, rb.build(), Dbpkg.MIN_RECORD);
+		return new Row(srcrow, Dbpkg.MIN_RECORD, rb.build());
 	}
 
 	@Override

@@ -7,17 +7,17 @@ package suneido.database.server;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.core.StringStartsWith.startsWith;
 import static org.junit.Assert.assertThat;
-import static suneido.Suneido.dbpkg;
 
 import org.junit.Test;
 
 import suneido.SuContainer;
 import suneido.TheDbms;
+import suneido.database.immudb.Dbpkg;
+import suneido.database.immudb.Record;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Row;
 import suneido.database.server.Dbms.HeaderAndRow;
 import suneido.database.server.DbmsServer.ServerDataSet;
-import suneido.database.immudb.Record;
 
 /**
  * Test the client and server components by connecting DbmsClient to
@@ -29,7 +29,7 @@ public class ClientServerTest {
 
 	@Test
 	public void test() {
-		TheDbms.set(dbpkg.testdb()); // local dbms for server, used by Command
+		TheDbms.set(Dbpkg.testdb()); // local dbms for server, used by Command
 
 		channel = new TestChannel(this::serverHandler);
 		handler = new DbmsServer.DbmsServerHandler(channel, new ServerDataSet());
@@ -133,7 +133,7 @@ public class ClientServerTest {
 		t = dbmsClient.transaction(true);
 		assertThat(t.writeCount(), equalTo(0));
 		q = t.query("tmp");
-		rec = dbpkg.recordBuilder().add(123).add("foo").build();
+		rec = Dbpkg.recordBuilder().add(123).add("foo").build();
 		q.output(rec);
 		assertThat(t.readCount(), equalTo(0));
 		assertThat(t.writeCount(), equalTo(1));
@@ -166,7 +166,7 @@ public class ClientServerTest {
 		t = dbmsClient.transaction(true);
 		q = t.query("tmp");
 		row = q.get(Dir.NEXT);
-		rec = dbpkg.recordBuilder().add(456).add("up").build();
+		rec = Dbpkg.recordBuilder().add(456).add("up").build();
 		t.update(row.address(), rec);
 		assertThat(t.complete(), equalTo(null));
 		hr = dbmsClient.get(Dir.NEXT, "tmp", false);

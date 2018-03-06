@@ -4,7 +4,6 @@
 
 package suneido.database.server;
 
-import static suneido.Suneido.dbpkg;
 import static suneido.database.server.Command.*;
 import static suneido.util.ByteBuffers.bufferToString;
 
@@ -17,6 +16,7 @@ import java.util.List;
 import com.google.common.collect.ImmutableList;
 
 import suneido.*;
+import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Record;
 import suneido.database.query.Header;
 import suneido.database.query.Query.Dir;
@@ -179,7 +179,7 @@ public class DbmsClient extends Dbms {
 		int recadr = io.getInt();
 		Header header = withHeader ? headerResult() : null;
 		ByteBuffer buf = io.getOwnedBuffer();
-		Record record = dbpkg.record(recadr, buf);
+		Record record = Dbpkg.record(recadr, buf);
 		Row row = new Row(record);
 		return new HeaderAndRow(header, row);
 	}

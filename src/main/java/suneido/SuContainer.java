@@ -4,7 +4,6 @@
 
 package suneido;
 
-import static suneido.Suneido.dbpkg;
 import static suneido.runtime.Numbers.toBigDecimal;
 import static suneido.util.Verify.verify;
 
@@ -16,6 +15,7 @@ import java.util.regex.Pattern;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
+import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Record;
 import suneido.database.immudb.RecordBuilder;
 import suneido.database.query.Header;
@@ -759,7 +759,7 @@ public class SuContainer extends SuValue
 	}
 
 	public synchronized Record toDbRecord(Header hdr) {
-		RecordBuilder rec = dbpkg.recordBuilder();
+		RecordBuilder rec = Dbpkg.recordBuilder();
 		Object x;
 		String ts = hdr.timestamp_field();
 		Object tsval = null;

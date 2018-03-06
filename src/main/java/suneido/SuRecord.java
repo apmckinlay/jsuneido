@@ -4,7 +4,6 @@
 
 package suneido;
 
-import static suneido.Suneido.dbpkg;
 import static suneido.database.immudb.Table.isSpecialField;
 import static suneido.util.Util.commaJoiner;
 import static suneido.util.Verify.verify;
@@ -15,6 +14,7 @@ import java.util.*;
 import com.google.common.base.Objects;
 import com.google.common.collect.*;
 
+import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Record;
 import suneido.database.immudb.RecordBuilder;
 import suneido.database.query.Header;
@@ -268,7 +268,7 @@ public class SuRecord extends SuContainer {
 		Map<Object, Set<Object>> deps = getDeps(hdr, fldsyms);
 		// PERF don't add trailing empty fields
 
-		RecordBuilder rb = dbpkg.recordBuilder();
+		RecordBuilder rb = Dbpkg.recordBuilder();
 		Object x;
 		String ts = hdr.timestamp_field();
 		Object tsval = null;

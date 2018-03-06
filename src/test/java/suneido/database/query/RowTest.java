@@ -7,20 +7,20 @@ package suneido.database.query;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static suneido.Suneido.dbpkg;
 
 import java.util.Iterator;
 
 import org.junit.Test;
 
+import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Record;
 
 public class RowTest {
 
 	@Test
 	public void test() {
-		Record rec1 = dbpkg.recordBuilder().add(123).build();
-		Record rec2 = dbpkg.recordBuilder().add(123).add(456).build();
+		Record rec1 = Dbpkg.recordBuilder().add(123).build();
+		Record rec2 = Dbpkg.recordBuilder().add(123).add(456).build();
 		Row row = new Row(rec1, rec2);
 		assertEquals(2, row.size());
 		assertEquals("[123][123,456]", row.toString());
@@ -29,7 +29,7 @@ public class RowTest {
 		Header hdr = HeaderTest.makeHeader();
 		assertEquals(rec1.getRaw(0), row.getraw(hdr, "a"));
 		assertEquals(rec2.getRaw(1), row.getraw(hdr, "b"));
-		assertEquals(dbpkg.recordBuilder().add(456).build(), row.project(hdr, asList("b")));
+		assertEquals(Dbpkg.recordBuilder().add(456).build(), row.project(hdr, asList("b")));
 
 		Iterator<Row.Entry> iter = row.iterator(hdr);
 		Row.Entry e = iter.next();

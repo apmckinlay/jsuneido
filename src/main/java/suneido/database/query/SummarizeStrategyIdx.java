@@ -4,10 +4,9 @@
 
 package suneido.database.query;
 
-import static suneido.Suneido.dbpkg;
-
 import java.util.List;
 
+import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Record;
 import suneido.database.immudb.RecordBuilder;
 import suneido.database.query.Query.Dir;
@@ -32,9 +31,9 @@ public class SummarizeStrategyIdx extends SummarizeStrategy {
 			if (key.compareTo(sel.org) < 0 || key.compareTo(sel.end) > 0)
 				return null;
 		}
-		RecordBuilder rb = dbpkg.recordBuilder();
+		RecordBuilder rb = Dbpkg.recordBuilder();
 		rb.add(row.getraw(q.getHdr(), q.on.get(0)));
-		Row result = new Row(dbpkg.minRecord(), rb.build());
+		Row result = new Row(Dbpkg.MIN_RECORD, rb.build());
 		if (q.wholeRecord)
 			result = new Row(row, result);
 		return result;

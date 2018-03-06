@@ -4,8 +4,6 @@
 
 package suneido.database.server;
 
-import static suneido.Suneido.dbpkg;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -14,6 +12,7 @@ import com.google.common.base.CharMatcher;
 
 import suneido.*;
 import suneido.compiler.Compiler;
+import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Record;
 import suneido.database.immudb.Table;
 import suneido.database.query.CompileQuery;
@@ -73,15 +72,15 @@ public class DbmsLocal extends Dbms {
 			String check = db.check();
 			if (! check.equals(""))
 				return check;
-			DbTools.dumpDatabase(dbpkg, db, "database.su");
+			DbTools.dumpDatabase(db, "database.su");
 		} else
-			DbTools.dumpTable(dbpkg, db, filename);
+			DbTools.dumpTable(db, filename);
 		return "";
 	}
 
 	@Override
 	public int load(String filename) {
-		return DbTools.loadTable(dbpkg, db, filename);
+		return DbTools.loadTable(db, filename);
 	}
 
 	@Override
@@ -103,7 +102,7 @@ public class DbmsLocal extends Dbms {
 	@Override
 	public List<LibGet> libget(String name) {
 		List<LibGet> srcs = new ArrayList<>();
-		Record key = dbpkg.recordBuilder().add(name).add(-1).build();
+		Record key = Dbpkg.recordBuilder().add(name).add(-1).build();
 		Transaction tran = db.readTransaction();
 		try {
 			for (String lib : libraries) {

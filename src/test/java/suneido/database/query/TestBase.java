@@ -5,7 +5,6 @@
 package suneido.database.query;
 
 import static org.junit.Assert.assertEquals;
-import static suneido.Suneido.dbpkg;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,8 +12,7 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 
-import suneido.Suneido;
-import suneido.database.immudb.DatabasePackage;
+import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Record;
 import suneido.database.immudb.Table;
 import suneido.database.server.ServerData;
@@ -26,12 +24,9 @@ import suneido.runtime.Ops;
 public class TestBase {
 	protected final Database db;
 	protected final ServerData serverData = new ServerData();
-	private final DatabasePackage save_dbpkg;
 
 	TestBase() {
-		save_dbpkg = Suneido.dbpkg;
-		// Suneido.dbpkg = new suneido.database.immudb.DatabasePackage();
-		db = dbpkg.testdb();
+		db = Dbpkg.testdb();
 	}
 
 	@Before
@@ -42,7 +37,6 @@ public class TestBase {
 	@After
 	public void close() {
 		db.close();
-		Suneido.dbpkg = save_dbpkg;
 		Ops.default_single_quotes = false;
 	}
 
@@ -190,7 +184,7 @@ public class TestBase {
 		}
 
 	protected static Record record(int i) {
-		return dbpkg.recordBuilder().add(i).add("more stuff").build();
+		return Dbpkg.recordBuilder().add(i).add("more stuff").build();
 	}
 
 }

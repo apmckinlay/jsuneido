@@ -11,34 +11,20 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 import suneido.SuException;
-import suneido.Suneido;
 import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.ServerData;
 import suneido.intfc.database.Transaction;
 
 public class RequestTest {
-	private DatabasePackage save_dbpkg;
 	private static final String SCHEMA = "(a,b,c) key(a) index(b,c)";
 	private static final ServerData serverData = new ServerData();
 	HeapStorage dstor = new HeapStorage();
 	HeapStorage istor = new HeapStorage();
 	Database db = Database.create("", dstor, istor);
-
-	@Before
-	public void setup() {
-		save_dbpkg = Suneido.dbpkg;
-		Suneido.dbpkg = suneido.database.immudb.DatabasePackage.dbpkg;
-	}
-
-	@After
-	public void cleanup() {
-		Suneido.dbpkg = save_dbpkg;
-	}
 
 	@Test
 	public void create_table() {

@@ -24,8 +24,8 @@ public class DbCompactTest extends TestBase {
 	}
 
 	private void compact() {
-		Database dstdb = dbpkg().testdb();
-		dbpkg().compact(db, dstdb);
+		Database dstdb = Dbpkg.testdb();
+		Dbpkg.compact(db, dstdb);
 		assertEquals("", dstdb.check());
 	}
 

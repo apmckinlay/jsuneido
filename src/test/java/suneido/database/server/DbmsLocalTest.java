@@ -5,10 +5,10 @@
 package suneido.database.server;
 
 import static org.junit.Assert.assertEquals;
-import static suneido.Suneido.dbpkg;
 
 import org.junit.Test;
 
+import suneido.database.immudb.Dbpkg;
 import suneido.database.query.Header;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Row;
@@ -17,7 +17,7 @@ import suneido.database.server.Dbms.HeaderAndRow;
 public class DbmsLocalTest {
 	@Test
 	public void test() {
-		Dbms dbms = new DbmsLocal(dbpkg.testdb());
+		Dbms dbms = new DbmsLocal(Dbpkg.testdb());
 
 		dbms.admin("create test (a, b, c) key(a)");
 
@@ -30,7 +30,7 @@ public class DbmsLocalTest {
 
 		DbmsTran t2 = dbms.transaction(true);
 		DbmsQuery q = t2.query("test");
-		q.output(dbpkg.recordBuilder().add(4).add(5).add(6).build());
+		q.output(Dbpkg.recordBuilder().add(4).add(5).add(6).build());
 		q.rewind();
 		Row row = q.get(Dir.PREV);
 		Header hdr = q.header();

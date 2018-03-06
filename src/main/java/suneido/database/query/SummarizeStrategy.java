@@ -4,11 +4,10 @@
 
 package suneido.database.query;
 
-import static suneido.Suneido.dbpkg;
-
 import java.util.ArrayList;
 import java.util.List;
 
+import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Record;
 import suneido.database.immudb.RecordBuilder;
 import suneido.database.query.Query.Dir;
@@ -38,11 +37,11 @@ public abstract class SummarizeStrategy {
 	}
 
 	Row makeRow(Record r, List<Summary> sums) {
-		RecordBuilder rb = dbpkg.recordBuilder();
+		RecordBuilder rb = Dbpkg.recordBuilder();
 		rb.addAll(r);
 		for (Summary s : sums)
 			rb.add(s.result());
-		return new Row(dbpkg.minRecord(), rb.build());
+		return new Row(Dbpkg.MIN_RECORD, rb.build());
 	}
 
 	abstract Row get(Dir dir, boolean rewound);

@@ -18,9 +18,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import com.google.common.base.Stopwatch;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
-import suneido.Suneido;
-import suneido.database.immudb.DatabasePackage;
-import suneido.database.immudb.DatabasePackage.Status;
+import suneido.database.immudb.Dbpkg;
+import suneido.database.immudb.Dbpkg.Status;
 import suneido.database.immudb.Record;
 import suneido.database.immudb.RecordBuilder;
 import suneido.database.query.*;
@@ -29,8 +28,7 @@ import suneido.database.server.ServerData;
 import suneido.database.server.Timestamp;
 
 public class TestConcurrency {
-	static final DatabasePackage dbpkg = Suneido.dbpkg;
-	static final Database db = dbpkg.create("concur.db");
+	static final Database db = Dbpkg.create("concur.db");
 	static final ServerData serverData = new ServerData();
 	static final int NTHREADS = 8;
 	static final long DURATION_MS = TimeUnit.SECONDS.toMillis(30);
@@ -70,7 +68,7 @@ public class TestConcurrency {
 		db.checkTransEmpty();
 		db.close();
 		verifyEquals(Status.OK,
-				dbpkg.check("concur.db", DatabasePackage.printObserver));
+				Dbpkg.check("concur.db", Dbpkg.printObserver));
 	}
 
 	static class Client implements Runnable {
@@ -202,7 +200,7 @@ public class TestConcurrency {
 			}
 		}
 		Record record() {
-			RecordBuilder r = dbpkg.recordBuilder();
+			RecordBuilder r = Dbpkg.recordBuilder();
 			r.add(Timestamp.next());
 			for (int i = 0; i < 6; ++i)
 				r.add(i % 2 == 0 ? random(N)
@@ -255,7 +253,7 @@ public class TestConcurrency {
 		}
 	}
 	private static Record rec(int... values) {
-		RecordBuilder r = dbpkg.recordBuilder();
+		RecordBuilder r = Dbpkg.recordBuilder();
 		for (int i : values)
 			r.add(i);
 		return r.build();

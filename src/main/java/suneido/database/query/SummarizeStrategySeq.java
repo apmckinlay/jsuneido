@@ -4,12 +4,12 @@
 
 package suneido.database.query;
 
-import static suneido.Suneido.dbpkg;
 import static suneido.util.Util.startsWith;
 
 import java.util.List;
 
 import suneido.SuException;
+import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Record;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Summarize.Summary;
@@ -78,7 +78,7 @@ public class SummarizeStrategySeq extends SummarizeStrategy {
 	void select(List<String> index, Record from, Record to) {
 		// because of fixed, this index may not be the same as the source index (via)
 		if (startsWith(q.via, index) ||
-				(from.equals(dbpkg.minRecord()) && to.equals(dbpkg.maxRecord())))
+				(from.equals(Dbpkg.MIN_RECORD) && to.equals(Dbpkg.MAX_RECORD)))
 			source.select(q.via, from, to);
 		else
 			throw new SuException(

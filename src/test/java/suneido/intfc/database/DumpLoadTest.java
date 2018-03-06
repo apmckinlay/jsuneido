@@ -7,10 +7,10 @@ package suneido.intfc.database;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static suneido.Suneido.dbpkg;
 
 import org.junit.Test;
 
+import suneido.database.immudb.Dbpkg;
 import suneido.util.BufferByteChannel;
 
 public class DumpLoadTest extends TestBase {
@@ -21,12 +21,12 @@ public class DumpLoadTest extends TestBase {
 		check();
 
 		BufferByteChannel b = new BufferByteChannel(1000);
-		dbpkg.dumpDatabase(db, b);
+		Dbpkg.dumpDatabase(db, b);
 		db.close();
 
 		b.flip();
-		db = dbpkg.testdb();
-		dbpkg.loadDatabase(db, b);
+		db = Dbpkg.testdb();
+		Dbpkg.loadDatabase(db, b);
 		check();
 	}
 
@@ -36,12 +36,12 @@ public class DumpLoadTest extends TestBase {
 		check();
 
 		BufferByteChannel b = new BufferByteChannel(1000);
-		dbpkg.dumpTable(db, "test", b);
+		Dbpkg.dumpTable(db, "test", b);
 		db.close();
 
 		b.flip();
-		db = dbpkg.testdb();
-		dbpkg.loadTable(db, "test", b);
+		db = Dbpkg.testdb();
+		Dbpkg.loadTable(db, "test", b);
 		check();
 	}
 

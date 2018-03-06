@@ -7,6 +7,7 @@ package suneido;
 import java.io.*;
 
 import suneido.compiler.Compiler;
+import suneido.database.immudb.Dbpkg;
 import suneido.runtime.Ops;
 import suneido.util.Errlog;
 
@@ -24,7 +25,7 @@ public class Repl {
 	public static void repl() throws IOException {
 		if (! new File("suneido.dbd").exists() && ! new File("suneido.dbi").exists()) {
 			System.out.println("WARNING: no database found, creating an empty one");
-			Suneido.dbpkg.create("suneido.db").close();
+			Dbpkg.create("suneido.db").close();
 		}
 		Suneido.openDbms();
 		repl2();

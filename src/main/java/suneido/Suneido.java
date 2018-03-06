@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import suneido.compiler.Compiler;
-import suneido.database.immudb.DatabasePackage;
+import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Dump;
 import suneido.database.server.DbmsServer;
 import suneido.intfc.database.Database;
@@ -28,7 +28,6 @@ import suneido.util.Errlog;
 import suneido.util.Print;
 
 public class Suneido {
-	public static DatabasePackage dbpkg = DatabasePackage.dbpkg;
 	private static final ThreadFactory threadFactory =
 		new ThreadFactoryBuilder()
 			.setDaemon(true)
@@ -57,9 +56,9 @@ public class Suneido {
 			}
 		}
 		if (cmdlineoptions.max_update_tran_sec != 0)
-			dbpkg.setOption("max_update_tran_sec", cmdlineoptions.max_update_tran_sec);
+			Dbpkg.setOption("max_update_tran_sec", cmdlineoptions.max_update_tran_sec);
 		if (cmdlineoptions.max_writes_per_tran != 0)
-			dbpkg.setOption("max_writes_per_tran", cmdlineoptions.max_writes_per_tran);
+			Dbpkg.setOption("max_writes_per_tran", cmdlineoptions.max_writes_per_tran);
 		try {
 			doAction();
 		} catch (Throwable e) {
@@ -68,7 +67,7 @@ public class Suneido {
 	}
 
 	private static void doAction() throws Throwable {
-		String dbFilename = dbpkg.dbFilename();
+		String dbFilename = Dbpkg.DB_FILENAME;
 		switch (cmdlineoptions.action) {
 		case REPL:
 			Repl.repl();
@@ -92,38 +91,38 @@ public class Suneido {
 		case DUMP:
 			String dumptablename = cmdlineoptions.actionArg;
 			if (dumptablename == null)
-				DbTools.dumpPrintExit(dbpkg, dbFilename, "database.su");
+				DbTools.dumpPrintExit(dbFilename, "database.su");
 			else
-				DbTools.dumpTablePrint(dbpkg, dbFilename, dumptablename);
+				DbTools.dumpTablePrint(dbFilename, dumptablename);
 			break;
 		case LOAD:
 			String loadtablename = cmdlineoptions.actionArg;
 			if (loadtablename != null)
-				DbTools.loadTablePrint(dbpkg, dbFilename, loadtablename);
+				DbTools.loadTablePrint(dbFilename, loadtablename);
 			else
-				DbTools.loadDatabasePrint(dbpkg, dbFilename, "database.su");
+				DbTools.loadDatabasePrint(dbFilename, "database.su");
 			break;
 		case LOAD2:
-			DbTools.load2(dbpkg, cmdlineoptions.actionArg);
+			DbTools.load2(cmdlineoptions.actionArg);
 			break;
 		case CHECK:
-			DbTools.checkPrintExit(dbpkg, cmdlineoptions.actionArg == null
+			DbTools.checkPrintExit(cmdlineoptions.actionArg == null
 					? dbFilename : cmdlineoptions.actionArg);
 			break;
 		case REBUILD:
-			DbTools.rebuildOrExit(dbpkg, dbFilename);
+			DbTools.rebuildOrExit(dbFilename);
 			break;
 		case REBUILD2:
-			DbTools.rebuild2(dbpkg, cmdlineoptions.actionArg);
+			DbTools.rebuild2(cmdlineoptions.actionArg);
 			break;
 		case REBUILD3:
-			DbTools.rebuild3(dbpkg, cmdlineoptions.actionArg);
+			DbTools.rebuild3(cmdlineoptions.actionArg);
 			break;
 		case COMPACT:
-			DbTools.compactPrintExit(dbpkg, dbFilename);
+			DbTools.compactPrintExit(dbFilename);
 			break;
 		case COMPACT2:
-			DbTools.compact2(dbpkg, cmdlineoptions.actionArg);
+			DbTools.compact2(cmdlineoptions.actionArg);
 			break;
 		case DBDUMP:
 			Dump.dump();
@@ -166,13 +165,13 @@ public class Suneido {
 	private static Database db;
 
 	public static void openDbms() {
-		db = dbpkg.open(dbpkg.dbFilename());
+		db = Dbpkg.open(Dbpkg.DB_FILENAME);
 		if (db == null) {
 			Errlog.error("database corrupt, rebuilding");
 			HttpServerMonitor.rebuilding();
 			tryToCloseMemoryMappings();
-			DbTools.rebuildOrExit(dbpkg, dbpkg.dbFilename());
-			db = dbpkg.open(dbpkg.dbFilename());
+			DbTools.rebuildOrExit(Dbpkg.DB_FILENAME);
+			db = Dbpkg.open(Dbpkg.DB_FILENAME);
 			if (db == null)
 				Errlog.fatal("could not open database after rebuild");
 		}

@@ -6,7 +6,6 @@ package suneido.database.query;
 
 import static java.util.Arrays.asList;
 import static suneido.SuInternalError.unreachable;
-import static suneido.Suneido.dbpkg;
 import static suneido.Trace.trace;
 import static suneido.Trace.tracing;
 import static suneido.Trace.Type.SELECT;
@@ -29,6 +28,7 @@ import com.google.common.collect.ImmutableSet;
 import gnu.trove.set.hash.TIntHashSet;
 import suneido.SuException;
 import suneido.compiler.Token;
+import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Record;
 import suneido.database.immudb.RecordBuilder;
 import suneido.database.query.expr.*;
@@ -561,8 +561,8 @@ public class Select extends Query1 {
 		// now build the key
 		int i = 0;
 		int n = index.size();
-		RecordBuilder org = dbpkg.recordBuilder();
-		RecordBuilder end = dbpkg.recordBuilder();
+		RecordBuilder org = Dbpkg.recordBuilder();
+		RecordBuilder end = Dbpkg.recordBuilder();
 		for (int iseli = 0; iseli < iselects.size(); ++iseli, ++i) {
 			Iselect isel = iselects.get(iseli);
 			verify(! isel.none());
@@ -751,8 +751,8 @@ public class Select extends Query1 {
 		// now build the keys
 		int i = 0;
 		int n = index.size();
-		RecordBuilder org = dbpkg.recordBuilder();
-		RecordBuilder end = dbpkg.recordBuilder();
+		RecordBuilder org = Dbpkg.recordBuilder();
+		RecordBuilder end = Dbpkg.recordBuilder();
 		if (nil(iselects))
 			end.addMax();
 		for (int iseli = 0; iseli < iselects.size(); ++iseli) {
@@ -841,12 +841,12 @@ public class Select extends Query1 {
 
 	private void convert_select(List<String> index, Record from, Record to) {
 		// PERF: could optimize for case where from == to
-		if (from.equals(dbpkg.minRecord()) && to.equals(dbpkg.maxRecord())) {
+		if (from.equals(Dbpkg.MIN_RECORD) && to.equals(Dbpkg.MAX_RECORD)) {
 			sel.setAll();
 			return ;
 		}
-		RecordBuilder newfrom = dbpkg.recordBuilder();
-		RecordBuilder newto = dbpkg.recordBuilder();
+		RecordBuilder newfrom = Dbpkg.recordBuilder();
+		RecordBuilder newto = Dbpkg.recordBuilder();
 		int si = 0; // source_index;
 		int ri = 0; // index;
 		Object fixval;

@@ -4,13 +4,13 @@
 
 package suneido;
 
-import static suneido.Suneido.dbpkg;
 import static suneido.util.Verify.verify;
 
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.List;
 
+import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Record;
 import suneido.database.immudb.RecordBuilder;
 import suneido.database.query.Header;
@@ -121,7 +121,7 @@ public class SuRecordNew extends SuObservers {
 	@Override
 	public Record toDbRecord(Header hdr) {
 		List<String> fldsyms = hdr.output_fldsyms();
-		RecordBuilder rb = dbpkg.recordBuilder();
+		RecordBuilder rb = Dbpkg.recordBuilder();
 		Object x;
 		String ts = hdr.timestamp_field();
 		for (String f : fldsyms)

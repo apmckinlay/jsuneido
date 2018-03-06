@@ -4,8 +4,8 @@
 
 package suneido.database.immudb;
 
-import static suneido.database.immudb.DatabasePackage.MAX_RECORD;
-import static suneido.database.immudb.DatabasePackage.MIN_RECORD;
+import static suneido.database.immudb.Dbpkg.MAX_RECORD;
+import static suneido.database.immudb.Dbpkg.MIN_RECORD;
 
 import java.io.IOException;
 import java.io.PrintWriter;

@@ -13,7 +13,7 @@ import java.util.Date;
 
 import gnu.trove.map.hash.TIntObjectHashMap;
 import suneido.database.immudb.Bootstrap.TN;
-import suneido.database.immudb.DatabasePackage.Status;
+import suneido.database.immudb.Dbpkg.Status;
 import suneido.util.Errlog;
 import suneido.util.FileUtils;
 
@@ -85,7 +85,7 @@ class DbRebuild {
 
 	private static boolean check_data_and_indexes(Storage dstor, Storage istor) {
 		System.out.println("tables...");
-		DbCheck dbCheck = new DbCheck("", dstor, istor, DatabasePackage.printObserver);
+		DbCheck dbCheck = new DbCheck("", dstor, istor, Dbpkg.printObserver);
 		Database db = Database.openWithoutCheck("", dstor, istor);
 		boolean ok = dbCheck.check_data_and_indexes(db);
 		System.out.print(dbCheck.details);
@@ -125,7 +125,7 @@ class DbRebuild {
 			System.out.println("Checking rebuilt database ...");
 			db.persist();
 			Status status = DbCheck.check(newFilename, db.dstor, db.istor,
-					DatabasePackage.printObserver);
+					Dbpkg.printObserver);
 			if (status != Status.OK) {
 				System.out.println("Check after rebuild FAILED");
 				return null;

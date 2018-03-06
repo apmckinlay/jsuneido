@@ -4,7 +4,6 @@
 
 package suneido.database.query.expr;
 
-import static suneido.Suneido.dbpkg;
 import static suneido.util.Util.displayListToParens;
 
 import java.nio.ByteBuffer;
@@ -14,6 +13,7 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
 
+import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Record;
 import suneido.database.immudb.RecordBuilder;
 import suneido.database.query.Header;
@@ -39,7 +39,7 @@ public class In extends Expr {
 	}
 
 	private static Record convert(Set<Object> values) {
-		RecordBuilder rb = dbpkg.recordBuilder();
+		RecordBuilder rb = Dbpkg.recordBuilder();
 		for (Object value : values)
 			rb.add(value);
 		return rb.build();

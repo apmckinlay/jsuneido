@@ -303,7 +303,7 @@ public class DbRebuildTest extends TestBase {
 		@Override
 		protected Database newdb(long dOkSize) {
 			assert dOkSize == 0;
-			return db = DatabasePackage.dbpkg.testdb();
+			return db = Dbpkg.testdb();
 		}
 	}
 

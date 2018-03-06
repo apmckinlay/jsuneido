@@ -23,8 +23,7 @@
 
 -keep class suneido.database.immudb.BtreeKey
 -keep class suneido.compiler.ParseFunction$Context
-
--keep class org.objectweb.asm.MethodVisitor
+-keep class suneido.database.immudb.Dbpkg$Observer
 
 -dontnote com.google.common.**
 

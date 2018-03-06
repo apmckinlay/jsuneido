@@ -62,14 +62,14 @@ public class TransactionTest {
 
 	@Test
 	public void lookup() {
-		Database db = DatabasePackage.dbpkg.testdb();
+		Database db = Dbpkg.testdb();
 		Transaction t = db.readTransaction();
 		Record key = new RecordBuilder().add("indexes").build();
-		Record r = (Record) t.lookup(1, "tablename", key);
+		Record r = t.lookup(1, "tablename", key);
 		assertThat(r.getString(1), equalTo("indexes"));
 
 		key = new RecordBuilder().add("fred").build();
-		r = (Record) t.lookup(1, "tablename", key);
+		r = t.lookup(1, "tablename", key);
 		assertNull(r);
 	}
 

@@ -4,8 +4,6 @@
 
 package suneido.database.server;
 
-import static suneido.Suneido.dbpkg;
-
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -15,6 +13,7 @@ import java.util.Set;
 import com.google.common.collect.Sets;
 
 import suneido.TheDbms;
+import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Record;
 import suneido.database.immudb.Table;
 import suneido.intfc.database.Database;
@@ -111,7 +110,7 @@ public class Auth {
 	 * or "" if it fails.
 	 */
 	private static String getPassHash(String user) {
-		Record key = dbpkg.recordBuilder().add(user).build();
+		Record key = Dbpkg.recordBuilder().add(user).build();
 		Database db = ((DbmsLocal) TheDbms.dbms()).getDb();
 		Transaction t = db.readTransaction();
 		try {

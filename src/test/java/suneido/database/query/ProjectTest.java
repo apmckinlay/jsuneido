@@ -7,7 +7,6 @@ package suneido.database.query;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static suneido.Suneido.dbpkg;
 import static suneido.database.query.Query.Dir.NEXT;
 import static suneido.database.query.Query.Dir.PREV;
 
@@ -18,13 +17,14 @@ import org.junit.Test;
 
 import suneido.Suneido;
 import suneido.compiler.Compiler;
+import suneido.database.immudb.Dbpkg;
 import suneido.database.server.ServerData;
 import suneido.intfc.database.Database;
 import suneido.intfc.database.Transaction;
 
 public class ProjectTest {
 	private final ServerData serverData = new ServerData();
-	private final Database db = dbpkg.testdb();
+	private final Database db = Dbpkg.testdb();
 
 	@Test
 	public void project_extend_1() {

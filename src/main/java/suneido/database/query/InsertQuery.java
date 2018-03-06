@@ -4,10 +4,9 @@
 
 package suneido.database.query;
 
-import static suneido.Suneido.dbpkg;
-
 import java.util.List;
 
+import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.RecordBuilder;
 import suneido.intfc.database.Transaction;
 
@@ -34,7 +33,7 @@ public class InsertQuery extends QueryAction {
 		Row row;
 		int n = 0;
 		for (; null != (row = q.get(Dir.NEXT)); ++n) {
-			RecordBuilder rb = dbpkg.recordBuilder();
+			RecordBuilder rb = Dbpkg.recordBuilder();
 			for (String f : fields)
 				if (f.equals("-"))
 					rb.addMin();

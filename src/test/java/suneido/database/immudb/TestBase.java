@@ -6,11 +6,6 @@ package suneido.database.immudb;
 
 public class TestBase extends suneido.intfc.database.TestBase {
 
-	@Override
-	protected DatabasePackage dbpkg() {
-		return DatabasePackage.dbpkg;
-	}
-
 	ReadTransaction readTransaction() {
 		return ((Database) db).readTransaction();
 	}

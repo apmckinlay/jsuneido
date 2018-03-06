@@ -4,7 +4,6 @@
 
 package suneido.database.server;
 
-import static suneido.Suneido.dbpkg;
 import static suneido.database.server.Dbms.isTran;
 
 import java.nio.ByteBuffer;
@@ -13,6 +12,7 @@ import java.util.List;
 import suneido.SuContainer;
 import suneido.SuException;
 import suneido.TheDbms;
+import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Record;
 import suneido.database.immudb.RecordBuilder;
 import suneido.database.query.Header;
@@ -616,7 +616,7 @@ public enum Command {
 	private static Record rowToRecord(Row row, Header hdr) {
 		if (row.size() == 1)
 			return row.firstData();
-		RecordBuilder rb = dbpkg.recordBuilder();
+		RecordBuilder rb = Dbpkg.recordBuilder();
 		for (String f : hdr.fields())
 			rb.add(row.getraw(hdr, f));
 		return rb.trim().build();
@@ -643,7 +643,7 @@ public enum Command {
 
 	private static Record getRecord(SuChannel io) {
 		ByteBuffer buf = io.getOwnedBuffer();
-		return dbpkg.record(0, buf);
+		return Dbpkg.record(0, buf);
 	}
 
 	private static void valueResult(SuChannel io, Object result) {

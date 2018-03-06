@@ -19,8 +19,8 @@ class IndexRange implements Comparable<IndexRange> {
 
 	/** create an empty range (lo > hi) */
 	public IndexRange() {
-		lo = DatabasePackage.MAX_RECORD;
-		hi = DatabasePackage.MIN_RECORD;
+		lo = Dbpkg.MAX_RECORD;
+		hi = Dbpkg.MIN_RECORD;
 	}
 
 	public IndexRange(Record lo, Record hi) {

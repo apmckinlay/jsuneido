@@ -14,8 +14,8 @@ import com.google.common.collect.ImmutableList;
 
 import suneido.HttpServerMonitor;
 import suneido.SuException;
-import suneido.database.immudb.DatabasePackage.Status;
-import suneido.database.immudb.DatabasePackage.StringObserver;
+import suneido.database.immudb.Dbpkg.Status;
+import suneido.database.immudb.Dbpkg.StringObserver;
 import suneido.database.immudb.DbHashTrie.Entry;
 import suneido.database.immudb.DbHashTrie.IntEntry;
 import suneido.runtime.Triggers;

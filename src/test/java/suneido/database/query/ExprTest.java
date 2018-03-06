@@ -8,7 +8,6 @@ import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static suneido.Suneido.dbpkg;
 
 import java.util.Collections;
 import java.util.List;
@@ -18,8 +17,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import suneido.SuDate;
-import suneido.database.query.expr.Expr;
+import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Record;
+import suneido.database.query.expr.Expr;
 import suneido.runtime.Ops;
 
 public class ExprTest {
@@ -100,8 +100,8 @@ public class ExprTest {
 	public void eval() {
 		hdr = new Header(asList(asList("a"), asList("a", "b", "c", "d", "e")),
 				asList("a", "b", "c", "d", "e"));
-		Record key = dbpkg.recordBuilder().add(1).build();
-		Record rec = dbpkg.recordBuilder().add(1).add(2).add(3).add(4).
+		Record key = Dbpkg.recordBuilder().add(1).build();
+		Record rec = Dbpkg.recordBuilder().add(1).add(2).add(3).add(4).
 				add(SuDate.fromLiteral("#20081216.153244828")).build();
 		row = new Row(key, rec);
 		eval("a + 10", "11");

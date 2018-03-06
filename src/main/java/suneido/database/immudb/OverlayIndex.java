@@ -135,16 +135,16 @@ class OverlayIndex implements TranIndex {
 		Iter(TranIndex global, TranIndex local, TIntHashSet deletes) {
 			super(global.iterator(), local.iterator());
 			this.deletes = deletes;
-			from = DatabasePackage.MIN_RECORD;
-			to = DatabasePackage.MAX_RECORD;
+			from = Dbpkg.MIN_RECORD;
+			to = Dbpkg.MAX_RECORD;
 		}
 
 		/** for tests */
 		Iter(TranIndex.Iter iter1, TranIndex.Iter iter2, TIntHashSet deletes) {
 			super(iter1, iter2);
 			this.deletes = deletes;
-			from = DatabasePackage.MIN_RECORD;
-			to = DatabasePackage.MAX_RECORD;
+			from = Dbpkg.MIN_RECORD;
+			to = Dbpkg.MAX_RECORD;
 			ir = new IndexRange();
 		}
 

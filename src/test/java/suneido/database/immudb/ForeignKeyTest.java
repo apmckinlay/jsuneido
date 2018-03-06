@@ -15,7 +15,7 @@ import org.junit.Test;
 import com.google.common.collect.Ordering;
 
 public class ForeignKeyTest {
-	private Database db = DatabasePackage.dbpkg.testdb();
+	private Database db = Dbpkg.testdb();
 
 	@Test
 	public void schema() {

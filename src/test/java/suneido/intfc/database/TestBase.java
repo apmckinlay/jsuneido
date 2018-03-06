@@ -9,22 +9,17 @@ import static org.junit.Assert.assertEquals;
 import java.util.ArrayList;
 import java.util.List;
 
-import suneido.Suneido;
-import suneido.database.immudb.DatabasePackage;
+import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Record;
 import suneido.database.immudb.RecordBuilder;
 import suneido.database.immudb.Table;
 
 public class TestBase {
 	private static final String DEFAULT_TABLENAME = "test";
-	protected Database db = dbpkg().testdb();
-
-	protected DatabasePackage dbpkg() {
-		return Suneido.dbpkg;
-	}
+	protected Database db = Dbpkg.testdb();
 
 	protected Record record(int i) {
-		return dbpkg().recordBuilder().add(i).add("more stuff").build();
+		return Dbpkg.recordBuilder().add(i).add("more stuff").build();
 	}
 
 	protected Table getTable(String tableName) {
@@ -74,7 +69,7 @@ public class TestBase {
 	}
 
 	protected Record rec(Object... values) {
-		RecordBuilder rb = dbpkg().recordBuilder();
+		RecordBuilder rb = Dbpkg.recordBuilder();
 		for (Object val : values)
 			if (val instanceof Integer)
 				rb.add(((Integer) val).intValue());
@@ -161,7 +156,7 @@ public class TestBase {
 	}
 
 	protected Record key(int i) {
-		return dbpkg().recordBuilder().add(i).build();
+		return Dbpkg.recordBuilder().add(i).build();
 	}
 
 	protected void remove(int i) {

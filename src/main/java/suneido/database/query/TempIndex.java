@@ -12,7 +12,7 @@ import static suneido.util.Verify.verify;
 import java.util.List;
 
 import suneido.SuException;
-import suneido.Suneido;
+import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Record;
 import suneido.database.immudb.RecordStore;
 import suneido.intfc.database.Transaction;
@@ -90,7 +90,7 @@ public class TempIndex extends Query1 {
 	}
 
 	private void iterate_setup(Dir dir) {
-		stor = Suneido.dbpkg.recordStore();
+		stor = Dbpkg.recordStore();
 		index.clear();
 		refs.clear();
 		Header srchdr = source.header();

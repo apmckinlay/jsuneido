@@ -4,13 +4,12 @@
 
 package suneido.database.query;
 
-import static suneido.Suneido.dbpkg;
-
 import java.util.List;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
 
+import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.HistoryIterator;
 import suneido.database.immudb.Record;
 import suneido.intfc.database.Transaction;
@@ -116,7 +115,7 @@ public class History extends Query {
 		Record[] data = (dir == Dir.NEXT) ? iter.getNext() : iter.getPrev();
 		if (data == null)
 			return null;
-		return new Row(dbpkg.minRecord(), data[0], dbpkg.minRecord(), data[1]);
+		return new Row(Dbpkg.MIN_RECORD, data[0], Dbpkg.MIN_RECORD, data[1]);
 	}
 
 	@Override
