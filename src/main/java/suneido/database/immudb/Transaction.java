@@ -4,83 +4,83 @@
 
 package suneido.database.immudb;
 
-public interface Transaction {
+public abstract class Transaction {
 
-	boolean isReadonly();
+	public abstract boolean isReadonly();
 
-	boolean isReadWrite();
+	public abstract boolean isReadWrite();
 
-	boolean isEnded();
+	public abstract boolean isEnded();
 
-	String conflict();
+	public abstract String conflict();
 
-	boolean tableExists(String table);
+	public abstract boolean tableExists(String table);
 
-	Table ck_getTable(String tablename);
+	public abstract Table ck_getTable(String tablename);
 
-	Table getTable(String tablename);
+	public abstract Table getTable(String tablename);
 
-	Table ck_getTable(int tblnum);
+	public abstract Table ck_getTable(int tblnum);
 
-	Table getTable(int tblnum);
+	public abstract Table getTable(int tblnum);
 
-	int tableCount(int tblnum);
-	long tableSize(int tblnum);
-	int indexSize(int tblnum, String columns);
-	int keySize(int tblnum, String columns);
-	float rangefrac(int tblnum, String columns, Record from, Record to);
+	public abstract int tableCount(int tblnum);
+	public abstract long tableSize(int tblnum);
+	public abstract int indexSize(int tblnum, String columns);
+	public abstract int keySize(int tblnum, String columns);
+	public abstract float rangefrac(int tblnum, String columns, Record from, Record to);
 
-	void abortIfNotComplete();
+	public abstract void abortIfNotComplete();
 
-	void abort();
+	public abstract void abort();
 
-	void ck_complete();
+	public abstract void ck_complete();
 
 	/** @return null if successful, an error string if there is a conflict */
-	String complete();
+	public abstract String complete();
 
-	String getView(String viewname);
+	public abstract String getView(String viewname);
 
-	void addRecord(String table, Record r);
+	public abstract void addRecord(String table, Record r);
 
-	enum Blocking { BLOCK, NO_BLOCK }
+	public enum Blocking { BLOCK, NO_BLOCK }
 
-	int updateRecord(int recadr, Record rec, Blocking blocking);
-	default int updateRecord(int recadr, Record rec) {
+	public abstract int updateRecord(int recadr, Record rec, Blocking blocking);
+	public int updateRecord(int recadr, Record rec) {
 		return updateRecord(recadr, rec, Blocking.BLOCK);
 	}
 
-	int updateRecord(int tblnum, Record oldrec, Record newrec, Blocking blocking);
-	default int updateRecord(int tblnum, Record oldrec, Record newrec) {
+	public abstract int updateRecord(int tblnum, Record oldrec, Record newrec, Blocking blocking);
+	public int updateRecord(int tblnum, Record oldrec, Record newrec) {
 		return updateRecord(tblnum, oldrec, newrec, Blocking.BLOCK);
 	}
 
-	void removeRecord(int recadr);
-	int removeRecord(int tblnum, Record rec);
+	public abstract void removeRecord(int recadr);
+	public abstract int removeRecord(int tblnum, Record rec);
 
-	Record input(int adr);
+	public abstract Record input(int adr);
 
 	// used by Library
-	Record lookup(int tblnum, String index, Record key);
+	public abstract Record lookup(int tblnum, String index, Record key);
 
-	void callTrigger(Table table, Record oldrec, Record newrec);
+	public abstract void callTrigger(Table table, Record oldrec, Record newrec);
 
-	int num();
+	public abstract int num();
 
-	Record fromRef(Object ref);
+	public abstract Record fromRef(Object ref);
 
-	HistoryIterator historyIterator(int tblnum);
+	public abstract HistoryIterator historyIterator(int tblnum);
 
-	IndexIter iter(int tblnum, String columns);
-	IndexIter iter(int tblnum, String columns, Record org, Record end);
-	IndexIter iter(int tblnum, String columns, IndexIter iter);
+	public abstract IndexIter iter(int tblnum, String columns);
+	public abstract IndexIter iter(int tblnum, String columns, Record org, Record end);
+	public abstract IndexIter iter(int tblnum, String columns, IndexIter iter);
 
-	boolean isAborted();
+	public abstract boolean isAborted();
 
-	default int readCount() {
+	public int readCount() {
 		return 0;
 	}
-	default int writeCount() {
+	public int writeCount() {
 		return 0;
 	}
 
