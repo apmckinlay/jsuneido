@@ -13,7 +13,7 @@ import java.util.Date;
 
 import gnu.trove.map.hash.TIntObjectHashMap;
 import suneido.database.immudb.Bootstrap.TN;
-import suneido.intfc.database.DatabasePackage.Status;
+import suneido.database.immudb.DatabasePackage.Status;
 import suneido.util.Errlog;
 import suneido.util.FileUtils;
 

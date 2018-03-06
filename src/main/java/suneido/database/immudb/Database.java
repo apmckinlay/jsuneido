@@ -14,10 +14,10 @@ import com.google.common.collect.ImmutableList;
 
 import suneido.HttpServerMonitor;
 import suneido.SuException;
+import suneido.database.immudb.DatabasePackage.Status;
+import suneido.database.immudb.DatabasePackage.StringObserver;
 import suneido.database.immudb.DbHashTrie.Entry;
 import suneido.database.immudb.DbHashTrie.IntEntry;
-import suneido.intfc.database.DatabasePackage.Status;
-import suneido.intfc.database.DatabasePackage.StringObserver;
 import suneido.runtime.Triggers;
 import suneido.util.Errlog;
 import suneido.util.FileUtils;
@@ -25,7 +25,7 @@ import suneido.util.Immutable;
 import suneido.util.ThreadSafe;
 
 @ThreadSafe
-class Database implements suneido.intfc.database.Database, AutoCloseable {
+public class Database implements suneido.intfc.database.Database, AutoCloseable {
 	final Transactions trans = new Transactions();
 	final String filename;
 	final Storage dstor;

@@ -19,7 +19,6 @@ import suneido.Suneido;
 import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.ServerData;
-import suneido.intfc.database.DatabasePackage;
 import suneido.intfc.database.Transaction;
 
 public class RequestTest {

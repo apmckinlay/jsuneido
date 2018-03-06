@@ -7,7 +7,7 @@ package suneido.database.immudb;
 public class TestBase extends suneido.intfc.database.TestBase {
 
 	@Override
-	protected suneido.intfc.database.DatabasePackage dbpkg() {
+	protected DatabasePackage dbpkg() {
 		return DatabasePackage.dbpkg;
 	}
 

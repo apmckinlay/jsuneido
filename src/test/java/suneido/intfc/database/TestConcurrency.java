@@ -19,13 +19,14 @@ import com.google.common.base.Stopwatch;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import suneido.Suneido;
+import suneido.database.immudb.DatabasePackage;
+import suneido.database.immudb.DatabasePackage.Status;
 import suneido.database.immudb.Record;
 import suneido.database.immudb.RecordBuilder;
 import suneido.database.query.*;
 import suneido.database.query.Query.Dir;
 import suneido.database.server.ServerData;
 import suneido.database.server.Timestamp;
-import suneido.intfc.database.DatabasePackage.Status;
 
 public class TestConcurrency {
 	static final DatabasePackage dbpkg = Suneido.dbpkg;
@@ -68,8 +69,8 @@ public class TestConcurrency {
 
 		db.checkTransEmpty();
 		db.close();
-		verifyEquals(Status.OK, dbpkg.check("concur.db",
-				suneido.intfc.database.DatabasePackage.printObserver));
+		verifyEquals(Status.OK,
+				dbpkg.check("concur.db", DatabasePackage.printObserver));
 	}
 
 	static class Client implements Runnable {

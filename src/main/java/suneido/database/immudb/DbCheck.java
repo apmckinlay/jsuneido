@@ -4,7 +4,7 @@
 
 package suneido.database.immudb;
 
-import static suneido.intfc.database.DatabasePackage.nullObserver;
+import static suneido.database.immudb.DatabasePackage.nullObserver;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -14,8 +14,8 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import suneido.intfc.database.DatabasePackage.Observer;
-import suneido.intfc.database.DatabasePackage.Status;
+import suneido.database.immudb.DatabasePackage.Observer;
+import suneido.database.immudb.DatabasePackage.Status;
 
 /**
  * Check the consistency of a database.

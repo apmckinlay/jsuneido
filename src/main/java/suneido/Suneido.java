@@ -6,29 +6,29 @@ package suneido;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import suneido.compiler.Compiler;
-import suneido.database.server.DbmsServer;
+import suneido.database.immudb.DatabasePackage;
 import suneido.database.immudb.Dump;
+import suneido.database.server.DbmsServer;
 import suneido.intfc.database.Database;
-import suneido.intfc.database.DatabasePackage;
 import suneido.runtime.ContextLayered;
 import suneido.runtime.Contexts;
 import suneido.util.Errlog;
 import suneido.util.Print;
 
 public class Suneido {
-	public static DatabasePackage dbpkg = suneido.database.immudb.DatabasePackage.dbpkg;
+	public static DatabasePackage dbpkg = DatabasePackage.dbpkg;
 	private static final ThreadFactory threadFactory =
 		new ThreadFactoryBuilder()
 			.setDaemon(true)

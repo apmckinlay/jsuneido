@@ -10,7 +10,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static suneido.Suneido.dbpkg;
-import static suneido.intfc.database.DatabasePackage.nullObserver;
+import static suneido.database.immudb.DatabasePackage.nullObserver;
 
 import java.io.File;
 
@@ -18,10 +18,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import suneido.intfc.database.DatabasePackage.Status;
-import suneido.util.FileUtils;
+import suneido.database.immudb.DatabasePackage.Status;
 import suneido.database.immudb.Record;
 import suneido.database.immudb.Table;
+import suneido.util.FileUtils;
 
 
 public class DbRebuildTest extends TestBase {

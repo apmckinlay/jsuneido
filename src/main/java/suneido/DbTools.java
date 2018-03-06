@@ -4,7 +4,7 @@
 
 package suneido;
 
-import static suneido.intfc.database.DatabasePackage.printObserver;
+import static suneido.database.immudb.DatabasePackage.printObserver;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,9 +12,9 @@ import java.io.FileOutputStream;
 
 import com.google.common.base.Stopwatch;
 
+import suneido.database.immudb.DatabasePackage;
+import suneido.database.immudb.DatabasePackage.Status;
 import suneido.intfc.database.Database;
-import suneido.intfc.database.DatabasePackage;
-import suneido.intfc.database.DatabasePackage.Status;
 import suneido.util.Errlog;
 import suneido.util.FileUtils;
 import suneido.util.Jvm;
