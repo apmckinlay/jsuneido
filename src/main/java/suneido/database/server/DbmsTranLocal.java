@@ -6,13 +6,13 @@ package suneido.database.server;
 
 import suneido.SuException;
 import suneido.database.immudb.Record;
+import suneido.database.immudb.Transaction;
 import suneido.database.query.CompileQuery;
 import suneido.database.query.Query;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.QueryAction;
 import suneido.database.query.Row;
 import suneido.database.server.Dbms.HeaderAndRow;
-import suneido.intfc.database.Transaction;
 
 public class DbmsTranLocal implements DbmsTran {
 	final Transaction t;

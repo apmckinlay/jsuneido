@@ -18,9 +18,9 @@ import org.junit.Test;
 import suneido.Suneido;
 import suneido.compiler.Compiler;
 import suneido.database.immudb.Dbpkg;
+import suneido.database.immudb.Transaction;
 import suneido.database.server.ServerData;
 import suneido.intfc.database.Database;
-import suneido.intfc.database.Transaction;
 
 public class ProjectTest {
 	private final ServerData serverData = new ServerData();

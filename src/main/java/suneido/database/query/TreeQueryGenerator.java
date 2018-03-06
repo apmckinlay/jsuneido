@@ -16,8 +16,8 @@ import suneido.SuException;
 import suneido.SuRecord;
 import suneido.compiler.AstNode;
 import suneido.compiler.Token;
+import suneido.database.immudb.Transaction;
 import suneido.database.query.expr.*;
-import suneido.intfc.database.Transaction;
 import suneido.runtime.Numbers;
 
 @SuppressWarnings("unchecked")

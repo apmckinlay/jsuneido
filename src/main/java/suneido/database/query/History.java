@@ -12,7 +12,7 @@ import com.google.common.collect.ImmutableList;
 import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.HistoryIterator;
 import suneido.database.immudb.Record;
-import suneido.intfc.database.Transaction;
+import suneido.database.immudb.Transaction;
 
 public class History extends Query {
 	private final String tablename;

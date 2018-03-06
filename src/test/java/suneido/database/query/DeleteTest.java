@@ -8,7 +8,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import suneido.intfc.database.Transaction;
+import suneido.database.immudb.Transaction;
 
 public class DeleteTest extends TestBase {
 

@@ -9,8 +9,8 @@ import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 
+import suneido.database.immudb.Transaction;
 import suneido.database.query.Query.Dir;
-import suneido.intfc.database.Transaction;
 
 public class CursorTest extends TestBase {
 

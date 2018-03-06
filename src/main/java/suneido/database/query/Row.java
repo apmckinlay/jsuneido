@@ -18,8 +18,8 @@ import suneido.SuRecord;
 import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Record;
 import suneido.database.immudb.RecordBuilder;
+import suneido.database.immudb.Transaction;
 import suneido.database.server.DbmsTran;
-import suneido.intfc.database.Transaction;
 import suneido.runtime.Pack;
 import suneido.util.Util;
 

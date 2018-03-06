@@ -15,7 +15,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 import suneido.SuException;
-import suneido.intfc.database.Transaction;
 import suneido.util.Errlog;
 
 /**

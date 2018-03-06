@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Set;
 
 import suneido.database.immudb.Record;
-import suneido.intfc.database.Transaction;
+import suneido.database.immudb.Transaction;
 
 public abstract class Query1 extends Query {
 	protected Query source;

@@ -7,7 +7,7 @@ package suneido.database.query;
 import java.util.List;
 
 import suneido.database.immudb.RecordBuilder;
-import suneido.intfc.database.Transaction;
+import suneido.database.immudb.Transaction;
 
 public class InsertQuery extends QueryAction {
 	private final Transaction tran;

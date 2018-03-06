@@ -7,6 +7,7 @@ package suneido.intfc.database;
 import java.util.List;
 
 import suneido.database.immudb.TableBuilder;
+import suneido.database.immudb.Transaction;
 
 public interface Database extends AutoCloseable {
 

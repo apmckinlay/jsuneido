@@ -23,7 +23,7 @@ import suneido.util.ThreadConfined;
  * since they only operate on immutable data.
  */
 @ThreadConfined
-class ReadTransaction implements suneido.intfc.database.Transaction {
+class ReadTransaction implements Transaction {
 	protected final int num;
 	protected final Database db;
 	protected final Tran tran;

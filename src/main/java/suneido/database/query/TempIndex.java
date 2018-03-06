@@ -15,7 +15,7 @@ import suneido.SuException;
 import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Record;
 import suneido.database.immudb.RecordStore;
-import suneido.intfc.database.Transaction;
+import suneido.database.immudb.Transaction;
 import suneido.util.ArraysList;
 import suneido.util.IntComparator;
 import suneido.util.IntMergeTree;

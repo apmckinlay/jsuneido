@@ -6,10 +6,10 @@ package suneido.database.query;
 
 import suneido.compiler.Lexer;
 import suneido.compiler.ParseExpression;
+import suneido.database.immudb.Transaction;
 import suneido.database.query.expr.Expr;
 import suneido.database.server.ServerData;
 import suneido.intfc.database.Database;
-import suneido.intfc.database.Transaction;
 
 public class CompileQuery {
 

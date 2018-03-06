@@ -17,8 +17,8 @@ import org.junit.Test;
 
 import com.google.common.collect.Lists;
 
+import suneido.database.immudb.Transaction;
 import suneido.database.query.Query.Dir;
-import suneido.intfc.database.Transaction;
 import suneido.runtime.Ops;
 
 public class QueryTest extends TestBase {

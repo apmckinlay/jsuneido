@@ -10,7 +10,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 import suneido.database.immudb.RecordBuilder;
-import suneido.intfc.database.Transaction;
+import suneido.database.immudb.Transaction;
 
 public class OptimizeTest extends TestBase {
 

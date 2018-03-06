@@ -21,6 +21,7 @@ import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Dbpkg.Status;
 import suneido.database.immudb.Record;
 import suneido.database.immudb.Table;
+import suneido.database.immudb.Transaction;
 import suneido.util.FileUtils;
 
 

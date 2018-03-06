@@ -15,6 +15,7 @@ import org.junit.Test;
 import suneido.database.immudb.IndexIter;
 import suneido.database.immudb.Record;
 import suneido.database.immudb.Table;
+import suneido.database.immudb.Transaction;
 
 public class TransactionTest extends TestBase {
 

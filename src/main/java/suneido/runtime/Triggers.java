@@ -14,7 +14,7 @@ import suneido.Suneido;
 import suneido.database.immudb.Record;
 import suneido.database.server.DbmsTranLocal;
 import suneido.database.immudb.Table;
-import suneido.intfc.database.Transaction;
+import suneido.database.immudb.Transaction;
 import suneido.runtime.builtin.SuTransaction;
 import suneido.util.ThreadSafe;
 

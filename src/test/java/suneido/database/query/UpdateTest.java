@@ -14,7 +14,7 @@ import suneido.database.immudb.IndexIter;
 import suneido.database.immudb.Record;
 import suneido.database.immudb.RecordBuilder;
 import suneido.database.immudb.Table;
-import suneido.intfc.database.Transaction;
+import suneido.database.immudb.Transaction;
 
 public class UpdateTest extends TestBase {
 

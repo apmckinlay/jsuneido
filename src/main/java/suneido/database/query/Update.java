@@ -12,8 +12,8 @@ import com.google.common.collect.ImmutableSet;
 import suneido.SuException;
 import suneido.SuRecord;
 import suneido.database.immudb.Record;
+import suneido.database.immudb.Transaction;
 import suneido.database.query.expr.Expr;
-import suneido.intfc.database.Transaction;
 
 public class Update extends QueryAction {
 	private final Transaction tran;
