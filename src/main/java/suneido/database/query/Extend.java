@@ -127,7 +127,7 @@ public class Extend extends Query1 {
 		Row srcrow = source.get(dir);
 		if (srcrow == null)
 			return null;
-		RecordBuilder rb = Dbpkg.recordBuilder();
+		RecordBuilder rb = new RecordBuilder();
 		for (int i = 0; i < flds.size(); ++i)
 			if (exprs.get(i) != null) {
 //				Row row = new Row(srcrow, rb.build(), Dbpkg.MIN_RECORD);

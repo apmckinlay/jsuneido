@@ -33,7 +33,7 @@ public class InsertQuery extends QueryAction {
 		Row row;
 		int n = 0;
 		for (; null != (row = q.get(Dir.NEXT)); ++n) {
-			RecordBuilder rb = Dbpkg.recordBuilder();
+			RecordBuilder rb = new RecordBuilder();
 			for (String f : fields)
 				if (f.equals("-"))
 					rb.addMin();

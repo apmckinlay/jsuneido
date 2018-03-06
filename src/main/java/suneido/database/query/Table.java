@@ -352,7 +352,7 @@ public class Table extends Query {
 
 		@Override
 		Record process(Record rec) {
-			RecordBuilder rb = Dbpkg.recordBuilder();
+			RecordBuilder rb = new RecordBuilder();
 			rb.addAll(rec);
 			for (int i = rec.size(); i < 6; ++i)
 				rb.add("");

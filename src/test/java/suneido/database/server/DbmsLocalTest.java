@@ -9,6 +9,7 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 import suneido.database.immudb.Dbpkg;
+import suneido.database.immudb.RecordBuilder;
 import suneido.database.query.Header;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Row;
@@ -30,7 +31,7 @@ public class DbmsLocalTest {
 
 		DbmsTran t2 = dbms.transaction(true);
 		DbmsQuery q = t2.query("test");
-		q.output(Dbpkg.recordBuilder().add(4).add(5).add(6).build());
+		q.output(new RecordBuilder().add(4).add(5).add(6).build());
 		q.rewind();
 		Row row = q.get(Dir.PREV);
 		Header hdr = q.header();

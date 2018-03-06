@@ -759,7 +759,7 @@ public class SuContainer extends SuValue
 	}
 
 	public synchronized Record toDbRecord(Header hdr) {
-		RecordBuilder rec = Dbpkg.recordBuilder();
+		RecordBuilder rec = new RecordBuilder();
 		Object x;
 		String ts = hdr.timestamp_field();
 		Object tsval = null;

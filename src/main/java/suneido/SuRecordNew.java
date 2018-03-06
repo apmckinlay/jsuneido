@@ -121,7 +121,7 @@ public class SuRecordNew extends SuObservers {
 	@Override
 	public Record toDbRecord(Header hdr) {
 		List<String> fldsyms = hdr.output_fldsyms();
-		RecordBuilder rb = Dbpkg.recordBuilder();
+		RecordBuilder rb = new RecordBuilder();
 		Object x;
 		String ts = hdr.timestamp_field();
 		for (String f : fldsyms)

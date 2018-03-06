@@ -561,8 +561,8 @@ public class Select extends Query1 {
 		// now build the key
 		int i = 0;
 		int n = index.size();
-		RecordBuilder org = Dbpkg.recordBuilder();
-		RecordBuilder end = Dbpkg.recordBuilder();
+		RecordBuilder org = new RecordBuilder();
+		RecordBuilder end = new RecordBuilder();
 		for (int iseli = 0; iseli < iselects.size(); ++iseli, ++i) {
 			Iselect isel = iselects.get(iseli);
 			verify(! isel.none());
@@ -751,8 +751,8 @@ public class Select extends Query1 {
 		// now build the keys
 		int i = 0;
 		int n = index.size();
-		RecordBuilder org = Dbpkg.recordBuilder();
-		RecordBuilder end = Dbpkg.recordBuilder();
+		RecordBuilder org = new RecordBuilder();
+		RecordBuilder end = new RecordBuilder();
 		if (nil(iselects))
 			end.addMax();
 		for (int iseli = 0; iseli < iselects.size(); ++iseli) {
@@ -845,8 +845,8 @@ public class Select extends Query1 {
 			sel.setAll();
 			return ;
 		}
-		RecordBuilder newfrom = Dbpkg.recordBuilder();
-		RecordBuilder newto = Dbpkg.recordBuilder();
+		RecordBuilder newfrom = new RecordBuilder();
+		RecordBuilder newto = new RecordBuilder();
 		int si = 0; // source_index;
 		int ri = 0; // index;
 		Object fixval;

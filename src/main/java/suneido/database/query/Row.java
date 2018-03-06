@@ -89,7 +89,7 @@ public class Row {
 	}
 
 	public Record project(Header hdr, List<String> flds) {
-		RecordBuilder key = Dbpkg.recordBuilder();
+		RecordBuilder key = new RecordBuilder();
 		for (String f : flds)
 			key.add(getrawval(hdr, f));
 		return key.build();
@@ -97,7 +97,7 @@ public class Row {
 
 	/** used by TempIndex */
 	Record project(Header hdr, List<String> flds, int adr) {
-		RecordBuilder key = Dbpkg.recordBuilder();
+		RecordBuilder key = new RecordBuilder();
 		for (String f : flds)
 			key.add(getrawval(hdr, f));
 		key.add(adr);

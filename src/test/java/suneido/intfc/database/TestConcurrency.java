@@ -200,7 +200,7 @@ public class TestConcurrency {
 			}
 		}
 		Record record() {
-			RecordBuilder r = Dbpkg.recordBuilder();
+			RecordBuilder r = new RecordBuilder();
 			r.add(Timestamp.next());
 			for (int i = 0; i < 6; ++i)
 				r.add(i % 2 == 0 ? random(N)
@@ -253,7 +253,7 @@ public class TestConcurrency {
 		}
 	}
 	private static Record rec(int... values) {
-		RecordBuilder r = Dbpkg.recordBuilder();
+		RecordBuilder r = new RecordBuilder();
 		for (int i : values)
 			r.add(i);
 		return r.build();

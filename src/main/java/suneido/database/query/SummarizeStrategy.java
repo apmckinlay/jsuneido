@@ -37,7 +37,7 @@ public abstract class SummarizeStrategy {
 	}
 
 	Row makeRow(Record r, List<Summary> sums) {
-		RecordBuilder rb = Dbpkg.recordBuilder();
+		RecordBuilder rb = new RecordBuilder();
 		rb.addAll(r);
 		for (Summary s : sums)
 			rb.add(s.result());

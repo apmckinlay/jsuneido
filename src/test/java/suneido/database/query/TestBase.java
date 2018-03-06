@@ -14,6 +14,7 @@ import org.junit.Before;
 
 import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Record;
+import suneido.database.immudb.RecordBuilder;
 import suneido.database.immudb.Table;
 import suneido.database.server.ServerData;
 import suneido.intfc.database.Database;
@@ -184,7 +185,7 @@ public class TestBase {
 		}
 
 	protected static Record record(int i) {
-		return Dbpkg.recordBuilder().add(i).add("more stuff").build();
+		return new RecordBuilder().add(i).add("more stuff").build();
 	}
 
 }

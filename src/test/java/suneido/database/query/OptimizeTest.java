@@ -10,6 +10,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 import suneido.database.immudb.Dbpkg;
+import suneido.database.immudb.RecordBuilder;
 import suneido.intfc.database.Transaction;
 
 public class OptimizeTest extends TestBase {
@@ -20,7 +21,7 @@ public class OptimizeTest extends TestBase {
 		String big = "now is the time for all good men";
 		Transaction t = db.updateTransaction();
 		for (int i = 0; i < 100; ++i)
-			t.addRecord("test", Dbpkg.recordBuilder().add(big).add(i).add(big).build());
+			t.addRecord("test", new RecordBuilder().add(big).add(i).add(big).build());
 		t.ck_complete();
 		test1("test", "test^(b)");
 	}

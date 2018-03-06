@@ -39,7 +39,7 @@ public class In extends Expr {
 	}
 
 	private static Record convert(Set<Object> values) {
-		RecordBuilder rb = Dbpkg.recordBuilder();
+		RecordBuilder rb = new RecordBuilder();
 		for (Object value : values)
 			rb.add(value);
 		return rb.build();

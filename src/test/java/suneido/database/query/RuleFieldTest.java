@@ -11,6 +11,7 @@ import org.junit.Test;
 
 import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Record;
+import suneido.database.immudb.RecordBuilder;
 import suneido.database.immudb.Table;
 import suneido.intfc.database.Transaction;
 
@@ -41,9 +42,9 @@ public class RuleFieldTest extends TestBase {
 	@Test
 	public void misc() {
 		// rule fields are stored with a field number of -1
-		Record r = Dbpkg.recordBuilder().add(-1).build();
+		Record r = new RecordBuilder().add(-1).build();
 		assertEquals(-1, r.getInt(0));
-		Record r2 = Dbpkg.recordBuilder().add(0).build();
+		Record r2 = new RecordBuilder().add(0).build();
 		assertTrue(r.compareTo(r2) < 0);
 	}
 

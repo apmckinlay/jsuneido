@@ -10,13 +10,14 @@ import org.junit.Test;
 
 import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Record;
+import suneido.database.immudb.RecordBuilder;
 
 public class KeyrangeTest {
 	@Test
 	public void intersect() {
-		Record a = Dbpkg.recordBuilder().add("a").build();
-		Record b = Dbpkg.recordBuilder().add("b").build();
-		Record c = Dbpkg.recordBuilder().add("c").build();
+		Record a = new RecordBuilder().add("a").build();
+		Record b = new RecordBuilder().add("b").build();
+		Record c = new RecordBuilder().add("c").build();
 
 		Keyrange x = new Keyrange(a, b);
 		Keyrange all = new Keyrange();

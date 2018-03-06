@@ -616,7 +616,7 @@ public enum Command {
 	private static Record rowToRecord(Row row, Header hdr) {
 		if (row.size() == 1)
 			return row.firstData();
-		RecordBuilder rb = Dbpkg.recordBuilder();
+		RecordBuilder rb = new RecordBuilder();
 		for (String f : hdr.fields())
 			rb.add(row.getraw(hdr, f));
 		return rb.trim().build();

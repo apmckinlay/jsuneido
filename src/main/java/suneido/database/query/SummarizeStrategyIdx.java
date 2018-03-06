@@ -31,7 +31,7 @@ public class SummarizeStrategyIdx extends SummarizeStrategy {
 			if (key.compareTo(sel.org) < 0 || key.compareTo(sel.end) > 0)
 				return null;
 		}
-		RecordBuilder rb = Dbpkg.recordBuilder();
+		RecordBuilder rb = new RecordBuilder();
 		rb.add(row.getraw(q.getHdr(), q.on.get(0)));
 		Row result = new Row(Dbpkg.MIN_RECORD, rb.build());
 		if (q.wholeRecord)

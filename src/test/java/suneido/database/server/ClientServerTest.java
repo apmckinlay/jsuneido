@@ -14,6 +14,7 @@ import suneido.SuContainer;
 import suneido.TheDbms;
 import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Record;
+import suneido.database.immudb.RecordBuilder;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Row;
 import suneido.database.server.Dbms.HeaderAndRow;
@@ -133,7 +134,7 @@ public class ClientServerTest {
 		t = dbmsClient.transaction(true);
 		assertThat(t.writeCount(), equalTo(0));
 		q = t.query("tmp");
-		rec = Dbpkg.recordBuilder().add(123).add("foo").build();
+		rec = new RecordBuilder().add(123).add("foo").build();
 		q.output(rec);
 		assertThat(t.readCount(), equalTo(0));
 		assertThat(t.writeCount(), equalTo(1));
@@ -166,7 +167,7 @@ public class ClientServerTest {
 		t = dbmsClient.transaction(true);
 		q = t.query("tmp");
 		row = q.get(Dir.NEXT);
-		rec = Dbpkg.recordBuilder().add(456).add("up").build();
+		rec = new RecordBuilder().add(456).add("up").build();
 		t.update(row.address(), rec);
 		assertThat(t.complete(), equalTo(null));
 		hr = dbmsClient.get(Dir.NEXT, "tmp", false);

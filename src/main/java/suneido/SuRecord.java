@@ -268,7 +268,7 @@ public class SuRecord extends SuContainer {
 		Map<Object, Set<Object>> deps = getDeps(hdr, fldsyms);
 		// PERF don't add trailing empty fields
 
-		RecordBuilder rb = Dbpkg.recordBuilder();
+		RecordBuilder rb = new RecordBuilder();
 		Object x;
 		String ts = hdr.timestamp_field();
 		Object tsval = null;

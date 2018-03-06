@@ -39,10 +39,6 @@ public class Dbpkg {
 		return Database.create("", new HeapStorage(), new HeapStorage());
 	}
 
-	public static RecordBuilder recordBuilder() {
-		return new RecordBuilder();
-	}
-
 	public static Record record(ByteBuffer buf) {
 		return Record.from(buf);
 	}

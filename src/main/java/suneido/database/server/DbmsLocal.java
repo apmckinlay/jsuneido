@@ -14,6 +14,7 @@ import suneido.*;
 import suneido.compiler.Compiler;
 import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Record;
+import suneido.database.immudb.RecordBuilder;
 import suneido.database.immudb.Table;
 import suneido.database.query.CompileQuery;
 import suneido.database.query.Query.Dir;
@@ -102,7 +103,7 @@ public class DbmsLocal extends Dbms {
 	@Override
 	public List<LibGet> libget(String name) {
 		List<LibGet> srcs = new ArrayList<>();
-		Record key = Dbpkg.recordBuilder().add(name).add(-1).build();
+		Record key = new RecordBuilder().add(name).add(-1).build();
 		Transaction tran = db.readTransaction();
 		try {
 			for (String lib : libraries) {

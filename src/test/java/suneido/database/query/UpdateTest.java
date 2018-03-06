@@ -12,6 +12,7 @@ import org.junit.Test;
 
 import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Record;
+import suneido.database.immudb.RecordBuilder;
 import suneido.database.immudb.Table;
 import suneido.intfc.database.IndexIter;
 import suneido.intfc.database.Transaction;
@@ -28,8 +29,8 @@ public class UpdateTest extends TestBase {
 		assertEquals(4, recs.size());
 		assertEquals(record(0), recs.get(0));
 		assertEquals(record(3), recs.get(3));
-		assertEquals(Dbpkg.recordBuilder().add(1).add("xxx").build(), recs.get(1));
-		assertEquals(Dbpkg.recordBuilder().add(2).add("xxx").build(), recs.get(2));
+		assertEquals(new RecordBuilder().add(1).add("xxx").build(), recs.get(1));
+		assertEquals(new RecordBuilder().add(2).add("xxx").build(), recs.get(2));
 	}
 
 	@Test
@@ -57,7 +58,7 @@ public class UpdateTest extends TestBase {
 	}
 
 	private static Record mkrec(int i) {
-		return Dbpkg.recordBuilder().add(-1) // group
+		return new RecordBuilder().add(-1) // group
 				.add("") // lib_committed
 				.add("") // lib_modified
 				.add("Foo" + i) // name

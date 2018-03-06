@@ -62,7 +62,7 @@ public abstract class Query {
 	}
 	abstract void select(List<String> index, Record from, Record to);
 	void select(List<String> index, Record key) {
-		RecordBuilder rb = Dbpkg.recordBuilder();
+		RecordBuilder rb = new RecordBuilder();
 		Record key_to = rb.addAll(key).addMax().build();
 		select(index, key, key_to);
 	}

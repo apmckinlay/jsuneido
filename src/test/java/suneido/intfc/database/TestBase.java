@@ -19,7 +19,7 @@ public class TestBase {
 	protected Database db = Dbpkg.testdb();
 
 	protected Record record(int i) {
-		return Dbpkg.recordBuilder().add(i).add("more stuff").build();
+		return new RecordBuilder().add(i).add("more stuff").build();
 	}
 
 	protected Table getTable(String tableName) {
@@ -69,7 +69,7 @@ public class TestBase {
 	}
 
 	protected Record rec(Object... values) {
-		RecordBuilder rb = Dbpkg.recordBuilder();
+		RecordBuilder rb = new RecordBuilder();
 		for (Object val : values)
 			if (val instanceof Integer)
 				rb.add(((Integer) val).intValue());
@@ -156,7 +156,7 @@ public class TestBase {
 	}
 
 	protected Record key(int i) {
-		return Dbpkg.recordBuilder().add(i).build();
+		return new RecordBuilder().add(i).build();
 	}
 
 	protected void remove(int i) {
