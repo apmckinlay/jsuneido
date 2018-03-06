@@ -8,8 +8,6 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import suneido.intfc.database.IndexIter;
-
 public abstract class IndexIterTestBase {
 
 	protected static void testNext(IndexIter iter, int n) {
@@ -47,14 +45,14 @@ public abstract class IndexIterTestBase {
 		return a;
 	}
 
-	protected static TranIndex.Iter iter(int... ints) {
+	protected static IndexIter iter(int... ints) {
 		Record[] recs = new Record[ints.length];
 		for (int i = 0; i < ints.length; ++i)
 			recs[i] = new RecordBuilder().add(ints[i]).build();
 		return new SimpleIndexIter(recs);
 	}
 
-	static class SimpleIndexIter implements TranIndex.Iter {
+	static class SimpleIndexIter implements IndexIter {
 		protected final Record[] values;
 		private boolean rewound = true;
 		protected int i = -1;

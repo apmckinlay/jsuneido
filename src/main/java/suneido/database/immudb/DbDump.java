@@ -12,8 +12,6 @@ import java.nio.ByteOrder;
 import java.nio.channels.WritableByteChannel;
 import java.util.List;
 
-import suneido.intfc.database.IndexIter;
-
 class DbDump {
 
 	static int dumpDatabase(Database db, WritableByteChannel out) {

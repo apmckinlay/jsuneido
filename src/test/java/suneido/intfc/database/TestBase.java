@@ -9,10 +9,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.ArrayList;
 import java.util.List;
 
-import suneido.database.immudb.Dbpkg;
-import suneido.database.immudb.Record;
-import suneido.database.immudb.RecordBuilder;
-import suneido.database.immudb.Table;
+import suneido.database.immudb.*;
 
 public class TestBase {
 	private static final String DEFAULT_TABLENAME = "test";

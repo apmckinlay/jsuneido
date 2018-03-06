@@ -2,9 +2,7 @@
  * Licensed under GPLv2.
  */
 
-package suneido.intfc.database;
-
-import suneido.database.immudb.Record;
+package suneido.database.immudb;
 
 public interface IndexIter {
 
@@ -17,5 +15,7 @@ public interface IndexIter {
 	void next();
 
 	void prev();
+
+	void rewind();
 
 }

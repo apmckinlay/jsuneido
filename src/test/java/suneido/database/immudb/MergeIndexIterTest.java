@@ -6,8 +6,6 @@ package suneido.database.immudb;
 
 import org.junit.Test;
 
-import suneido.intfc.database.IndexIter;
-
 public class MergeIndexIterTest extends IndexIterTestBase {
 
 	@Test

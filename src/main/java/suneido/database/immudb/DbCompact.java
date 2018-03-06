@@ -7,7 +7,6 @@ package suneido.database.immudb;
 import java.util.List;
 
 import suneido.database.query.Request;
-import suneido.intfc.database.IndexIter;
 
 class DbCompact {
 	private final Database oldDB;

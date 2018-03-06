@@ -19,9 +19,9 @@ import java.util.Set;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
+import suneido.database.immudb.IndexIter;
 import suneido.database.immudb.Record;
 import suneido.database.immudb.RecordBuilder;
-import suneido.intfc.database.IndexIter;
 import suneido.intfc.database.Transaction;
 import suneido.util.CommaStringBuilder;
 import suneido.util.Util;

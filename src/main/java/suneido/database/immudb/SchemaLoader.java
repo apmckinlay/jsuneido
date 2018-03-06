@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.List;
 
 import suneido.database.immudb.Bootstrap.TN;
-import suneido.intfc.database.IndexIter;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;

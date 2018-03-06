@@ -17,29 +17,23 @@ interface TranIndex {
 
 	boolean remove(BtreeKey key);
 
-	Iter iterator();
+	IndexIter iterator();
 
-	Iter iterator(Record key);
+	IndexIter iterator(Record key);
 
-	Iter iterator(Record org, Record end);
+	IndexIter iterator(Record org, Record end);
 
-	Iter iterator(suneido.intfc.database.IndexIter iter);
+	IndexIter iterator(IndexIter iter);
 
 	int totalSize();
 	float rangefrac(Record from, Record to);
 
 	BtreeInfo info();
 
-	interface Iter extends suneido.intfc.database.IndexIter {
-
-		void rewind();
-
-	}
-
 	/**
 	 * Used to handle "resetting" the iterator when the index is modified
 	 */
-	interface IterPlus extends Iter {
+	interface Iter extends IndexIter {
 
 		boolean isRewound();
 

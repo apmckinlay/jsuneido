@@ -13,7 +13,6 @@ import com.google.common.collect.Maps;
 import suneido.SuException;
 import suneido.database.immudb.Bootstrap.TN;
 import suneido.database.immudb.IndexedData.Mode;
-import suneido.intfc.database.IndexIter;
 import suneido.util.ThreadConfined;
 
 /**

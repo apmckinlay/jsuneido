@@ -5,7 +5,6 @@
 package suneido.database.immudb;
 
 import suneido.database.query.Query.Dir;
-import suneido.database.immudb.TranIndex.Iter;
 
 /**
  * Merges two IndexIter's.
@@ -13,19 +12,19 @@ import suneido.database.immudb.TranIndex.Iter;
  * Hard part is switching directions.
  * Used to combine global index and transaction local index.
  */
-class MergeIndexIter implements TranIndex.Iter {
-	protected final TranIndex.Iter iter1;
-	protected final TranIndex.Iter iter2;
+class MergeIndexIter implements IndexIter {
+	protected final IndexIter iter1;
+	protected final IndexIter iter2;
 	protected boolean rewound = true;
-	private TranIndex.Iter curIter;
+	private IndexIter curIter;
 	private Dir lastDir;
 
-	public MergeIndexIter(TranIndex.Iter iter1, TranIndex.Iter iter2) {
+	public MergeIndexIter(IndexIter iter1, IndexIter iter2) {
 		this.iter1 = iter1;
 		this.iter2 = iter2;
 	}
 
-	public MergeIndexIter(TranIndex.Iter iter1, TranIndex.Iter iter2, MergeIndexIter iter) {
+	public MergeIndexIter(IndexIter iter1, IndexIter iter2, MergeIndexIter iter) {
 		this.iter1 = iter1;
 		this.iter2 = iter2;
 		if (iter.curIter == iter.iter1)
@@ -80,19 +79,19 @@ class MergeIndexIter implements TranIndex.Iter {
 		lastDir = Dir.PREV;
 	}
 
-	private static void next(TranIndex.Iter iter) {
+	private static void next(IndexIter iter) {
 		if (iter.eof())
 			iter.rewind();
 		iter.next();
 	}
 
-	private static void prev(TranIndex.Iter iter) {
+	private static void prev(IndexIter iter) {
 		if (iter.eof())
 			iter.rewind();
 		iter.prev();
 	}
 
-	private Iter minIter() {
+	private IndexIter minIter() {
 		if (iter1.eof())
 			return iter2;
 		else if (iter2.eof())
@@ -100,7 +99,7 @@ class MergeIndexIter implements TranIndex.Iter {
 		return iter1.curKey().compareTo(iter2.curKey()) <= 0 ? iter1 : iter2;
 	}
 
-	private Iter maxIter() {
+	private IndexIter maxIter() {
 		if (iter1.eof())
 			return iter2;
 		else if (iter2.eof())

@@ -5,6 +5,7 @@
 package suneido.intfc.database;
 
 import suneido.database.immudb.HistoryIterator;
+import suneido.database.immudb.IndexIter;
 import suneido.database.immudb.Record;
 import suneido.database.immudb.Table;
 

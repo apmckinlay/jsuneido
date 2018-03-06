@@ -10,10 +10,10 @@ import java.util.List;
 
 import org.junit.Test;
 
+import suneido.database.immudb.IndexIter;
 import suneido.database.immudb.Record;
 import suneido.database.immudb.RecordBuilder;
 import suneido.database.immudb.Table;
-import suneido.intfc.database.IndexIter;
 import suneido.intfc.database.Transaction;
 
 public class UpdateTest extends TestBase {

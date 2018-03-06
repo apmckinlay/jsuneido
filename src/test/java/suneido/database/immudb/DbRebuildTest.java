@@ -10,8 +10,6 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
-import suneido.intfc.database.IndexIter;
-
 /** immudb specific tests in addition to suneido.intfc.database.DbRebuildTest */
 public class DbRebuildTest extends TestBase {
 

@@ -14,7 +14,6 @@ import static org.junit.Assert.fail;
 import org.junit.After;
 import org.junit.Test;
 
-import suneido.intfc.database.IndexIter;
 import suneido.intfc.database.Transaction;
 
 //TODO use TestBase

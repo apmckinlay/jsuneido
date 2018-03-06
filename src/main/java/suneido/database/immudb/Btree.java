@@ -12,10 +12,10 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 
-import suneido.util.NotThreadSafe;
-
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
+
+import suneido.util.NotThreadSafe;
 
 /**
  * Append-only immutable btrees.
@@ -337,7 +337,7 @@ class Btree implements TranIndex {
 	}
 
 	@Override
-	public Iter iterator(suneido.intfc.database.IndexIter iter) {
+	public Iter iterator(IndexIter iter) {
 		return new Iter((Iter) iter);
 		//return new IndexIter(new Iter((Iter) iter));
 	}
@@ -345,7 +345,7 @@ class Btree implements TranIndex {
 	/**
 	 * Note: Iterators "stick" when they hit eof().
 	 */
-	class Iter implements TranIndex.IterPlus {
+	class Iter implements TranIndex.Iter {
 		private final BtreeKey from;
 		private final BtreeKey to;
 		// top of stack is leaf

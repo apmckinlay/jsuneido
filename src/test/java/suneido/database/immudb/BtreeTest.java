@@ -907,15 +907,15 @@ public class BtreeTest {
 		testNext(iter, 9); // last
 		testPrev(iter, 8);
 	}
-	private void testPrev(TranIndex.Iter iter, int i) {
+	private void testPrev(IndexIter iter, int i) {
 		iter.prev();
 		test(iter, i);
 	}
-	private void testNext(TranIndex.Iter iter, int i) {
+	private void testNext(IndexIter iter, int i) {
 		iter.next();
 		test(iter, i);
 	}
-	private void test(TranIndex.Iter iter, int i) {
+	private void test(IndexIter iter, int i) {
 		if (i == -1)
 			assertTrue(iter.eof());
 		else

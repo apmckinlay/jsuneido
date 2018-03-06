@@ -4,13 +4,11 @@
 
 package suneido.database.immudb;
 
-import gnu.trove.set.hash.TIntHashSet;
-
 import java.util.ArrayList;
 
-import suneido.intfc.database.IndexIter;
-
 import com.google.common.collect.Lists;
+
+import gnu.trove.set.hash.TIntHashSet;
 
 /**
  * Interface between UpdateTransaction and database indexes.
@@ -71,22 +69,22 @@ class OverlayIndex implements TranIndex {
 	}
 
 	@Override
-	public TranIndex.Iter iterator() {
+	public IndexIter iterator() {
 		return new Iter(global, local, deletes);
 	}
 
 	@Override
-	public TranIndex.Iter iterator(Record key) {
+	public IndexIter iterator(Record key) {
 		return new Iter(global, local, deletes, key, key);
 	}
 
 	@Override
-	public TranIndex.Iter iterator(Record org, Record end) {
+	public IndexIter iterator(Record org, Record end) {
 		return new Iter(global, local, deletes, org, end);
 	}
 
 	@Override
-	public TranIndex.Iter iterator(IndexIter iter) {
+	public IndexIter iterator(IndexIter iter) {
 		return new Iter(global, local, deletes, (Iter) iter);
 	}
 
@@ -140,7 +138,7 @@ class OverlayIndex implements TranIndex {
 		}
 
 		/** for tests */
-		Iter(TranIndex.Iter iter1, TranIndex.Iter iter2, TIntHashSet deletes) {
+		Iter(IndexIter iter1, IndexIter iter2, TIntHashSet deletes) {
 			super(iter1, iter2);
 			this.deletes = deletes;
 			from = Dbpkg.MIN_RECORD;

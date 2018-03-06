@@ -15,10 +15,7 @@ import java.util.List;
 
 import org.junit.Test;
 
-import suneido.database.immudb.Fkmode;
-import suneido.database.immudb.Record;
-import suneido.database.immudb.Table;
-import suneido.database.immudb.TableBuilder;
+import suneido.database.immudb.*;
 
 public class DatabaseTest extends TestBase {
 

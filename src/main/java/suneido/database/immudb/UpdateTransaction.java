@@ -18,8 +18,6 @@ import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.set.hash.TIntHashSet;
 import suneido.database.immudb.DbRebuild.RebuildTransaction;
-import suneido.database.immudb.TranIndex.Iter;
-import suneido.intfc.database.IndexIter;
 import suneido.util.Errlog;
 import suneido.util.StepTimer;
 import suneido.util.ThreadConfined;
@@ -111,7 +109,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 	@Override
 	void updateAll(int tblnum, int[] colNums, Record oldkey, Record newkey) {
 		Index index = index(tblnum, colNums);
-		Iter iter = getIndex(index).iterator(oldkey);
+		IndexIter iter = getIndex(index).iterator(oldkey);
 		trackReads(index, iter);
 		for (iter.next(); ! iter.eof(); iter.next()) {
 			Record oldrec = input(iter.keyadr());
@@ -128,7 +126,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 	@Override
 	void removeAll(int tblnum, int[] colNums, Record key) {
 		Index index = index(tblnum, colNums);
-		Iter iter = getIndex(index).iterator(key);
+		IndexIter iter = getIndex(index).iterator(key);
 		trackReads(index, iter);
 		for (iter.next(); ! iter.eof(); iter.next())
 			removeRecord(iter.keyadr());
@@ -137,7 +135,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 	@Override
 	public IndexIter iter(int tblnum, String columns) {
 		Index index = index(tblnum, columns);
-		Iter iter = getIndex(index).iterator();
+		IndexIter iter = getIndex(index).iterator();
 		trackReads(index, iter);
 		return iter;
 	}
@@ -145,7 +143,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 	@Override
 	public IndexIter iter(int tblnum, String columns, Record org, Record end) {
 		Index index = index(tblnum, columns);
-		Iter iter = getIndex(index).iterator(org, end);
+		IndexIter iter = getIndex(index).iterator(org, end);
 		trackReads(index, iter);
 		return iter;
 	}
@@ -153,12 +151,12 @@ class UpdateTransaction extends ReadWriteTransaction {
 	@Override
 	public IndexIter iter(int tblnum, String columns, IndexIter iter) {
 		Index index = index(tblnum, columns);
-		Iter iter2 = getIndex(index).iterator(iter);
+		IndexIter iter2 = getIndex(index).iterator(iter);
 		trackReads(index, iter2);
 		return iter2;
 	}
 
-	private void trackReads(Index index, Iter iter) {
+	private void trackReads(Index index, IndexIter iter) {
 		((OverlayIndex.Iter) iter).trackRange(indexRange(index));
 	}
 

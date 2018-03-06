@@ -329,7 +329,7 @@ public class TableBuilder {
 		TranIndex src = t.getIndex(tblnum, firstIndex.colNums);
 		if (src instanceof OverlayIndex)
 			src = ((OverlayIndex) src).global;
-		TranIndex.Iter iter = src.iterator();
+		IndexIter iter = src.iterator();
 		iter.next();
 		if (iter.eof())
 			return; // no data

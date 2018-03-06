@@ -12,6 +12,7 @@ import static org.junit.Assert.assertThat;
 import org.junit.After;
 import org.junit.Test;
 
+import suneido.database.immudb.IndexIter;
 import suneido.database.immudb.Record;
 import suneido.database.immudb.Table;
 

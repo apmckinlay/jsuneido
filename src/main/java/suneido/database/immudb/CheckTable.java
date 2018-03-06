@@ -6,8 +6,6 @@ package suneido.database.immudb;
 
 import java.util.concurrent.Callable;
 
-import suneido.intfc.database.IndexIter;
-
 /**
  * Check records and indexes with dbinfo for a single table.
  * Run in parallel by {@link DbCheck}.

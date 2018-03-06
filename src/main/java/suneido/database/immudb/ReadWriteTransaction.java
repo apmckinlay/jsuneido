@@ -19,7 +19,6 @@ import gnu.trove.strategy.HashingStrategy;
 import suneido.SuException;
 import suneido.database.immudb.Bootstrap.TN;
 import suneido.database.immudb.IndexedData.Mode;
-import suneido.intfc.database.IndexIter;
 
 /**
  * Abstract base class for {@link UpdateTransaction} and {@link BulkTransaction}
