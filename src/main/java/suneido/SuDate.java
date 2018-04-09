@@ -10,13 +10,12 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Calendar;
 
-import suneido.util.Immutable;
-
 import com.google.common.primitives.Ints;
 
 import suneido.runtime.Pack;
 import suneido.runtime.builtin.DateMethods;
 import suneido.util.FAQCalendar;
+import suneido.util.Immutable;
 
 /**
  * A date class that matches the cSuneido implementation.
@@ -507,7 +506,8 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 		char prev = 0;
 		for (int si = 0; si < s.length(); ) {
 			char c = s.charAt(si);
-			assert(ntokens < MAXTOKENS);
+			if (ntokens >= MAXTOKENS)
+				return null;
 			String next;
 			if (!"".equals(next = nextWord(s, si))) {
 				si += next.length();
