@@ -13,13 +13,12 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import suneido.util.ThreadSafe;
-
 import suneido.*;
+import suneido.util.ThreadSafe;
 
 @ThreadSafe // all static methods
 public class Pack {
-	// sequence must match Order
+	// sequence must match Order, values must match cSuneido
 	public static final class Tag {
 		public static final byte FALSE = 0;
 		public static final byte TRUE = 1;
@@ -29,8 +28,20 @@ public class Pack {
 		public static final byte DATE = 5;
 		public static final byte OBJECT = 6;
 		public static final byte RECORD = 7;
-		public static final byte FUNCTION = 8;
-		public static final byte CLASS = 9;
+	}
+	/** for Dnum */
+	public static final class Tag2 {
+		public static final byte FALSE = 0;
+		public static final byte TRUE = 1;
+		public static final byte NEG_INF = 2;
+		public static final byte MINUS = 3;
+		public static final byte ZERO = 4;
+		public static final byte PLUS = 5;
+		public static final byte POS_INF = 6;
+		public static final byte STRING = 7;
+		public static final byte DATE = 8;
+		public static final byte OBJECT = 9;
+		public static final byte RECORD = 10;
 	}
 	private static final ByteBuffer EMPTY_BUFFER = ByteBuffer.allocate(0);
 
@@ -241,9 +252,6 @@ public class Pack {
 			return SuRecord.unpack(buf);
 		case Tag.DATE:
 			return SuDate.unpack(buf);
-		case Tag.FUNCTION:
-		case Tag.CLASS:
-			throw new SuException("jSuneido cannot unpack functions or classes");
 		default:
 			throw new SuException("invalid unpack type: "
 					+ buf.get(buf.position() - 1));

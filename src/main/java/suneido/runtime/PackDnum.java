@@ -4,18 +4,19 @@
 
 package suneido.runtime;
 
+import static suneido.SuInternalError.unreachable;
+
 import java.nio.ByteBuffer;
 
-import suneido.runtime.Pack.Tag;
+import suneido.runtime.Pack.Tag2;
 import suneido.util.Dnum;
 
 /**
  * Numeric pack format is:
- * <li>Tag.PLUS or Tag.MINUS
- * <li>packed format of zero is just Tag.PLUS
- * <li>exponent adjusted as if decimal was to left of digits,
- * and encoded to compare correctly as unsigned byte
- * <li>bytes of coefficient, most significant first
+ * <li>Tag2.NEG_INF, Tag2.MINUS, Tag2.ZERO, Tag2.PLUS, or Tag2.POS_INF
+ * <li>only tag for Tag2.NEG_INF, Tag2.ZERO, or Tag2.POS_INF
+ * <li>exponent converted to compare as unsigned byte
+ * <li>coefficient encoded as one byte per two decimal digits
  *
  * NOTE: Dnum IS NOT CURRENTLY USED
  * WARNING: this pack format is NOT compatible with cSuneido
@@ -25,144 +26,163 @@ public class PackDnum {
 	// pack size
 
 	public static int packSize(long n) {
-		return packSize(Long.signum(n), n, 0);
+		return packSize(Dnum.from(n));
 	}
 
 	public static int packSize(Dnum num) {
-		return packSize(num.signum(), num.coef(), num.exp());
+		return packSize(num.sign(), num.coef(), num.exp());
 	}
 
 	public static int packSize(int sign, long n, int e) {
-		if (n == 0)
-			return 1;
-		if (e == Dnum.expInf)
-			return 2;
-		// strip trailing zeroes to make coefficient smaller
-		if (Long.remainderUnsigned(n, 10) == 0) {
-			n = Long.divideUnsigned(n, 10);
-			e++;
-			while (n % 10 == 0) {
-				n /= 10;
-				e++;
-			}
-		}
-		return 2 + nbytes(n);
+		if (sign == Dnum.NEG_INF || sign == 0 || sign == Dnum.POS_INF)
+			return 1; // just tag
+		return 2 + coefBytes(n);
 	}
 
 	// pack --------------------------------------------------------------------
 
 	public static void pack(long n, ByteBuffer buf) {
-		pack(Long.signum(n), n, 0, buf);
+		pack(Dnum.from(n), buf);
 	}
 
 	public static void pack(Dnum num, ByteBuffer buf) {
-		pack(num.signum(), num.coef(), num.exp(), buf);
+		pack(num.sign(), num.coef(), num.exp(), buf);
 	}
 
 	public static void pack(int sign, long n, int e, ByteBuffer buf) {
-		assert sign != 0 || n == 0;
 		// sign
-		buf.put(sign == -1 ? Tag.MINUS : Tag.PLUS);
-		if (n == 0)
+		buf.put((byte) (Tag2.ZERO + sign));
+		if (sign == Dnum.NEG_INF || sign == 0 || sign == Dnum.POS_INF)
 			return;
-		if (e == Dnum.expInf) {
-			buf.put(expEncode(e, sign));
-			return;
-		}
-
-		// strip trailing zeroes to make coefficient smaller
-		if (Long.remainderUnsigned(n, 10) == 0) {
-			n = Long.divideUnsigned(n, 10);
-			e++;
-			while (n % 10 == 0) {
-				n /= 10;
-				e++;
-			}
-		}
-		// adjust exponent as if decimal was at start of digits (i.e. 0 <= coef < 1)
-		e += ndigits(n);
-		assert e <= Byte.MAX_VALUE : e;
 
 		// exponent
 		buf.put(expEncode(e, sign));
 
 		// coefficient
-		int nb = nbytes(n) - 1;
-		for (int shift = 8 * nb; shift >= 0; shift -= 8) {
-			int b = (int) (n >> shift);
-			if (sign == -1)
-				b ^= 0xff;
-			buf.put((byte) b);
-		}
-	}
-
-	/** @return the number of decimal digits in x */
-	private static int ndigits(long x) {
-		assert x != 0;
-		x = Long.divideUnsigned(x, 10);
-		int n = 1;
-		while (x != 0) {
-			x /= 10; // only need divideUnsigned first time
-			n++;
-		}
-		return n;
+		byte[] bytes = new byte[8];
+		int nb = coefBytes(n, bytes);
+		int x = (sign < 0) ? 0xff : 0;
+		for (int i = 0; i < nb; ++i)
+			buf.put((byte) (bytes[i] ^ x));
 	}
 
 	private static byte expEncode(int e, int sign) {
-		byte eb = (byte) ((e ^ 0x80) & 0xff);
+		byte eb = (byte) (e ^ 0x80);
 		if (sign == -1)
-			eb = (byte) ((~eb) & 0xff); // reverse sort order for negative
+			eb = (byte) ~eb; // reverse sort order for negative
 		return eb;
 	}
 
-	/** @return The number of bytes required to hold n */
-	static int nbytes(long x) {
-		int n = 0;
-		for (; x != 0; ++n)
-			x >>>= 8;
-		return n;
+	// package visibility for test
+	static int coefBytes(long coef) {
+		coef %= E14;
+		if (coef == 0)
+			return 1;
+		coef %= E12;
+		if (coef == 0)
+			return 2;
+		coef %= E10;
+		if (coef == 0)
+			return 3;
+		coef %= E8;
+		if (coef == 0)
+			return 4;
+		coef %= E6;
+		if (coef == 0)
+			return 5;
+		coef %= E4;
+		if (coef == 0)
+			return 6;
+		coef %= E2;
+		if (coef == 0)
+			return 7;
+		return 8;
 	}
+	// package visibility for test
+	static int coefBytes(long coef, byte[] bytes) {
+		bytes[0] = (byte) (coef / E14);
+		coef %= E14;
+		if (coef == 0)
+			return 1;
+		bytes[1] = (byte) (coef / E12);
+		coef %= E12;
+		if (coef == 0)
+			return 2;
+		bytes[2] = (byte) (coef / E10);
+		coef %= E10;
+		if (coef == 0)
+			return 3;
+		bytes[3] = (byte) (coef / E8);
+		coef %= E8;
+		if (coef == 0)
+			return 4;
+		bytes[4] = (byte) (coef / E6);
+		coef %= E6;
+		if (coef == 0)
+			return 5;
+		bytes[5] = (byte) (coef / E4);
+		coef %= E4;
+		if (coef == 0)
+			return 6;
+		bytes[6] = (byte) (coef / E2);
+		coef %= E2;
+		if (coef == 0)
+			return 7;
+		bytes[7] = (byte) coef;
+		return 8;
+	}
+	private static final long E14 = 100_000_000_000_000L;
+	private static final long E12 = 1_000_000_000_000L;
+	private static final long E10 = 10_000_000_000L;
+	private static final long E8 = 100_000_000L;
+	private static final long E6 = 1_000_000L;
+	private static final long E4 = 10_000L;
+	private static final long E2 = 100;
 
 	// unpack ------------------------------------------------------------------
 
-	private static final long MAX_INT_DIV_10 = Integer.MAX_VALUE / 10;
-
-	/** buf is already past tag
-	 * @return an Integer or a Dnum
-	 */
-	public static Object unpack(ByteBuffer buf) {
-		if (buf.remaining() == 0)
-			return 0;
+	/** buf is already past tag */
+	public static Dnum unpack(ByteBuffer buf) {
 		// sign
-		int sign = buf.get(buf.position() - 1) == Tag.MINUS ? -1 : +1;
-		// exponent
-		int e = buf.get() & 0xff;
-		if (e == 0)
+		int sign = buf.get(buf.position() - 1); // back up to tag
+		switch (sign) {
+		case Tag2.NEG_INF :
 			return Dnum.MinusInf;
-		if (e == 255)
+		case Tag2.ZERO :
+			return Dnum.Zero;
+		case Tag2.POS_INF :
 			return Dnum.Inf;
-		if (sign == -1)
-			e = ((~e) & 0xff);
-		e = (byte) (e ^ 0x80);
-		// coefficient
-		long n = 0;
-		while (buf.remaining() > 0) {
-			int b = buf.get() & 0xff;
-			if (sign == -1)
-				b ^= 0xff;
-			n = (n << 8) | b;
+		case Tag2.MINUS :
+			sign = -1;
+			break;
+		case Tag2.PLUS :
+			sign = +1;
+			break;
+		default:
+			throw unreachable();
 		}
-		assert n != 0;
-		e -= ndigits(n); // restore exponent to right of digits
+		int x = (sign < 0) ? 0xff : 0;
 
-		// return as Integer if within range
-		if (0 <= e && e < 10 && Long.compareUnsigned(n, MAX_INT_DIV_10) < 0) {
-			for (; e > 0 && n < MAX_INT_DIV_10; --e)
-				n *= 10;
-			if (e == 0 && n < Integer.MAX_VALUE)
-				return sign * (int) n;
+		// exponent
+		int e = buf.get();
+		e ^= x;
+		e = (byte) (e ^ 0x80);
+
+		// coefficient
+		long coef = 0;
+		int pos = buf.position();
+		switch (buf.remaining()) {
+		case 8: coef += (byte) (x ^ buf.get(pos + 7)); // fall through
+		case 7: coef += (byte) (x ^ buf.get(pos + 6)) * E2; // fall through
+		case 6: coef += (byte) (x ^ buf.get(pos + 5)) * E4; // fall through
+		case 5: coef += (byte) (x ^ buf.get(pos + 4)) * E6; // fall through
+		case 4: coef += (byte) (x ^ buf.get(pos + 3)) * E8; // fall through
+		case 3: coef += (byte) (x ^ buf.get(pos + 2)) * E10; // fall through
+		case 2: coef += (byte) (x ^ buf.get(pos + 1)) * E12; // fall through
+		case 1: coef += (byte) (x ^ buf.get(pos + 0)) * E14;
 		}
-		return new Dnum(sign, n, e);
+
+		return Dnum.from(sign, coef, e);
 	}
 
 }

@@ -7,6 +7,7 @@ package suneido.util;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static suneido.util.Dnum.*;
+import static suneido.util.testing.Throwing.assertThrew;
 
 import org.junit.Test;
 
@@ -14,59 +15,65 @@ public class DnumTest {
 
 	@Test
 	public void parse_test() {
-		parse_test("0", Zero);
-		parse_test("123", dnum(PLUS, 123, 0));
-		parse_test("000123", dnum(PLUS, 123, 0));
-		parse_test("123000", dnum(PLUS, 123000, 0));
-		parse_test("123e0", dnum(PLUS, 123, 0));
-		parse_test("+123", dnum(PLUS, 123, 0));
-		parse_test("-123", dnum(MINUS, 123, 0));
-		parse_test("123.456", dnum(PLUS, 123456, -3));
-		parse_test(".123", dnum(PLUS, 123, -3));
-		parse_test(".000123", dnum(PLUS, 123, -6));
-		parse_test("123e99", dnum(PLUS, 123, 99));
-		parse_test("+123e+99", dnum(PLUS, 123, 99));
-		parse_test("-123e-99", dnum(MINUS, 123, -99));
+		assertThrew(() -> Dnum.parse("."));
+		assertThrew(() -> Dnum.parse("1.2.3"));
+		assertThrew(() -> Dnum.parse("1111111111111111111111")); // overflow
+		assertThrew(() -> Dnum.parse("-+1"));
+
+		parseTest("0", "z0e0");
+		parseTest("0.", "z0e0");
+		parseTest(".0", "z0e0");
+		parseTest("0.0", "z0e0");
+		parseTest("-0.0e9", "z0e0");
+		parseTest("9999999999999999", "+.9999999999999999e16");
+		parseTest(".123", "+.123e0");
+		parseTest("1", "+.1e1");
+		parseTest("1234", "+.1234e4");
+		parseTest("1234e0", "+.1234e4");
+		parseTest(".001", "+.1e-2");
+		parseTest("-12.34", "-.1234e2");
+		parseTest("0012.3400", "+.1234e2");
+		parseTest("0012.3400e2", "+.1234e4");
+		parseTest("123000", "+.123e6");
+		parseTest("100.1", "+.1001e3");
+		parseTest("1e18", "+.1e19");
+		parseTest(".9e-9", "+.9e-9");
+		parseTest("-1e-11", "-.1e-10");
+		parseTest("-12.34e56", "-.1234e58");
+
+		assertThat(Dnum.parse("1e999"), equalTo(Inf));
+		assertThat(Dnum.parse("1e-999"), equalTo(Zero));
+		assertThat(Dnum.parse("0e999"), equalTo(Zero));
 	}
 
-	private static void parse_test(String s, Dnum expected) {
-		assertThat(parse(s), equalTo(expected));
+	private static void parseTest(String s, String expected) {
+		assertThat(Dnum.parse(s).show(), equalTo(expected));
 	}
 
-	public static Dnum parse(String s) {
-		switch (s) {
-		case "inf":
-			return Inf;
-		case "-inf":
-			return MinusInf;
-		case "-0":
-			return Zero;
-		default:
-			return Dnum.parse(s).check();
-		}
+	@Test
+	public void fromIntTest() {
+		assertThat(Dnum.from(0), equalTo(Zero));
+		assertThat(Dnum.from(1), equalTo(One));
+		assertThat(Dnum.from(123).show(), equalTo("+.123e3"));
+		assertThat(Dnum.from(-123).show(), equalTo("-.123e3"));
 	}
 
 	@Test
 	public void toString_test() {
-		toString_test(Zero, "0");
-		toString_test(One, "1");
-		toString_test(Inf, "inf");
-		toString_test(MinusInf, "-inf");
-		toString_test(dnum(PLUS, 123, 0), "123");
-		toString_test(dnum(MINUS, 123, 0), "-123");
-		toString_test(dnum(PLUS, 1, 3), "1000");
-		toString_test(dnum(PLUS, 1, -9), "1e-9");
-		toString_test(dnum(PLUS, 123000, -3), "123");
-		toString_test(dnum(PLUS, 123456, -3), "123.456");
-		toString_test(dnum(PLUS, 1000000, -3), "1000");
+		assertThat(Zero.toString(), equalTo("0"));
+		assertThat(One.toString(), equalTo("1"));
+		assertThat(Inf.toString(), equalTo("inf"));
+		assertThat(MinusInf.toString(), equalTo("-inf"));
+		toStringTest("123");
+		toStringTest("-123");
+		toStringTest("1000");
+		toStringTest("1e9");
+		toStringTest("1e-9");
+		toStringTest("123.456");
 	}
 
-	private static void toString_test(Dnum num, String expected) {
-		assertThat(num.toString(), equalTo(expected));
-	}
-
-	private static Dnum dnum(byte sign, long coef, int exp) {
-		return new Dnum(sign, coef, exp);
+	private static void toStringTest(String s) {
+		assertThat(parse(s).toString(), equalTo(s));
 	}
 
 	@Test
@@ -95,113 +102,129 @@ public class DnumTest {
 	}
 
 	@Test
-	public void add_test() {
-		add_test("0", "0", "0");
-		add_test("1", "0", "1");
-		add_test("0", "1", "1");
-		add_test("123", "0", "123");
-		add_test("inf", "-inf", "0");
-		add_test("inf", "inf", "inf");
-		add_test("-inf", "-inf", "-inf");
-		add_test("inf", "123", "inf");
-		add_test("-inf", "123", "-inf");
+	public void addsub_test() {
+		// special cases
+		addsub("123", "0", "123");
+		addsub("inf", "-inf", "0");
+		addsub("inf", "123", "inf");
+		addsub("-inf", "123", "-inf");
+
+		assertThat(add(Inf, Inf), equalTo(Inf));
+		assertThat(add(MinusInf, MinusInf), equalTo(MinusInf));
+		assertThat(sub(Inf, Inf), equalTo(Zero));
+		assertThat(sub(MinusInf, MinusInf), equalTo(Zero));
+
+		addsub("0", "0", "0");
+		addsub("1", "0", "1");
+		addsub("0", "1", "1");
+		addsub("123", "0", "123");
+		addsub("inf", "-inf", "0");
 		// aligned
-		add_test("123", "456", "579");
-		add_test("-123", "-456", "-579");
-		add_test("1.23e9", "4.56e9", "5.79e9");
+		addsub("123", "456", "579");
+		addsub("-123", "-456", "-579");
+		addsub("1.23e9", "4.56e9", "5.79e9");
+
 		// need aligning
-		add_test("1e12", "1e14", "1.01e14");
-		add_test("123", "1e-99", "123");
-		add_test("1e-99", "123", "123");
-		add_test("11111111111111111111", "2222222222222222222e-4",
-				"11111333333333333333");
-		add_test("11111111111111111111", "6666666666666666666e-4",
-				"11111777777777777778");
-		// int64 overflow
-		add_test("18446744073709551615", "11", "18446744073709551630");
-		add_test("18446744073709551615e126", "18446744073709551615e126", "inf");
+		addsub("1e4", "2e2", "10200");
+		addsub("2e4", "1e2", "20100");
+		addsub("1e30", "999", "1e30"); // can't align
+		addsub("1e15", "3", "1000000000000003");
+		addsub("1e16", "33", "10000000000000030"); // dropped digit
+		addsub("1e16", "37", "10000000000000040"); // round dropped digit
+		addsub("1e12", "1e14", "1.01e14");
+		addsub("123", "1e-99", "123");
+		addsub("1111111111111111", "2222222222222222e-4", "1111333333333333");
+		addsub("1111111111111111", "6666666666666666e-4", "1111777777777778");
 	}
 
-	private static void add_test(String x, String y, String expected) {
+	private static void addsub(String x, String y, String t) {
 		Dnum xn = parse(x);
 		Dnum yn = parse(y);
-		assertThat(add(xn, yn).check().toString(), equalTo(expected));
-		assertThat(add(yn, xn).check().toString(), equalTo(expected));
-	}
-
-	@Test
-	public void sub_test() {
-		sub_test("123", "0", "123");
-		sub_test("inf", "-inf", "inf");
-		sub_test("inf", "inf", "0");
-		sub_test("-inf", "-inf", "0");
-		sub_test("inf", "123", "inf");
-		// aligned
-		sub_test("456", "123", "333");
-		sub_test("-123", "-456", "333");
-		sub_test("4.56e9", "1.23e9", "3.33e9");
-		// need aligning
-		sub_test("123", "1e-99", "123");
-		sub_test("1e99", "123", "1e99");
-		sub_test("1e14", "1e12", "9.9e13");
-		sub_test("12222222222222222222", "11111111111111111111e-4",
-				"12221111111111111111");
-	}
-
-	private static void sub_test(String x, String y, String expected) {
-		assertThat(sub(parse(x), parse(y)).check().toString(), equalTo(expected));
+		Dnum tot = parse(t);
+		assertThat(add(xn, yn), equalTo(tot));
+		assertThat(add(yn, xn), equalTo(tot));
+		assertThat(sub(tot, yn), equalTo(xn));
 	}
 
 	@Test
 	public void mul_test() {
 		// special cases (no actual math)
-		mul_test("0", "0", "0");
-		mul_test("123", "0", "0");
-		mul_test("123", "inf", "inf");
-		mul_test("inf", "inf", "inf");
-		// result fits in uint64
-		mul_test("2", "333", "666");
-		mul_test("2e9", "333e-9", "666");
-		mul_test("2e3", "3e3", "6e6");
-		mul_test("123456789000000000", "123456789000000000", "1.5241578750190521e34");
-		// result too big for uint64
-		mul_test("1234567890123456", "1234567890123456", "1.524157875323881728e30");
-		// exp overflow
-		mul_test("2e99", "2e99", "inf");
+		mulTest("0", "0", "0");
+		mulTest("0", "123", "0");
+		mulTest("0", "inf", "0");
+		mulTest("inf", "123", "inf");
+		mulTest("inf", "inf", "inf");
+
+		// fast, single multiply
+		int nums[] = { 0, 1, -1, 100, 1234, 9999, -1234 };
+		for (int x : nums)
+			for (int y : nums)
+				mulTest(x, y);
+
+		mulTest("2e9", "333e-9", "666");
+		mulTest("2e3", "3e3", "6e6");
+		mulTest("4294967295", "4294967295", "1844674406511962e4");
+		mulTest("112233445566", "112233445566", "1259634630361629e7");
+		mulTest("1111111111111111", "1111111111111111", "1.234567901234568e30");
+
+		mulTest("2e99", "2e99", "inf"); // exp overflow
 	}
 
-	private static void mul_test(String x, String y, String expected) {
+	private static void mulTest(int x, int y) {
+		Dnum xn = from(x);
+		Dnum yn = from(y);
+		Dnum en = from(x * y);
+		mulTest(xn, yn, en);
+	}
+
+	private static void mulTest(String x, String y, String e) {
 		Dnum xn = parse(x);
 		Dnum yn = parse(y);
-		assertThat(mul(xn, yn).check().toString(), equalTo(expected));
-		assertThat(mul(yn, xn).check().toString(), equalTo(expected));
+		Dnum en = parse(e);
+		mulTest(xn, yn, en);
+	}
+
+	private static void mulTest(Dnum xn, Dnum yn, Dnum en) {
+		Dnum p = mul(xn, yn);
+		assert almostSame(p, en)
+			: xn + " * " + yn + " result " + p + " expected " + en;
+		p = mul(yn, xn);
+		assert almostSame(p, en)
+			: xn + " * " + yn + " result " + p + " expected " + en;
 	}
 
 	@Test
 	public void div_test() {
 		// special cases (no actual math)
-		div_test("0", "0", "0");
-		div_test("123", "0", "inf");
-		div_test("123", "inf", "0");
-		div_test("inf", "123", "inf");
-		div_test("inf", "inf", "1");
-		div_test("123", "123", "1");
-		div_test("123000", ".000123", "1e9");
-		// exp overflow
-		div_test("1e99", "1e-99", "inf");
-		div_test("1e-99", "1e99", "0");
+		divTest("0", "0", "0");
+		divTest("123", "0", "inf");
+		divTest("123", "inf", "0");
+		divTest("inf", "123", "inf");
+		divTest("inf", "inf", "1");
+
 		// divides evenly
-		div_test("4444", "2222", "2");
-		div_test("2222", "4444", ".5");
+		divTest("123", "123", "1");
+		divTest("123000", ".000123", "1e9");
+		divTest("4444", "2222", "2");
+		divTest("2222", "4444", ".5");
+
 		// long division
-		div_test("2", "3", ".6666666666666666666");
-		div_test("1", "3", ".3333333333333333333");
-		div_test("11", "17", ".6470588235294117647");
-		div_test("1234567890123456", "9876543210123456", ".12499999887187493");
+		divTest("2", "3", ".6666666666666666");
+		divTest("1", "3", ".3333333333333333");
+		divTest("11", "17", ".6470588235294118");
+		divTest("1234567890123456", "9876543210987654", ".1249999988609374");
+		divTest("1", "3333333333333333", "3e-16");
+		divTest("12", ".4444444444444444", "27");
+
+		// exp overflow
+		divTest("1e99", "1e-99", "inf");
+		divTest("1e-99", "1e99", "0");
 	}
 
-	private static void div_test(String x, String y, String expected) {
-		assertThat(div(parse(x), parse(y)).check().toString(), equalTo(expected));
+	private static void divTest(String x, String y, String expected) {
+		Dnum q = div(parse(x), parse(y));
+		assert almostSame(q, parse(expected))
+			: x + " / " + y + "\n" + q + " result\n" + expected + " expected ";
 	}
 
 	@Test
