@@ -7,7 +7,11 @@ package suneido.util;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static suneido.util.Dnum.*;
+import static suneido.util.testing.Benchmark.benchmark;
 import static suneido.util.testing.Throwing.assertThrew;
+
+import java.math.BigDecimal;
+import java.math.MathContext;
 
 import org.junit.Test;
 
@@ -198,6 +202,8 @@ public class DnumTest {
 		// special cases (no actual math)
 		divTest("0", "0", "0");
 		divTest("123", "0", "inf");
+		divTest("123", "1", "123");
+		divTest("123", "10", "12.3");
 		divTest("123", "inf", "0");
 		divTest("inf", "123", "inf");
 		divTest("inf", "inf", "1");
@@ -241,6 +247,28 @@ public class DnumTest {
 			}
 		}
 	}
+
+	@Test
+	public void benchmark_BigDecimal_div() {
+		benchmark("bd div", (long nreps) -> {
+			BigDecimal x = new BigDecimal("1234567890123456");
+			BigDecimal y = new BigDecimal("9876543210987654");
+			while (nreps-- > 0)
+				bd = x.divide(y, MathContext.DECIMAL64);
+		});
+	}
+	static BigDecimal bd;
+
+	@Test
+	public void Benchmark_div() {
+		benchmark("div", (long nreps) -> {
+			Dnum x = Dnum.parse("1234567890123456");
+			Dnum y = Dnum.parse("9876543210987654");
+			while (nreps-- > 0)
+				z = div(x, y);
+		});
+	}
+	static Dnum z;
 
 	// PortTests --------------------------------------------------------------
 
