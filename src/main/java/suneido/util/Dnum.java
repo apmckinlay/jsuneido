@@ -356,16 +356,6 @@ public class Dnum implements Comparable<Dnum> { // MAYBE extend Number ???
 		return coef;
 	}
 
-	/** returns a new Dnum without trailing zero digits */
-	public Dnum stripTrailingZeros() {
-		Dnum x = copy();
-		while (Long.remainderUnsigned(x.coef, 10) == 0) {
-			x.coef = Long.divideUnsigned(x.coef, 10);
-			x.exp--;
-		}
-		return x;
-	}
-
 	// add and subtract --------------------------------------------------------
 
 	public static Dnum add(Dnum x, Dnum y) {
@@ -444,7 +434,6 @@ public class Dnum implements Comparable<Dnum> { // MAYBE extend Number ???
 
 	/** WARNING: modifies y - requires defensive copy */
 	private static boolean align(Dnum x, Dnum y) {
-assert y.exp < x.exp;
 		int yshift = ilog10(y.coef);
 		int e = x.exp - y.exp;
 		if (e > yshift)
@@ -452,7 +441,6 @@ assert y.exp < x.exp;
 		yshift = e;
 		y.coef = (y.coef + halfpow10[yshift]) / pow10[yshift];
 		y.exp += yshift;
-assert x.exp == y.exp;
 		return true;
 	}
 
@@ -509,8 +497,6 @@ assert x.exp == y.exp;
 					: inf(sign);
 		if (y.isInf())
 			return Zero;
-		if (y.coef == 1)
-			return from(sign, x.coef, x.exp - y.exp);
 
 		return div2(x, y);
 	}
@@ -519,6 +505,8 @@ assert x.exp == y.exp;
 		int sign = xn.sign * yn.sign;
 		yn = minCoef(yn);
 		int exp = xn.exp - yn.exp + MAX_DIGITS;
+		if (yn.coef == 1) // would be E15 before minCoef
+			return from(sign, xn.coef, exp);
 		long x = xn.coef;
 		long y = yn.coef;
 		long q = 0;
