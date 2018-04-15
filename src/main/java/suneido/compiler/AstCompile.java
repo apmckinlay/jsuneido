@@ -84,7 +84,10 @@ public class AstCompile {
 		case NUMBER:
 			return Numbers.stringToNumber(ast.value);
 		case DATE:
-			return SuDate.fromLiteral(ast.value);
+			SuDate date = SuDate.fromLiteral(ast.value);
+			if (date == null)
+				throw new SuException("bad date literal");
+			return date;
 		case OBJECT:
 		case RECORD:
 			return foldObject(ast);
