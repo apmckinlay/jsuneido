@@ -292,7 +292,7 @@ public class Dnum implements Comparable<Dnum> { // MAYBE extend Number ???
 			// use scientific notation
 			sb.append(digits, 0, 1);
 			if (nd > 1)
-				sb.append('.').append(digits, 1, nd);
+				sb.append('.').append(digits, 1, nd - 1);
 			sb.append('e').append(e + nd - 1);
 		}
 		return sb.toString();
@@ -426,7 +426,7 @@ public class Dnum implements Comparable<Dnum> { // MAYBE extend Number ???
 				return x;
 		} else if (x.exp < y.exp)
 			if (! align(y, x = x.copy()))
-				return y;
+				return y.neg();
 		return x.coef > y.coef
 				? from(x.sign, x.coef - y.coef, x.exp)
 				: from(-x.sign, y.coef - x.coef, x.exp);
@@ -446,7 +446,7 @@ public class Dnum implements Comparable<Dnum> { // MAYBE extend Number ???
 
 	// multiply ----------------------------------------------------------------
 
-	private static final long E8 = 100_000_000L;
+	private static final long E7 = 10_000_000L;
 
 	public static Dnum mul(Dnum x, Dnum y) {
 		int sign = (x.sign * y.sign);
@@ -455,42 +455,24 @@ public class Dnum implements Comparable<Dnum> { // MAYBE extend Number ???
 		else if (x.isInf() || y.isInf())
 			return inf(sign);
 		int e = x.exp + y.exp;
-		if (x.coef == 1)
-			return from(sign, y.coef, e);
-		if (y.coef == 1)
-			return from(sign, x.coef, e);
 
-		long xhi = x.coef / E8; // 8 digits
-		long xlo = x.coef % E8; // 8 digits
+		// split unevenly to use full 64 bit range to get more precision
+		// and avoid needing xlo * ylo
+		long xhi = x.coef / E7; // 9 digits
+		long xlo = x.coef % E7; // 7 digits
+		long yhi = y.coef / E7; // 9 digits
+		long ylo = y.coef % E7; // 7 digits
 
-		long yhi = y.coef / E8; // 8 digits
-		long ylo = y.coef % E8; // 8 digits
-
-		long c = xhi * yhi;
-		if (xlo == 0)
-			{
-			if (ylo != 0)
-				c += (xhi * ylo) / E8;
-			}
-		else if (ylo == 0)
-			c += (xlo * yhi) / E8;
-		else
-			{
-			long mid1 = xlo * yhi;
-			long mid2 = ylo * xhi;
-			c += (mid1 + mid2) / E8;
-			}
-		return from(sign, c, e);
+		long c = xhi * yhi + (xlo * yhi + ylo * xhi) / E7;
+		return from(sign, c, e - 2);
 	}
 
 	// divide ------------------------------------------------------------------
 
 	public static Dnum div(Dnum x, Dnum y) {
-		if (x.isZero())
-			return Zero;
-		if (y.isZero())
-			return inf(x.sign);
 		int sign = x.sign * y.sign;
+		if (sign == 0)
+			return x.isZero() ? Zero : /* y.isZero() */ inf(x.sign);
 		if (x.isInf())
 			return y.isInf()
 					? sign < 0 ? MinusOne : One
@@ -498,84 +480,8 @@ public class Dnum implements Comparable<Dnum> { // MAYBE extend Number ???
 		if (y.isInf())
 			return Zero;
 
-		return div2(x, y);
-	}
-
-	private static Dnum div2(Dnum xn, Dnum yn) {
-		int sign = xn.sign * yn.sign;
-		yn = minCoef(yn);
-		int exp = xn.exp - yn.exp + MAX_DIGITS;
-		if (yn.coef == 1) // would be E15 before minCoef
-			return from(sign, xn.coef, exp);
-		long x = xn.coef;
-		long y = yn.coef;
-		long q = 0;
-		while (true)
-			{
-			// ensure x > y so q2 > 0
-			if (x < y)
-				{
-				if (!mul10safe(q))
-					break;
-				y /= 10; // drop least significant digit
-				q *= 10;
-				--exp;
-				}
-
-			long q2 = x / y;
-			x %= y;
-			q += q2;
-			if (x == 0)
-				break;
-
-			// shift x (and q) to the left (max coef)
-			// use full long extra range to reduce iterations
-			int p = maxShiftLong(x > q ? x : q);
-			if (p == 0)
-				break;
-			exp -= p;
-			long pow = pow10[p];
-			x *= pow;
-			q *= pow;
-			}
-		return from(sign, q, exp);
-	}
-
-	private static final int E4 = 10_000;
-
-	private static Dnum minCoef(Dnum dn) {
-		// 16 decimal digits = at most 15 trailing decimal zeros
-		long coef = dn.coef;
-		int exp = dn.exp();
-		int tz = Long.numberOfTrailingZeros(coef);
-		if (tz >= 8 && (coef % E8) == 0)
-			{
-			coef /= E8;
-			exp += 8;
-			tz -= 8;
-			}
-		if (tz >= 4 && (coef % E4) == 0)
-			{
-			coef /= E4;
-			exp += 4;
-			tz -= 4;
-			}
-		while (tz > 0 && (coef % 10) == 0)
-			{
-			coef /= 10;
-			exp += 1;
-			tz -= 1;
-			}
-		return coef == dn.coef ? dn : new Dnum(dn.sign, coef, exp);
-		}
-
-	private static boolean mul10safe(long n) {
-		return n <= Long.MAX_VALUE / 10;
-	}
-
-	private static int maxShiftLong(long x) {
-		int i = ilog10(x);
-		return i > 17 ? 0 : 17 - i;
+		long q = Div128.divide(x.coef, y.coef);
+		return from(sign, q, x.exp - y.exp);
 	}
 
 // -------------------------------------------------------------------------

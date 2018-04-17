@@ -139,6 +139,8 @@ public class DnumTest {
 		addsub("123", "1e-99", "123");
 		addsub("1111111111111111", "2222222222222222e-4", "1111333333333333");
 		addsub("1111111111111111", "6666666666666666e-4", "1111777777777778");
+
+		assertThat(sub(parse("1e-99"), parse("123")), equalTo(parse("-123")));
 	}
 
 	private static void addsub(String x, String y, String t) {
@@ -167,9 +169,13 @@ public class DnumTest {
 
 		mulTest("2e9", "333e-9", "666");
 		mulTest("2e3", "3e3", "6e6");
-		mulTest("4294967295", "4294967295", "1844674406511962e4");
-		mulTest("112233445566", "112233445566", "1259634630361629e7");
-		mulTest("1111111111111111", "1111111111111111", "1.234567901234568e30");
+		mulTest("1.00000001", "1.00000001", "1.00000002");
+		mulTest("1.000000001", "1.000000001", "1.000000002");
+		mulTest(".4294967295", ".4294967295", ".1844674406511962");
+		mulTest("1.12233445566", "1.12233445566", "1.259634630361629");
+		mulTest("1.111111111111111", "1.111111111111111", "1.234567901234568");
+		mulTest("1.23456789", "1.23456789", "1.524157875019052");
+		mulTest("1.234567899", "1.234567899", "1.524157897241274");
 
 		mulTest("2e99", "2e99", "inf"); // exp overflow
 	}
@@ -248,13 +254,24 @@ public class DnumTest {
 		}
 	}
 
+	private final static MathContext mc16 = new MathContext(16);
+
 	@Test
 	public void benchmark_BigDecimal_div() {
 		benchmark("bd div", (long nreps) -> {
 			BigDecimal x = new BigDecimal("1234567890123456");
 			BigDecimal y = new BigDecimal("9876543210987654");
 			while (nreps-- > 0)
-				bd = x.divide(y, MathContext.DECIMAL64);
+				bd = x.divide(y, mc16);
+		});
+	}
+	@Test
+	public void benchmark_BigDecimal_mul() {
+		benchmark("bd mul", (long nreps) -> {
+			BigDecimal x = new BigDecimal("1234567890123456");
+			BigDecimal y = new BigDecimal("9876543210987654");
+			while (nreps-- > 0)
+				bd = x.multiply(y, mc16);
 		});
 	}
 	static BigDecimal bd;
@@ -268,6 +285,15 @@ public class DnumTest {
 				z = div(x, y);
 		});
 	}
+	@Test
+	public void Benchmark_mul() {
+		benchmark("mul", (long nreps) -> {
+			Dnum x = Dnum.parse("1234567890123456");
+			Dnum y = Dnum.parse("9876543210987654");
+			while (nreps-- > 0)
+				z = mul(x, y);
+		});
+	}
 	static Dnum z;
 
 	// PortTests --------------------------------------------------------------
@@ -277,6 +303,7 @@ public class DnumTest {
 	}
 
 	private static boolean pt_dnum_test(String[] args, DnumCk ck) {
+		//System.out.println(Arrays.toString(args));
 		assertThat(args.length, equalTo(3));
 		Dnum x = parse(args[0]);
 		Dnum y = parse(args[1]);
