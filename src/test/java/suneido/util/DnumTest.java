@@ -15,6 +15,8 @@ import java.math.MathContext;
 
 import org.junit.Test;
 
+import suneido.PortTests;
+
 public class DnumTest {
 
 	@Test
@@ -298,6 +300,16 @@ public class DnumTest {
 
 	// PortTests --------------------------------------------------------------
 
+	@Test
+	public void porttests() {
+		PortTests.addTest("dnum_add", DnumTest::pt_dnum_add);
+		PortTests.addTest("dnum_sub", DnumTest::pt_dnum_sub);
+		PortTests.addTest("dnum_mul", DnumTest::pt_dnum_mul);
+		PortTests.addTest("dnum_div", DnumTest::pt_dnum_div);
+		PortTests.addTest("dnum_cmp", DnumTest::pt_dnum_cmp);
+		assert PortTests.runFile("dnum.test");
+	}
+
 	private interface DnumCk {
 		boolean ck(Dnum x, Dnum y, Dnum z);
 	}
@@ -316,7 +328,7 @@ public class DnumTest {
 	}
 
 	private static boolean ck(DnumOp op, Dnum x, Dnum y, Dnum z) {
-		if (op.op(x, y).equals(z))
+		if (almostSame(op.op(x, y), z))
 			return true;
 		System.out.println(x + ", " + y +
 				" => " + op.op(x, y) + " should be " + z);
