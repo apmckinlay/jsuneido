@@ -25,17 +25,6 @@ import suneido.runtime.Ops;
  */
 @SuppressWarnings("serial")
 public class SuException extends RuntimeException {
-
-	//
-	// DATA
-	//
-
-//	private final Callstack callstack;
-
-	//
-	// CONSTRUCTORS
-	//
-
 	/**
 	 * <p>
 	 * Constructs a new Suneido runtime exception.
@@ -119,24 +108,10 @@ public class SuException extends RuntimeException {
 		if (isSuneidoRethrown) {
 			assert null != cause : "Cause cannot be null if this is a rethrown exception";
 			assert wantCallstack : "All rethrown exceptions must have callstacks";
-//			if (cause instanceof CallstackProvider) {
-//				callstack = ((CallstackProvider) cause).getCallstack();
-//			} else {
-//				callstack = DebugManager.getInstance()
-//						.makeCallstackFromThrowable(cause);
-//			}
 		} else if (wantCallstack) {
 			super.fillInStackTrace();
-//			callstack = DebugManager.getInstance()
-//					.makeCallstackForCurrentThread(this);
-		} else /* this branch is for block:break and block:continue */{
-//			callstack = Callstack.EMPTY;
 		}
 	}
-
-	//
-	// INTERNALS
-	//
 
 	private static String makeMessage(String message, Throwable cause,
 			boolean isSuneidoRethrown) {
@@ -146,10 +121,6 @@ public class SuException extends RuntimeException {
 			return message + " (" + cause + ")";
 		}
 	}
-
-	//
-	// STATICS
-	//
 
 	/**
 	 * Convenience method for creating a "method not found" error.
@@ -162,40 +133,14 @@ public class SuException extends RuntimeException {
 	 *         not found
 	 */
 	public static SuException methodNotFound(Object object, String method) {
-		return new SuException("method not found: " + Ops.typeName(object)
-				+ "." + method + " (" + object + ")");
+		return new SuException("method not found: " +
+				Ops.typeName(object) + "." + method);
 	}
-
-	//
-	// INTERFACE: CallstackProvider
-	//
-
-//	@Override
-//	public Callstack getCallstack() {
-//		return callstack;
-//	}
-//
-//	@Override
-//	public void printCallstack(PrintWriter p) {
-//		p.println(getMessage());
-//		for (Frame frame : callstack) {
-//			p.print("\t at ");
-//			p.println(frame);
-//		}
-//	}
-
-	//
-	// ANCESTOR CLASS: Throwable
-	//
 
 	@Override
 	public Throwable fillInStackTrace() {
 		return this; // We will fill it in when needed.
 	}
-
-	//
-	// ANCESTOR CLASS: Object
-	//
 
 	@Override
 	public String toString() {
