@@ -10,7 +10,6 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
-/** immudb specific tests in addition to suneido.intfc.database.DbRebuildTest */
 public class DbRebuildTest extends TestBase {
 
 	@Test
@@ -249,7 +248,7 @@ public class DbRebuildTest extends TestBase {
 
 	SpyUpdateTransaction spyUpdateTransaction() {
 		return new SpyUpdateTransaction(
-				((Database) db).trans.nextNum(false), (Database) db);
+				db.trans.nextNum(false), db);
 	}
 	private static class SpyUpdateTransaction extends UpdateTransaction {
 		int nAdds, nRemoves, nUpdates;
@@ -281,7 +280,7 @@ public class DbRebuildTest extends TestBase {
 
 	protected void rebuild(int... values) {
 		check(values);
-		Storage dstor = ((Database) db).dstor;
+		Storage dstor = db.dstor;
 //System.out.println("BEFORE ==================================================");
 //((Database) db).dump();
 		db.check();
