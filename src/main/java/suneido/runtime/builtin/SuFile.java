@@ -11,7 +11,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 
 import suneido.SuException;
 import suneido.SuValue;
@@ -141,8 +140,6 @@ public class SuFile extends SuValue {
 	private static long toLong(Object x) {
 		if (x instanceof BigDecimal)
 			return ((BigDecimal) x).longValueExact();
-		if (x instanceof BigInteger)
-			return ((BigInteger) x).longValueExact();
 		if (x instanceof Number)
 			return ((Number) x).longValue();
 		throw new SuException("can't convert " + Ops.typeName(x) + " to long");

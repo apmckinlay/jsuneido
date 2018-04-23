@@ -10,7 +10,6 @@ import static suneido.util.Util.capitalize;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.*;
 
 import com.google.common.base.CharMatcher;
@@ -281,8 +280,6 @@ public final class Ops {
 		}
 		if (x instanceof BigDecimal)
 			return ((BigDecimal) x).negate(); // TODO: Use Numbers.MC?
-		if (x instanceof BigInteger)
-			return ((BigInteger) x).negate(); // TODO: Use Numbers.MC?
 		if (x instanceof Long) {
 			long x_ = (long) x;
 			// Avoid two's complement overflow
@@ -355,8 +352,6 @@ public final class Ops {
 			return toIntFromLong((Long) x);
 		if (x instanceof BigDecimal)
 			return toIntFromBD((BigDecimal) x);
-		if (x instanceof BigInteger)
-			return toIntFromBI((BigInteger) x);
 		return likeZero(x);
 	}
 

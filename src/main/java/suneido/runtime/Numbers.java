@@ -5,7 +5,6 @@
 package suneido.runtime;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.math.MathContext;
 
 import suneido.SuException;
@@ -20,18 +19,10 @@ public class Numbers {
 	public static final int PRECISION = 16; // to match cSuneido
 	public static final MathContext MC = new MathContext(PRECISION);
 
-	public static final double DBL_INT_MIN = Integer.MIN_VALUE;
-	public static final double DBL_INT_MAX = Integer.MAX_VALUE;
-	public static final double DBL_LONG_MIN = Long.MIN_VALUE;
-	public static final double DBL_LONG_MAX = Long.MAX_VALUE;
 	public static final BigDecimal BD_INT_MIN = BigDecimal.valueOf(Integer.MIN_VALUE);
 	public static final BigDecimal BD_INT_MAX = BigDecimal.valueOf(Integer.MAX_VALUE);
-	public static final BigInteger BI_INT_MIN = BigInteger.valueOf(Integer.MIN_VALUE);
-	public static final BigInteger BI_INT_MAX = BigInteger.valueOf(Integer.MAX_VALUE);
 	public static final BigDecimal BD_LONG_MIN = BigDecimal.valueOf(Long.MIN_VALUE);
 	public static final BigDecimal BD_LONG_MAX = BigDecimal.valueOf(Long.MAX_VALUE);
-	public static final BigInteger BI_LONG_MIN = BigInteger.valueOf(Long.MIN_VALUE);
-	public static final BigInteger BI_LONG_MAX = BigInteger.valueOf(Long.MAX_VALUE);
 
 	public static final BigDecimal ZERO = BigDecimal.ZERO;
 	public static final BigDecimal INF =
@@ -56,8 +47,6 @@ public class Numbers {
 			return ((BigDecimal) n).round(MC);
 		if (longable(n))
 			return new BigDecimal(((Number) n).longValue(), MC);
-		if (n instanceof BigInteger)
-			return new BigDecimal((BigInteger) n, MC);
 		throw SuInternalError.unreachable();
 	}
 
@@ -69,7 +58,6 @@ public class Numbers {
 	/** @return true if n has no fractional part */
 	public static boolean integral(Object n) {
 		return longable(n) ||
-				n instanceof BigInteger ||
 				(n instanceof BigDecimal && integral((BigDecimal)n));
 	}
 
@@ -90,8 +78,6 @@ public class Numbers {
 			return Long.signum(n.longValue());
 		if (n instanceof BigDecimal)
 			return ((BigDecimal) n).signum();
-		if (n instanceof BigInteger)
-			return ((BigInteger) n).signum();
 		throw new SuException("signum unsupported type");
 	}
 
@@ -265,14 +251,6 @@ public class Numbers {
 		if (n.compareTo(Numbers.BD_INT_MIN) == -1)
 			return Integer.MIN_VALUE;
 		if (n.compareTo(Numbers.BD_INT_MAX) == 1)
-			return Integer.MAX_VALUE;
-		return n.intValue();
-	}
-
-	static int toIntFromBI(BigInteger n) {
-		if (n.compareTo(Numbers.BI_INT_MIN) == -1)
-			return Integer.MIN_VALUE;
-		if (n.compareTo(Numbers.BI_INT_MAX) == 1)
 			return Integer.MAX_VALUE;
 		return n.intValue();
 	}
