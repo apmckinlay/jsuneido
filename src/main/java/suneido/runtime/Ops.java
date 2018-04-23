@@ -45,12 +45,9 @@ public final class Ops {
 			if ((xClass == Integer.class || xClass == Long.class) &&
 					(yClass == Integer.class || yClass == Long.class))
 				return ((Number) x).longValue() == ((Number) y).longValue();
-			else if ((xClass == Float.class || xClass == Double.class) &&
-					(yClass == Float.class || yClass == Double.class))
-				return ((Number) x).doubleValue() == ((Number) y).doubleValue();
 			else
 				return 0 == new BigDecimal(x.toString()).compareTo(
-						new BigDecimal(y.toString()));
+						new BigDecimal(y.toString())); //FIXME ???
 		}
 
 		// This check is because the left-hand side object might be a String,
@@ -139,11 +136,6 @@ public final class Ops {
 					(yClass == Integer.class || yClass == Long.class)) {
 				long x1 = ((Number) x).longValue();
 				long y1 = ((Number) y).longValue();
-				return x1 < y1 ? -1 : x1 > y1 ? +1 : 0;
-			} else if ((xClass == Float.class || xClass == Double.class) &&
-					(yClass == Float.class || yClass == Double.class)) {
-				double x1 = ((Number) x).doubleValue();
-				double y1 = ((Number) y).doubleValue();
 				return x1 < y1 ? -1 : x1 > y1 ? +1 : 0;
 			} else
 				return new BigDecimal(x.toString()).compareTo(
@@ -299,10 +291,6 @@ public final class Ops {
 				: new BigDecimal(x_).negate(Numbers.MC)
 				;
 		}
-		if (x instanceof Float)
-			return -(Float) x;
-		if (x instanceof Double)
-			return -(Double) x;
 		throw SuInternalError.unreachable();
 	}
 
@@ -601,7 +589,7 @@ public final class Ops {
 			return (SuValue) x;
 		if (x instanceof String)
 			return StringMethods.singleton;
-		if (x instanceof Number) // e.g. Integer, Float, BigDecimal
+		if (x instanceof Number) // e.g. Long, BigDecimal
 			return NumberMethods.singleton;
 		return invokeUnknown;
 	}

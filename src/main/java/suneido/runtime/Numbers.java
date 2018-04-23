@@ -51,21 +51,11 @@ public class Numbers {
 		return new BigDecimal(x, MC);
 	}
 
-	public static BigDecimal toBigDecimal(float x) {
-		return new BigDecimal(x, MC);
-	}
-
-	public static BigDecimal toBigDecimal(double x) {
-		return new BigDecimal(x, MC);
-	}
-
 	public static BigDecimal toBigDecimal(Object n) {
 		if (n instanceof BigDecimal)
 			return ((BigDecimal) n).round(MC);
 		if (longable(n))
 			return new BigDecimal(((Number) n).longValue(), MC);
-		if (n instanceof Float || n instanceof Double)
-			return new BigDecimal(((Number) n).doubleValue(), MC);
 		if (n instanceof BigInteger)
 			return new BigDecimal((BigInteger) n, MC);
 		throw SuInternalError.unreachable();
@@ -80,9 +70,7 @@ public class Numbers {
 	public static boolean integral(Object n) {
 		return longable(n) ||
 				n instanceof BigInteger ||
-				(n instanceof BigDecimal && integral((BigDecimal)n)) ||
-				((n instanceof Float || n instanceof Double) &&
-						Math.abs(((Number) n).doubleValue()) % 1 == 0);
+				(n instanceof BigDecimal && integral((BigDecimal)n));
 	}
 
 	public static boolean integral(BigDecimal n) {
@@ -98,10 +86,13 @@ public class Numbers {
 	}
 
 	public static int signum(Number n) {
-		return longable(n) ? Long.signum(n.longValue())
-				: n instanceof BigDecimal ? ((BigDecimal) n).signum()
-				: n instanceof BigInteger ? ((BigInteger) n).signum()
-				: (int) Math.signum(n.doubleValue());
+		if (longable(n))
+			return Long.signum(n.longValue());
+		if (n instanceof BigDecimal)
+			return ((BigDecimal) n).signum();
+		if (n instanceof BigInteger)
+			return ((BigInteger) n).signum();
+		throw new SuException("signum unsupported type");
 	}
 
 	public static boolean isInRange(BigDecimal x, BigDecimal lo, BigDecimal hi) {
@@ -114,16 +105,6 @@ public class Numbers {
 		else
 			return x;
 		// NOTE: can't use ?: because it would convert to same type
-	}
-
-	/** Convert double to int or long if possible */
-	public static Number narrow(double x) {
-		if (Math.abs(x) % 1 == 0)
-			if (DBL_INT_MIN <= x && x <= DBL_INT_MAX)
-				return (int) x;
-			else if (DBL_LONG_MIN <= x && x <= DBL_LONG_MAX)
-				return (long) x;
-		return x;
 	}
 
 	/** Convert BigDecimal to int or long if possible */
@@ -153,7 +134,6 @@ public class Numbers {
 	 * add2, sub2, mul2, and div2 follow same outline
 	 * - convert to numbers (throws if not convertible)
 	 * - check for zero
-	 * - if float or double, return narrow(double op)
 	 * - check for infinite
 	 * - return bigdecimal op
 	 */
@@ -166,10 +146,6 @@ public class Numbers {
 			return yn;
 		if (isZero(yn))
 			return xn;
-
-		if (xn instanceof Float || xn instanceof Double ||
-				yn instanceof Float || yn instanceof Double)
-			return narrow(xn.doubleValue() + yn.doubleValue());
 
 		if (xn == INF)
 			return yn == MINUS_INF ? 0 : INF;
@@ -190,10 +166,6 @@ public class Numbers {
 		if (isZero(yn))
 			return xn;
 
-		if (xn instanceof Float || xn instanceof Double ||
-				yn instanceof Float || yn instanceof Double)
-			return narrow(xn.doubleValue() - yn.doubleValue());
-
 		if (xn == INF)
 			return yn == INF ? 0 : INF;
 		if (yn == INF)
@@ -212,10 +184,6 @@ public class Numbers {
 
 		if (isZero(xn) || isZero(yn))
 			return 0;
-
-		if (xn instanceof Float || xn instanceof Double ||
-				yn instanceof Float || yn instanceof Double)
-			return narrow(xn.doubleValue() * yn.doubleValue());
 
 		if (xn == INF)
 			return (signum(yn) < 0) ? MINUS_INF : INF;
@@ -237,10 +205,6 @@ public class Numbers {
 			return 0;
 		if (isZero(yn))
 			return signum(xn) < 0 ? MINUS_INF : INF;
-
-		if (xn instanceof Float || xn instanceof Double ||
-				yn instanceof Float || yn instanceof Double)
-			return narrow(xn.doubleValue() / yn.doubleValue());
 
 		if (xn == INF)
 			return yn == INF ? +1 : yn == MINUS_INF ? -1

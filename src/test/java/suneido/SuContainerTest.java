@@ -221,8 +221,6 @@ public class SuContainerTest {
 	public void index_test() {
 		assertThat(index(0), equalTo(0));
 		assertThat(index(123), equalTo(123));
-		assertThat(index(Float.valueOf(123)), equalTo(123));
-		assertThat(index(Double.valueOf(123)), equalTo(123));
 		assertThat(index(BigInteger.valueOf(123)), equalTo(123));
 		assertThat(index(BigDecimal.valueOf(123)), equalTo(123));
 		assertThat(index(true), equalTo(-1));

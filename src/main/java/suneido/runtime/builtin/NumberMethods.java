@@ -31,17 +31,17 @@ public class NumberMethods extends BuiltinMethods {
 
 	public static Object ACos(Object self) {
 		double d = ((Number) self).doubleValue();
-		return Math.acos(d);
+		return BigDecimal.valueOf(Math.acos(d));
 	}
 
 	public static Object ASin(Object self) {
 		double d = ((Number) self).doubleValue();
-		return Math.asin(d);
+		return BigDecimal.valueOf(Math.asin(d));
 	}
 
 	public static Object ATan(Object self) {
 		double d = ((Number) self).doubleValue();
-		return Math.atan(d);
+		return BigDecimal.valueOf(Math.atan(d));
 	}
 
 	public static Object Chr(Object self) {
@@ -51,12 +51,12 @@ public class NumberMethods extends BuiltinMethods {
 
 	public static Object Cos(Object self) {
 		double d = ((Number) self).doubleValue();
-		return Math.cos(d);
+		return BigDecimal.valueOf(Math.cos(d));
 	}
 
 	public static Object Exp(Object self) {
 		double d = ((Number) self).doubleValue();
-		return Math.exp(d);
+		return BigDecimal.valueOf(Math.exp(d));
 	}
 
 	@Params("mask")
@@ -169,12 +169,12 @@ public class NumberMethods extends BuiltinMethods {
 
 	public static Object Log(Object self) {
 		double d = ((Number) self).doubleValue();
-		return Math.log(d);
+		return BigDecimal.valueOf(Math.log(d));
 	}
 
 	public static Object Log10(Object self) {
 		double d = ((Number) self).doubleValue();
-		return Math.log10(d);
+		return BigDecimal.valueOf(Math.log10(d));
 	}
 
 	@Params("number")
@@ -203,7 +203,8 @@ public class NumberMethods extends BuiltinMethods {
 			if (Math.abs(ai) < Integer.MAX_VALUE)
 				return toBigDecimal(self).pow((int) ai, MC);
 		}
-		return narrow(Math.pow(sn.doubleValue(), an.doubleValue()));
+		double n = Math.pow(sn.doubleValue(), an.doubleValue());
+		return narrow(BigDecimal.valueOf(n));
 	}
 
 	@Params("number")
@@ -231,17 +232,17 @@ public class NumberMethods extends BuiltinMethods {
 
 	public static Object Sin(Object self) {
 		double d = ((Number) self).doubleValue();
-		return Math.sin(d);
+		return BigDecimal.valueOf(Math.sin(d));
 	}
 
 	public static Object Sqrt(Object self) {
 		double d = ((Number) self).doubleValue();
-		return Math.sqrt(d);
+		return BigDecimal.valueOf(Math.sqrt(d));
 	}
 
 	public static Object Tan(Object self) {
 		double d = ((Number) self).doubleValue();
-		return Math.tan(d);
+		return BigDecimal.valueOf(Math.tan(d));
 	}
 
 }
