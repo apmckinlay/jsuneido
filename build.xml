@@ -35,7 +35,7 @@
 	<property name="jar.name.suffix-final" value=".jar"/>
 	<property name="jar.name.suffix-raw" value="-raw.jar"/>
 
-	<property name="jar.final.jsuneido" 
+	<property name="jar.final.jsuneido"
 		value="${main.dstdir.jars}/${jar.name.prefix}${jar.name.suffix-final}"/>
 
 	<property name="jar.raw.jsuneido" 
@@ -119,7 +119,7 @@ lib/${lib.lucene-highlighter}"
 		<delete dir="${main.dstdir.raw-jars}"/>
 	</target>
 
-	<target name="clean-jars" depends="clean-links">
+	<target name="clean-jars">
 		<delete file="jsuneido.jar"/>
 		<!--
 			Delete the directory, being careful not to blindly follow the "lib"
@@ -136,45 +136,13 @@ lib/${lib.lucene-highlighter}"
 		</delete>
 	</target>
 
-	<target name="clean-links">
-		<!--
-			To remove a symbolic link to a directory created with mklink, you
-			have to use 'rmdir', not 'del', or it'll delete everything at node
-			linked to: http://superuser.com/q/167076/223733.
-		-->
-		<exec executable="cmd" dir="${main.dstdir.jars}" osfamily="windows">
-			<arg value="/C rmdir lib"/>
-		</exec>
-	</target>
-
-	<target name="required-files" depends="dirs,links"/>
+	<target name="required-files" depends="dirs"/>
 
 	<target name="dirs">
 		<mkdir dir="${main.dstdir.classes}"/>
 		<mkdir dir="${main.dstdir.jars}"/>
 		<mkdir dir="${main.dstdir.raw-jars}"/>
 	</target>
-
-	<target name="links" depends="clean-links,links-linux">
-		<!--
-			Create a symbolic link to the "lib" directory from within the
-			target JARs directory. This makes it easier to run the JARs from
-			the target directory without getting a "ERROR: lucene not found"
-			message.
-		-->
-		<exec executable="cmd" dir="${main.dstdir.jars}" osfamily="windows">
-			<arg value="/C mklink /D /J lib ${basedir}\lib"/> 
-		</exec>
-	</target>
-
-	<target name="links-linux" if="platform.linux">
-		<symlink resource="${basedir}/lib/" link="${basedir}/${main.dstdir.jars}"
-				overwrite="yes"/>
-	</target>
-
-	<!--                            -->
-	<!-- INTERNAL TARGETS: RAW JARS -->
-	<!--                            -->
 
 	<target name="raw-jar" depends="compile,manifest">
 		<jar destfile="${jar.raw.jsuneido}" manifest="${jar.manifest.file}">
