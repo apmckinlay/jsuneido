@@ -73,8 +73,9 @@ public class SuInstance extends SuValue {
 
 	@Override
 	public SuValue lookup(String method) {
-		// Prioritize looking up SuInstance built-ins first: Base(), Base?(),
-		// and so on.
+		if (method == "<new>")
+			throw new SuException("can't create instance of instance");
+		// Prioritize looking up SuInstance built-ins first: e.g. Base, Base?
 		SuValue m = methods.get(method);
 		if (m != null)
 			return m;
@@ -249,7 +250,7 @@ public class SuInstance extends SuValue {
 
 	@Override
 	public String typeName() {
-		return "Object";
+		return "Instance";
 	}
 
 }

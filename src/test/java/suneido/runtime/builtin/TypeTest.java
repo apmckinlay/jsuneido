@@ -19,7 +19,7 @@ public class TypeTest {
 		test("Type(#{})", "Record");
 		test("shared = 1; Type({|x| shared })", "Block");
 		test("Type(class { })", "Class");
-		test("Type(new class { })", "Object");
+		test("Type(new class { })", "Instance");
 		test("Type(function () { })", "Function");
 	}
 
