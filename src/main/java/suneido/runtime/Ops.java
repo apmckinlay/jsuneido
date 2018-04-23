@@ -45,8 +45,7 @@ public final class Ops {
 					(yClass == Integer.class || yClass == Long.class))
 				return ((Number) x).longValue() == ((Number) y).longValue();
 			else
-				return 0 == new BigDecimal(x.toString()).compareTo(
-						new BigDecimal(y.toString())); //FIXME ???
+				return 0 == toBigDecimal(x).compareTo(toBigDecimal(y));
 		}
 
 		// This check is because the left-hand side object might be a String,
@@ -137,8 +136,7 @@ public final class Ops {
 				long y1 = ((Number) y).longValue();
 				return x1 < y1 ? -1 : x1 > y1 ? +1 : 0;
 			} else
-				return new BigDecimal(x.toString()).compareTo(
-						new BigDecimal(y.toString()));
+				return toBigDecimal(x).compareTo(toBigDecimal(y));
 		}
 
 		if (xClass == Boolean.class)

@@ -55,10 +55,6 @@ public class OpsTest {
 		is(null, null);
 		is(123, 123);
 		is((long) 123, 123);
-		is((byte) 123, (long) 123);
-		is(1.0F, 1.0D);
-		is((byte) 1, 1.0D);
-		is(1.0F, BigDecimal.valueOf(1));
 		is(123, BigDecimal.valueOf(123));
 		is("hello", "hello");
 		is("hello", new Concats("hel", "lo"));
