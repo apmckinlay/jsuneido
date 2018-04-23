@@ -116,12 +116,12 @@ public final class ContainerMethods {
 	}
 
 	public static Object Base(Object self) {
-		return Builtins.get("Object");
+		return false;
 	}
 
 	@Params("value")
 	public static Boolean BaseQ(Object self, Object a) {
-		return a == Builtins.get("Object");
+		return false;
 	}
 
 	public static Object Copy(Object self) {
