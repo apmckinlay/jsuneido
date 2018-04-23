@@ -73,9 +73,7 @@ public class Numbers {
 
 	/** @return true if ((Number) n).longValue() is safe (returns exact value) */
 	public static boolean longable(Object n) {
-		return n instanceof Integer || n instanceof Long ||
-				n instanceof Short || n instanceof Byte;
-		//COULD include BigInteger, BigDecimal, Float, Double if integral and within range
+		return n instanceof Integer || n instanceof Long;
 	}
 
 	/** @return true if n has no fractional part */

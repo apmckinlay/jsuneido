@@ -17,8 +17,7 @@ import suneido.runtime.Params;
 // assert self instanceof Number
 /**
  * Methods for numbers.
- * <li>Attempts to handle all numeric types: Byte, Short, Int, Long, Float, Double,
- * BigInteger, BigDecimal.
+ * <li>Attempts to handle: Int, Long, Float, Double, BigInteger, BigDecimal.
  * <li>Prefers to use decimal types (i.e. not float or double)
  * <li>Prefers to return results as Int or Long or BigDecimal.</li>
  * <p>WARNING: Some operations will not work if integer precision greater than long.

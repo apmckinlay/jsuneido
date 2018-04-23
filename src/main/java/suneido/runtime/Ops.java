@@ -13,8 +13,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
 
-import suneido.util.ThreadSafe;
-
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 
@@ -23,6 +21,7 @@ import suneido.runtime.builtin.NumberMethods;
 import suneido.runtime.builtin.StringMethods;
 import suneido.util.RegexCache;
 import suneido.util.StringIterator;
+import suneido.util.ThreadSafe;
 
 @ThreadSafe // all static methods
 public final class Ops {
@@ -43,10 +42,8 @@ public final class Ops {
 			return x.equals(y);
 
 		if (x instanceof Number && y instanceof Number) {
-			if ((xClass == Integer.class || xClass == Long.class ||
-					xClass == Byte.class || xClass == Short.class) &&
-					(yClass == Integer.class || yClass == Long.class ||
-					yClass == Byte.class || yClass == Short.class))
+			if ((xClass == Integer.class || xClass == Long.class) &&
+					(yClass == Integer.class || yClass == Long.class))
 				return ((Number) x).longValue() == ((Number) y).longValue();
 			else if ((xClass == Float.class || xClass == Double.class) &&
 					(yClass == Float.class || yClass == Double.class))
@@ -138,10 +135,8 @@ public final class Ops {
 				: cmpHash(xClass, yClass);
 
 		if (x instanceof Number && y instanceof Number) {
-			if ((xClass == Integer.class || xClass == Long.class ||
-					xClass == Byte.class || xClass == Short.class) &&
-					(yClass == Integer.class || yClass == Long.class ||
-					yClass == Byte.class || yClass == Short.class)) {
+			if ((xClass == Integer.class || xClass == Long.class) &&
+					(yClass == Integer.class || yClass == Long.class)) {
 				long x1 = ((Number) x).longValue();
 				long y1 = ((Number) y).longValue();
 				return x1 < y1 ? -1 : x1 > y1 ? +1 : 0;
@@ -304,29 +299,6 @@ public final class Ops {
 				: new BigDecimal(x_).negate(Numbers.MC)
 				;
 		}
-		if (x instanceof Short) {
-			short x_ = (short) x;
-			// Avoid two's complement overflow
-			return Short.MIN_VALUE != x_
-				? -x_
-				: -(int)x_ // If have to convert, use a canonical number type
-				;
-		}
-		if (x instanceof Byte) {
-			byte x_ = (byte) x;
-			// Avoid two's complement overflow
-			return Byte.MIN_VALUE != x_
-				? -x_
-				: -(int)x_ // If have to convert, use a canonical number type
-				;
-		}
-		// TODO: Check for overflow for float and double?
-		// TODO: My sense is that it is more likely that a number will be
-		//       represented as a Float or Double than as a Short or Byte (when/
-		//       how is it even possible to get a Short/Byte number??). From the
-		//       point of view of efficiency, it makes sense to move the
-		//       Float/Double negation branches further up since they are much
-		//       more likely to be taken than the Short/Byte branches.
 		if (x instanceof Float)
 			return -(Float) x;
 		if (x instanceof Double)
@@ -389,7 +361,7 @@ public final class Ops {
 	}
 
 	public static int toInt(Object x) {
-		if (x instanceof Integer || x instanceof Short || x instanceof Byte)
+		if (x instanceof Integer)
 			return ((Number) x).intValue();
 		if (x instanceof Long)
 			return toIntFromLong((Long) x);
