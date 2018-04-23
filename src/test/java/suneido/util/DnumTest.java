@@ -256,6 +256,36 @@ public class DnumTest {
 		}
 	}
 
+	@Test
+	public void longValue_test() {
+		long data[] = {0, 1, -1, 123, -123, Integer.MAX_VALUE, Integer.MIN_VALUE,
+				1234_5678_9012_3456L, -9999_9999_9999_9999L };
+		for (long n : data) {
+			Dnum x = Dnum.from(n);
+			assertThat(x.longValue(), equalTo(n));
+		}
+		assertThat(Dnum.parse("99e-99").longValue(), equalTo(0L));
+		assertThat(Dnum.parse("99e99").longValue(), equalTo(0L));
+	}
+
+	@Test
+	public void doubleValue_test() {
+		String exact[] = { "0", "1", "-1", "1e9", "123456", "1234567890123456" };
+		for (String s : exact) {
+			Dnum x = Dnum.parse(s);
+			double n = Double.parseDouble(s);
+			assertThat(x.doubleValue(), equalTo(n));
+		}
+		String approx[] = { ".1", "-1.23e99", "4.56e-99" };
+		for (String s : approx) {
+			double x = Dnum.parse(s).doubleValue();
+			double y = Double.parseDouble(s);
+			assert Math.abs(1 - x / y) < 1e-15 : x / y;
+		}
+	}
+
+	// benchmarks ---------------------------------------------------
+
 	private final static MathContext mc16 = new MathContext(16);
 
 	@Test
