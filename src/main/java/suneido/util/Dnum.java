@@ -109,6 +109,15 @@ public class Dnum extends Number implements Comparable<Dnum> {
 		return new Dnum(sign, n, MAX_DIGITS - p);
 	}
 
+	public static Dnum from(double d) { // needed for math/trig functions
+		if (Double.isNaN(d))
+			throw new NumberFormatException("can't convert NaN to number");
+		if (Double.isInfinite(d))
+			return d < 0 ? MinusInf : Inf;
+		// probably not the most efficient, but simple
+		return parse(Double.toString(d));
+	}
+
 	static int ilog10(long x)
 		{
 		// based on Hacker's Delight
@@ -574,7 +583,7 @@ public class Dnum extends Number implements Comparable<Dnum> {
 	}
 
 	@Override
-	public double doubleValue() {
+	public double doubleValue() { // needed for math/trig methods
 		switch (sign) {
 		case ZERO:
 			return 0.0;

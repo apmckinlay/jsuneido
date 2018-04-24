@@ -284,6 +284,14 @@ public class DnumTest {
 		}
 	}
 
+	@Test
+	public void from_double_test() {
+		assertThat(Dnum.from(Double.NEGATIVE_INFINITY), equalTo(MinusInf));
+		assertThat(Dnum.from(Double.POSITIVE_INFINITY), equalTo(Inf));
+		assertThat(Dnum.from(0.0), equalTo(Zero));
+		assertThat(Dnum.from(123.456e9), equalTo(Dnum.parse("123.456e9")));
+	}
+
 	// benchmarks ---------------------------------------------------
 
 	private final static MathContext mc16 = new MathContext(16);
