@@ -85,37 +85,6 @@ public class Numbers {
 		return x.compareTo(lo) >= 0 && x.compareTo(hi) <= 0;
 	}
 
-	public static Number narrow(long x) {
-		if (Integer.MIN_VALUE <= x && x <= Integer.MAX_VALUE)
-			return (int) x;
-		else
-			return x;
-		// NOTE: can't use ?: because it would convert to same type
-	}
-
-	/** Convert BigDecimal to int or long if possible */
-	public static Number narrow(BigDecimal x) {
-		if (x.signum() == 0)
-			return 0; // TODO: Might it not be cleaner to remove this 'optimization'?
-		else if (integral(x)) {
-			if (isInRange(x, BD_INT_MIN, BD_INT_MAX))
-				return x.intValueExact();
-			else if (isInRange(x, BD_LONG_MIN, BD_LONG_MAX))
-				return x.longValueExact();
-		}
-		return x;
-	}
-
-	/** Ensure number is in narrowest representation possible */
-	public static Number narrow(Number x) {
-		if (x instanceof Long) {
-			return narrow(x.longValue());
-		} else if (x instanceof BigDecimal) {
-			return narrow((BigDecimal)x);
-		}
-		return x;
-	}
-
 	/*
 	 * add2, sub2, mul2, and div2 follow same outline
 	 * - convert to numbers (throws if not convertible)
@@ -142,7 +111,7 @@ public class Numbers {
 		if (yn == MINUS_INF)
 			return xn == INF ? 0 : MINUS_INF;
 
-		return narrow(toBigDecimal(xn).add(toBigDecimal(yn), MC));
+		return toBigDecimal(xn).add(toBigDecimal(yn), MC);
 	}
 
 	public static Number sub2(Object x_, Object y_) {
@@ -161,7 +130,7 @@ public class Numbers {
 		if (yn == MINUS_INF)
 			return xn == MINUS_INF ? 0 : INF;
 
-		return narrow(toBigDecimal(xn).subtract(toBigDecimal(yn), MC));
+		return toBigDecimal(xn).subtract(toBigDecimal(yn), MC);
 	}
 
 	public static Number mul2(Object x_, Object y_) {
@@ -180,7 +149,7 @@ public class Numbers {
 		if (yn == MINUS_INF)
 			return (signum(xn) < 0) ? INF : MINUS_INF;
 
-		return narrow(toBigDecimal(xn).multiply(toBigDecimal(yn), MC));
+		return toBigDecimal(xn).multiply(toBigDecimal(yn), MC);
 	}
 
 	public static Number div2(Object x_, Object y_) {
@@ -201,7 +170,7 @@ public class Numbers {
 		if (yn == INF || yn == MINUS_INF)
 			return 0;
 
-		return narrow(toBigDecimal(xn).divide(toBigDecimal(yn), MC));
+		return toBigDecimal(xn).divide(toBigDecimal(yn), MC);
 	}
 
 	/**

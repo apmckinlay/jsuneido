@@ -10,7 +10,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 import suneido.runtime.BuiltinMethods;
-import suneido.runtime.Numbers;
 import suneido.runtime.Ops;
 import suneido.runtime.Params;
 
@@ -162,7 +161,7 @@ public class NumberMethods extends BuiltinMethods {
 	public static Object Int(Object self) {
 		if (integral(self))
 			return self;
-		return Numbers.narrow(((Number) self).longValue());
+		return ((Number) self).longValue();
 	}
 
 	public static Object Log(Object self) {
@@ -195,14 +194,14 @@ public class NumberMethods extends BuiltinMethods {
 					long result = 1;
 					for (int i = 0; i < ai; ++i)
 						result *= si;
-					return narrow(result);
+					return result;
 				}
 			}
 			if (Math.abs(ai) < Integer.MAX_VALUE)
 				return toBigDecimal(self).pow((int) ai, MC);
 		}
 		double n = Math.pow(sn.doubleValue(), an.doubleValue());
-		return narrow(BigDecimal.valueOf(n));
+		return BigDecimal.valueOf(n);
 	}
 
 	@Params("number")

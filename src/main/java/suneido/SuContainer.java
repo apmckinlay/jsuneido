@@ -4,7 +4,6 @@
 
 package suneido;
 
-import static suneido.runtime.Numbers.toBigDecimal;
 import static suneido.util.Verify.verify;
 
 import java.math.BigDecimal;
@@ -338,31 +337,26 @@ public class SuContainer extends SuValue
 
 	/**
 	 * convert to standardized types so lookup works consistently
-	 * Number is converted to Integer if within range, else BigDecimal
+	 * Number is converted to Long if within range, else BigDecimal
 	 * CharSequence (String, Concat, SuException) is converted to String
 	 */
 	private static Object canonical(Object x) {
 		// must match index(x)
-		if (x instanceof Number) {
-			if (x instanceof Integer)
-				return x;
-			if (x instanceof Long) {
-				long i = (Long) x;
-				if (Integer.MIN_VALUE <= i && i <= Integer.MIN_VALUE)
-					return (int) i;
+		if (x instanceof Integer) {
+			long i = (Integer) x;
+			return i;
+		}
+		if (x instanceof BigDecimal) {
+			BigDecimal n = (BigDecimal) x;
+			try {
+				return n.longValueExact();
+			} catch (ArithmeticException e) {
+				return n.stripTrailingZeros();
 			}
-			return canonicalBD(toBigDecimal(x));
 		}
 		if (x instanceof CharSequence)
 			return x.toString();
 		return x;
-	}
-	private static Number canonicalBD(BigDecimal n) {
-		try {
-			return n.intValueExact();
-		} catch (ArithmeticException e) {
-			return n.stripTrailingZeros();
-		}
 	}
 
 	@Override
@@ -474,19 +468,17 @@ public class SuContainer extends SuValue
 	 */
 	static int index(Object x) {
 		// must match the behavior of canonical
-		if (x instanceof Number) {
-			if (x instanceof Integer)
-				return (Integer) x;
-			else if (x instanceof Long) {
-				long i = (Long) x;
-				if (Integer.MIN_VALUE <= i && i <= Integer.MIN_VALUE)
-					return (int) i;
-			} else {
-		 		try {
-					return toBigDecimal(x).intValueExact();
-				} catch (ArithmeticException e) {
-					// ignore, fall through
-				}
+		if (x instanceof Integer)
+			return (Integer) x;
+		else if (x instanceof Long) {
+			long n = (Long) x;
+			if (0 <= n && n <= Integer.MAX_VALUE)
+				return (int) n;
+		} else if (x instanceof BigDecimal) {
+	 		try {
+				return ((BigDecimal) x).intValueExact();
+			} catch (ArithmeticException e) {
+				// ignore, fall through
 			}
 		}
 		return -1;

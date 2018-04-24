@@ -231,14 +231,14 @@ public final class Ops {
 	// fast path, kept small in hopes of getting inlined
 	public static Number add(Object x, Object y) {
 		if (x instanceof Integer && y instanceof Integer)
-			return narrow((long) (Integer) x + (Integer) y);
+			return (long) (Integer) x + (Integer) y;
 		return add2(x, y);
 	}
 
 	// fast path, kept small in hopes of getting inlined
 	public static Number sub(Object x, Object y) {
 		if (x instanceof Integer && y instanceof Integer)
-			return narrow((long) (Integer) x - (Integer) y);
+			return (long) (Integer) x - (Integer) y;
 		return sub2(x, y);
 	}
 
@@ -253,7 +253,7 @@ public final class Ops {
 	// fast path, kept small in hopes of getting inlined
 	public static Number mul(Object x, Object y) {
 		if (x instanceof Integer && y instanceof Integer)
-			return narrow((long) (Integer) x * (Integer) y);
+			return (long) (Integer) x * (Integer) y;
 		return mul2(x, y);
 	}
 
@@ -276,16 +276,15 @@ public final class Ops {
 				: -(long)x_
 				;
 		}
-		if (x instanceof BigDecimal)
-			return ((BigDecimal) x).negate(); // TODO: Use Numbers.MC?
 		if (x instanceof Long) {
 			long x_ = (long) x;
 			// Avoid two's complement overflow
 			return Long.MIN_VALUE != x_
 				? -x_
-				: new BigDecimal(x_).negate(Numbers.MC)
-				;
+				: new BigDecimal(x_).negate();
 		}
+		if (x instanceof BigDecimal)
+			return ((BigDecimal) x).negate();
 		throw SuInternalError.unreachable();
 	}
 
