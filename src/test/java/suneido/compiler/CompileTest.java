@@ -665,4 +665,29 @@ public class CompileTest {
 		return r.substring(0, i);
 	}
 
+	/**
+	 * PortTests fixture.
+	 * Compiles a string and checks the type and value of the result.
+	 * i.e. string, expected_type, expected_value
+	 */
+	public static boolean pt_compile(String... args) {
+		assert args.length == 3;
+		String s = args[0];
+		String type = args[1];
+		String expected = args[2];
+		try {
+			Object x = Compiler.compile("", s);
+			if (!type.equals(Ops.typeName(x)))
+				return false;
+			if (!expected.equals(Ops.display(x)))
+				return false;
+		} catch (RuntimeException e) {
+			if (!type.equals("Exception"))
+				return false;
+			if (!e.getMessage().contains(expected))
+				return false;
+		}
+		return true;
+	}
+
 }

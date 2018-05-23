@@ -6,12 +6,11 @@ package suneido.compiler;
 
 import java.io.PrintWriter;
 
-import suneido.util.ThreadSafe;
-
 import suneido.SuContainer;
 import suneido.Suneido;
 import suneido.runtime.ContextLayered;
 import suneido.runtime.Ops;
+import suneido.util.ThreadSafe;
 
 /**
  * <p>
@@ -90,26 +89,6 @@ public class Compiler {
 
 	public static Object eval(CharSequence s, ContextLayered context) {
 		return Ops.call0(compile("", "eval", "function () { " + s + "\n}", context));
-	}
-
-	public static boolean pt_constant(String... args) {
-		assert args.length == 3;
-		String s = args[0];
-		String type = args[1];
-		String expected = args[2];
-		try {
-			Object x = compile("", s);
-			if (!type.equals(Ops.typeName(x)))
-				return false;
-			if (!expected.equals(Ops.display(x)))
-				return false;
-		} catch (RuntimeException e) {
-			if (!type.equals("Exception"))
-				return false;
-			if (!e.getMessage().contains(expected))
-				return false;
-		}
-		return true;
 	}
 
 //	public static void main(String[] args) /*throws IOException*/ {

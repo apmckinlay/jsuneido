@@ -15,7 +15,7 @@ import java.util.List;
 
 import com.google.common.primitives.Booleans;
 
-import suneido.compiler.Compiler;
+import suneido.compiler.CompileTest;
 import suneido.compiler.ExecuteTest;
 import suneido.compiler.Lexer;
 import suneido.compiler.Token;
@@ -209,7 +209,7 @@ public class PortTests {
 		addTest("method", ExecuteTest::pt_method);
 		addTest("lang_sub", ExecuteTest::pt_lang_sub);
 		addTest("lang_range", ExecuteTest::pt_lang_range);
-		addTest("compile", Compiler::pt_compile);
+		addTest("compile", CompileTest::pt_compile);
 
 		System.out.println("'" + TestDir.path + "'");
 		for (String filename : new File(TestDir.path).list())
