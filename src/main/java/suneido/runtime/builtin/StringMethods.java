@@ -153,7 +153,7 @@ public class StringMethods extends BuiltinMethods {
 	public static Object FindLast(Object self, Object a, Object b) {
 		String s = toStr(self);
 		String sub = toStr(a);
-		int pos = (b == Boolean.FALSE) ? s.length() - 1 : toInt(b);
+		int pos = (b == Boolean.FALSE) ? s.length() : toInt(b);
 		int i = s.lastIndexOf(sub, pos);
 		return i == -1 ? Boolean.FALSE : i;
 	}
