@@ -465,4 +465,27 @@ public class ExecuteTest {
 		return list;
 	}
 
+	/**
+	 * PortTests fixture.
+	 * Calls a method on a literal with specified arguments.
+	 * i.e. object, MethodName, arg ..., expected
+	 */
+	public static boolean pt_method(boolean[] str, String... args) {
+		Object ob = toValue(str, args, 0);
+		String method = args[1];
+		Object expected = toValue(str, args, args.length - 1);
+		Object[] argvals = new Object[args.length - 3];
+		for (int i = 0; i < argvals.length; ++i)
+			argvals[i] = toValue(str, args, 2 + i);
+		Object result = Ops.invoke(ob, method, argvals);
+		boolean ok = Ops.is_(result, expected);
+		if (!ok)
+			System.out.println("\tgot: " + Ops.display(result));
+		return ok;
+	}
+
+	private static Object toValue(boolean[] str, String[] args, int i) {
+		return str[i] ? args[i] : compile("", args[i]);
+	}
+
 }
