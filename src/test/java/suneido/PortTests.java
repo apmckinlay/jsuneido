@@ -66,16 +66,17 @@ public class PortTests {
 		} catch (Throwable e) {
 			throw new RuntimeException("PortTests can't get " + TestDir.path + file);
 		}
-		System.out.println("<" + file + ">");
-		return new Parser(src).run();
+		return new Parser(file, src).run();
 	}
 
 	private static class Parser {
+		String filename;
 		Lexer lxr;
 		Token tok;
 		String comment;
 
-		Parser(String src) {
+		Parser(String filename, String src) {
+			this.filename = filename;
 			lxr = new Lexer(src);
 			next(true);
 		}
@@ -92,7 +93,7 @@ public class PortTests {
 			match(AT, false); // '@'
 			String name = lxr.getValue();
 			match(IDENTIFIER, true);
-			System.out.println(name + ": " + comment);
+			System.out.println(filename + ": " + name + ": " + comment);
 			Test test;
 			if (testmap.containsKey(name))
 				test = testmap.get(name);
