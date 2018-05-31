@@ -4,6 +4,9 @@
 
 package suneido.util;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -27,7 +30,7 @@ public class BlockMergeTreeTest {
 		int i = 0;
 		list.sort(null);
 		for (Integer x : bmt)
-			assert x.intValue() == list.get(i++);
+			assertThat(x, equalTo(list.get(i++)));
 	}
 
 }

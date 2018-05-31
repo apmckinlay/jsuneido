@@ -88,7 +88,7 @@ public abstract class Serializer {
 	public Serializer putInts(List<Integer> list) {
 		put(list.size());
 		for (Integer n : list)
-			put(n.intValue());
+			put(n);
 		return this;
 	}
 
