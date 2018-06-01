@@ -10,6 +10,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static suneido.database.immudb.TestBase.rec;
 
 import org.junit.After;
 import org.junit.Test;
@@ -377,16 +378,6 @@ public class TransactionTest {
 			assertThat(t.input(iter.keyadr()), equalTo(recs[i]));
 		assertThat(i, equalTo(recs.length));
 		t.ck_complete();
-	}
-
-	static DataRecord rec(Object... values) {
-		RecordBuilder rb = new RecordBuilder();
-		for (Object val : values)
-			if (val instanceof Integer)
-				rb.add(((Integer) val).intValue());
-			else
-				rb.add(val);
-		return rb.build();
 	}
 
 }

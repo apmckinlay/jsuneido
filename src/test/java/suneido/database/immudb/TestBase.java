@@ -64,11 +64,11 @@ public class TestBase {
 		}
 	}
 
-	protected DataRecord rec(Object... values) {
+	public static DataRecord rec(Object... values) {
 		RecordBuilder rb = new RecordBuilder();
 		for (Object val : values)
 			if (val instanceof Integer)
-				rb.add(((Integer) val).intValue());
+				rb.add((int) val);
 			else
 				rb.add(val);
 		return rb.build();
