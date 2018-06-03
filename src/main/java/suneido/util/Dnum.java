@@ -4,6 +4,8 @@
 
 package suneido.util;
 
+import java.math.RoundingMode;
+
 import com.google.common.base.Strings;
 
 /**
@@ -15,16 +17,13 @@ import com.google.common.base.Strings;
  * Math "sticks" at infinite when it overflows.
  * <p>
  * There is no NaN, inf / inf = 1, 0 / ... = 0, inf / ... = inf
- * <p>
- * Immutable as far as public methods, but mutable instances used internally.
- *
- * NOTE: Dnum IS NOT CURRENTLY USED
  */
+@Immutable
 public class Dnum extends Number implements Comparable<Dnum> {
 	private static final long serialVersionUID = 1L;
-	private long coef;
+	private final long coef;
 	private final byte sign;
-	private byte exp;
+	private final byte exp;
 
 	final static byte POS = +1;
 	final static byte ZERO = 0;
@@ -34,7 +33,7 @@ public class Dnum extends Number implements Comparable<Dnum> {
 	private static final int EXP_MIN = Byte.MIN_VALUE;
 	private static final int EXP_MAX = Byte.MAX_VALUE;
 	private final static long COEF_MAX = 9_999_999_999_999_999L;
-	private final static int MAX_DIGITS = 16;
+	public final static int MAX_DIGITS = 16;
 	private final static int MAX_SHIFT = MAX_DIGITS - 1;
 
 	public final static Dnum Zero = new Dnum(ZERO, 0, 0);
@@ -88,9 +87,10 @@ public class Dnum extends Number implements Comparable<Dnum> {
 			5000000000000000000L
 			};
 
-	// raw - no normalization
+	/** raw - no normalization */
 	private Dnum(byte sign, long coef, int exp) {
 		this.sign = sign;
+		assert coef >= 0;
 		this.coef = coef;
 		assert EXP_MIN <= exp && exp <= EXP_MAX;
 		this.exp = (byte) exp;
@@ -136,6 +136,7 @@ public class Dnum extends Number implements Comparable<Dnum> {
 		return i > MAX_SHIFT ? 0 : MAX_SHIFT - i;
 		}
 
+	/** normalizes */
 	public static Dnum from(int sign, long coef, int exp) {
 		if (sign == 0 || coef == 0 || exp < EXP_MIN) {
 			return Zero;
@@ -162,12 +163,8 @@ public class Dnum extends Number implements Comparable<Dnum> {
 		}
 	}
 
-	private Dnum copy() {
-		return new Dnum(sign, coef, exp);
-	}
-
 	private static class Parser {
-		String s;
+		final String s;
 		int i = 0;
 		int exp = 0;
 
@@ -209,15 +206,12 @@ public class Dnum extends Number implements Comparable<Dnum> {
 			int p = MAX_SHIFT;
 			while (true)
 				{
-				if (isdigit(next()))
-					{
+				if (isdigit(next())) {
 					digits = true;
-					if (next() != '0')
-						{
-						if (p < 0)
-							throw new RuntimeException("too many digits");
+					// ignore extra decimal places
+					// required for double conversion
+					if (next() != '0' && p >= 0)
 						n += (next() - '0') * pow10[p];
-						}
 					--p;
 					++i;
 				} else if (before_decimal) {
@@ -268,8 +262,13 @@ public class Dnum extends Number implements Comparable<Dnum> {
 		return new Parser(s).parse();
 	}
 
+	/**
+	 * Default conversion to string.
+	 * Should match cSuneido.
+	 */
 	@Override
 	public String toString() {
+		final int MAX_LEADING_ZEROS = 7;
 		if (isZero())
 			return "0";
 		StringBuilder sb = new StringBuilder(20);
@@ -278,18 +277,10 @@ public class Dnum extends Number implements Comparable<Dnum> {
 		if (isInf())
 			return sb.append("inf").toString();
 
-		char digits[] = new char[MAX_SHIFT + 1];
-		int i = MAX_SHIFT;
-		int nd = 0;
-		for (long c = coef; c != 0; --i, ++nd) {
-			digits[nd] = (char) ('0' + (char) (c / pow10[i]));
-			c %= pow10[i];
-		}
+		char digits[] = new char[MAX_DIGITS];
+		int nd = digits(digits);
 		int e = exp - nd;
-		if (0 <= e && e <= 4) {
-			// decimal to the right
-			sb.append(digits, 0, nd).append(Strings.repeat("0", e));
-		} else if (-nd - 4 < e && e <= -nd) {
+		if (-MAX_LEADING_ZEROS <= exp && exp <= 0) {
 			// decimal to the left
 			sb.append('.').append(Strings.repeat("0", -e - nd)).append(digits, 0, nd);
 		} else if (-nd < e && e <= -1) {
@@ -298,14 +289,33 @@ public class Dnum extends Number implements Comparable<Dnum> {
 			sb.append(digits, 0, d);
 			if (nd > 1)
 				sb.append('.').append(digits, d, nd - d);
+		} else if (0 < exp && exp <= MAX_DIGITS) {
+			// decimal to the right
+			sb.append(digits, 0, nd).append(Strings.repeat("0", e));
 		} else {
 			// use scientific notation
 			sb.append(digits, 0, 1);
 			if (nd > 1)
 				sb.append('.').append(digits, 1, nd - 1);
-			sb.append('e').append(e + nd - 1);
+			sb.append('e').append(exp - 1);
 		}
 		return sb.toString();
+	}
+
+	/**
+	 * Puts the decimal digits of coef into the array,
+	 * without trailing zeroes.
+	 * digits should be MAX_DIGITS in length.
+	 * @return The number of digits placed in the array (0 to MAX_DIGITS).
+	 */
+	public int digits(char[] digits) {
+		int i = MAX_SHIFT;
+		int nd = 0;
+		for (long c = coef; c != 0; --i, ++nd) {
+			digits[nd] = (char) ('0' + (char) (c / pow10[i]));
+			c %= pow10[i];
+		}
+		return nd;
 	}
 
 	/** for debug/test */
@@ -346,12 +356,16 @@ public class Dnum extends Number implements Comparable<Dnum> {
 		return sign == NEG_INF || sign == POS_INF;
 	}
 
-	public Dnum neg() {
+	public Dnum negate() {
 		return from(sign * -1, coef, exp);
 	}
 
 	public Dnum abs() {
 		return sign < 0 ? from(-sign, coef, exp) : this;
+	}
+
+	public int signum() {
+		return sign < 0 ? -1 : sign > 0 ? +1 : 0;
 	}
 
 	public int sign() {
@@ -395,7 +409,7 @@ public class Dnum extends Number implements Comparable<Dnum> {
 
 	public static Dnum sub(Dnum x, Dnum y) {
 		if (x.isZero())
-			return y.neg();
+			return y.negate();
 		else if (y.isZero())
 			return x;
 		else if (x.is(Inf))
@@ -421,29 +435,40 @@ public class Dnum extends Number implements Comparable<Dnum> {
 	/** unsigned add */
 	private static Dnum uadd(Dnum x, Dnum y) {
 		if (x.exp > y.exp) {
-			if (! align(x, y = y.copy()))
+			Align y2 = new Align(y);
+			if (! align(x, y2))
 				return x;
-		} else if (x.exp < y.exp)
-			if (! align(y, x = x.copy()))
+			else
+				return from(x.sign, x.coef + y2.coef, x.exp);
+		} else if (x.exp < y.exp) {
+			Align x2 = new Align(x);
+			if (! align(y, x2))
 				return y;
-		return from(x.sign, x.coef + y.coef, x.exp);
+			else
+				return from(x.sign, x2.coef + y.coef, x2.exp);
+		} else
+			return from(x.sign, x.coef + y.coef, x.exp);
 	}
 
 	/** unsigned subtract */
 	private static Dnum usub(Dnum x, Dnum y) {
 		if (x.exp > y.exp) {
-			if (! align(x, y = y.copy()))
-				return x;
-		} else if (x.exp < y.exp)
-			if (! align(y, x = x.copy()))
-				return y.neg();
-		return x.coef > y.coef
-				? from(x.sign, x.coef - y.coef, x.exp)
-				: from(-x.sign, y.coef - x.coef, x.exp);
+			Align y2 = new Align(y);
+			return align(x, y2) ? from(x.sign, x.coef - y2.coef, x.exp) : x;
+
+		} else if (x.exp < y.exp) {
+			Align x2 = new Align(x);
+			return align(y, x2)
+					? from(-x.sign, y.coef - x2.coef, x2.exp)
+					: y.negate();
+		} else
+			return x.coef > y.coef
+					? from(x.sign, x.coef - y.coef, x.exp)
+					: from(-x.sign, y.coef - x.coef, x.exp);
 	}
 
-	/** WARNING: modifies y - requires defensive copy */
-	private static boolean align(Dnum x, Dnum y) {
+	/** modifies y */
+	private static boolean align(Dnum x, Align y) {
 		int yshift = ilog10(y.coef);
 		int e = x.exp - y.exp;
 		if (e > yshift)
@@ -452,6 +477,17 @@ public class Dnum extends Number implements Comparable<Dnum> {
 		y.coef = (y.coef + halfpow10[yshift]) / pow10[yshift];
 		y.exp += yshift;
 		return true;
+	}
+
+	/** mutable */
+	private static class Align {
+		long coef;
+		byte exp;
+
+		Align(Dnum dn) {
+			this.coef = dn.coef;
+			this.exp = dn.exp;
+		}
 	}
 
 	// multiply ----------------------------------------------------------------
@@ -510,24 +546,28 @@ public class Dnum extends Number implements Comparable<Dnum> {
 		return result;
 	}
 
+	/** Handles Integer */
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
+	public boolean equals(Object other) {
+		if (this == other)
 			return true;
-		if (obj == null)
+		if (other == null)
 			return false;
-		if (getClass() != obj.getClass())
+		Dnum that;
+		if (other instanceof Integer)
+			that = Dnum.from((int) other);
+		else if (getClass() != other.getClass())
 			return false;
-		Dnum other = (Dnum) obj;
-		return sign == other.sign && exp == other.exp && coef == other.coef;
+		else
+			that = (Dnum) other;
+		return sign == that.sign && exp == that.exp && coef == that.coef;
 	}
 
 	// for tests, rounds off last digit
 	static boolean almostSame(Dnum x, Dnum y)
 		{
 		return x.sign == y.sign && x.exp == y.exp &&
-			((x.coef / 10) == (y.coef / 10) ||
-			(x.coef + 5) / 10 == (y.coef + 5) / 10);
+				(x.coef / 10) == (y.coef / 10);
 		}
 
 	private boolean is(Dnum other) {
@@ -554,27 +594,110 @@ public class Dnum extends Number implements Comparable<Dnum> {
 		return sign * Long.compare(x.coef, y.coef);
 	}
 
-	public Dnum check() {
-		assert NEG_INF <= sign && sign <= POS_INF :
-			"Dnum invalid sign " + sign;
-		assert sign != ZERO || coef == 0 :
-			"Dnum sign is zero but coef is " + coef;
-		assert sign == ZERO || coef != 0 :
-			"Dnum coef is zero but sign is " + sign;
-		return this;
+	/** @return true if it's an integer, but may not fit in int or long */
+	public boolean integral() {
+		if (sign == 0)
+			return true;
+		if (sign == NEG_INF || sign == POS_INF || exp <= 0) // e.g. .1
+			return false;
+		if (exp >= MAX_DIGITS) // e.g. 1e99
+			return true;
+		return (coef % pow10[MAX_DIGITS - exp]) == 0;
 	}
 
+	public Dnum integer() {
+		return integer(RoundingMode.DOWN);
+	}
+
+	/** @return The integer part of the value i.e. truncating the fractional.
+	 *  But won't necessarily fit in int or long */
+	public Dnum integer(RoundingMode mode) {
+		if (sign == 0 || sign == NEG_INF || sign == POS_INF || exp >= MAX_DIGITS)
+			return this;
+		if (exp <= 0) {
+			if (mode == RoundingMode.UP ||
+					(mode == RoundingMode.HALF_UP && exp == 0 && coef >= One.coef * 5))
+				return new Dnum(sign, One.coef, exp + 1);
+			return Zero;
+		}
+		int e = MAX_DIGITS - exp;
+		long frac = coef % pow10[e];
+		if (frac == 0)
+			return this;
+		long i = coef - frac;
+		if ((mode == RoundingMode.UP && frac > 0) ||
+				(mode == RoundingMode.HALF_UP && frac >= halfpow10[e]))
+			return Dnum.from(sign, i + pow10[e], exp); // normalize
+		return new Dnum(sign, i, exp);
+	}
+
+	/** @return The integer part of the value i.e. truncating the fractional.
+	 *  But won't necessarily fit in int or long */
+	public Dnum frac() {
+		if (sign == 0 || sign == NEG_INF || sign == POS_INF || exp >= MAX_DIGITS)
+			return Zero;
+		if (exp <= 0)
+			return this;
+		long frac = coef % pow10[MAX_DIGITS - exp];
+		return frac == coef ? this : Dnum.from(sign, frac, exp);
+	}
+
+	/** Throws if value doesn't fit in int */
 	@Override
 	public int intValue() {
-		return (int) longValue();
+		long n = longValue();
+		if (Integer.MIN_VALUE <= n && n <= Integer.MAX_VALUE)
+			return (int) n;
+		throw new RuntimeException("can't convert number to integer");
 	}
 
+	/** Throws if value doesn't fit in long */
 	@Override
 	public long longValue() {
-		if (sign == ZERO || sign == NEG_INF || sign == POS_INF ||
-				exp <= 0 || exp > 16)
+		if (sign == ZERO)
 			return 0;
-		return sign * (coef / pow10[MAX_DIGITS - exp]);
+		if (sign != NEG_INF && sign != POS_INF) {
+			if (0 < exp && exp < MAX_DIGITS &&
+					(coef % pow10[MAX_DIGITS - exp]) == 0)
+				return sign * (coef / pow10[MAX_DIGITS - exp]); // usual case
+			if (exp == MAX_DIGITS)
+				return sign * coef;
+			if (exp == MAX_DIGITS + 1)
+				return sign * (coef * 10);
+			if (exp == MAX_DIGITS + 2)
+				return sign * (coef * 100);
+			if (exp == MAX_DIGITS + 3 && coef < Long.MAX_VALUE / 1000)
+				return sign * (coef * 1000);
+		}
+		throw new RuntimeException("can't convert number to integer");
+	}
+
+	/** @return integer value if in range, else Integer.MIN_VALUE */
+	public int intOrMin() {
+		if (sign == ZERO)
+			return 0;
+		if (sign != NEG_INF && sign != POS_INF &&
+				0 < exp && exp <= 10 &&
+				(coef % pow10[MAX_DIGITS - exp]) == 0) {
+			long n = sign * (coef / pow10[MAX_DIGITS - exp]);
+			if (Integer.MIN_VALUE < n && n <= Integer.MAX_VALUE)
+				return (int) n;
+		}
+		return Integer.MIN_VALUE;
+	}
+
+	/** @return integer value if in range, else null */
+	public Object intObject() {
+		if (sign == ZERO)
+			return 0;
+		if (sign != NEG_INF && sign != POS_INF &&
+				0 < exp && exp <= 10 &&
+				(coef % pow10[MAX_DIGITS - exp]) == 0) {
+			long n = sign * (coef / pow10[MAX_DIGITS - exp]);
+			if (Integer.MIN_VALUE <= n && n <= Integer.MAX_VALUE)
+				return (int) n;
+		}
+		return null;
 	}
 
 	@Override
@@ -612,5 +735,26 @@ public class Dnum extends Number implements Comparable<Dnum> {
 		1e131, 1e132, 1e133, 1e134, 1e135, 1e136, 1e137, 1e138, 1e139, 1e140,
 		1e141, 1e142, 1e143, 1e144
 	};
+
+	/**
+	 * r >= 0 means the specified number of decimal places.
+	 * r < 0 means abs(r) number of 0's to the left of the decimal place.
+	 * @return A new Dnum.
+	 */
+	public Dnum round(int r, RoundingMode mode) {
+		if (isZero() || isInf() || r >= MAX_DIGITS)
+			return this;
+		if (r <= -MAX_DIGITS)
+			return Zero;
+		Dnum n = new Dnum(sign, coef, exp + r); // multiply by 10^r
+		n = n.integer(mode);
+		if (n.sign == POS || n.sign == NEG) // i.e. not zero or inf
+			return new Dnum(n.sign, n.coef, n.exp - (byte) r);
+		return n;
+	}
+
+	public Dnum round(int r) {
+		return round(r, RoundingMode.HALF_UP);
+	}
 
 }

@@ -12,6 +12,7 @@ import static suneido.util.testing.Throwing.assertThrew;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.math.RoundingMode;
 
 import org.junit.Test;
 
@@ -21,9 +22,10 @@ public class DnumTest {
 
 	@Test
 	public void parse_test() {
+		parseTest("37161106994968846", "+.3716110699496884e17");
+
 		assertThrew(() -> Dnum.parse("."));
 		assertThrew(() -> Dnum.parse("1.2.3"));
-		assertThrew(() -> Dnum.parse("1111111111111111111111")); // overflow
 		assertThrew(() -> Dnum.parse("-+1"));
 
 		parseTest("0", "z0e0");
@@ -73,9 +75,13 @@ public class DnumTest {
 		toStringTest("123");
 		toStringTest("-123");
 		toStringTest("1000");
-		toStringTest("1e9");
-		toStringTest("1e-9");
+		toStringTest("1234567890123456");
+		toStringTest("1e19");
 		toStringTest("123.456");
+		toStringTest(".1");
+		toStringTest(".00000001");
+		toStringTest("1e-9");
+		toStringTest("1.234e-9");
 	}
 
 	private static void toStringTest(String s) {
@@ -90,8 +96,8 @@ public class DnumTest {
 	}
 
 	private static void neg_test(Dnum x, Dnum y) {
-		assertThat(x.neg(), equalTo(y));
-		assertThat(y.neg(), equalTo(x));
+		assertThat(x.negate(), equalTo(y));
+		assertThat(y.negate(), equalTo(x));
 	}
 
 	@Test
@@ -257,6 +263,40 @@ public class DnumTest {
 	}
 
 	@Test
+	public void integral_test() {
+		String[] yes = { "0", "-123", "12e3", "-123e99" };
+		for (String s : yes)
+			assert Dnum.parse(s).integral() : s + " should be integral";
+		String[] no = { "inf", "-inf", ".123", "12e-3", "123.4" };
+		for (String s : no)
+			assert ! Dnum.parse(s).integral() : s + " should not be integral";
+	}
+
+	@Test
+	public void integer_test() {
+		String[] same = { "0", "123", "123e9", "12e34" };
+		for (String s : same) {
+			Dnum n = Dnum.parse(s);
+			assert n.integer().equals(n) : s + ".integer() should be same";
+		}
+		String[][] data = { { ".123", "0" }, { "123.456", "123" }, { "1e-99", "0" } };
+		for (String[] d : data)
+			assertThat(Dnum.parse(d[0]).integer(), equalTo(Dnum.parse(d[1])));
+	}
+
+	@Test
+	public void frac_test() {
+		String[] same = { "0", ".123", "123e-22" };
+		for (String s : same) {
+			Dnum n = Dnum.parse(s);
+			assert n.frac().equals(n) : s + ".frac() should be same";
+		}
+		String[][] data = { { "123", "0" }, { "123.456", ".456" }, { "1e99", "0" } };
+		for (String[] d : data)
+			assertThat(Dnum.parse(d[0]).frac(), equalTo(Dnum.parse(d[1])));
+	}
+
+	@Test
 	public void longValue_test() {
 		long data[] = {0, 1, -1, 123, -123, Integer.MAX_VALUE, Integer.MIN_VALUE,
 				1234_5678_9012_3456L, -9999_9999_9999_9999L };
@@ -264,8 +304,49 @@ public class DnumTest {
 			Dnum x = Dnum.from(n);
 			assertThat(x.longValue(), equalTo(n));
 		}
-		assertThat(Dnum.parse("99e-99").longValue(), equalTo(0L));
-		assertThat(Dnum.parse("99e99").longValue(), equalTo(0L));
+		testLongVal(".99e17", 99000000000000000L);
+		testLongVal("-.99e17", -99000000000000000L);
+		testLongVal(".99e18", 990000000000000000L);
+		testLongVal(".91e19", 9100000000000000000L);
+
+		String data2[] = { ".99e19", "1e20" };
+		for (String n : data2) {
+			Dnum x = Dnum.parse(n);
+			assertThrew(() -> x.longValue());
+		}
+
+		Dnum n = Dnum.parse("1.5");
+		assertThrew(() -> n.longValue());
+	}
+	private static void testLongVal(String s, long expected) {
+		Dnum x = Dnum.parse(s);
+		assertThat(x.longValue(), equalTo(expected));
+	}
+
+	@Test
+	public void intOrMin_test() {
+		assertThat(Zero.intOrMin(), equalTo(0));
+		assertThat(Dnum.from(123).intOrMin(), equalTo(123));
+		assertThat(Dnum.from(-123).intOrMin(), equalTo(-123));
+		assertThat(Dnum.from(Integer.MAX_VALUE).intOrMin(),
+				equalTo(Integer.MAX_VALUE));
+		assertThat(Dnum.from(Integer.MIN_VALUE - 1L).intOrMin(),
+				equalTo(Integer.MIN_VALUE));
+		assertThat(Dnum.from(Integer.MAX_VALUE + 1L).intOrMin(),
+				equalTo(Integer.MIN_VALUE));
+	}
+
+	@Test
+	public void intObject_test() {
+		assertThat(Zero.intObject(), equalTo(0));
+		assertThat(Dnum.from(123).intObject(), equalTo(123));
+		assertThat(Dnum.from(-123).intObject(), equalTo(-123));
+		assertThat(Dnum.from(Integer.MIN_VALUE).intObject(),
+				equalTo(Integer.MIN_VALUE));
+		assertThat(Dnum.from(Integer.MAX_VALUE).intObject(),
+				equalTo(Integer.MAX_VALUE));
+		assertThat(Dnum.from(Integer.MIN_VALUE - 1L).intObject(), equalTo(null));
+		assertThat(Dnum.from(Integer.MAX_VALUE + 1L).intObject(), equalTo(null));
 	}
 
 	@Test
@@ -290,6 +371,53 @@ public class DnumTest {
 		assertThat(Dnum.from(Double.POSITIVE_INFINITY), equalTo(Inf));
 		assertThat(Dnum.from(0.0), equalTo(Zero));
 		assertThat(Dnum.from(123.456e9), equalTo(Dnum.parse("123.456e9")));
+		assertThat(Dnum.from(0.37161106994968846),
+				equalTo(Dnum.parse("0.3716110699496884")));
+		assertThat(Dnum.from(37161106994968846.0),
+				equalTo(Dnum.parse("37161106994968840")));
+	}
+
+	@Test
+	public void round_test() {
+		Dnum[] data = { Dnum.Zero, Dnum.Inf, Dnum.MinusInf };
+		RoundingMode[] modes = { RoundingMode.DOWN, RoundingMode.HALF_UP,
+				RoundingMode.UP };
+		int[] digits = { 2, 0, -2 };
+		for (Dnum n : data)
+			for (RoundingMode mode : modes)
+				for (int d : digits)
+					assertThat(n.round(d, mode), equalTo(n));
+
+		Dnum n = Dnum.parse("1256.5634");
+		for (RoundingMode mode : modes) {
+			assertThat(n.round(99, mode), equalTo(n));
+			assertThat(n.round(-99, mode), equalTo(Dnum.Zero));
+		}
+
+		assertThat(n.round(2, RoundingMode.DOWN), equalTo(Dnum.parse("1256.56")));
+		assertThat(n.round(2, RoundingMode.HALF_UP), equalTo(Dnum.parse("1256.56")));
+		assertThat(n.round(2, RoundingMode.UP), equalTo(Dnum.parse("1256.57")));
+
+		assertThat(n.round(0, RoundingMode.DOWN), equalTo(Dnum.parse("1256")));
+		assertThat(n.round(0, RoundingMode.HALF_UP), equalTo(Dnum.parse("1257")));
+		assertThat(n.round(0, RoundingMode.UP), equalTo(Dnum.parse("1257")));
+
+		assertThat(n.round(-2, RoundingMode.DOWN), equalTo(Dnum.parse("1200")));
+		assertThat(n.round(-2, RoundingMode.HALF_UP), equalTo(Dnum.parse("1300")));
+		assertThat(n.round(-2, RoundingMode.UP), equalTo(Dnum.parse("1300")));
+
+		assertThat(Dnum.parse(".08").round(1, RoundingMode.HALF_UP),
+				equalTo(Dnum.parse(".1")));
+		assertThat(Dnum.parse(".08").round(0, RoundingMode.HALF_UP),
+				equalTo(Dnum.Zero));
+	}
+
+	@Test
+	public void hashCode_test() {
+		assert Dnum.from(123).hashCode() == Dnum.from(123).hashCode();
+		assert Dnum.from(123).hashCode() != Dnum.from(124).hashCode();
+		assert Dnum.from(123).hashCode() != Dnum.from(-123).hashCode();
+		assert Dnum.from(1e4).hashCode() != Dnum.from(1e5).hashCode();
 	}
 
 	// benchmarks ---------------------------------------------------
@@ -381,7 +509,7 @@ public class DnumTest {
 	public static boolean pt_dnum_sub(String... args) {
 		return pt_dnum_test(args, (x, y, z) ->
 			ck(Dnum::sub, x, y, z) &&
-				(z.equals(Dnum.Zero) || ck(Dnum::sub, y, x, z.neg())));
+				(z.equals(Dnum.Zero) || ck(Dnum::sub, y, x, z.negate())));
 	}
 
 	public static boolean pt_dnum_mul(String... args) {
