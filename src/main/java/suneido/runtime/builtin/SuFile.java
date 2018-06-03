@@ -10,11 +10,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.math.BigDecimal;
 
 import suneido.SuException;
 import suneido.SuValue;
 import suneido.runtime.*;
+import suneido.util.Dnum;
 import suneido.util.Util;
 
 public class SuFile extends SuValue {
@@ -117,7 +117,7 @@ public class SuFile extends SuValue {
 
 	@Params("offset = set, origin")
 	public static Object Seek(Object self, Object a, Object b) {
-		long offset = toLong(a);
+		long offset = Numbers.longValue(a);
 		String origin = Ops.toStr(b);
 		RandomAccessFile f = ((SuFile) self).f;
 		try {
@@ -137,17 +137,9 @@ public class SuFile extends SuValue {
 		return null;
 	}
 
-	private static long toLong(Object x) {
-		if (x instanceof BigDecimal)
-			return ((BigDecimal) x).longValueExact();
-		if (x instanceof Number)
-			return ((Number) x).longValue();
-		throw new SuException("can't convert " + Ops.typeName(x) + " to long");
-	}
-
 	public static Object Tell(Object self) {
 		try {
-			return ((SuFile) self).f.getFilePointer();
+			return Dnum.from(((SuFile) self).f.getFilePointer());
 		} catch (IOException e) {
 			throw new SuException("File Tell failed", e);
 		}

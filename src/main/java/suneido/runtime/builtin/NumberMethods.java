@@ -4,20 +4,22 @@
 
 package suneido.runtime.builtin;
 
-import static suneido.runtime.Numbers.*;
+import static suneido.runtime.Numbers.toDnum;
+import static suneido.runtime.Numbers.toNum;
 
-import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 import suneido.runtime.BuiltinMethods;
 import suneido.runtime.Ops;
 import suneido.runtime.Params;
+import suneido.util.Dnum;
 
 // assert self instanceof Number
+// assert self instanceof Integer || self instanceof Dnum
+
 /**
  * Methods for numbers.
- * <li>Attempts to handle: Int, Long, BigDecimal.
- * <p>WARNING: Some operations will not work if integer precision greater than long.
+ * <li>Only handles Integer and Dnum, not other numeric types.
  */
 public class NumberMethods extends BuiltinMethods {
 	public static final NumberMethods singleton = new NumberMethods();
@@ -28,180 +30,146 @@ public class NumberMethods extends BuiltinMethods {
 
 	public static Object ACos(Object self) {
 		double d = ((Number) self).doubleValue();
-		return BigDecimal.valueOf(Math.acos(d));
+		return Dnum.from(Math.acos(d));
 	}
 
 	public static Object ASin(Object self) {
 		double d = ((Number) self).doubleValue();
-		return BigDecimal.valueOf(Math.asin(d));
+		return Dnum.from(Math.asin(d));
 	}
 
 	public static Object ATan(Object self) {
 		double d = ((Number) self).doubleValue();
-		return BigDecimal.valueOf(Math.atan(d));
+		return Dnum.from(Math.atan(d));
 	}
 
 	public static Object Chr(Object self) {
-		long n = ((Number) self).longValue();
+		int n = ((Number) self).intValue();
 		return Character.toString((char) (n & 0xff));
 	}
 
 	public static Object Cos(Object self) {
 		double d = ((Number) self).doubleValue();
-		return BigDecimal.valueOf(Math.cos(d));
+		return Dnum.from(Math.cos(d));
 	}
 
 	public static Object Exp(Object self) {
 		double d = ((Number) self).doubleValue();
-		return BigDecimal.valueOf(Math.exp(d));
+		return Dnum.from(Math.exp(d));
 	}
 
 	@Params("mask")
 	public static Object Format(Object self, Object a) {
-		BigDecimal n = toBigDecimal(self);
+		Dnum n = toDnum(self);
 		String mask = Ops.toStr(a);
 		return format(mask, n);
 	}
 
-	private static final BigDecimal half = new BigDecimal(".5");
-
-	static String format(String mask, BigDecimal n) {
-		BigDecimal x = n.abs();
-
+	static String format(String mask, Dnum n) {
 		int masksize = mask.length();
-		String num = "";
-		if (n.equals(BigDecimal.ZERO)) {
-			int i = mask.indexOf('.');
-			if (i != -1) {
-				StringBuilder sb = new StringBuilder(8);
-				for (++i; i < masksize && mask.charAt(i) == '#'; ++i)
-					sb.append('0');
-				num = sb.toString();
+		int before = 0;
+		int after = 0;
+		boolean intpart = true;
+		for (int i = 0; i < masksize; ++i)
+			switch (mask.charAt(i)) {
+			case '.':
+				intpart = false;
+				break;
+			case '#':
+				if (intpart)
+					++before;
+				else
+					++after;
+				break;
 			}
-		} else {
-			int i = mask.indexOf('.');
-			if (i != -1)
-				for (++i; i < masksize && mask.charAt(i) == '#'; ++i)
-					x = x.movePointRight(1);
-			BigDecimal tmp = new BigDecimal(x.toBigInteger());
-			if (0 != x.compareTo(tmp)) { // need to round
-				x = x.add(half);
-				x = new BigDecimal(x.toBigInteger());
-			}
-			num = Ops.toStringBD(x);
+		if (n.exp() > before)
+			return "#"; // too big to fit in mask
+
+		n = n.round(after);
+		char[] digits = new char[Dnum.MAX_DIGITS];
+		int nd = n.digits(digits);
+
+		int e = n.exp();
+		if (nd == 0 && after == 0) {
+			digits[0] = '0';
+			e = nd = 1;
 		}
-		StringBuilder dst = new StringBuilder();
+		int di = e - before;
+		assert di <= 0;
+		StringBuilder dst = new StringBuilder(masksize);
 		int sign = n.signum();
 		boolean signok = (sign >= 0);
-		int i, j;
-		for (j = num.length() - 1, i = masksize - 1; i >= 0; --i) {
-			char c = mask.charAt(i);
-			switch (c) {
+		boolean frac = false;
+		for (int mi = 0; mi < masksize; ++mi) {
+			char mc = mask.charAt(mi);
+			switch (mc) {
 			case '#':
-				dst.append(j >= 0 ? num.charAt(j--) : '0');
+				if (0 <= di && di < nd)
+					dst.append(digits[di]);
+				else if (frac || di >= 0)
+					dst.append('0');
+				++di;
 				break;
 			case ',':
-				if (j >= 0)
+				if (di > 0)
 					dst.append(',');
 				break;
 			case '-':
 			case '(':
 				signok = true;
 				if (sign < 0)
-					dst.append(c);
+					dst.append(mc);
 				break;
 			case ')':
-				dst.append(sign < 0 ? c : ' ');
+				dst.append(sign < 0 ? mc : ' ');
 				break;
 			case '.':
+				frac = true;
 			default:
-				dst.append(c);
+				dst.append(mc);
 				break;
 			}
 		}
-		dst.reverse();
-
-		// strip leading zeros
-		int start = 0;
-		while (dst.charAt(start) == '-' || dst.charAt(start) == '(')
-			++start;
-		int end = start;
-		while (dst.charAt(end) == '0' && end + 1 < dst.length())
-			++end;
-		if (end > start && dst.charAt(end) == '.' &&
-				(end + 1 >= dst.length() ||
-				! Character.isDigit(dst.charAt(end + 1))))
-			--end;
-		dst.delete(start, end);
-
-		if (j >= 0)
-			return "#"; // too many digits for mask
 		if (!signok)
 			return "-"; // negative not handled by mask
 		return dst.toString();
 	}
 
-	public static Object Frac(Object self) {
-		if (integral(self))
-			return 0;
-		Number n = (Number) self;
-		if (self instanceof Float || self instanceof Double)
-			return n.doubleValue() % 1;
-		BigDecimal bd = (BigDecimal) self;
-		return bd.remainder(BigDecimal.ONE);
-	}
-
 	public static Object Hex(Object self) {
-		long mask = (self instanceof Short) ? 0xffff
-				: (self instanceof Integer) ? 0xffffffffL
-				: ~0L;
-		return Long.toHexString(((Number) self).longValue() & mask);
+		if (self instanceof Integer)
+			return Integer.toHexString((int) self);
+		else // Dnum
+			return Long.toHexString(((Number) self).longValue());
 	}
 
 	public static Object Int(Object self) {
-		if (integral(self))
+		if (self instanceof Integer)
 			return self;
-		return ((Number) self).longValue();
+		return ((Dnum) self).integer();
+	}
+
+	public static Object Frac(Object self) {
+		if (self instanceof Integer)
+			return 0;
+		return ((Dnum) self).frac();
 	}
 
 	public static Object Log(Object self) {
 		double d = ((Number) self).doubleValue();
-		return BigDecimal.valueOf(Math.log(d));
+		return Dnum.from(Math.log(d));
 	}
 
 	public static Object Log10(Object self) {
 		double d = ((Number) self).doubleValue();
-		return BigDecimal.valueOf(Math.log10(d));
+		return Dnum.from(Math.log10(d));
 	}
 
 	@Params("number")
-	public static Object Pow(Object self, Object a_) {
+	public static Object Pow(Object self, Object a) {
 		Number sn = (Number) self;
-		Number an = toNum(a_);
-		if (isZero(an))
-			return 1;
-		if (isZero(sn))
-			return 0;
-		if (longable(an)) {
-			long ai = an.longValue();
-			if (ai == 1)
-				return self;
-			if (longable(sn)) {
-				long si = sn.longValue();
-				if (si == 1)
-					return 1;
-				if (0 < ai && ai < 16) {
-					long result = 1;
-					for (int i = 0; i < ai; ++i)
-						result *= si;
-					return result;
-				}
-			}
-			if (Math.abs(ai) < Integer.MAX_VALUE)
-				return toBigDecimal(self).pow((int) ai, MC);
-		}
+		Number an = toNum(a);
 		double n = Math.pow(sn.doubleValue(), an.doubleValue());
-		return BigDecimal.valueOf(n);
+		return Dnum.from(n);
 	}
 
 	@Params("number")
@@ -220,26 +188,25 @@ public class NumberMethods extends BuiltinMethods {
 	}
 
 	private static Object round(Object self, Object d, RoundingMode mode) {
-		BigDecimal n = toBigDecimal(self);
-		if (n.signum() == 0)
-			return self;
+		Dnum n = toDnum(self);
 		int digits = Ops.toInt(d);
-		return n.setScale(digits, mode);
+		return n.round(digits, mode);
 	}
 
 	public static Object Sin(Object self) {
 		double d = ((Number) self).doubleValue();
-		return BigDecimal.valueOf(Math.sin(d));
+		return Dnum.from(Math.sin(d));
 	}
 
 	public static Object Sqrt(Object self) {
 		double d = ((Number) self).doubleValue();
-		return BigDecimal.valueOf(Math.sqrt(d));
+		return Dnum.from(Math.sqrt(d));
 	}
 
 	public static Object Tan(Object self) {
 		double d = ((Number) self).doubleValue();
-		return BigDecimal.valueOf(Math.tan(d));
+		return Dnum.from(Math.tan(d));
 	}
 
 }
+

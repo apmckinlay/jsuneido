@@ -484,7 +484,7 @@ public class ExecuteTest {
 		return ok;
 	}
 
-	private static Object toValue(boolean[] str, String[] args, int i) {
+	public static Object toValue(boolean[] str, String[] args, int i) {
 		return str[i] ? args[i] : compile("", args[i]);
 	}
 

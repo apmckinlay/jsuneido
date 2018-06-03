@@ -4,223 +4,66 @@
 
 package suneido.runtime;
 
-import java.math.BigDecimal;
-import java.math.MathContext;
-
 import suneido.SuException;
-import suneido.SuInternalError;
 import suneido.runtime.builtin.NumberMethods;
+import suneido.util.Dnum;
 
 /**
  * static helper methods for working with numbers.<p>
  * Used by {@link Ops} and {@link NumberMethods}
   */
 public class Numbers {
-	public static final int PRECISION = 16; // to match cSuneido
-	public static final MathContext MC = new MathContext(PRECISION);
-
-	public static final BigDecimal BD_INT_MIN = BigDecimal.valueOf(Integer.MIN_VALUE);
-	public static final BigDecimal BD_INT_MAX = BigDecimal.valueOf(Integer.MAX_VALUE);
-	public static final BigDecimal BD_LONG_MIN = BigDecimal.valueOf(Long.MIN_VALUE);
-	public static final BigDecimal BD_LONG_MAX = BigDecimal.valueOf(Long.MAX_VALUE);
-
-	public static final BigDecimal ZERO = BigDecimal.ZERO;
-	public static final BigDecimal INF =
-			BigDecimal.valueOf(1, -4 * Byte.MAX_VALUE);
-	public static final BigDecimal MINUS_INF =
-			BigDecimal.valueOf(-1, -4 * Byte.MAX_VALUE);
-
 
 	private Numbers() {
 	} // all static, no instances
 
-	public static BigDecimal toBigDecimal(int x) {
-		return new BigDecimal(x, MC);
-	}
-
-	public static BigDecimal toBigDecimal(long x) {
-		return new BigDecimal(x, MC);
-	}
-
-	public static BigDecimal toBigDecimal(Object n) {
-		if (n instanceof BigDecimal)
-			return ((BigDecimal) n).round(MC);
-		if (longable(n))
-			return new BigDecimal(((Number) n).longValue(), MC);
-		throw SuInternalError.unreachable();
-	}
-
-	/** @return true if ((Number) n).longValue() is safe (returns exact value) */
-	public static boolean longable(Object n) {
-		return n instanceof Integer || n instanceof Long;
-	}
-
-	/** @return true if n has no fractional part */
-	public static boolean integral(Object n) {
-		return longable(n) ||
-				(n instanceof BigDecimal && integral((BigDecimal)n));
-	}
-
-	public static boolean integral(BigDecimal n) {
-		return n.scale() <= 0 || n.stripTrailingZeros().scale() <= 0;
-	}
-
-	public static boolean isZero(Object x) {
-		return x instanceof Number && signum((Number) x) == 0;
-	}
-
-	public static boolean isZero(Number n) {
-		return signum(n) == 0;
-	}
-
-	public static int signum(Number n) {
-		if (longable(n))
-			return Long.signum(n.longValue());
-		if (n instanceof BigDecimal)
-			return ((BigDecimal) n).signum();
-		throw new SuException("signum unsupported type");
-	}
-
-	public static boolean isInRange(BigDecimal x, BigDecimal lo, BigDecimal hi) {
-		return x.compareTo(lo) >= 0 && x.compareTo(hi) <= 0;
-	}
-
-	/*
-	 * add2, sub2, mul2, and div2 follow same outline
-	 * - convert to numbers (throws if not convertible)
-	 * - check for zero
-	 * - check for infinite
-	 * - return bigdecimal op
-	 */
-
-	public static Number add2(Object x_, Object y_) {
-		Number xn = toNum(x_);
-		Number yn = toNum(y_);
-
-		if (isZero(xn))
-			return yn;
-		if (isZero(yn))
-			return xn;
-
-		if (xn == INF)
-			return yn == MINUS_INF ? 0 : INF;
-		if (yn == INF)
-			return xn == MINUS_INF ? 0 : INF;
-		if (xn == MINUS_INF)
-			return yn == INF ? 0 : MINUS_INF;
-		if (yn == MINUS_INF)
-			return xn == INF ? 0 : MINUS_INF;
-
-		return toBigDecimal(xn).add(toBigDecimal(yn), MC);
-	}
-
-	public static Number sub2(Object x_, Object y_) {
-		Number xn = toNum(x_);
-		Number yn = toNum(y_);
-
-		if (isZero(yn))
-			return xn;
-
-		if (xn == INF)
-			return yn == INF ? 0 : INF;
-		if (yn == INF)
-			return xn == INF ? 0 : MINUS_INF;
-		if (xn == MINUS_INF)
-			return yn == MINUS_INF ? 0 : MINUS_INF;
-		if (yn == MINUS_INF)
-			return xn == MINUS_INF ? 0 : INF;
-
-		return toBigDecimal(xn).subtract(toBigDecimal(yn), MC);
-	}
-
-	public static Number mul2(Object x_, Object y_) {
-		Number xn = toNum(x_);
-		Number yn = toNum(y_);
-
-		if (isZero(xn) || isZero(yn))
-			return 0;
-
-		if (xn == INF)
-			return (signum(yn) < 0) ? MINUS_INF : INF;
-		if (yn == INF)
-			return (signum(xn) < 0) ? MINUS_INF : INF;
-		if (xn == MINUS_INF)
-			return (signum(yn) < 0) ? INF : MINUS_INF;
-		if (yn == MINUS_INF)
-			return (signum(xn) < 0) ? INF : MINUS_INF;
-
-		return toBigDecimal(xn).multiply(toBigDecimal(yn), MC);
-	}
-
-	public static Number div2(Object x_, Object y_) {
-		Number xn = toNum(x_);
-		Number yn = toNum(y_);
-
-		if (isZero(xn))
-			return 0;
-		if (isZero(yn))
-			return signum(xn) < 0 ? MINUS_INF : INF;
-
-		if (xn == INF)
-			return yn == INF ? +1 : yn == MINUS_INF ? -1
-					: (signum(yn) < 0) ? MINUS_INF : INF;
-		if (xn == MINUS_INF)
-			return yn == INF ? -1 : yn == MINUS_INF ? +1
-					: (signum(yn) < 0) ? INF : MINUS_INF;
-		if (yn == INF || yn == MINUS_INF)
-			return 0;
-
-		return toBigDecimal(xn).divide(toBigDecimal(yn), MC);
+	/** Assumes argument is Integer or Dnum i.e. from toNum */
+	public static Dnum toDnum(Object n) {
+		if (n instanceof Dnum)
+			return (Dnum) n;
+		if (n instanceof Integer)
+			return Dnum.from((int) n);
+		Ops.likeZero(n);
+		return Dnum.Zero;
 	}
 
 	/**
 	 * @return The value converted to a Number.
-	 * "" is converted to 0.
-	 * true and false are converted to 1 and 0.
-	 * Converts strings containing integers or BigDecimal.
+	 * "" and false are converted to 0.
 	 * The original value is returned if instanceof Number.
 	 */
 	public static Number toNum(Object x) {
 		if (x instanceof Number)
 			return (Number) x;
-		return Ops.likeZero(x);
+		Ops.likeZero(x);
+		return 0;
 	}
 
 	/**
-	 * Handles hex (0x...) in addition to integers and BigDecimal
-	 * @return The string converted to a Number
+	 * Handles hex (0x...) in addition to integers and Dnum
+	 * Used by AstCompile to convert numbers.
+	 * @return The string converted to a Number (long or Dnum)
 	 */
 	public static Number stringToNumber(String s) {
 		try {
 			if (s.startsWith("0x"))
-				return (int) Long.parseLong(s.substring(2), 16);
-			if (s.indexOf('.') == -1 && s.indexOf('e') == -1
-					&& s.indexOf("E") == -1 && s.length() < 10)
+				return Integer.parseUnsignedInt(s.substring(2), 16);
+			if (s.indexOf('.') == -1 &&
+					s.indexOf('e') == -1 && s.indexOf("E") == -1 &&
+					s.length() < 10)
 				return Integer.parseInt(s);
-			else {
-				BigDecimal n = new BigDecimal(s, MC);
-				if (n.compareTo(BigDecimal.ZERO) == 0)
-					return 0;
-				return n;
-			}
+			else
+				return Dnum.parse(s);
 		} catch (NumberFormatException e) {
 			throw new SuException("can't convert to number: " + s);
 		}
 	}
 
-	static int toIntFromLong(long n) {
-		if (n < Integer.MIN_VALUE)
-			return Integer.MIN_VALUE;
-		if (n > Integer.MAX_VALUE)
-			return Integer.MAX_VALUE;
-		return (int) n;
-	}
-
-	static int toIntFromBD(BigDecimal n) {
-		if (n.compareTo(Numbers.BD_INT_MIN) == -1)
-			return Integer.MIN_VALUE;
-		if (n.compareTo(Numbers.BD_INT_MAX) == 1)
-			return Integer.MAX_VALUE;
-		return n.intValue();
+	public static long longValue(Object x) {
+		if (x instanceof Integer)
+			return (int) x;
+		else if (x instanceof Dnum)
+			return ((Dnum) x).longValue();
+		throw new SuException("can't convert to integer");
 	}
 }

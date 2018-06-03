@@ -8,12 +8,14 @@ import java.lang.management.ManagementFactory;
 
 import com.sun.management.OperatingSystemMXBean;
 
+import suneido.util.Dnum;
+
 public class SystemMemory {
 
-	public static long SystemMemory() {
+	public static Object SystemMemory() {
 		OperatingSystemMXBean bean =
 				(OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
-		return bean.getTotalPhysicalMemorySize();
+		return Dnum.from(bean.getTotalPhysicalMemorySize());
 	}
 
 }

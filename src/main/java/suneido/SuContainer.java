@@ -6,7 +6,6 @@ package suneido;
 
 import static suneido.util.Verify.verify;
 
-import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -22,6 +21,7 @@ import suneido.runtime.Pack;
 import suneido.runtime.Range;
 import suneido.runtime.SuInstance;
 import suneido.runtime.builtin.ContainerMethods;
+import suneido.util.Dnum;
 import suneido.util.NullIterator;
 import suneido.util.PairStack;
 import suneido.util.Util;
@@ -336,26 +336,22 @@ public class SuContainer extends SuValue
 	}
 
 	/**
-	 * convert to standardized types so lookup works consistently
-	 * Number is converted to Long if within range, else BigDecimal
+	 * Convert to standardized types so lookup works consistently
+	 * Dnum is narrowed to Integer if in range
 	 * CharSequence (String, Concat, SuException) is converted to String
+	 * <p>
+	 * See also: index
 	 */
-	private static Object canonical(Object x) {
-		// must match index(x)
-		if (x instanceof Integer) {
-			long i = (Integer) x;
-			return i;
-		}
-		if (x instanceof BigDecimal) {
-			BigDecimal n = (BigDecimal) x;
-			try {
-				return n.longValueExact();
-			} catch (ArithmeticException e) {
-				return n.stripTrailingZeros();
-			}
-		}
+	static Object canonical(Object x) {
 		if (x instanceof CharSequence)
 			return x.toString();
+		if (x instanceof Integer)
+			return x;
+		if (x instanceof Dnum) {
+			Object y = ((Dnum) x).intObject();
+			if (y != null)
+				return y;
+		}
 		return x;
 	}
 
@@ -464,23 +460,15 @@ public class SuContainer extends SuValue
 	}
 
 	/** @return The integer value of x, or -1 if the value is not an integer
-	 * so it will not be in range for the vector
+	 * so it will not be in range for the vector.
+	 * <p>
+	 * See also: canonical
 	 */
 	static int index(Object x) {
-		// must match the behavior of canonical
 		if (x instanceof Integer)
-			return (Integer) x;
-		else if (x instanceof Long) {
-			long n = (Long) x;
-			if (0 <= n && n <= Integer.MAX_VALUE)
-				return (int) n;
-		} else if (x instanceof BigDecimal) {
-	 		try {
-				return ((BigDecimal) x).intValueExact();
-			} catch (ArithmeticException e) {
-				// ignore, fall through
-			}
-		}
+			return (int) x;
+		else if (x instanceof Dnum)
+			return ((Dnum) x).intOrMin();
 		return -1;
 	}
 

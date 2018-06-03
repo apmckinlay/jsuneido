@@ -6,14 +6,13 @@ package suneido.runtime.builtin;
 
 import static suneido.runtime.FunctionSpec.NA;
 
-import java.math.BigDecimal;
-
 import suneido.SuDate;
 import suneido.SuException;
 import suneido.runtime.BuiltinMethods;
 import suneido.runtime.Ops;
 import suneido.runtime.Params;
 import suneido.runtime.SuCallable;
+import suneido.util.Dnum;
 
 /**
  * Delegates all implementation to {@link SuDate}.
@@ -74,13 +73,15 @@ public final class DateMethods {
 					Ops.typeName(a));
 	}
 
+	private static Dnum e3 = Dnum.from(1000);
+
 	@Params("date")
 	public static Object MinusSeconds(Object self, Object a) {
 		if (a instanceof SuDate) {
 			if (((SuDate) self).minusDays((SuDate) a) > 50 * 365)
 				throw new SuException("date.MinusSeconds interval too large");
 			long ms = ((SuDate) self).minusMilliseconds((SuDate) a);
-			return BigDecimal.valueOf(ms, 3);
+			return Dnum.div(Dnum.from(ms), e3); // to get seconds
 		} else
 			throw new SuException("date.MinusSeconds requires date, got " +
 					Ops.typeName(a));

@@ -4,20 +4,20 @@
 
 package suneido.runtime;
 
-import static suneido.runtime.Numbers.*;
-import static suneido.util.Util.capitalize;
+import static java.lang.System.identityHashCode;
+import static suneido.runtime.Numbers.toDnum;
+import static suneido.runtime.Numbers.toNum;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.math.BigDecimal;
 import java.util.*;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ComparisonChain;
 
 import suneido.*;
 import suneido.runtime.builtin.NumberMethods;
 import suneido.runtime.builtin.StringMethods;
+import suneido.util.Dnum;
 import suneido.util.RegexCache;
 import suneido.util.StringIterator;
 import suneido.util.ThreadSafe;
@@ -27,30 +27,14 @@ public final class Ops {
 	public static boolean is_(Object x, Object y) {
 		if (x == y)
 			return true;
-		if (x == null || y == null)
-			return false;
+
 		/* NOTE: cannot compare hashCode's for inequality
 		 * because Suneido can compare different types as equal
-		 * for example String and Concat or Integer and BigDecimal */
+		 * for example String and Concat or Integer and Dnum */
 
-		Class<?> xClass = x.getClass();
-		Class<?> yClass = y.getClass();
-
-		// have to use compareTo for BigDecimal
-		if (xClass == yClass && xClass != BigDecimal.class)
-			return x.equals(y);
-
-		if (x instanceof Number && y instanceof Number) {
-			if ((xClass == Integer.class || xClass == Long.class) &&
-					(yClass == Integer.class || yClass == Long.class))
-				return ((Number) x).longValue() == ((Number) y).longValue();
-			else
-				return 0 == toBigDecimal(x).compareTo(toBigDecimal(y));
-		}
-
-		// This check is because the left-hand side object might be a String,
-		// and String.equals() will return false for non-String.
-		if (y instanceof String2)
+		// x might be String or Integer,
+		// and .equals() won't handle String2 or Dnum
+		if (y instanceof String2 || y instanceof Dnum)
 			return y.equals(x);
 
 		// Default: use the equals method of the left-hand side Object.
@@ -104,40 +88,40 @@ public final class Ops {
 		Class<?> xClass = x.getClass();
 		Class<?> yClass = y.getClass();
 
-		if (xClass == SuRecord.class)
-			xClass = SuContainer.class;
-		if (x instanceof SequenceBase) {
-			((SequenceBase) x).ck_instantiate();
-			xClass = SuContainer.class;
-		}
-		if (yClass == SuRecord.class)
-			yClass = SuContainer.class;
-		if (y instanceof SequenceBase) {
-			((Sequence) y).ck_instantiate();
-			yClass = SuContainer.class;
-		}
-		if (x instanceof CharSequence) {
+		if (xClass == yClass && x instanceof Comparable)
+			return ((Comparable<Object>) x).compareTo(y); // usual case ~90%
+
+		return cmp2(x, xClass, y, yClass);
+	}
+
+	@SuppressWarnings("unchecked")
+	private static int cmp2(Object x, Class<?> xClass, Object y, Class<?> yClass) {
+		if (xClass == Integer.class) {
+			x = Dnum.from((int) x);
+			xClass = Dnum.class;
+		} else if (x instanceof CharSequence) {
 			x = x.toString();
 			xClass = String.class;
-		}
-		if (y instanceof CharSequence) {
+		} else if (x instanceof SequenceBase) {
+			((SequenceBase) x).ck_instantiate();
+			xClass = SuContainer.class;
+		} else if (xClass == SuRecord.class)
+			xClass = SuContainer.class;
+
+		if (yClass == Integer.class) {
+			y = Dnum.from((int) y);
+			yClass = Dnum.class;
+		} else if (y instanceof CharSequence) {
 			y = y.toString();
 			yClass = String.class;
-		}
-		if (xClass == yClass) // most common case e.g. 80%
-			return (x instanceof Comparable)
-				? ((Comparable<Object>) x).compareTo(y)
-				: cmpHash(xClass, yClass);
+		} else if (y instanceof SequenceBase) {
+			((Sequence) y).ck_instantiate();
+			yClass = SuContainer.class;
+		} else if (yClass == SuRecord.class)
+			yClass = SuContainer.class;
 
-		if (x instanceof Number && y instanceof Number) {
-			if ((xClass == Integer.class || xClass == Long.class) &&
-					(yClass == Integer.class || yClass == Long.class)) {
-				long x1 = ((Number) x).longValue();
-				long y1 = ((Number) y).longValue();
-				return x1 < y1 ? -1 : x1 > y1 ? +1 : 0;
-			} else
-				return toBigDecimal(x).compareTo(toBigDecimal(y));
-		}
+		if (xClass == yClass && x instanceof Comparable)
+			return ((Comparable<Object>) x).compareTo(y);
 
 		if (xClass == Boolean.class)
 			return -1;
@@ -164,13 +148,10 @@ public final class Ops {
 		if (yClass == SuContainer.class)
 			return +1;
 
-		return cmpHash(xClass, yClass);
-	}
-
-	private static int cmpHash(Class<?> xType, Class<?> yType) {
-		int xHash = xType.hashCode();
-		int yHash = yType.hashCode();
-		return xHash < yHash ? -1 : xHash > yHash ? +1 : 0;
+		return ComparisonChain.start()
+				.compare(xClass.toString(), yClass.toString())
+				.compare(identityHashCode(x), identityHashCode(y))
+				.result();
 	}
 
 	public static final class Comp implements Comparator<Object> {
@@ -194,16 +175,15 @@ public final class Ops {
 		return ! match_(s, rx);
 	}
 
-	// fast path, kept small in hopes of getting inlined
 	public static Object cat(Object x, Object y) {
 		if (x instanceof String && y instanceof String)
-			return cat((String) x, (String) y);
-		return cat2(x, y);
+			return cat2((String) x, (String) y);
+		return cat3(x, y);
 	}
 
 	private static final int LARGE = 256;
 
-	private static Object cat(String x, String y) {
+	private static Object cat2(String x, String y) {
 		if (x.length() == 0)
 			return y;
 		if (y.length() == 0)
@@ -213,10 +193,10 @@ public final class Ops {
 				: new Concats(x, y);
 	}
 
-	private static Object cat2(Object x, Object y) {
+	private static Object cat3(Object x, Object y) {
 		if (x instanceof Concats)
 			return ((Concats) x).append(y);
-		Object result = cat(coerceStr(x), coerceStr(y));
+		Object result = cat2(coerceStr(x), coerceStr(y));
 		if (x instanceof Except)
 			return Except.As(x, result);
 		if (y instanceof Except)
@@ -228,21 +208,28 @@ public final class Ops {
 		return x instanceof CharSequence;
 	}
 
-	// fast path, kept small in hopes of getting inlined
 	public static Number add(Object x, Object y) {
 		if (x instanceof Integer && y instanceof Integer)
-			return (long) (Integer) x + (Integer) y;
-		return add2(x, y);
+			try {
+				return Math.addExact((Integer) x, (Integer) y);
+			} catch (ArithmeticException unused) {
+				// fall through
+			}
+		return Dnum.add(toDnum(x), toDnum(y));
 	}
 
-	// fast path, kept small in hopes of getting inlined
 	public static Number sub(Object x, Object y) {
 		if (x instanceof Integer && y instanceof Integer)
-			return (long) (Integer) x - (Integer) y;
-		return sub2(x, y);
+			try {
+				return Math.subtractExact((Integer) x, (Integer) y);
+			} catch (ArithmeticException unused) {
+				// fall through
+			}
+		return Dnum.sub(toDnum(x), toDnum(y));
 	}
 
 	private static final Integer one = 1;
+
 	public static Number add1(Object x) {
 		return add(x, one);
 	}
@@ -250,16 +237,21 @@ public final class Ops {
 		return sub(x, one);
 	}
 
-	// fast path, kept small in hopes of getting inlined
 	public static Number mul(Object x, Object y) {
 		if (x instanceof Integer && y instanceof Integer)
-			return (long) (Integer) x * (Integer) y;
-		return mul2(x, y);
+			try {
+				return Math.multiplyExact((Integer) x, (Integer) y);
+			} catch (ArithmeticException unused) {
+				// fall through
+			}
+		return Dnum.mul(toDnum(x), toDnum(y));
 	}
 
 	public static Number div(Object x, Object y) {
-		// no fast path ?
-		return div2(x, y);
+		if (x instanceof Integer && y instanceof Integer &&
+				(int) y != 0 && (int) x % (int) y == 0)
+			return (int) x / (int) y;
+		return Dnum.div(toDnum(x), toDnum(y));
 	}
 
 	public static Number mod(Object x, Object y) {
@@ -268,23 +260,10 @@ public final class Ops {
 
 	public static Number uminus(Object x) {
 		x = toNum(x);
-		if (x instanceof Integer) {
-			int x_ = (int) x;
-			// Avoid two's complement overflow
-			return Integer.MIN_VALUE != x_
-				? -x_
-				: -(long)x_
-				;
-		}
-		if (x instanceof Long) {
-			long x_ = (long) x;
-			// Avoid two's complement overflow
-			return Long.MIN_VALUE != x_
-				? -x_
-				: new BigDecimal(x_).negate();
-		}
-		if (x instanceof BigDecimal)
-			return ((BigDecimal) x).negate();
+		if (x instanceof Integer)
+			return -(int) x; // ignore overflow
+		if (x instanceof Dnum)
+			return ((Dnum) x).negate();
 		throw SuInternalError.unreachable();
 	}
 
@@ -342,13 +321,12 @@ public final class Ops {
 		throw new SuException("expected boolean, got " + typeName(x));
 	}
 
+	/** Used for bit and range operations */
 	public static int toInt(Object x) {
 		if (x instanceof Integer)
-			return ((Number) x).intValue();
-		if (x instanceof Long)
-			return toIntFromLong((Long) x);
-		if (x instanceof BigDecimal)
-			return toIntFromBD((BigDecimal) x);
+			return (int) x;
+		if (x instanceof Dnum)
+			return ((Dnum) x).intValue();
 		return likeZero(x);
 	}
 
@@ -372,8 +350,6 @@ public final class Ops {
 			return "true";
 		if (x == Boolean.FALSE)
 			return "false";
-		if (x instanceof BigDecimal)
-			return toStringBD((BigDecimal) x);
 		if (isString(x) || x instanceof Number)
 			return x.toString();
 		if (x instanceof SuInstance) {
@@ -382,23 +358,6 @@ public final class Ops {
 				return s;
 		}
 		throw new SuException("can't convert " + typeName(x) + " to String");
-	}
-
-	public static String toStringBD(BigDecimal n) {
-		if (n.compareTo(INF) == 0)
-			return "Inf";
-		if (n.compareTo(MINUS_INF) == 0)
-			return "-Inf";
-		n = n.stripTrailingZeros();
-		String s = Math.abs(n.scale()) >= 20 ? n.toString() : n.toPlainString();
-		return removeLeadingZero(s).replace("E", "e").replace("e+", "e");
-	}
-	private static String removeLeadingZero(String s) {
-		if (s.startsWith("0.") && s.length() > 2)
-			s = s.substring(1);
-		if (s.startsWith("-0.") && s.length() > 3)
-			s = "-" + s.substring(2);
-		return s;
 	}
 
 	public static boolean default_single_quotes = false;
@@ -414,8 +373,6 @@ public final class Ops {
 			return displayString(x);
 		if (x instanceof SuValue)
 			return ((SuValue) x).display();
-		if (x instanceof BigDecimal)
-			return toStringBD((BigDecimal) x);
 		return x.toString();
 	}
 
@@ -435,18 +392,6 @@ public final class Ops {
 			return "\"" + s.replace("\"", "\\\"") + "\"";
 	}
 
-	public static String display(Object[] a) {
-		if (a.length == 0)
-			return "()";
-		StringBuilder sb = new StringBuilder();
-		sb.append("(");
-		for (Object x : a)
-			sb.append(display(x) + ", ");
-		sb.delete(sb.length() - 2, sb.length());
-		sb.append(")");
-		return sb.toString();
-	}
-
 	public static SuContainer toContainer(Object x) {
 		return x instanceof SuValue ? ((SuValue) x).toContainer() : null;
 	}
@@ -456,13 +401,12 @@ public final class Ops {
 			return "uninitialized";
 		if (x instanceof SuValue)
 			return ((SuValue) x).typeName();
-		Class<?> xType = x.getClass();
-		if (xType == String.class)
+		Class<?> xClass = x.getClass();
+		if (xClass == String.class)
 			return "String";
-		if (xType == Boolean.class)
+		if (xClass == Boolean.class)
 			return "Boolean";
-		if (xType == Integer.class || xType == Long.class ||
-				xType == BigDecimal.class)
+		if (xClass == Integer.class || xClass == Dnum.class)
 			return "Number";
 		return x.getClass().getName();
 	}
@@ -581,7 +525,7 @@ public final class Ops {
 			return (SuValue) x;
 		if (x instanceof String)
 			return StringMethods.singleton;
-		if (x instanceof Number) // e.g. Long, BigDecimal
+		if (x instanceof Number) // e.g. Integer, Dnum
 			return NumberMethods.singleton;
 		return invokeUnknown;
 	}
@@ -610,37 +554,21 @@ public final class Ops {
 				throw new SuException("uninitialized member: " + member);
 			return y;
 		} else if (isString(x))
-			return getString((CharSequence)x, member);
-		else if (x instanceof Object[])
-			return getArray((Object[]) x, toInt(member));
-		else if (x instanceof Boolean || x instanceof Number)
-			; // fall thru to error
-		else if (isString(member))
-			return getProperty(x, member.toString());
+			return getString((CharSequence) x, member);
 		throw new SuException(typeName(x) + " does not support get (" + member + ")");
 	}
 
-	private static Object getProperty(Object x, String member) {
-		try {
-			Method m = x.getClass().getMethod("get" + capitalize(member));
-			return m.invoke(x);
-		} catch (SecurityException | NoSuchMethodException | IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
-		}
-		throw new SuException("get property failed: " + x + "." + member);
-	}
-
-	private static Object getArray(Object[] x, int i) {
-		return x[i];
-	}
-
 	private static Object getString(CharSequence s, Object m) {
-		if (! Numbers.integral(m))
+		int i = Integer.MIN_VALUE;
+		if (m instanceof Integer)
+			i = (int) m;
+		else if (m instanceof Dnum)
+			i = ((Dnum) m).intOrMin();
+		if (i == Integer.MIN_VALUE)
 			throw new SuException("string subscripts must be integers");
-		long n = ((Number) m).longValue();
 		int len = s.length();
-		if (n < -len || len < n)
+		if (i < -len || len < i)
 			return "";
-		int i = (int) n;
 		if (i < 0)
 			i += len;
 		return 0 <= i && i < len ? s.subSequence(i, i + 1) : "";

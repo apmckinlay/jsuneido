@@ -19,6 +19,7 @@ import suneido.compiler.CompileTest;
 import suneido.compiler.ExecuteTest;
 import suneido.compiler.Lexer;
 import suneido.compiler.Token;
+import suneido.runtime.OpsTest;
 import suneido.util.DnumTest;
 import suneido.util.RegexTest;
 import suneido.util.TrTest;
@@ -197,6 +198,10 @@ public class PortTests {
 		testmap.put(name, new Wrap(test));
 	}
 
+	public static void skipTest(String name) {
+		testmap.put(name,  null);
+	}
+
 	public static void main(String[] args) {
 		addTest("ptest", (a) -> a[0].equals(a[1]));
 		addTest("tr", TrTest::pt_tr);
@@ -211,6 +216,7 @@ public class PortTests {
 		addTest("lang_sub", ExecuteTest::pt_lang_sub);
 		addTest("lang_range", ExecuteTest::pt_lang_range);
 		addTest("compile", CompileTest::pt_compile);
+		addTest("compare", OpsTest::pt_compare);
 
 		System.out.println("'" + TestDir.path + "'");
 		for (String filename : new File(TestDir.path).list())

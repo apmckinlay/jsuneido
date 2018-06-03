@@ -13,7 +13,6 @@ import static suneido.SuContainer.index;
 import static suneido.runtime.Pack.pack;
 import static suneido.runtime.Pack.unpack;
 
-import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 
 import org.junit.After;
@@ -22,6 +21,7 @@ import org.junit.Test;
 
 import suneido.runtime.Ops;
 import suneido.util.ByteBuffers;
+import suneido.util.Dnum;
 
 public class SuContainerTest {
 
@@ -37,14 +37,18 @@ public class SuContainerTest {
 
 	@Test
 	public void canonical() {
-		Object[] a = { 100, BigDecimal.valueOf(100), new BigDecimal("1e2") };
+		Object[] a = { 100, Dnum.from(100), Dnum.parse("1e2") };
 		for (Object x : a) {
 			SuContainer c = new SuContainer();
 			c.put(x, true);
 			for (Object y : a)
-				assertEquals(true, c.get(y));
+				assert c.get(y) == Boolean.TRUE
+						: "failed to get " + y + " " + y.getClass();
 			assertTrue(c.delete(x));
 		}
+
+		Dnum n = Dnum.parse("1.5");
+		assertThat(SuContainer.canonical(n), equalTo(n));
 	}
 
 	@Test
@@ -220,7 +224,7 @@ public class SuContainerTest {
 	public void index_test() {
 		assertThat(index(0), equalTo(0));
 		assertThat(index(123), equalTo(123));
-		assertThat(index(BigDecimal.valueOf(123)), equalTo(123));
+		assertThat(index(Dnum.from(123)), equalTo(123));
 		assertThat(index(true), equalTo(-1));
 		assertThat(index(false), equalTo(-1));
 		assertThat(index("foo"), equalTo(-1));

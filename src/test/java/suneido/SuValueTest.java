@@ -8,12 +8,11 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static suneido.runtime.Numbers.MC;
 import static suneido.runtime.Ops.*;
 
-import java.math.BigDecimal;
-
 import org.junit.Test;
+
+import suneido.util.Dnum;
 
 public class SuValueTest {
 	@Test
@@ -47,30 +46,38 @@ public class SuValueTest {
 		Object[] values = new Object[ints.length * 2];
 		for (int i = 0; i < ints.length; ++i) {
 			values[2 * i] = ints[i];
-			values[2 * i + 1] = new BigDecimal(ints[i]);
+			values[2 * i + 1] = Dnum.from(ints[i]);
 		}
-		for (Object x : values)
-			for (Object y : values)
-				math1(x, y);
+		for (int i : ints)
+			for (int j : ints) {
+				Object x = Dnum.from(i);
+				Object y = Dnum.from(j);
+				math1(x, y, i, j);
+				math1(x, j, i, j);
+				math1(i, y, i, j);
+				math1(i, j, i, j);
+			}
 	}
 
-	private static void math1(Object x, Object y) {
-		//System.out.println(Ops.typeName(x) + " " + x + " " + Ops.typeName(y) + " " + y);
-		int i = toInt(x);
-		int j = toInt(y);
+	private static void math1(Object x, Object y, int i, int j) {
 		Object z;
 		z = add(x, y);
-		assertTrue(i + " + " + j + " should be " + z, is(i + j, z));
+		assertTrue(i + " + " + j + " expected " + (i + j) + " got " + z,
+				is(i + j, z));
 		z = sub(x, y);
-		assertTrue(i + " - " + j + " should be " + z, is(i - j, z));
+		assertTrue(i + " - " + j + " expected " + (i - j) + " got " + z,
+				is(i - j, z));
 		z = mul(x, y);
-		assertTrue(i + " * " + j + " should be " + z, is(i * j, z));
+		assertTrue(i + " * " + j + " expected " + (i * j) + " got " + z,
+				is(i * j, z));
 		if (j == 0)
 			return ; // skip divide by zero
 		z = div(x, y);
-		BigDecimal expected =
-				BigDecimal.valueOf(i).divide(BigDecimal.valueOf(j), MC);
-		assertTrue(i + " / " + j + " should be " + z, is(expected, z));
+		if (z instanceof Dnum)
+			z = ((Dnum) div(x, y)).round(15);
+		Object expected = Dnum.from(((double) i) / ((double) j));
+		assertTrue(i + " / " + j + " expected " + expected + " got " + z,
+				is(expected, z));
 	}
 
 	@Test

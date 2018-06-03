@@ -6,10 +6,12 @@ package suneido.runtime.builtin;
 
 import java.util.Date;
 
+import suneido.util.Dnum;
+
 public class UnixTime {
 
-	public static long UnixTime() {
-		return new Date().getTime() / 1000;
+	public static Object UnixTime() {
+		return Dnum.from(new Date().getTime() / 1000);
 	}
 
 }

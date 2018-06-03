@@ -5,17 +5,17 @@
 package suneido.runtime.builtin;
 
 import java.io.File;
-import java.math.BigDecimal;
 
 import suneido.runtime.Ops;
 import suneido.runtime.Params;
+import suneido.util.Dnum;
 
 public class GetDiskFreeSpace {
 
 	@Params("dir = '.'")
 	public static Number GetDiskFreeSpace(Object a) {
 		String dir = Ops.toStr(a);
-		return BigDecimal.valueOf(new File(dir).getUsableSpace());
+		return Dnum.from(new File(dir).getUsableSpace());
 	}
 
 }

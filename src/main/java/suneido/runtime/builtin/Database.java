@@ -8,6 +8,7 @@ import suneido.SuContainer;
 import suneido.SuException;
 import suneido.TheDbms;
 import suneido.runtime.*;
+import suneido.util.Dnum;
 import suneido.util.Util;
 
 public class Database extends BuiltinClass {
@@ -37,7 +38,7 @@ public class Database extends BuiltinClass {
 	}
 
 	public static Object CurrentSize(Object self) {
-		return TheDbms.dbms().size();
+		return Dnum.from(TheDbms.dbms().size());
 	}
 
 	public static Object Cursors(Object self) {

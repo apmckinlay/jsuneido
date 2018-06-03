@@ -4,10 +4,12 @@
 
 package suneido.runtime.builtin;
 
+import suneido.util.Dnum;
+
 public class MemoryArena {
 
-	public static long MemoryArena() {
-		return Runtime.getRuntime().totalMemory();
+	public static Object MemoryArena() {
+		return Dnum.from(Runtime.getRuntime().totalMemory());
 	}
 
 }

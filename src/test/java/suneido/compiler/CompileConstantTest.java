@@ -7,14 +7,13 @@ package suneido.compiler;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.math.BigDecimal;
-
 import org.junit.Test;
 
 import suneido.SuContainer;
 import suneido.SuDate;
 import suneido.SuRecord;
 import suneido.runtime.SuCallBase;
+import suneido.util.Dnum;
 
 public class CompileConstantTest {
 
@@ -25,7 +24,7 @@ public class CompileConstantTest {
 
 		assertEquals(123, compile("123"));
 		assertEquals(-123, compile("-123"));
-		assertEquals(new BigDecimal("12.34"), compile("12.34"));
+		assertEquals(Dnum.parse("12.34"), compile("12.34"));
 
 		assertEquals("hello world", compile("'hello world'"));
 		assertEquals("symbol", compile("#symbol"));

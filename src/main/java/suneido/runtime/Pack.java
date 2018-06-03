@@ -8,11 +8,11 @@ import static suneido.runtime.Ops.typeName;
 import static suneido.util.ByteBuffers.bufferToString;
 import static suneido.util.ByteBuffers.putStringToByteBuffer;
 
-import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import suneido.*;
+import suneido.util.Dnum;
 import suneido.util.ThreadSafe;
 
 @ThreadSafe // all static methods
@@ -69,15 +69,13 @@ public class Pack {
 			return packSizeLong((Integer) x);
 		if (xType == Long.class)
 			return packSizeLong((Long) x);
-		if (xType == BigDecimal.class)
-			return packSizeBD((BigDecimal) x);
+		if (xType == Dnum.class)
+			return packSizeDnum((Dnum) x);
 		if (xType == String.class)
 			return packSize((String) x);
-
 		if (x instanceof Packable)
 			return ((Packable) x).packSize(0);
-		else
-			throw new SuException("can't pack " + typeName(x));
+		throw new SuException("can't pack " + typeName(x));
 	}
 
 	public static int packSize(String s) {
@@ -86,7 +84,6 @@ public class Pack {
 		return n == 0 ? 0 : 1 + n;
 	}
 
-	// WARNING: doesn't handle BigDecimal that's larger than long
 	public static void pack(Object x, ByteBuffer buf) {
 		assert buf.order() == ByteOrder.BIG_ENDIAN;
 		Class<?> xType = x.getClass();
@@ -96,8 +93,8 @@ public class Pack {
 			packNum((Integer) x, 0, buf);
 		else if (xType == Long.class)
 			packNum((Long) x, 0, buf);
-		else if (xType == BigDecimal.class)
-			packBD((BigDecimal) x, buf);
+		else if (xType == Dnum.class)
+			packDnum((Dnum) x, buf);
 		else if (xType == String.class)
 			packString((String) x, buf);
 		else if (x instanceof Packable)
@@ -123,8 +120,10 @@ public class Pack {
 		return packSizeNum(n, 0);
 	}
 
-	private static int packSizeBD(BigDecimal bd) {
-		return packSizeNum(bd.unscaledValue().longValue(), -bd.scale());
+	private static int packSizeDnum(Dnum dn) {
+		if (dn.isInf())
+			return packSizeNum(dn.signum(), 4 * Byte.MAX_VALUE);
+		return packSizeNum(dn.coef(), dn.exp() - Dnum.MAX_DIGITS);
 	}
 
 	private static int packSizeNum(long n, int e) {
@@ -162,8 +161,11 @@ public class Pack {
 		return i;
 	}
 
-	private static void packBD(BigDecimal bd, ByteBuffer buf) {
-		packNum(bd.unscaledValue().longValue(), -bd.scale(), buf);
+	private static void packDnum(Dnum dn, ByteBuffer buf) {
+		if (dn.isInf())
+			packNum(dn.signum(), 4 * Byte.MAX_VALUE, buf);
+		else
+			packNum(dn.signum() * dn.coef(), dn.exp() - Dnum.MAX_DIGITS, buf);
 	}
 
 	public static void pack(long n, ByteBuffer buf) {
@@ -278,8 +280,8 @@ public class Pack {
 			for (; s < 0 && n < MAX_LONG_DIV_10; ++s)
 				n *= 10;
 		if (s != 0)
-			throw new SuException("unpackLong got big decimal");
-		return n;
+			throw new SuException("unpackLong got Dnum");
+		return minus ? -n : n;
 	}
 
 	private static final long MAX_LONG_DIV_10 = Long.MAX_VALUE / 10;
@@ -290,9 +292,9 @@ public class Pack {
 		boolean minus = buf.get(buf.position() - 1) == Tag.MINUS;
 		int s = buf.get() & 0xff;
 		if (s == 0)
-			return Numbers.MINUS_INF;
+			return Dnum.MinusInf;
 		if (s == 255)
-			return Numbers.INF;
+			return Dnum.Inf;
 		if (minus)
 			s = ((~s) & 0xff);
 		s = (byte) (s ^ 0x80);
@@ -304,8 +306,10 @@ public class Pack {
 			for (; s < 0 && n < MAX_LONG_DIV_10; ++s)
 				n *= 10;
 		if (s != 0)
-			return BigDecimal.valueOf(n, s);
-		else if (Integer.MIN_VALUE <= n && n <= Integer.MAX_VALUE)
+			return Dnum.from(minus ? -1 : +1, n, -s + Dnum.MAX_DIGITS);
+		if (minus)
+			n = -n;
+		if (Integer.MIN_VALUE <= n && n <= Integer.MAX_VALUE)
 			return (int) n;
 		else
 			return n;
@@ -319,7 +323,7 @@ public class Pack {
 				x = (short) ((~x) & 0xffff);
 			n = n * 10000 + x;
 		}
-		return minus ? -n : n;
+		return n;
 	}
 
 }

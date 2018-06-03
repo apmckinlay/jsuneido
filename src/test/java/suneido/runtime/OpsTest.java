@@ -11,13 +11,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static suneido.runtime.Numbers.INF;
-import static suneido.runtime.Numbers.MC;
-import static suneido.runtime.Numbers.MINUS_INF;
-import static suneido.runtime.Numbers.ZERO;
+import static suneido.compiler.Compiler.compile;
 import static suneido.runtime.Ops.*;
-
-import java.math.BigDecimal;
+import static suneido.util.Dnum.Inf;
+import static suneido.util.Dnum.MinusInf;
+import static suneido.util.Dnum.Zero;
+import static suneido.util.Dnum.div;
 
 import org.junit.After;
 import org.junit.Before;
@@ -25,8 +24,10 @@ import org.junit.Test;
 
 import com.google.common.base.Strings;
 
+import suneido.PortTests;
 import suneido.SuException;
 import suneido.compiler.ExecuteTest;
+import suneido.util.Dnum;
 
 public class OpsTest {
 
@@ -50,12 +51,8 @@ public class OpsTest {
 
 	@Test
 	public void test_is() {
-		assertFalse(Ops.is(null, 123));
-		assertFalse(Ops.is(123, null));
-		is(null, null);
 		is(123, 123);
-		is((long) 123, 123);
-		is(123, BigDecimal.valueOf(123));
+		is(123, Dnum.from(123));
 		is("hello", "hello");
 		is("hello", new Concats("hel", "lo"));
 		is("hello", new Except("hello", null));
@@ -74,12 +71,13 @@ public class OpsTest {
 		lt(123, 456);
 		lt(123, "def");
 		lt("abc", "def");
-		lt(1, BigDecimal.valueOf(1.1));
-		lt(BigDecimal.valueOf(.9), 1);
-		lt(BigDecimal.valueOf(.9), 1);
-		lt(1, BigDecimal.valueOf(1.1));
+		lt(1, Dnum.from(1.1));
+		lt(Dnum.from(.9), 1);
+		lt(Dnum.from(.9), 1);
+		lt(1, Dnum.from(1.1));
 		lt(123, this);
 		lt("hello", this);
+		lt(compile("x", "function(){}"), compile("x", "class{}")); // non-portable
 	}
 	private static void lt(Object x, Object y) {
 		assertTrue(Ops.cmp(x, y) < 0);
@@ -91,7 +89,7 @@ public class OpsTest {
 	@Test
 	public void test_cat() {
 		assertEquals("onetwo", cat("one", "two"));
-		assertEquals("one.2", cat("one", BigDecimal.valueOf(.2)));
+		assertEquals("one.2", cat("one", Dnum.from(.2)));
 		assertEquals("1two", cat(1, "two"));
 	}
 
@@ -113,228 +111,213 @@ public class OpsTest {
 
 	private static final Object x = 123;
 	private static final Object y = 456;
-	private static final Object z = BigDecimal.valueOf(.9);
+	private static final Object z = Dnum.from(.9);
 
 	@Test
 	public void test_add() {
-		assertEquals(579L, add(x, y));
-		assertEquals(new BigDecimal("456.9"), add(z, y));
-		assertEquals(new BigDecimal("123.9"), add(x, z));
-		assertEquals(new BigDecimal("1.8"), add(z, z));
+		assertEquals(579, add(x, y));
+		assertEquals(Dnum.parse("456.9"), add(z, y));
+		assertEquals(Dnum.parse("123.9"), add(x, z));
+		assertEquals(Dnum.parse("1.8"), add(z, z));
 
-		assertEquals(INF, add(INF, x));
-		assertEquals(INF, add(x, INF));
-		assertEquals(INF, add(INF, z));
-		assertEquals(INF, add(z, INF));
-		assertEquals(INF, add(INF, INF));
-		assertEquals(0, add(INF, MINUS_INF));
+		assertEquals(Inf, add(Inf, x));
+		assertEquals(Inf, add(x, Inf));
+		assertEquals(Inf, add(Inf, z));
+		assertEquals(Inf, add(z, Inf));
+		assertEquals(Inf, add(Inf, Inf));
+		assertEquals(Zero, add(Inf, MinusInf));
 
-		assertEquals(MINUS_INF, add(MINUS_INF, x));
-		assertEquals(MINUS_INF, add(x, MINUS_INF));
-		assertEquals(MINUS_INF, add(MINUS_INF, z));
-		assertEquals(MINUS_INF, add(z, MINUS_INF));
-		assertEquals(MINUS_INF, add(MINUS_INF, MINUS_INF));
-		assertEquals(0, add(MINUS_INF, INF));
+		assertEquals(MinusInf, add(MinusInf, x));
+		assertEquals(MinusInf, add(x, MinusInf));
+		assertEquals(MinusInf, add(MinusInf, z));
+		assertEquals(MinusInf, add(z, MinusInf));
+		assertEquals(MinusInf, add(MinusInf, MinusInf));
+		assertEquals(Zero, add(MinusInf, Inf));
 	}
 
 	@Test
 	public void test_sub() {
-		assertEquals(-333L, sub(x, y));
-		assertEquals(333L, sub(y, x));
-		assertEquals(new BigDecimal("-455.1"), sub(z, y));
-		assertEquals(new BigDecimal("122.1"), sub(x, z));
-		is(ZERO, sub(z, z));
+		assertEquals(-333, sub(x, y));
+		assertEquals(333, sub(y, x));
+		assertEquals(Dnum.parse("-455.1"), sub(z, y));
+		assertEquals(Dnum.parse("122.1"), sub(x, z));
+		is(Zero, sub(z, z));
 
-		assertEquals(INF, sub(INF, x));
-		assertEquals(MINUS_INF, sub(x, INF));
-		assertEquals(INF, sub(INF, z));
-		assertEquals(MINUS_INF, sub(z, INF));
-		assertEquals(0, sub(INF, INF));
-		assertEquals(INF, sub(INF, MINUS_INF));
+		assertEquals(Inf, sub(Inf, x));
+		assertEquals(MinusInf, sub(x, Inf));
+		assertEquals(Inf, sub(Inf, z));
+		assertEquals(MinusInf, sub(z, Inf));
+		assertEquals(Zero, sub(Inf, Inf));
+		assertEquals(Inf, sub(Inf, MinusInf));
 
-		assertEquals(MINUS_INF, sub(MINUS_INF, x));
-		assertEquals(INF, sub(x, MINUS_INF));
-		assertEquals(MINUS_INF, sub(MINUS_INF, z));
-		assertEquals(INF, sub(z, MINUS_INF));
-		assertEquals(0, sub(MINUS_INF, MINUS_INF));
-		assertEquals(MINUS_INF, sub(MINUS_INF, INF));
+		assertEquals(MinusInf, sub(MinusInf, x));
+		assertEquals(Inf, sub(x, MinusInf));
+		assertEquals(MinusInf, sub(MinusInf, z));
+		assertEquals(Inf, sub(z, MinusInf));
+		assertEquals(Zero, sub(MinusInf, MinusInf));
+		assertEquals(MinusInf, sub(MinusInf, Inf));
 	}
 
-	private static final Object p9 = BigDecimal.valueOf(9);
-	private static final Object m9 = BigDecimal.valueOf(-9);
-	private static final Object p81 = BigDecimal.valueOf(81);
-	private static final Object m81 = BigDecimal.valueOf(-81);
+	private static final Object p9 = Dnum.from(9);
+	private static final Object m9 = Dnum.from(-9);
+	private static final Object p81 = Dnum.from(81);
+	private static final Object m81 = Dnum.from(-81);
 
 	@Test
 	public void test_mul() {
-		assertEquals(INF,		mul(MINUS_INF, MINUS_INF));
-		assertEquals(INF,		mul(MINUS_INF, -9));
-		assertEquals(INF,		mul(MINUS_INF, m9));
-		assertEquals(0,			mul(MINUS_INF, ZERO));
-		assertEquals(MINUS_INF, mul(MINUS_INF, 9));
-		assertEquals(MINUS_INF, mul(MINUS_INF, p9));
-		assertEquals(MINUS_INF, mul(MINUS_INF, INF));
+		assertEquals(Inf,		mul(MinusInf, MinusInf));
+		assertEquals(Inf,		mul(MinusInf, -9));
+		assertEquals(Inf,		mul(MinusInf, m9));
+		assertEquals(Zero,		mul(MinusInf, Zero));
+		assertEquals(MinusInf,	mul(MinusInf, 9));
+		assertEquals(MinusInf,	mul(MinusInf, p9));
+		assertEquals(MinusInf,	mul(MinusInf, Inf));
 
-		assertEquals(INF,		mul(m9, MINUS_INF));
+		assertEquals(Inf,		mul(m9, MinusInf));
 		assertEquals(p81,		mul(m9, -9));
 		assertEquals(p81,		mul(m9, m9));
-		assertEquals(0,			mul(m9, 0));
-		assertEquals(0,			mul(m9, ZERO));
+		assertEquals(Zero,		mul(m9, 0));
+		assertEquals(Zero,		mul(m9, Zero));
 		assertEquals(m81,		mul(m9, 9));
 		assertEquals(m81,		mul(m9, p9));
-		assertEquals(MINUS_INF, mul(m9, INF));
+		assertEquals(MinusInf,	mul(m9, Inf));
 
-		assertEquals(INF,		mul(-9, MINUS_INF));
+		assertEquals(Inf,		mul(-9, MinusInf));
 		assertEquals(p81,		mul(-9, m9));
-		assertEquals(81L,		mul(-9, -9));
-		assertEquals(0L,		mul(-9, 0));
-		assertEquals(0,			mul(-9, ZERO));
-		assertEquals(-81L,		mul(-9, 9));
+		assertEquals(81,		mul(-9, -9));
+		assertEquals(0,			mul(-9, 0));
+		assertEquals(Zero,		mul(-9, Zero));
+		assertEquals(-81,		mul(-9, 9));
 		assertEquals(m81,		mul(-9, p9));
-		assertEquals(MINUS_INF, mul(-9, INF));
+		assertEquals(MinusInf,	mul(-9, Inf));
 
-		assertEquals(0,			mul(0, MINUS_INF));
-		assertEquals(0,			mul(0, m9));
-		assertEquals(0L,		mul(0, 0));
-		assertEquals(0L,		mul(0, 0));
-		assertEquals(0,			mul(0, ZERO));
-		assertEquals(0L,		mul(0, 9));
-		assertEquals(0,			mul(0, p9));
-		assertEquals(0, 		mul(0, INF));
+		assertEquals(Zero,		mul(0, MinusInf));
+		assertEquals(Zero,		mul(0, m9));
+		assertEquals(0,			mul(0, 0));
+		assertEquals(0,			mul(0, 0));
+		assertEquals(Zero,		mul(0, Zero));
+		assertEquals(0,			mul(0, 9));
+		assertEquals(Zero,		mul(0, p9));
+		assertEquals(Zero, 		mul(0, Inf));
 
-		assertEquals(0,			mul(ZERO, MINUS_INF));
-		assertEquals(0,			mul(ZERO, m9));
-		assertEquals(0,			mul(ZERO, 0));
-		assertEquals(0,			mul(ZERO, 0));
-		assertEquals(0,			mul(ZERO, ZERO));
-		assertEquals(0,			mul(ZERO, 9));
-		assertEquals(0,			mul(ZERO, p9));
-		assertEquals(0, 		mul(ZERO, INF));
+		assertEquals(Zero,		mul(Zero, MinusInf));
+		assertEquals(Zero,		mul(Zero, m9));
+		assertEquals(Zero,		mul(Zero, 0));
+		assertEquals(Zero,		mul(Zero, 0));
+		assertEquals(Zero,		mul(Zero, Zero));
+		assertEquals(Zero,		mul(Zero, 9));
+		assertEquals(Zero,		mul(Zero, p9));
+		assertEquals(Zero, 		mul(Zero, Inf));
 
-		assertEquals(MINUS_INF,	mul(9, MINUS_INF));
+		assertEquals(MinusInf,	mul(9, MinusInf));
 		assertEquals(m81,		mul(9, m9));
-		assertEquals(-81L,		mul(9, -9));
-		assertEquals(0L,			mul(9, 0));
-		assertEquals(0,			mul(9, ZERO));
-		assertEquals(81L,		mul(9, 9));
+		assertEquals(-81,		mul(9, -9));
+		assertEquals(0,			mul(9, 0));
+		assertEquals(Zero,		mul(9, Zero));
+		assertEquals(81,		mul(9, 9));
 		assertEquals(p81,		mul(9, p9));
-		assertEquals(INF,		mul(9, INF));
+		assertEquals(Inf,		mul(9, Inf));
 
-		assertEquals(MINUS_INF,	mul(p9, MINUS_INF));
+		assertEquals(MinusInf,	mul(p9, MinusInf));
 		assertEquals(m81,		mul(p9, m9));
 		assertEquals(m81,		mul(p9, -9));
-		assertEquals(0,			mul(p9, 0));
-		assertEquals(0,			mul(p9, ZERO));
+		assertEquals(Zero,		mul(p9, 0));
+		assertEquals(Zero,		mul(p9, Zero));
 		assertEquals(p81,		mul(p9, 9));
 		assertEquals(p81,		mul(p9, p9));
-		assertEquals(INF,		mul(p9, INF));
+		assertEquals(Inf,		mul(p9, Inf));
 
-		assertEquals(MINUS_INF,	mul(INF, MINUS_INF));
-		assertEquals(MINUS_INF,	mul(INF, -9));
-		assertEquals(MINUS_INF,	mul(INF, m9));
-		assertEquals(0,			mul(INF, ZERO));
-		assertEquals(INF, 		mul(INF, 9));
-		assertEquals(INF,		mul(INF, p9));
-		assertEquals(INF,		mul(INF, INF));
+		assertEquals(MinusInf,	mul(Inf, MinusInf));
+		assertEquals(MinusInf,	mul(Inf, -9));
+		assertEquals(MinusInf,	mul(Inf, m9));
+		assertEquals(Zero,		mul(Inf, Zero));
+		assertEquals(Inf, 		mul(Inf, 9));
+		assertEquals(Inf,		mul(Inf, p9));
+		assertEquals(Inf,		mul(Inf, Inf));
 	}
 
 	@Test
 	public void test_overflow() {
-		// overflow from int to long
-		assertEquals(Integer.MAX_VALUE + 1L, add(Integer.MAX_VALUE, 1));
-		assertEquals(Integer.MAX_VALUE + 1L, sub(Integer.MAX_VALUE, -1));
-		assertEquals(Integer.MAX_VALUE * 10L, mul(Integer.MAX_VALUE, 10));
-		assertEquals(Integer.MAX_VALUE * (long) Integer.MAX_VALUE,
-				mul(Integer.MAX_VALUE, Integer.MAX_VALUE));
-		assertEquals(Integer.MAX_VALUE + 1L, uminus(Integer.MIN_VALUE));
-
-		// overflow from long to BigDecimal
-		BigDecimal MAX_LONG = BigDecimal.valueOf(Long.MAX_VALUE);
-		assertEquals(MAX_LONG.add(BigDecimal.ONE, MC),
-				add(Long.MAX_VALUE, 1));
-		assertEquals(MAX_LONG.subtract(BigDecimal.ONE.negate(), MC),
-				sub(Long.MAX_VALUE, -1));
-		assertEquals(MAX_LONG.multiply(BigDecimal.TEN, MC),
-				mul(Long.MAX_VALUE, 10));
-		assertEquals(BigDecimal.valueOf(Long.MIN_VALUE).negate(),
-				uminus(Long.MIN_VALUE));
+		assertEquals(Dnum.from(Integer.MAX_VALUE + 1L), add(Integer.MAX_VALUE, 1));
+		assertEquals(Dnum.from(Integer.MAX_VALUE + 1L), sub(Integer.MAX_VALUE, -1));
+		assertEquals(Dnum.from(Integer.MAX_VALUE * 10L), mul(Integer.MAX_VALUE, 10));
 	}
 
-	private static final Object p1 = BigDecimal.valueOf(1);
-	private static final Object m1 = BigDecimal.valueOf(-1);
+	private static final Object p1 = Dnum.from(1);
+	private static final Object m1 = Dnum.from(-1);
 
 	@Test
 	public void test_div() {
-		assertEquals(1,			div(MINUS_INF, MINUS_INF));
-		assertEquals(INF,		div(MINUS_INF, -9));
-		assertEquals(INF,		div(MINUS_INF, m9));
-		assertEquals(MINUS_INF,	div(MINUS_INF, ZERO));
-		assertEquals(MINUS_INF, div(MINUS_INF, 9));
-		assertEquals(MINUS_INF, div(MINUS_INF, p9));
-		assertEquals(-1, 		div(MINUS_INF, INF));
+		assertEquals(Dnum.One,	div(MinusInf, MinusInf));
+		assertEquals(Inf,		div(MinusInf, -9));
+		assertEquals(Inf,		div(MinusInf, m9));
+		assertEquals(MinusInf,	div(MinusInf, Zero));
+		assertEquals(MinusInf,	div(MinusInf, 9));
+		assertEquals(MinusInf,	div(MinusInf, p9));
+		assertEquals(Dnum.from(-1), div(MinusInf, Inf));
 
-		assertEquals(0,			div(m9, MINUS_INF));
+		assertEquals(Zero,		div(m9, MinusInf));
 		assertEquals(p1,		div(m9, -9));
 		assertEquals(p1,		div(m9, m9));
-		assertEquals(MINUS_INF, div(m9, 0));
-		assertEquals(MINUS_INF, div(m9, ZERO));
+		assertEquals(MinusInf,	div(m9, 0));
+		assertEquals(MinusInf,	div(m9, Zero));
 		assertEquals(m1,		div(m9, 9));
 		assertEquals(m1,		div(m9, p9));
-		assertEquals(0,			div(m9, INF));
+		assertEquals(Zero,		div(m9, Inf));
 
-		assertEquals(0,			div(-9, MINUS_INF));
+		assertEquals(Zero,		div(-9, MinusInf));
 		assertEquals(p1,		div(-9, m9));
 		assertEquals(p1,		div(-9, -9));
-		assertEquals(MINUS_INF,	div(-9, 0));
-		assertEquals(MINUS_INF,	div(-9, ZERO));
+		assertEquals(MinusInf,	div(-9, 0));
+		assertEquals(MinusInf,	div(-9, Zero));
 		assertEquals(m1,		div(-9, 9));
 		assertEquals(m1,		div(-9, p9));
-		assertEquals(0, 		div(-9, INF));
+		assertEquals(Zero, 		div(-9, Inf));
 
-		assertEquals(0,			div(0, MINUS_INF));
-		assertEquals(0,			div(0, m9));
-		assertEquals(0,			div(0, 0));
-		assertEquals(0,			div(0, 0));
-		assertEquals(0,			div(0, ZERO));
-		assertEquals(0,			div(0, 9));
-		assertEquals(0,			div(0, p9));
-		assertEquals(0, 		div(0, INF));
+		assertEquals(Zero,		div(0, MinusInf));
+		assertEquals(Zero,		div(0, m9));
+		assertEquals(Zero,		div(0, 0));
+		assertEquals(Zero,		div(0, 0));
+		assertEquals(Zero,		div(0, Zero));
+		assertEquals(Zero,		div(0, 9));
+		assertEquals(Zero,		div(0, p9));
+		assertEquals(Zero, 		div(0, Inf));
 
-		assertEquals(0,			div(ZERO, MINUS_INF));
-		assertEquals(0,			div(ZERO, m9));
-		assertEquals(0,			div(ZERO, 0));
-		assertEquals(0,			div(ZERO, 0));
-		assertEquals(0,			div(ZERO, ZERO));
-		assertEquals(0,			div(ZERO, 9));
-		assertEquals(0,			div(ZERO, p9));
-		assertEquals(0, 		div(ZERO, INF));
+		assertEquals(Zero,		div(Zero, MinusInf));
+		assertEquals(Zero,		div(Zero, m9));
+		assertEquals(Zero,		div(Zero, 0));
+		assertEquals(Zero,		div(Zero, 0));
+		assertEquals(Zero,		div(Zero, Zero));
+		assertEquals(Zero,		div(Zero, 9));
+		assertEquals(Zero,		div(Zero, p9));
+		assertEquals(Zero, 		div(Zero, Inf));
 
-		assertEquals(0,			div(9, MINUS_INF));
+		assertEquals(Zero,		div(9, MinusInf));
 		assertEquals(m1,		div(9, m9));
 		assertEquals(m1,		div(9, -9));
-		assertEquals(INF,		div(9, 0));
-		assertEquals(INF,		div(9, ZERO));
+		assertEquals(Inf,		div(9, 0));
+		assertEquals(Inf,		div(9, Zero));
 		assertEquals(p1,		div(9, 9));
 		assertEquals(p1,		div(9, p9));
-		assertEquals(0,			div(9, INF));
+		assertEquals(Zero,		div(9, Inf));
 
-		assertEquals(0,			div(p9, MINUS_INF));
+		assertEquals(Zero,		div(p9, MinusInf));
 		assertEquals(m1,		div(p9, m9));
 		assertEquals(m1,		div(p9, -9));
-		assertEquals(INF,		div(p9, 0));
-		assertEquals(INF,		div(p9, ZERO));
+		assertEquals(Inf,		div(p9, 0));
+		assertEquals(Inf,		div(p9, Zero));
 		assertEquals(p1,		div(p9, 9));
 		assertEquals(p1,		div(p9, p9));
-		assertEquals(0,			div(p9, INF));
+		assertEquals(Zero,		div(p9, Inf));
 
-		assertEquals(-1,		div(INF, MINUS_INF));
-		assertEquals(MINUS_INF,	div(INF, -9));
-		assertEquals(MINUS_INF,	div(INF, m9));
-		assertEquals(INF,		div(INF, 0));
-		assertEquals(INF,		div(INF, ZERO));
-		assertEquals(INF, 		div(INF, 9));
-		assertEquals(INF,		div(INF, p9));
-		assertEquals(1,			div(INF, INF));
+		assertEquals(Dnum.from(-1),	div(Inf, MinusInf));
+		assertEquals(MinusInf,	div(Inf, -9));
+		assertEquals(MinusInf,	div(Inf, m9));
+		assertEquals(Inf,		div(Inf, 0));
+		assertEquals(Inf,		div(Inf, Zero));
+		assertEquals(Inf, 		div(Inf, 9));
+		assertEquals(Inf,		div(Inf, p9));
+		assertEquals(Dnum.One,	div(Inf, Inf));
 	}
 
 	@Test
@@ -381,12 +364,6 @@ public class OpsTest {
 	}
 
 	@Test
-	public void test_toStringBD() {
-		assertEquals("10000000000000000000", Ops.toStringBD(new BigDecimal("1e19")));
-		assertEquals("1e20", Ops.toStringBD(new BigDecimal("1e20")));
-	}
-
-	@Test
 	public void getString() {
 		assertEquals("a", Ops.get("abcd", 0));
 		assertEquals("d", Ops.get("abcd", 3));
@@ -395,4 +372,30 @@ public class OpsTest {
 		assertEquals("a", Ops.get("abcd", -4));
 		assertEquals("", Ops.get("abcd", -5));
 	}
+
+	@Test
+	public void porttests() {
+		PortTests.addTest("compare", OpsTest::pt_compare);
+		PortTests.skipTest("lang_sub");
+		PortTests.skipTest("lang_range");
+		assert PortTests.runFile("lang.test");
+	}
+
+	public static boolean pt_compare(String... data) {
+		int n = data.length;
+		for (int i = 0; i < n; ++i) {
+			Object x = compile("test", data[i]);
+			if (Ops.cmp(x, x) != 0)
+				return false;
+			for (int j = i + 1; j < n; ++j) {
+				Object y = compile("test", data[j]);
+				if (Ops.cmp(x, y) >= 0 || Ops.cmp(y, x) <= 0) {
+					System.out.println(x + " should be less than " + y);
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+
 }

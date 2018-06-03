@@ -87,13 +87,14 @@ public abstract class SequenceBase extends SuContainer {
 
 	}
 
-	protected void ck_instantiate() {
+	protected SuContainer ck_instantiate() {
 		if (instantiated)
-			return;
+			return this;
 		if (infinite())
 			throw new SuException("can't instantiate infinite sequence");
 		instantiate();
 		instantiated = true;
+		return this;
 	}
 
 	@Override

@@ -9,7 +9,6 @@ import static java.lang.Math.min;
 import static suneido.runtime.Ops.toInt;
 import static suneido.util.Util.array;
 
-import java.math.BigDecimal;
 import java.util.AbstractMap;
 import java.util.Map;
 
@@ -19,6 +18,7 @@ import suneido.SuContainer.IterWhich;
 import suneido.SuException;
 import suneido.SuValue;
 import suneido.runtime.*;
+import suneido.util.Dnum;
 import suneido.util.Util.Range;
 
 /** Used by {@link SuContainer} */
@@ -48,29 +48,25 @@ public final class ContainerMethods {
 			++numValuesToAdd;
 		}
 		if (0 == numValuesToAdd) {
-			return c;
+			// nothing to do
 		} else if (null == atArg) {
 			addAt(c, c.vecSize(), numValuesToAdd, args);
-			return c;
-		} else if (atArg instanceof Number) {
-			if (atArg instanceof Integer) {
-				addAt(c, ((Integer) atArg).intValue(), numValuesToAdd, args);
-				return c;
-			} else {
-				BigDecimal bd = Numbers.toBigDecimal(atArg);
-				if (Numbers.integral(bd)
-						&& Numbers.isInRange(bd, Numbers.BD_INT_MIN,
-								Numbers.BD_INT_MAX)) {
-					addAt(c, bd.intValue(), numValuesToAdd, args);
-					return c;
-				}
-				// NOTE: This means if it's an integer but it doesn't fit in
-				//       the range of primitive "int", it's going in as a
-				//       dictionary put, not a vector add.
-			}
+		} else {
+			int i = intOrMin(atArg);
+			if (i != Integer.MIN_VALUE)
+				addAt(c, i, numValuesToAdd, args);
+			else
+				putAt(c, atArg, numValuesToAdd, args);
 		}
-		putAt(c, atArg, numValuesToAdd, args); // Dictionary put "at"
 		return c;
+	}
+
+	private static int intOrMin(Object x) {
+		if (x instanceof Integer)
+			return (int) x;
+		else if (x instanceof Dnum)
+			return ((Dnum) x).intOrMin();
+		return Integer.MIN_VALUE;
 	}
 
 	private static void addUsage() {
@@ -95,7 +91,7 @@ public final class ContainerMethods {
 			c.put(atArg, new ArgsIterator(args).next());
 		} else {
 			throw new SuException("can only Add multiple values to un-named "
-					+ "or to numeric positions");
+					+ "or numeric positions");
 		}
 	}
 

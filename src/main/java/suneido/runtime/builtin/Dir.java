@@ -8,13 +8,13 @@ import static suneido.runtime.Ops.toStr;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.math.BigDecimal;
 import java.util.regex.Pattern;
 
 import suneido.SuContainer;
 import suneido.SuDate;
 import suneido.runtime.Ops;
 import suneido.runtime.Params;
+import suneido.util.Dnum;
 
 public class Dir {
 
@@ -47,8 +47,7 @@ public class Dir {
 	private static SuContainer detailsOf(File f) {
 		SuContainer ob = new SuContainer();
 		ob.put("name", nameOf(f));
-		ob.put("size", f.length() < Integer.MAX_VALUE ? (int) f.length()
-				: BigDecimal.valueOf(f.length()));
+		ob.put("size", Dnum.from(f.length()));
 		ob.put("date", SuDate.fromTime(f.lastModified()));
 		ob.put("attr", attrOf(f));
 		return ob;
