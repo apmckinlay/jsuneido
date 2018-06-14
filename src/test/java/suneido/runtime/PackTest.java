@@ -97,7 +97,7 @@ public class PackTest {
 
 	@Test
 	public void pack_dnum() {
-		String[] data = { "0", "123", "-123", "inf", "-inf", ".001",
+		String[] data = { "-123e-64", "0", "123", "-123", "inf", "-inf", ".001",
 				"1234567890123456", "-123e-99", "456e99" };
 		for (String s : data) {
 			Dnum dn = Dnum.parse(s);

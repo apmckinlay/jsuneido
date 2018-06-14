@@ -74,8 +74,8 @@ public class SuValueTest {
 			return ; // skip divide by zero
 		z = div(x, y);
 		if (z instanceof Dnum)
-			z = ((Dnum) div(x, y)).round(15);
-		Object expected = Dnum.from(((double) i) / ((double) j));
+			z = ((Dnum) z).round(15);
+		Object expected = Dnum.from(((double) i) / ((double) j)).round(15);
 		assertTrue(i + " / " + j + " expected " + expected + " got " + z,
 				is(expected, z));
 	}

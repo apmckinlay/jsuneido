@@ -18,8 +18,8 @@ import suneido.util.Dnum;
  * <li>exponent converted to compare as unsigned byte
  * <li>coefficient encoded as one byte per two decimal digits
  *
- * NOTE: Dnum IS NOT CURRENTLY USED
  * WARNING: this pack format is NOT compatible with cSuneido
+ * See Pack for the old format
  */
 public class PackDnum {
 

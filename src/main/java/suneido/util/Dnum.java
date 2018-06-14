@@ -201,6 +201,8 @@ public class Dnum extends Number implements Comparable<Dnum> {
 			// skip leading zeroes, no effect on result
 			while (match('0'))
 				digits = true;
+			if (next() == '.' && i + 1 < s.length())
+				digits = false;
 
 			long n = 0;
 			int p = MAX_SHIFT;
@@ -383,53 +385,31 @@ public class Dnum extends Number implements Comparable<Dnum> {
 	// add and subtract --------------------------------------------------------
 
 	public static Dnum add(Dnum x, Dnum y) {
-		if (x.isZero())
+		if (x.sign == 0)
 			return y;
-		else if (y.isZero())
+		if (y.sign == 0)
 			return x;
-		else if (x.is(Inf))
-			if (y.is(MinusInf))
-				return Zero;
-			else
-				return Inf;
-		else if (x.is(MinusInf))
-			if (y.is(Inf))
-				return Zero;
-			else
-				return MinusInf;
-		else if (y.is(Inf))
-			return Inf;
-		else if (y.is(MinusInf))
-			return MinusInf;
-		else if (x.sign != y.sign)
-			return usub(x, y);
-		else
-			return uadd(x, y);
+		if (x.sign == POS_INF || x.sign == NEG_INF)
+			return (y.sign == -x.sign) ? Zero : x;
+		if (y.sign == POS_INF || y.sign == NEG_INF)
+			return y;
+
+		return (x.sign == y.sign) ? uadd(x, y) : usub(x, y);
 	}
 
 	public static Dnum sub(Dnum x, Dnum y) {
-		if (x.isZero())
+		if (x.sign == 0)
 			return y.negate();
-		else if (y.isZero())
+		if (y.sign == 0)
 			return x;
-		else if (x.is(Inf))
-			if (y.is(Inf))
-				return Zero;
-			else
-				return Inf;
-		else if (x.is(MinusInf))
-			if (y.is(MinusInf))
-				return Zero;
-			else
-				return MinusInf;
-		else if (y.is(Inf))
+		if (x.sign == POS_INF || x.sign == NEG_INF)
+			return (y.sign == x.sign) ? Zero : x;
+		if (y.sign == POS_INF)
 			return MinusInf;
-		else if (y.is(MinusInf))
+		if (y.sign == NEG_INF)
 			return Inf;
-		else if (x.sign != y.sign)
-			return uadd(x, y);
-		else
-			return usub(x, y);
+
+		return (x.sign == y.sign) ? usub(x, y) : uadd(x, y);
 	}
 
 	/** unsigned add */
@@ -569,10 +549,6 @@ public class Dnum extends Number implements Comparable<Dnum> {
 		return x.sign == y.sign && x.exp == y.exp &&
 				(x.coef / 10) == (y.coef / 10);
 		}
-
-	private boolean is(Dnum other) {
-		return coef == other.coef && exp == other.exp && sign == other.sign;
-	}
 
 	@Override
 	public int compareTo(Dnum that) {
@@ -749,7 +725,7 @@ public class Dnum extends Number implements Comparable<Dnum> {
 		Dnum n = new Dnum(sign, coef, exp + r); // multiply by 10^r
 		n = n.integer(mode);
 		if (n.sign == POS || n.sign == NEG) // i.e. not zero or inf
-			return new Dnum(n.sign, n.coef, n.exp - (byte) r);
+			return new Dnum(n.sign, n.coef, n.exp - r);
 		return n;
 	}
 

@@ -111,6 +111,7 @@ public class Pack {
 	}
 
 	// numbers =================================================================
+	// NOTE: this is the old pack format, see PackDnum for the new format
 
 	/** 16 digits - maximum precision that cSuneido handles */
 	private static final long MAX_PREC = 		9999999999999999L;
@@ -147,9 +148,8 @@ public class Pack {
 		}
 		int ps = packshorts(n);
 		e = e / 4 + ps;
-		if (e >= Byte.MAX_VALUE) {
+		if (e >= Byte.MAX_VALUE)
 			return 2;
-		}
 		return 2 /* tag and exponent */ + 2 * ps;
 	}
 

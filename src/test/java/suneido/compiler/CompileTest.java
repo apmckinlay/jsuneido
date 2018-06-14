@@ -675,19 +675,25 @@ public class CompileTest {
 		String s = args[0];
 		String type = args[1];
 		String expected = args[2];
+		boolean ok = true;
 		try {
 			Object x = Compiler.compile("", s);
 			if (!type.equals(Ops.typeName(x)))
-				return false;
+				ok = false;
 			if (!expected.equals(Ops.display(x)))
-				return false;
+				ok = false;
+			if (!ok)
+				System.out.println("\tgot: " +
+						Ops.typeName(x) + ", " + Ops.display(x));
 		} catch (RuntimeException e) {
 			if (!type.equals("Exception"))
-				return false;
+				ok = false;
 			if (!e.getMessage().contains(expected))
-				return false;
+				ok = false;
+			if (!ok)
+				System.out.println("\tgot: " + e);
 		}
-		return true;
+		return ok;
 	}
 
 }

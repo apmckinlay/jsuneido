@@ -48,6 +48,10 @@ public class DnumTest {
 		parseTest(".9e-9", "+.9e-9");
 		parseTest("-1e-11", "-.1e-10");
 		parseTest("-12.34e56", "-.1234e58");
+		parseTest(".001", "+.1e-2");
+		parseTest("0.001", "+.1e-2");
+		parseTest(".000000000000000000001", "+.1e-20");
+		parseTest("0.000000000000000000001", "+.1e-20");
 
 		assertThat(Dnum.parse("1e999"), equalTo(Inf));
 		assertThat(Dnum.parse("1e-999"), equalTo(Zero));
