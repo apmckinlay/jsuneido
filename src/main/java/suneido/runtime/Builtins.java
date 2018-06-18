@@ -102,6 +102,7 @@ public class Builtins {
 			.put("Server?", function(ServerQ.class))
 			.put("SetFileWritable", function(SetFileWritable.class))
 			.put("Sha1", new Digest.Clazz("SHA-1", "Sha1"))
+			.put("Sha256", new Digest.Clazz("SHA-256", "Sha256"))
 			.put("Sleep", function(Sleep.class))
 			.put("SocketClient", SocketClient.clazz)
 			.put("SocketServer", SocketServer.singleton)
