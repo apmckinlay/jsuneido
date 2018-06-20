@@ -56,7 +56,7 @@ public class Pack {
 
 	public static ByteBuffer packLong(long n) {
 		ByteBuffer buf = ByteBuffer.allocate(packSizeLong(n));
-		pack(n, buf);
+		packLong(n, buf);
 		buf.rewind();
 		return buf;
 	}
@@ -90,9 +90,9 @@ public class Pack {
 		if (xType == Boolean.class)
 			buf.put(x == Boolean.TRUE ? Tag.TRUE : Tag.FALSE);
 		else if (xType == Integer.class)
-			packNum((Integer) x, 0, buf);
+			packLong((int) x, buf);
 		else if (xType == Long.class)
-			packNum((Long) x, 0, buf);
+			packLong((long) x, buf);
 		else if (xType == Dnum.class)
 			packDnum((Dnum) x, buf);
 		else if (xType == String.class)
@@ -113,93 +113,93 @@ public class Pack {
 	// numbers =================================================================
 	// NOTE: this is the old pack format, see PackDnum for the new format
 
-	/** 16 digits - maximum precision that cSuneido handles */
-	private static final long MAX_PREC = 		9999999999999999L;
-	private static final long MAX_PREC_DIV_10 = 999999999999999L;
+	static int pow10[] = { 1, 10, 100, 1000 };
 
+	/** limited by 16 digit pack format */
 	public static int packSizeLong(long n) {
-		return packSizeNum(n, 0);
-	}
-
-	private static int packSizeDnum(Dnum dn) {
-		if (dn.isInf())
-			return packSizeNum(dn.signum(), 4 * Byte.MAX_VALUE);
-		return packSizeNum(dn.coef(), dn.exp() - Dnum.MAX_DIGITS);
-	}
-
-	private static int packSizeNum(long n, int e) {
 		if (n == 0)
 			return 1;
 		if (n < 0)
 			n = -n;
-		// strip trailing zeroes
-		while ((n % 10) == 0) {
-			n /= 10;
-			e++;
-		}
-		// adjust e to a multiple of 4 (to match cSuneido)
-		while ((e % 4) != 0 && n < MAX_PREC_DIV_10) {
-			n *= 10;
-			--e;
-		}
-		while ((e % 4) != 0 || n > MAX_PREC) {
-			n /= 10;
-			++e;
-		}
-		int ps = packshorts(n);
-		e = e / 4 + ps;
-		if (e >= Byte.MAX_VALUE)
-			return 2;
-		return 2 /* tag and exponent */ + 2 * ps;
-	}
-
-	private static int packshorts(long n) {
-		int i = 0;
-		for (; n != 0; ++i)
+		while (n % 10000 == 0)
 			n /= 10000;
-		assert i <= 4; // cSuneido limit
-		return i;
-	}
-
-	private static void packDnum(Dnum dn, ByteBuffer buf) {
-		if (dn.isInf())
-			packNum(dn.signum(), 4 * Byte.MAX_VALUE, buf);
+		if (n < 10000)
+			return 4;
+		else if (n < 1_0000_0000)
+			return 6;
+		else if (n < 1_0000_0000_0000L)
+			return 8;
 		else
-			packNum(dn.signum() * dn.coef(), dn.exp() - Dnum.MAX_DIGITS, buf);
+			return 10;
 	}
 
-	public static void pack(long n, ByteBuffer buf) {
-		packNum(n, 0, buf);
+	private static int packSizeDnum(Dnum dn) {
+		if (dn.isZero())
+			return 1;
+		if (dn.isInf())
+			return 2;
+		int e = dn.exp();
+		long n = dn.coef();
+		int p = e > 0 ? 4 - (e % 4) : Math.abs(e) % 4;
+		if (p != 4)
+			n /= pow10[p];
+		n %= 1_0000_0000_0000L;
+		if (n == 0)
+			return 4;
+		n %= 1_0000_0000;
+		if (n == 0)
+			return 6;
+		n %= 1_0000;
+		if (n == 0)
+			return 8;
+		return 10;
 	}
 
-	private static void packNum(long n, int e, ByteBuffer buf) {
+	/** limited by 16 digit pack format */
+	public static void packLong(long n, ByteBuffer buf) {
 		boolean minus = n < 0;
 		buf.put(minus ? Tag.MINUS : Tag.PLUS);
 		if (n == 0)
 			return;
-		if (n < 0)
+		if (minus)
 			n = -n;
-		// strip trailing zeroes
-		while ((n % 10) == 0) {
-			n /= 10;
-			e++;
-		}
-		// make e multiple of 4, and limit precision
-		while ((e % 4) != 0 && n < MAX_PREC_DIV_10) {
-			n *= 10;
-			--e;
-		}
-		while ((e % 4) != 0 || n > MAX_PREC) {
-			n /= 10;
+		int e = 0;
+		while (n % 10000 == 0) {
+			n /= 10000;
 			++e;
 		}
-		e = e / 4 + packshorts(n);
-		if (e >= Byte.MAX_VALUE) {
-			buf.put((byte) (minus ? 0 : 255));
-			return;
+		short sh[] = new short[4];
+		int i;
+		for (i = 0; n != 0; ++i) {
+			long n1 = n % 10000;
+			sh[i] = (short) (minus ? ~n1 : n1);
+			n /= 10000;
 		}
+		e = e + i ^ 0x80;
+		buf.put((byte) (minus ? ~e : e));
+		while (--i >= 0)
+			buf.putShort(sh[i]);
+	}
+
+	private static void packDnum(Dnum dn, ByteBuffer buf) {
+		int sign = dn.signum();
+		buf.put(sign < 0 ? Tag.MINUS : Tag.PLUS);
+		if (dn.isInf())
+			buf.put(sign < 0 ? 0 : (byte) 255);
+		else if (sign != 0)
+			packNum(sign < 0, dn.coef(), dn.exp(), buf);
+	}
+
+	private static void packNum(boolean minus, long n, int e, ByteBuffer buf) {
+		int p = e > 0 ? 4 - (e % 4) : Math.abs(e) % 4;
+		if (p != 4)
+			{
+			n /= pow10[p]; // may lose up to 3 digits of precision
+			e += p;
+			}
+		e /= 4;
 		buf.put(scale(e, minus));
-		packLongPart(buf, n, minus);
+		packCoef(buf, n, minus);
 	}
 
 	private static byte scale(int e, boolean minus) {
@@ -209,25 +209,35 @@ public class Pack {
 		return eb;
 	}
 
-	private static void packLongPart(ByteBuffer buf, long n, boolean minus) {
-		short sh[] = new short[4];
-		int i;
-		for (i = 0; n != 0; ++i) {
-			sh[i] = digit(n % 10000, minus);
-			n /= 10000;
-		}
-		while (--i >= 0)
-			buf.putShort(sh[i]);
+	/** for maximized coef */
+	private static void packCoef(ByteBuffer buf, long n, boolean minus) {
+		putDigit(buf, minus, (short) (n / 1_0000_0000_0000L));
+		n %= 1_0000_0000_0000L;
+		if (n == 0)
+			return;
+		putDigit(buf, minus, (short) (n / 1_0000_0000));
+		n %= 1_0000_0000;
+		if (n == 0)
+			return;
+		putDigit(buf, minus, (short) (n / 1_0000));
+		n %= 1_0000;
+		if (n == 0)
+			return;
+		putDigit(buf, minus, (short) n);
 	}
 
-	private static short digit(long n, boolean minus) {
-		return (short) (minus ? ~(n & 0xffff) : n);
+	private static void putDigit(ByteBuffer buf, boolean minus, short n) {
+		if (minus)
+			n = (short) ~n;
+		buf.putShort(n);
 	}
 
 	public static int packSize(Object x, int nest) {
 		return x instanceof SuContainer ? ((SuContainer) x).packSize(nest)
 				: packSize(x);
 	}
+
+	// --------------------------------------------------------------
 
 	public static Object unpack(ByteBuffer buf) {
 		if (buf.remaining() == 0)
@@ -262,67 +272,54 @@ public class Pack {
 	public static long unpackLong(ByteBuffer buf) {
 		byte t = buf.get();
 		if (t != Tag.MINUS && t != Tag.PLUS)
-			throw new SuException("unpackLong unexpected type");
+			throw new SuException("unpackInt unexpected type");
 		if (buf.remaining() == 0)
 			return 0;
 		boolean minus = (t == Tag.MINUS);
-		int s = buf.get() & 0xff;
-		if (s == 0 || s == 255)
-			throw new SuException("unpackLong got infinity");
+		int e = buf.get() & 0xff;
+		if (e == 0 || e == 255)
+			throw new SuException("unpackInt got infinity");
 		if (minus)
-			s = ((~s) & 0xff);
-		s = (byte) (s ^ 0x80);
-		s = -(s - buf.remaining() / 2) * 4;
+			e = ((~e) & 0xff);
+		e = (byte) (e ^ 0x80);
+		int sz = buf.remaining();
+		e = (e - sz / 2);
 		long n = unpackLongPart(buf, minus);
-		if (n == 0)
-			return 0;
-		if (-10 <= s && s < 0)
-			for (; s < 0 && n < MAX_LONG_DIV_10; ++s)
-				n *= 10;
-		if (s != 0)
-			throw new SuException("unpackLong got Dnum");
+		for (; e > 0; --e)
+			n *= 10000;
 		return minus ? -n : n;
 	}
 
-	private static final long MAX_LONG_DIV_10 = Long.MAX_VALUE / 10;
+	private static final long MAX_SHIFTABLE = Integer.MAX_VALUE / 10000;
 
 	private static Object unpackNum(ByteBuffer buf) {
 		if (buf.remaining() == 0)
 			return 0;
 		boolean minus = buf.get(buf.position() - 1) == Tag.MINUS;
-		int s = buf.get() & 0xff;
-		if (s == 0)
+		int e = buf.get() & 0xff;
+		if (e == 0)
 			return Dnum.MinusInf;
-		if (s == 255)
+		if (e == 255)
 			return Dnum.Inf;
 		if (minus)
-			s = ((~s) & 0xff);
-		s = (byte) (s ^ 0x80);
-		s = -(s - buf.remaining() / 2) * 4;
+			e = ((~e) & 0xff);
+		e = (byte) (e ^ 0x80);
+		e = (e - buf.remaining() / 2);
+		// unpack min coef for easy conversion to integer
 		long n = unpackLongPart(buf, minus);
-		if (n == 0)
-			return 0;
-		if (-10 <= s && s < 0)
-			for (; s < 0 && n < MAX_LONG_DIV_10; ++s)
-				n *= 10;
-		if (s != 0)
-			return Dnum.from(minus ? -1 : +1, n, -s + Dnum.MAX_DIGITS);
-		if (minus)
-			n = -n;
-		if (Integer.MIN_VALUE <= n && n <= Integer.MAX_VALUE)
-			return (int) n;
-		else
-			return n;
+		for (; 1 <= e && e <= 2 && n <= MAX_SHIFTABLE; --e)
+			n *= 10000;
+		if (e == 0 && n <= Integer.MAX_VALUE)
+			return (int)(minus ? -n : n);
+		return Dnum.from(minus ? -1 : +1, n, 4 * e + Dnum.MAX_DIGITS);
 	}
 
+	/** unsigned, min coef */
 	private static long unpackLongPart(ByteBuffer buf, boolean minus) {
+		int flip = minus ? 0xffff : 0;
 		long n = 0;
-		while (buf.remaining() > 0) {
-			short x = buf.getShort();
-			if (minus)
-				x = (short) ((~x) & 0xffff);
-			n = n * 10000 + x;
-		}
+		while (buf.remaining() > 0)
+			n = n * 10000 + (short) (buf.getShort() ^ flip);
 		return n;
 	}
 

@@ -6,11 +6,11 @@ package suneido.database.immudb;
 
 import java.util.Arrays;
 
-import suneido.database.immudb.Bootstrap.TN;
-
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+
+import suneido.database.immudb.Bootstrap.TN;
 
 /**
  * Table stats - nextfield, nrows, totalsize, indexInfo
@@ -50,7 +50,7 @@ class TableInfo extends DbHashTrie.Entry {
 		tblnum = rec.getInt(i++);
 		nextfield = rec.getInt(i++);
 		nrows = rec.getInt(i++);
-		totalsize = rec.getLong(i++);
+		totalsize = rec.getInt(i++);
 		ImmutableList.Builder<IndexInfo> list = ImmutableList.builder();
 		for (; i < rec.size(); i += IndexInfo.NFIELDS)
 			list.add(new IndexInfo(rec, i));

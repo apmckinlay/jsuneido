@@ -26,9 +26,11 @@ public class PackTest {
 		test(false);
 		test(true);
 		test(0);
-		test(Dnum.Zero, 0);
-		test(1);
+		test(Dnum.Zero);
+		test(Dnum.Inf);
+		test(Dnum.MinusInf);
 		test(Dnum.One, 1);
+		test(1);
 		test(Dnum.parse("4.945573770491"));
 		test("");
 		test("abc");
@@ -40,8 +42,6 @@ public class PackTest {
 		test(1234);
 		test(12345678);
 		test(1234567890);
-		test(Dnum.Inf);
-		test(Dnum.MinusInf);
 	}
 
 	private static void test(Object x) {
@@ -62,7 +62,7 @@ public class PackTest {
 	}
 
 	@Test
-	public void pack_number_bug() {
+	public void pack_int_bug() {
 		assertEquals(4, packSizeLong(10000));
 
 		ByteBuffer buf = packLong(10000);
@@ -74,14 +74,14 @@ public class PackTest {
 	}
 
 	@Test
-	public void pack_int_vs_bd() {
+	public void pack_int_vs_dnum() {
 		t(0);
 		t(1);
 		t(10000);
 		t(10001);
 	}
 
-	private static void t(int n) {
+	private static void t(long n) {
 		assertEquals(packLong(n), pack(Dnum.from(n)));
 	}
 
@@ -90,9 +90,8 @@ public class PackTest {
 		assertThat(packSizeLong(1000), equalTo(4));
 		assertThat(packSizeLong(10000), equalTo(4));
 		assertThat(packSizeLong(10001), equalTo(6));
-		assertThat(packSizeLong(9999999999999999L), equalTo(10));
-		assertThat(packSizeLong(Long.MAX_VALUE), equalTo(10));
-		assertThat(packSize(Dnum.from(Long.MAX_VALUE)), equalTo(10));
+		assertThat(packSizeLong(Integer.MAX_VALUE), equalTo(8));
+		assertThat(packSize(Dnum.from(Integer.MAX_VALUE)), equalTo(8));
 	}
 
 	@Test
@@ -117,12 +116,19 @@ public class PackTest {
 		upl(0);
 		upl(123);
 		upl(-123);
-		upl(Integer.MAX_VALUE);
-		upl(Integer.MIN_VALUE);
+		upl(1230000);
+		upl(-1230000);
+		upl(2000000000);
+		upl(-2000000000);
+		upl(9999_9999_9999_9999L);
+		upl(-9999_9999_9999_9999L);
+		upl(9999_0000_0000_0000L);
+		upl(-9999_0000_0000_0000L);
 	}
 
 	void upl(long n) {
 		ByteBuffer buf = Pack.packLong(n);
+		assertThat(buf, equalTo(Pack.pack(Dnum.from(n))));
 		assertThat(Pack.unpackLong(buf), equalTo(n));
 	}
 

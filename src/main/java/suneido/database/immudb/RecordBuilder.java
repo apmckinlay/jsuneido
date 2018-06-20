@@ -37,7 +37,7 @@ public class RecordBuilder {
 		return this;
 	}
 
-	public RecordBuilder add(int n) {
+	public RecordBuilder add(long n) {
 		ByteBuffer buf = Pack.packLong(n);
 		add1(buf, 0, buf.remaining());
 		return this;
