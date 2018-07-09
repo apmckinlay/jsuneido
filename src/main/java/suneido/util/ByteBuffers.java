@@ -107,6 +107,7 @@ public class ByteBuffers {
 		return s;
 	}
 
+	/** Unsigned byte compare */
 	public static int bufferUcompare(ByteBuffer b1, ByteBuffer b2) {
 		int b1pos = b1.position();
 		int b2pos = b2.position();

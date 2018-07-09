@@ -8,7 +8,9 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static suneido.compiler.Compiler.compile;
 import static suneido.runtime.Pack.*;
+import static suneido.util.ByteBuffers.bufferUcompare;
 
 import java.nio.ByteBuffer;
 
@@ -130,6 +132,21 @@ public class PackTest {
 		ByteBuffer buf = Pack.packLong(n);
 		assertThat(buf, equalTo(Pack.pack(Dnum.from(n))));
 		assertThat(Pack.unpackLong(buf), equalTo(n));
+	}
+
+	public static boolean pt_compare(String... data) {
+		int n = data.length;
+		for (int i = 0; i < n; ++i) {
+			ByteBuffer x = Pack.pack(compile("test", data[i]));
+			for (int j = i + 1; j < n; ++j) {
+				ByteBuffer y = Pack.pack(compile("test", data[j]));
+				if (bufferUcompare(x, y) >= 0 || bufferUcompare(y, x) <= 0) {
+					System.out.println("\t" + x + " should be less than " + y);
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 
 }

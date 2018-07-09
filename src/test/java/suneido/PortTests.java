@@ -20,6 +20,7 @@ import suneido.compiler.ExecuteTest;
 import suneido.compiler.Lexer;
 import suneido.compiler.Token;
 import suneido.runtime.OpsTest;
+import suneido.runtime.PackTest;
 import suneido.util.DnumTest;
 import suneido.util.RegexTest;
 import suneido.util.TrTest;
@@ -199,6 +200,7 @@ public class PortTests {
 		addTest("lang_range", ExecuteTest::pt_lang_range);
 		addTest("compile", CompileTest::pt_compile);
 		addTest("compare", OpsTest::pt_compare);
+		addTest("compare_packed", PackTest::pt_compare);
 
 		Suneido.openDbms();
 		System.out.println("'" + testdir + "'");
