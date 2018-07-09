@@ -200,6 +200,7 @@ public class PortTests {
 		addTest("compile", CompileTest::pt_compile);
 		addTest("compare", OpsTest::pt_compare);
 
+		Suneido.openDbms();
 		System.out.println("'" + testdir + "'");
 		for (String filename : new File(testdir).list())
 			if (filename.endsWith(".test"))
