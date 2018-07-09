@@ -3,153 +3,72 @@
 <project default="build" name="jSuneido Ant build file">
 
 	<property name="lib.dir" value="lib"/>
-	<property name="lib.lucene-core" value="lucene-core-4.10.3.jar"/>
-	<property name="lib.lucene-analyzers-common" value="lucene-analyzers-common-4.10.3.jar"/>
-	<property name="lib.lucene-queryparser" value="lucene-queryparser-4.10.3.jar"/>
-	<property name="lib.lucene-highlighter" value="lucene-highlighter-4.10.3.jar"/>
 
 	<property name="main.srcdir" value="src/main/java"/>
 	<property name="main.dstdir.classes" value="target/classes"/>
-	<property name="main.dstdir.jars" value="target/jar"/>
-	<property name="main.dstdir.raw-jars" value="target/jar/raw"/>
+	<property name="target.jar" value="target/jsuneido.jar"/>
 
 	<path id="main.classpath">
-		<pathelement location="${lib.dir}/asm-all-5.2.jar"/>
-		<pathelement location="${lib.dir}/guava-24.0-jre.jar"/>
+		<pathelement location="${lib.dir}/asm-6.2.jar"/>
+		<pathelement location="${lib.dir}/asm-analysis-6.2.jar"/>
+		<pathelement location="${lib.dir}/asm-commons-6.2.jar"/>
+		<pathelement location="${lib.dir}/asm-tree-6.2.jar"/>
+		<pathelement location="${lib.dir}/asm-util-6.2.jar"/>
+		<pathelement location="${lib.dir}/guava-25.1-jre.jar"/>
 		<pathelement location="${lib.dir}/checker-compat-qual-2.3.1.jar"/>
 		<pathelement location="${lib.dir}/jsr305-1.3.9.jar"/>
-		<pathelement location="${lib.dir}/${lib.lucene-core}"/>
-		<pathelement location="${lib.dir}/${lib.lucene-analyzers-common}"/>
-		<pathelement location="${lib.dir}/${lib.lucene-queryparser}"/>
-		<pathelement location="${lib.dir}/${lib.lucene-highlighter}"/>
+		<pathelement location="${lib.dir}/lucene-core-4.10.3.jar"/>
+		<pathelement location="${lib.dir}/lucene-analyzers-common-4.10.3.jar"/>
+		<pathelement location="${lib.dir}/lucene-queryparser-4.10.3.jar"/>
+		<pathelement location="${lib.dir}/lucene-highlighter-4.10.3.jar"/>
 		<pathelement location="${lib.dir}/trove-3.0.3.jar"/>
 	</path>
 
-	<patternset id="main.base.classes">
-		<include name="**/*.class*"/>
-	</patternset>
-
-	<property name="jar.manifest.file" value="${main.dstdir.raw-jars}/MANIFEST.MF"/>
-	<property name="jar.manifest.main-class" value="suneido.Suneido"/>
-	<property name="jar.name.prefix" value="jsuneido"/>
-	<property name="jar.name.suffix-final" value=".jar"/>
-	<property name="jar.name.suffix-raw" value="-raw.jar"/>
-
-	<property name="jar.final.jsuneido"
-		value="${main.dstdir.jars}/${jar.name.prefix}${jar.name.suffix-final}"/>
-
-	<property name="jar.raw.jsuneido" 
-		value="${main.dstdir.raw-jars}/${jar.name.prefix}${jar.name.suffix-final}"/>
-
-	<!--                -->
-	<!-- PUBLIC TARGETs -->
-	<!--                -->
-
-	<target name="build" description="Build all jSuneido JARS"
-			depends="target-jsuneido"/>
-
-	<target name="clean" description="Delete all outputs"
-			depends="clean-classes,clean-raw-jars,clean-jars"/>
+	<target name="build" description="Build jsuneido.jar"
+		depends="compile">
+		<jar destfile="${target.jar}">
+			<manifest>
+				<attribute name="Main-Class" value="suneido.Suneido" />
+				<section name="Built">
+					<attribute name="By" value="${user.name}"/>
+					<attribute name="When" value="${when}"/>
+				</section>
+			</manifest>
+			<fileset dir="${main.dstdir.classes}">
+				<patternset>
+					<include name="**/*.class*"/>
+				</patternset>
+			</fileset>
+			<zipgroupfileset dir="lib" includes="asm-6.2.jar,
+				asm-analysis-6.2.jar, asm-commons-6.2.jar, 
+				asm-tree-6.2.jar, asm-util-6.2.jar,
+				guava-25.1-jre.jar, lucene-analyzers-common-4.10.3.jar,
+				lucene-core-4.10.3.jar, lucene-highlighter-4.10.3.jar,
+				lucene-queryparser-4.10.3.jar, trove-3.0.3.jar" />
+		</jar>
+		<copy file="${target.jar}" todir="."/>
+	</target>
+	
+	<target name="clean" description="Delete all outputs">
+		<delete dir="target" />
+	</target>
 
 	<target name="rebuild" description="Rebuild all jSuneido JARS"
 			depends="clean,build"/>
 
-	<target name="target-jsuneido"
-			description="jsuneido.jar"
-			depends="raw-jar">
-		<java jar="${lib.dir}/proguard.jar" fork="true" failonerror="true">
-			<arg value="-injars ${jar.raw.jsuneido}"/>
-			<arg value="@jsuneido.pro"/>
-			<arg value="-outjars ${jar.final.jsuneido}"/>
-		</java>
-		<copy file="${jar.final.jsuneido}" todir="."/>
-	</target>
-
-	<!--                           -->
-	<!-- INTERNAL TARGETS: GENERAL -->
-	<!--                           -->
-
-	<!--	NOTE: Don't include "description" element on internal targets or
-			will lose their internalness -->
-
 	<target name="compile" depends="dirs">
+		<echo message="${java.home}" level="info"/>
 		<!-- specifying debug="true" without debuglevel
 			should result in -g i.e. all debug info vars,file,line -->
 		<javac srcdir="${main.srcdir}" destdir="${main.dstdir.classes}"
 				classpathref="main.classpath"
 				includeAntRuntime="false"
-				target="1.8"
-				debug="true"
-				listfiles="true"
-		>
-		</javac>
+				release="8"
+				debug="true"/>
 	</target>
-
-	<target name="manifest" depends="dirs">
-		<manifest file="${jar.manifest.file}">
-			<attribute name="Main-Class" value="${jar.manifest.main-class}"/>
-			<!--
-				Newlines in Class-Path value are deliberate.
-				NOTE: Putting in bare and lib/-relative variants of lucene makes
-				it a bit easier to run the JAR without getting the dreaded 
-				"ERROR: lucene not found" message. ClassLoader will just use the
-				first version of the JAR that it finds.
-			--> 
-			<attribute name="Class-Path" value="${lib.lucene-core}
-${lib.lucene-analyzers-common}
-${lib.lucene-queryparser}
-${lib.lucene-highlighter}
-lib/${lib.lucene-core}
-lib/${lib.lucene-analyzers-common}
-lib/${lib.lucene-queryparser}
-lib/${lib.lucene-highlighter}"
-			/>
-			<section name="Built">
-				<attribute name="By" value="${user.name}"/>
-				<attribute name="When" value="${when}"/>
-			</section>
-		</manifest>
-	</target>
-
-	<target name="clean-classes">
-		<delete dir="${main.dstdir.classes}"/>
-	</target>
-
-	<target name="clean-raw-jars">
-		<delete dir="${main.dstdir.raw-jars}"/>
-	</target>
-
-	<target name="clean-jars">
-		<delete file="jsuneido.jar"/>
-		<!--
-			Delete the directory, being careful not to blindly follow the "lib"
-			symbolic link. Per the Ant docs:
-			
-				'For historical reasons <delete dir="x"/> is different from
-				 <delete><fileset dir="x"/></delete>, it will try to remove
-				 everything inside "x" including "x" itself, not taking default
-				 excludes into account, blindly following all symbolic links.
-				 If you need more control, use a nested <fileset>.'
-		-->
-		<delete>
-			<fileset dir="${main.dstdir.jars}" followsymlinks="false"/>
-		</delete>
-	</target>
-
-	<target name="required-files" depends="dirs"/>
 
 	<target name="dirs">
 		<mkdir dir="${main.dstdir.classes}"/>
-		<mkdir dir="${main.dstdir.jars}"/>
-		<mkdir dir="${main.dstdir.raw-jars}"/>
-	</target>
-
-	<target name="raw-jar" depends="compile,manifest">
-		<jar destfile="${jar.raw.jsuneido}" manifest="${jar.manifest.file}">
-			<fileset dir="${main.dstdir.classes}">
-				<patternset refid="main.base.classes"/>
-			</fileset>
-		</jar>
 	</target>
 
 </project>
