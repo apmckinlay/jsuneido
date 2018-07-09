@@ -52,8 +52,6 @@ public enum Token {
 	NEW("new"), RETURN("return"), TRY("try"), THROW("throw"),
 	SUPER("super"), TRUE("true"), FALSE("false"),
 	IN("in"), THIS("this"),
-	// TODO include bool, int8, int16, int32, int64, pointer, callback, etc.
-	//      for compatibility with cSuneido scanner...
 
 	// for queries
 	ALTER("alter"), AVERAGE("average", SUMOP), BY("by"),
