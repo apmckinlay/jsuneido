@@ -31,10 +31,7 @@ import suneido.util.TrTest;
  * Currently, there are implementations in jSuneido, gSuneido,
  * and in Suneido (stdlib) itself.
  * <p>
- * Looks for a ptestdir.txt file in a parent directory
- * that contains the path to the tests.
- * Since the tests are shared between multiple suneido implementations
- * ptestdir.txt should be in a common parent.
+ * Expects tests in ../suneido_tests i.e. a sibling directory
  * <p>
  * Fixtures must be defined in each implementation for each type of test,
  * usually along with the other unit test code.
@@ -42,30 +39,15 @@ import suneido.util.TrTest;
  * Tests are in a separate repo at github.com/apmckinlay/suneido_tests
  */
 public class PortTests {
-	static class TestDir {
-		final static String path = findTestDir(); // lazy initialization
-
-		private static String findTestDir() {
-			String file = "ptestdir.txt";
-			for (int i = 0; i < 8; i++) {
-				try {
-					byte[] b = Files.readAllBytes(Paths.get(file));
-					return new String(b).trim();
-				} catch (Throwable e) {
-				}
-				file = "../" + file;
-			}
-			throw new RuntimeException("PortTests could not file ptestdir.txt");
-		}
-	}
+	final static String testdir = "../suneido_tests/";
 
 	public static boolean runFile(String file) {
 		String src;
 		try {
-			byte[] b = Files.readAllBytes(Paths.get(TestDir.path, file));
+			byte[] b = Files.readAllBytes(Paths.get(testdir, file));
 			src = new String(b);
 		} catch (Throwable e) {
-			throw new RuntimeException("PortTests can't get " + TestDir.path + file);
+			throw new RuntimeException("PortTests can't get " + testdir + file);
 		}
 		return new Parser(file, src).run();
 	}
@@ -218,8 +200,8 @@ public class PortTests {
 		addTest("compile", CompileTest::pt_compile);
 		addTest("compare", OpsTest::pt_compare);
 
-		System.out.println("'" + TestDir.path + "'");
-		for (String filename : new File(TestDir.path).list())
+		System.out.println("'" + testdir + "'");
+		for (String filename : new File(testdir).list())
 			if (filename.endsWith(".test"))
 				runFile(filename);
 	}
