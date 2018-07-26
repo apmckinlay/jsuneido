@@ -118,8 +118,7 @@ public class Dnum extends Number implements Comparable<Dnum> {
 		return parse(Double.toString(d));
 	}
 
-	static int ilog10(long x)
-		{
+	static int ilog10(long x) {
 		// based on Hacker's Delight
 		if (x == 0)
 			return 0;
@@ -130,8 +129,7 @@ public class Dnum extends Number implements Comparable<Dnum> {
 		}
 
 	// the maximum we can safely shift left (*10)
-	private static int maxShift(long x)
-		{
+	private static int maxShift(long x) {
 		int i = ilog10(x);
 		return i > MAX_SHIFT ? 0 : MAX_SHIFT - i;
 		}
@@ -146,12 +144,11 @@ public class Dnum extends Number implements Comparable<Dnum> {
 			return MinusInf;
 		} else {
 			boolean atmax = false;
-			while (coef > COEF_MAX)
-				{
+			while (coef > COEF_MAX) {
 				coef = (coef + 5) / 10; // drop/round least significant digit
 				++exp;
 				atmax = true;
-				}
+			}
 			if (! atmax) {
 				int p = maxShift(coef);
 				coef *= pow10[p];
@@ -206,8 +203,7 @@ public class Dnum extends Number implements Comparable<Dnum> {
 
 			long n = 0;
 			int p = MAX_SHIFT;
-			while (true)
-				{
+			while (true) {
 				if (isdigit(next())) {
 					digits = true;
 					// ignore extra decimal places
@@ -227,7 +223,7 @@ public class Dnum extends Number implements Comparable<Dnum> {
 					}
 				} else
 					break;
-				}
+			}
 			if (!digits)
 				throw new RuntimeException("numbers require at least one digit");
 			return n;
@@ -235,14 +231,13 @@ public class Dnum extends Number implements Comparable<Dnum> {
 
 		int getExp() {
 			int e = 0;
-			if (match('e') || match('E'))
-				{
+			if (match('e') || match('E')) {
 				int esign = match('-') ? -1 : 1;
 				match('+');
 				for (; isdigit(next()); ++i)
 					e = e * 10 + (next() - '0');
 				e *= esign;
-				}
+			}
 			return e;
 		}
 		private char next() {
@@ -333,18 +328,16 @@ public class Dnum extends Number implements Comparable<Dnum> {
 		}
 		if (coef == 0)
 			sb.append('0');
-		else
-			{
+		else {
 			sb.append(".");
 			long c = coef;
-			for (int i = MAX_SHIFT; i >= 0 && c != 0; --i)
-				{
+			for (int i = MAX_SHIFT; i >= 0 && c != 0; --i) {
 				long p = pow10[i];
 				int digit = (int)(c / p);
 				c %= p;
 				sb.append((char) ('0' + digit));
-				}
 			}
+		}
 		sb.append('e').append(exp);
 		return sb.toString();
 	}
@@ -544,11 +537,10 @@ public class Dnum extends Number implements Comparable<Dnum> {
 	}
 
 	// for tests, rounds off last digit
-	static boolean almostSame(Dnum x, Dnum y)
-		{
+	static boolean almostSame(Dnum x, Dnum y) {
 		return x.sign == y.sign && x.exp == y.exp &&
 				(x.coef / 10) == (y.coef / 10);
-		}
+	}
 
 	@Override
 	public int compareTo(Dnum that) {
