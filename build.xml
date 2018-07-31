@@ -17,10 +17,11 @@
 		<pathelement location="${lib.dir}/guava-25.1-jre.jar"/>
 		<pathelement location="${lib.dir}/checker-compat-qual-2.3.1.jar"/>
 		<pathelement location="${lib.dir}/jsr305-1.3.9.jar"/>
-		<pathelement location="${lib.dir}/lucene-core-4.10.3.jar"/>
-		<pathelement location="${lib.dir}/lucene-analyzers-common-4.10.3.jar"/>
-		<pathelement location="${lib.dir}/lucene-queryparser-4.10.3.jar"/>
-		<pathelement location="${lib.dir}/lucene-highlighter-4.10.3.jar"/>
+		<pathelement location="${lib.dir}/lucene-core-7.4.0.jar"/>
+		<pathelement location="${lib.dir}/lucene-analyzers-common-7.4.0.jar"/>
+		<pathelement location="${lib.dir}/lucene-queryparser-7.4.0.jar"/>
+		<pathelement location="${lib.dir}/lucene-highlighter-7.4.0.jar"/>
+		<pathelement location="${lib.dir}/lucene-memory-7.4.0.jar"/>
 		<pathelement location="${lib.dir}/trove-3.0.3.jar"/>
 	</path>
 
@@ -42,9 +43,10 @@
 			<zipgroupfileset dir="lib" includes="asm-6.2.jar,
 				asm-analysis-6.2.jar, asm-commons-6.2.jar, 
 				asm-tree-6.2.jar, asm-util-6.2.jar,
-				guava-25.1-jre.jar, lucene-analyzers-common-4.10.3.jar,
-				lucene-core-4.10.3.jar, lucene-highlighter-4.10.3.jar,
-				lucene-queryparser-4.10.3.jar, trove-3.0.3.jar" />
+				guava-25.1-jre.jar, lucene-analyzers-common-7.4.0.jar,
+				lucene-core-7.4.0.jar, lucene-highlighter-7.4.0.jar,
+				lucene-queryparser-7.4.0.jar, lucene-memory-7.4.0.jar,
+				trove-3.0.3.jar" />
 		</jar>
 		<copy file="${target.jar}" todir="."/>
 	</target>

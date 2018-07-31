@@ -12,7 +12,6 @@ import com.google.common.collect.Iterables;
 
 import suneido.SuContainer;
 import suneido.runtime.builtin.*;
-import suneido.util.Errlog;
 
 public class Builtins {
 	static final ImmutableMap<String, Object> builtins;
@@ -67,7 +66,7 @@ public class Builtins {
 			.put("Hash", function(Hash.class))
 			.put("Libraries", function(Libraries.class))
 			.put("Locals", function(Locals.class))
-			.put("Lucene", lucene())
+			.put("Lucene", Lucene.singleton)
 			.put("Md5", new Digest.Clazz("MD5", "Md5"))
 			.put("MemoryArena", function(MemoryArena.class))
 			.put("MoveFile", function(MoveFile.class))
@@ -126,16 +125,6 @@ public class Builtins {
 					.get("WideCharToMultiByte"))
 			.put("Zlib", Zlib.singleton)
 			.build();
-	}
-
-	private static Object lucene() {
-		try {
-			Class.forName("org.apache.lucene.analysis.standard.StandardAnalyzer");
-			return Lucene.singleton;
-		} catch (ClassNotFoundException e) {
-			Errlog.error("lucene not found");
-			return NoLucene.singleton;
-		}
 	}
 
 	private static SuCallable function(Class<?> c) {
