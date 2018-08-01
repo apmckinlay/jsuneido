@@ -86,9 +86,4 @@ public class Repl {
 		out.flush();
 	}
 
-	public static void main(String[] args) throws Exception {
-		Suneido.cmdlineoptions = CommandLineOptions.parse("eta.go");
-		repl();
-	}
-
 }
