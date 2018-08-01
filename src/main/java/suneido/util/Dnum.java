@@ -352,11 +352,11 @@ public class Dnum extends Number implements Comparable<Dnum> {
 	}
 
 	public Dnum negate() {
-		return from(sign * -1, coef, exp);
+		return new Dnum((byte) -sign, coef, exp);
 	}
 
 	public Dnum abs() {
-		return sign < 0 ? from(-sign, coef, exp) : this;
+		return sign < 0 ? new Dnum((byte) -sign, coef, exp) : this;
 	}
 
 	public int signum() {

@@ -171,7 +171,7 @@ public class DnumTest {
 		mulTest("0", "123", "0");
 		mulTest("0", "inf", "0");
 		mulTest("inf", "123", "inf");
-		mulTest("inf", "inf", "inf");
+		mulTest("inf", "-inf", "-inf");
 
 		// fast, single multiply
 		int nums[] = { 0, 1, -1, 100, 1234, 9999, -1234 };
