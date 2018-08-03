@@ -9,6 +9,7 @@ import static suneido.runtime.Numbers.toNum;
 
 import java.math.RoundingMode;
 
+import suneido.SuException;
 import suneido.runtime.BuiltinMethods;
 import suneido.runtime.Ops;
 import suneido.runtime.Params;
@@ -135,11 +136,17 @@ public class NumberMethods extends BuiltinMethods {
 		return dst.toString();
 	}
 
+	private static final long UINT_MAX = 0xffffffffL;
+
 	public static Object Hex(Object self) {
 		if (self instanceof Integer)
 			return Integer.toHexString((int) self);
-		else // Dnum
-			return Long.toHexString(((Number) self).longValue());
+		else { // Dnum
+			long n = ((Number) self).longValue();
+			if (n < Integer.MIN_VALUE || UINT_MAX < n)
+				throw new SuException("Hex is limited to 32 bit");
+			return Long.toHexString(n);
+		}
 	}
 
 	public static Object Int(Object self) {
@@ -209,4 +216,3 @@ public class NumberMethods extends BuiltinMethods {
 	}
 
 }
-
