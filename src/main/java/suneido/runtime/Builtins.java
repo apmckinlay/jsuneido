@@ -66,6 +66,8 @@ public class Builtins {
 			.put("GetTempPath", function(GetTempPath.class))
 			.put("Hash", function(Hash.class))
 			.put("Libraries", function(Libraries.class))
+			.put("LibraryOverride", function(LibraryOverride.class))
+			.put("LibraryOverrideClear", function(LibraryOverrideClear.class))
 			.put("Locals", function(Locals.class))
 			.put("Lucene", lucene())
 			.put("Md5", new Digest.Clazz("MD5", "Md5"))
