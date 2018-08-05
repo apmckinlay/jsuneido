@@ -62,4 +62,15 @@ public class NumbersTest {
 		assertThrew(() -> Numbers.longValue("string"));
 	}
 
+	@Test
+	public void intOrMin_test() {
+		assertThat(Numbers.intOrMin(0), equalTo(0));
+		assertThat(Numbers.intOrMin(123), equalTo(123));
+		assertThat(Numbers.intOrMin(Dnum.from(123)), equalTo(123));
+		assertThat(Numbers.intOrMin(true), equalTo(Integer.MIN_VALUE));
+		assertThat(Numbers.intOrMin(false), equalTo(Integer.MIN_VALUE));
+		assertThat(Numbers.intOrMin("foo"), equalTo(Integer.MIN_VALUE));
+		assertThat(Numbers.intOrMin(Long.MAX_VALUE), equalTo(Integer.MIN_VALUE));
+	}
+
 }

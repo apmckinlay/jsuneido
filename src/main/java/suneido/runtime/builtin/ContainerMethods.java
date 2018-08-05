@@ -6,6 +6,7 @@ package suneido.runtime.builtin;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static suneido.runtime.Numbers.intOrMin;
 import static suneido.runtime.Ops.toInt;
 import static suneido.util.Util.array;
 
@@ -18,7 +19,6 @@ import suneido.SuContainer.IterWhich;
 import suneido.SuException;
 import suneido.SuValue;
 import suneido.runtime.*;
-import suneido.util.Dnum;
 import suneido.util.Util.Range;
 
 /** Used by {@link SuContainer} */
@@ -59,14 +59,6 @@ public final class ContainerMethods {
 				putAt(c, atArg, numValuesToAdd, args);
 		}
 		return c;
-	}
-
-	private static int intOrMin(Object x) {
-		if (x instanceof Integer)
-			return (int) x;
-		else if (x instanceof Dnum)
-			return ((Dnum) x).intOrMin();
-		return Integer.MIN_VALUE;
 	}
 
 	private static void addUsage() {

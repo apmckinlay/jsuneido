@@ -9,7 +9,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static suneido.SuContainer.index;
 import static suneido.runtime.Pack.pack;
 import static suneido.runtime.Pack.unpack;
 
@@ -218,17 +217,6 @@ public class SuContainerTest {
 			c.put(s, true);
 		equals(c, "", "plain", "", "single's", "", "double\"s", "", "back\\slash",
 				"back\\slash", true, "double\"s", true, "single's", true, "plain", true);
-	}
-
-	@Test
-	public void index_test() {
-		assertThat(index(0), equalTo(0));
-		assertThat(index(123), equalTo(123));
-		assertThat(index(Dnum.from(123)), equalTo(123));
-		assertThat(index(true), equalTo(-1));
-		assertThat(index(false), equalTo(-1));
-		assertThat(index("foo"), equalTo(-1));
-		assertThat(index(Long.MAX_VALUE), equalTo(-1));
 	}
 
 }

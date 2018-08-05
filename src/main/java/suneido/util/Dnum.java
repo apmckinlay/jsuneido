@@ -536,12 +536,6 @@ public class Dnum extends Number implements Comparable<Dnum> {
 		return sign == that.sign && exp == that.exp && coef == that.coef;
 	}
 
-	// for tests, rounds off last digit
-	static boolean almostSame(Dnum x, Dnum y) {
-		return x.sign == y.sign && x.exp == y.exp &&
-				(x.coef / 10) == (y.coef / 10);
-	}
-
 	@Override
 	public int compareTo(Dnum that) {
 		return cmp(this, that);
@@ -640,7 +634,10 @@ public class Dnum extends Number implements Comparable<Dnum> {
 		throw new RuntimeException("can't convert number to integer");
 	}
 
-	/** @return integer value if in range, else Integer.MIN_VALUE */
+	/** @return integer value if in range, else Integer.MIN_VALUE
+	 * This is a workaround for Java not being able to (efficiently)
+	 * return multiple values.
+	 * The drawback is that you can't handle the full int range. */
 	public int intOrMin() {
 		if (sign == ZERO)
 			return 0;
@@ -654,7 +651,9 @@ public class Dnum extends Number implements Comparable<Dnum> {
 		return Integer.MIN_VALUE;
 	}
 
-	/** @return integer value if in range, else null */
+	/** @return Integer (boxed) value if in range, else null
+	 * Used by SuContainer.canonical which boxes anyway
+	 * and can't use intOrMin because we want the full range. */
 	public Object intObject() {
 		if (sign == ZERO)
 			return 0;

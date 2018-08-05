@@ -4,6 +4,7 @@
 
 package suneido;
 
+import static suneido.runtime.Numbers.intOrMin;
 import static suneido.util.Verify.verify;
 
 import java.nio.ByteBuffer;
@@ -162,7 +163,7 @@ public class SuContainer extends SuValue
 
 	public synchronized void preset(Object key, Object value) {
 		checkReadonly();
-		int i = index(key);
+		int i = intOrMin(key);
 		if (0 <= i && i < vec.size())
 			vec.set(i, value);
 		else if (i == vec.size())
@@ -233,7 +234,7 @@ public class SuContainer extends SuValue
 	}
 
 	public synchronized Object getIfPresent(Object key) {
-		int i = index(key);
+		int i = intOrMin(key);
 		return (0 <= i && i < vec.size()) ? vec.get(i) : map.get(key);
 	}
 
@@ -272,7 +273,7 @@ public class SuContainer extends SuValue
 	}
 
 	public synchronized boolean containsKey(Object key) {
-		int i = index(key);
+		int i = intOrMin(key);
 		return (0 <= i && i < vec.size()) || map.containsKey(key);
 	}
 
@@ -339,8 +340,6 @@ public class SuContainer extends SuValue
 	 * Convert to standardized types so lookup works consistently
 	 * Dnum is narrowed to Integer if in range
 	 * CharSequence (String, Concat, SuException) is converted to String
-	 * <p>
-	 * See also: index
 	 */
 	static Object canonical(Object x) {
 		if (x instanceof CharSequence)
@@ -429,7 +428,7 @@ public class SuContainer extends SuValue
 		checkReadonly();
 		if (null != map.remove(key))
 			return true;
-		int i = index(key);
+		int i = intOrMin(key);
 		if (0 <= i && i < vec.size()) {
 			vec.remove(i);
 			return true;
@@ -441,7 +440,7 @@ public class SuContainer extends SuValue
 		checkReadonly();
 		if (null != map.remove(key))
 			return true;
-		int i = index(key);
+		int i = intOrMin(key);
 		if (i < 0 || vec.size() <= i)
 			return false;
 		// migrate from vec to map
@@ -457,19 +456,6 @@ public class SuContainer extends SuValue
 		checkReadonly();
 		vec.clear();
 		map.clear();
-	}
-
-	/** @return The integer value of x, or -1 if the value is not an integer
-	 * so it will not be in range for the vector.
-	 * <p>
-	 * See also: canonical
-	 */
-	static int index(Object x) {
-		if (x instanceof Integer)
-			return (int) x;
-		else if (x instanceof Dnum)
-			return ((Dnum) x).intOrMin();
-		return -1;
 	}
 
 	public synchronized int vecSize() {

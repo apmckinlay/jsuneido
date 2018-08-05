@@ -66,4 +66,14 @@ public class Numbers {
 			return ((Dnum) x).longValue();
 		throw new SuException("can't convert to integer");
 	}
+
+	/** @return The integer value of x if convertible, else Integer.MIN_VALUE */
+	public static int intOrMin(Object x) {
+		if (x instanceof Integer)
+			return (int) x;
+		else if (x instanceof Dnum)
+			return ((Dnum) x).intOrMin();
+		return Integer.MIN_VALUE;
+	}
+
 }

@@ -184,7 +184,7 @@ public class DnumTest {
 		mulTest("1.00000001", "1.00000001", "1.00000002");
 		mulTest("1.000000001", "1.000000001", "1.000000002");
 		mulTest(".4294967295", ".4294967295", ".1844674406511962");
-		mulTest("1.12233445566", "1.12233445566", "1.259634630361629");
+		mulTest("1.12233445566", "1.12233445566", "1.259634630361628");
 		mulTest("1.111111111111111", "1.111111111111111", "1.234567901234568");
 		mulTest("1.23456789", "1.23456789", "1.524157875019052");
 		mulTest("1.234567899", "1.234567899", "1.524157897241274");
@@ -208,10 +208,10 @@ public class DnumTest {
 
 	private static void mulTest(Dnum xn, Dnum yn, Dnum en) {
 		Dnum p = mul(xn, yn);
-		assert almostSame(p, en)
+		assert p.equals(en)
 			: xn + " * " + yn + " result " + p + " expected " + en;
 		p = mul(yn, xn);
-		assert almostSame(p, en)
+		assert p.equals(en)
 			: xn + " * " + yn + " result " + p + " expected " + en;
 	}
 
@@ -235,7 +235,7 @@ public class DnumTest {
 		// long division
 		divTest("2", "3", ".6666666666666666");
 		divTest("1", "3", ".3333333333333333");
-		divTest("11", "17", ".6470588235294118");
+		divTest("11", "17", ".6470588235294117");
 		divTest("1234567890123456", "9876543210987654", ".1249999988609374");
 		divTest("1", "3333333333333333", "3e-16");
 		divTest("12", ".4444444444444444", "27");
@@ -247,7 +247,7 @@ public class DnumTest {
 
 	private static void divTest(String x, String y, String expected) {
 		Dnum q = div(parse(x), parse(y));
-		assert almostSame(q, parse(expected))
+		assert q.equals(parse(expected))
 			: x + " / " + y + "\n" + q + " result\n" + expected + " expected ";
 	}
 
@@ -498,7 +498,7 @@ public class DnumTest {
 	}
 
 	private static boolean ck(DnumOp op, Dnum x, Dnum y, Dnum z) {
-		if (almostSame(op.op(x, y), z))
+		if (z.equals(op.op(x, y)))
 			return true;
 		System.out.println(x + ", " + y +
 				" => " + op.op(x, y) + " should be " + z);
