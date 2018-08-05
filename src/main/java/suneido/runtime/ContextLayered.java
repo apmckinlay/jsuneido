@@ -38,7 +38,9 @@ public class ContextLayered extends Context {
 		// System.out.println("LOAD " + name);
 		Object result = null;
 		for (LibGet libget : TheDbms.dbms().libget(name)) {
-			String src = (String) Pack.unpack(libget.text);
+			String src = getOverride(libget.library, name);
+			if (src == null)
+				src = (String) Pack.unpack(libget.text);
 			try {
 				result = Compiler.compile(libget.library, name, src, this);
 				// needed inside loop for overloading references

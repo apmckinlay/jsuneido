@@ -29,6 +29,7 @@ public abstract class Context {
 	private final Map<String, Integer> nameToSlot = new HashMap<>();
 	private final List<String> names = new ArrayList<>(1000);
 	private final List<Object> values = new ArrayList<>(1000);
+	private final Map<String, String> override = new HashMap<>();
 	private static final Object nonExistent = new Object();
 
 	// protected so we can derive a trivial context for testing purposes
@@ -99,6 +100,30 @@ public abstract class Context {
 	public synchronized final void clearAll() {
 		for (int i = 0; i < values.size(); ++i)
 			values.set(i, null);
+	}
+
+	/** Add or remove an override of specific record. Called by LibraryOverride */
+	public synchronized final void override(String lib, String name, String text) {
+		String key = lib + ':' + name;
+		if (text.isEmpty()) {
+			if (!override.containsKey(key))
+				return;
+			override.remove(key);
+		} else
+			override.put(key, text);
+		clear(name);
+	}
+	/** Remove all overrides. Called by LibraryOverrideClear */
+	public synchronized final void overrideClear() {
+		for (Map.Entry<String, String> e : override.entrySet()) {
+			String name = e.getKey().substring(e.getKey().indexOf(':') + 1);
+			clear(name);
+		}
+		override.clear();
+	}
+
+	protected String getOverride(String lib, String name) {
+		return override.get(lib + ':' + name);
 	}
 
 	/**
