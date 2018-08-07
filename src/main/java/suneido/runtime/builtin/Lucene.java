@@ -4,16 +4,14 @@
 
 package suneido.runtime.builtin;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.en.EnglishAnalyzer;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.document.FieldType;
-import org.apache.lucene.document.StringField;
-import org.apache.lucene.document.TextField;
+import org.apache.lucene.document.*;
 import org.apache.lucene.index.*;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.queryparser.classic.QueryParser;
@@ -25,11 +23,8 @@ import org.apache.lucene.search.highlight.Highlighter;
 import org.apache.lucene.search.highlight.QueryScorer;
 import org.apache.lucene.search.highlight.SimpleHTMLFormatter;
 import org.apache.lucene.search.highlight.TextFragment;
-import org.apache.lucene.search.highlight.TokenSources;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.util.Version;
-import org.apache.lucene.analysis.TokenStream;
 
 import suneido.SuContainer;
 import suneido.SuException;
@@ -40,12 +35,17 @@ import suneido.runtime.Ops;
 import suneido.runtime.Params;
 
 /*
-Lucene.Update("lucene", create:) {|u| u.Insert('now', 'now is the time for all good men') }
-Lucene.Search("lucene", "good") {|key| Print(key: key) }
+Run: Repl
+1: Lucene.Update("lucene", create:) {|u| u.Insert('now', 'now is the time for all good men') }
+
+2: Lucene.Search("lucene", "good", 5) {|key, fragments| Print(:key, :fragments) }
+=> fragments: #("now is the time for all <B>good</B> men") key: now
+
+3: Lucene.Search("lucene", "moscow", 5) {|key, fragments| Print(:key, :fragments) }
+=> ""
 */
 
 public class Lucene extends BuiltinClass {
-	public static final Version version = Version.LATEST;
 	public static final Lucene singleton = new Lucene();
 
 	private Lucene() {
@@ -59,14 +59,17 @@ public class Lucene extends BuiltinClass {
 
 	@Params("dir")
 	public static Object AvailableQ(Object self, Object a) {
-		String path = Ops.toStr(a);
-		try (FSDirectory dir = FSDirectory.open(new File(path));
+		try	(FSDirectory dir = FSDirectory.open(getPath(a));
 				DirectoryReader reader = DirectoryReader.open(dir)) {
 			new IndexSearcher(reader);
 			return true;
 		} catch (IOException e) {
 			return false;
 		}
+	}
+
+	private static Path getPath(Object a) {
+		return Paths.get(Ops.toStr(a));
 	}
 
 	@Params("dir, block, create = false")
@@ -103,8 +106,7 @@ public class Lucene extends BuiltinClass {
 			doc.add(new StringField("key", Ops.toStr(key), Field.Store.YES));
 
 			FieldType type = new FieldType();
-	        type.setIndexed(true);
-	        type.setIndexOptions(FieldInfo.IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS);
+	        type.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS);
 	        type.setStored(true);
 	        type.setStoreTermVectors(true);
 	        type.setTokenized(true);
@@ -153,9 +155,9 @@ public class Lucene extends BuiltinClass {
 
 	static IndexWriter writer(String path, boolean create) {
 		try {
-			Directory dir = FSDirectory.open(new File(path));
+			Directory dir = FSDirectory.open(Paths.get(path));
 			Analyzer analyzer = analyzer();
-			IndexWriterConfig iwc = new IndexWriterConfig(version, analyzer);
+			IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
 			iwc.setOpenMode(create ? OpenMode.CREATE : OpenMode.APPEND);
 			return new IndexWriter(dir, iwc);
 		} catch (IOException e) {
@@ -165,10 +167,9 @@ public class Lucene extends BuiltinClass {
 
 	@Params("dir, query, limit, block")
 	public static Object Search(Object self, Object a, Object b, Object c, Object d) {
-		String path = Ops.toStr(a);
 		String queryStr = Ops.toStr(b);
 		int limit = Ops.toInt(c);
-		try (FSDirectory dir = FSDirectory.open(new File(path));
+		try (FSDirectory dir = FSDirectory.open(getPath(a));
 				IndexReader ir = DirectoryReader.open(dir)) {
 			IndexSearcher searcher = new IndexSearcher(ir);
 			Analyzer analyzer = analyzer();
@@ -183,8 +184,8 @@ public class Lucene extends BuiltinClass {
 				Document doc  = ir.document(id);
 				String key = doc.get("key");
 				String content = doc.get("content");
-				TokenStream tokenStream = TokenSources.getAnyTokenStream(searcher.getIndexReader(), id, "content", analyzer);
-				TextFragment[] frag = highlighter.getBestTextFragments(tokenStream, content, false, 4);
+				TokenStream tokenStream = analyzer.tokenStream("content", content);
+				TextFragment[] frag = highlighter.getBestTextFragments(tokenStream,	content, false, 4);
 				SuContainer fragments = new SuContainer();
 
 				for (int j = 0; j < frag.length; j++) {
