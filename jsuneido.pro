@@ -7,7 +7,7 @@
 -injars lib/trove-3.0.3.jar (!META-INF/MANIFEST.MF)
 -libraryjars lib/lucene-core-7.4.0.jar
 -libraryjars lib/lucene-analyzers-common-7.4.0.jar
--libraryjars lib/lucene-queryparser-7.4.0.3.jar
+-libraryjars lib/lucene-queryparser-7.4.0.jar
 -libraryjars lib/lucene-highlighter-7.4.0.jar
 -libraryjars lib/lucene-memory-7.4.0.jar
 -libraryjars <java.home>/lib/rt.jar
