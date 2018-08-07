@@ -5,10 +5,11 @@
 -injars lib/guava-24.0-jre.jar (!META-INF/MANIFEST.MF)
 -injars lib/checker-compat-qual-2.3.1.jar (!META-INF/MANIFEST.MF)
 -injars lib/trove-3.0.3.jar (!META-INF/MANIFEST.MF)
--libraryjars lib/lucene-core-4.10.3.jar
--libraryjars lib/lucene-analyzers-common-4.10.3.jar
--libraryjars lib/lucene-queryparser-4.10.3.jar
--libraryjars lib/lucene-highlighter-4.10.3.jar
+-libraryjars lib/lucene-core-7.4.0.jar
+-libraryjars lib/lucene-analyzers-common-7.4.0.jar
+-libraryjars lib/lucene-queryparser-7.4.0.jar
+-libraryjars lib/lucene-highlighter-7.4.0.jar
+-libraryjars lib/lucene-memory-7.4.0.jar
 -libraryjars <java.home>/lib/rt.jar
 
 -dontoptimize
