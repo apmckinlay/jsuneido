@@ -61,12 +61,12 @@ public class DbmsQueryLocal implements DbmsQuery {
 
 	@Override
 	public String explain() {
-		return toString();
+		return q.explain();
 	}
 
 	@Override
 	public String toString() {
-		return q.toString();
+		return q.explain();
 	}
 
 	@Override

@@ -29,6 +29,7 @@ public abstract class Query {
 	private final Cache cache = new Cache();
 	private List<String> tempindex;
 	public enum Dir { NEXT, PREV }
+	private double cost = 0; // set by setup, used by explain
 
 	protected static final List<String> noFields = Collections.emptyList();
 	protected static final Set<String> noNeeds = Collections.emptySet();
@@ -45,8 +46,9 @@ public abstract class Query {
 
 	Query setup(boolean is_cursor, Transaction t) {
 		Query q = transform();
-		if (q.optimize(noFields, ImmutableSet.copyOf(q.columns()), noNeeds,
-				is_cursor, true) >= IMPOSSIBLE)
+		cost = q.optimize(noFields, ImmutableSet.copyOf(q.columns()), noNeeds,
+				is_cursor, true);
+		if (cost >= IMPOSSIBLE)
 			throw new SuException("invalid query " + q);
 		q = q.addindex(t);
 		return q;
@@ -85,6 +87,11 @@ public abstract class Query {
 		throw new SuException("can't output to this query");
 	}
 
+	public String explain() {
+		return toString() + " [nrecs~ " + Math.round(nrecords()) +
+				" cost~ " + Math.round(cost) + "]";
+	}
+
 	@Override
 	public abstract String toString();
 
@@ -103,7 +110,7 @@ public abstract class Query {
 	 * The call with freeze = true should be with exactly the same arguments
 	 * as the call that gave the lowest cost.
 	 */
-	double optimize(List<String> index, Set<String> needs,
+	protected double optimize(List<String> index, Set<String> needs,
 			Set<String> firstneeds, boolean is_cursor, boolean freeze) {
 		if (tracing(QUERYOPT)) {
 			trace(QUERYOPT, "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
