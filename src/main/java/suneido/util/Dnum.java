@@ -359,10 +359,12 @@ public class Dnum extends Number implements Comparable<Dnum> {
 		return sign < 0 ? new Dnum((byte) -sign, coef, exp) : this;
 	}
 
+	// @return -1, 0, +1 for negative, zero, positive
 	public int signum() {
 		return sign < 0 ? -1 : sign > 0 ? +1 : 0;
 	}
 
+	// @return the value of the sign byte, including NEG_INF (-2) and POS_INF (+2)
 	public int sign() {
 		return sign;
 	}

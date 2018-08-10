@@ -155,8 +155,8 @@ public class Pack {
 		return 10;
 	}
 
-	/** limited by 16 digit pack format */
-	public static void packLong(long n, ByteBuffer buf) {
+	/** avoid overhead of conversion to Dnum, limited by 16 digit pack format */
+	private static void packLong(long n, ByteBuffer buf) {
 		boolean minus = n < 0;
 		buf.put(minus ? Tag.MINUS : Tag.PLUS);
 		if (n == 0)
@@ -269,16 +269,17 @@ public class Pack {
 		return bufferToString(buf);
 	}
 
+	// used only by Record.getLong
 	public static long unpackLong(ByteBuffer buf) {
 		byte t = buf.get();
 		if (t != Tag.MINUS && t != Tag.PLUS)
-			throw new SuException("unpackInt unexpected type");
+			throw new SuException("unpackLong unexpected type");
 		if (buf.remaining() == 0)
 			return 0;
 		boolean minus = (t == Tag.MINUS);
 		int e = buf.get() & 0xff;
 		if (e == 0 || e == 255)
-			throw new SuException("unpackInt got infinity");
+			throw new SuException("unpackLong got infinity");
 		if (minus)
 			e = ((~e) & 0xff);
 		e = (byte) (e ^ 0x80);
