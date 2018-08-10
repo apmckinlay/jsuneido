@@ -321,7 +321,7 @@ public final class Ops {
 		throw new SuException("expected boolean, got " + typeName(x));
 	}
 
-	/** Used for bit and range operations */
+	/** Used for bit and range operations, treats false and "" as zero */
 	public static int toInt(Object x) {
 		if (x instanceof Integer)
 			return (int) x;
@@ -559,13 +559,7 @@ public final class Ops {
 	}
 
 	private static Object getString(CharSequence s, Object m) {
-		int i = Integer.MIN_VALUE;
-		if (m instanceof Integer)
-			i = (int) m;
-		else if (m instanceof Dnum)
-			i = ((Dnum) m).intOrMin();
-		if (i == Integer.MIN_VALUE)
-			throw new SuException("string subscripts must be integers");
+		int i = index(m);
 		int len = s.length();
 		if (i < -len || len < i)
 			return "";
@@ -574,11 +568,22 @@ public final class Ops {
 		return 0 <= i && i < len ? s.subSequence(i, i + 1) : "";
 	}
 
+	public static int index(Object m) {
+		int i = Integer.MIN_VALUE;
+		if (m instanceof Integer)
+			i = (int) m;
+		else if (m instanceof Dnum)
+			i = ((Dnum) m).intOrMin();
+		if (i == Integer.MIN_VALUE)
+			throw new SuException("indexes must be integers");
+		return i;
+	}
+
 	public static Object rangeTo(Object x, Object i, Object j) {
 		if (x instanceof CharSequence)
-			return rangeToString((CharSequence) x, toInt(i), toInt(j));
+			return rangeToString((CharSequence) x, index(i), toInt(j));
 		else if (x instanceof SuValue)
-			return ((SuValue) x).rangeTo(toInt(i), toInt(j));
+			return ((SuValue) x).rangeTo(index(i), toInt(j));
 		else
 			throw new SuException(typeName(x) + " "
 					+ " does not support range");
@@ -592,9 +597,9 @@ public final class Ops {
 
 	public static Object rangeLen(Object x, Object i, Object n) {
 		if (x instanceof CharSequence)
-			return rangeLenString((CharSequence) x, toInt(i), toInt(n));
+			return rangeLenString((CharSequence) x, index(i), toInt(n));
 		else if (x instanceof SuValue)
-			return ((SuValue) x).rangeLen(toInt(i), toInt(n));
+			return ((SuValue) x).rangeLen(index(i), toInt(n));
 		else
 			throw new SuException(typeName(x) + " "
 					+ " does not support range");

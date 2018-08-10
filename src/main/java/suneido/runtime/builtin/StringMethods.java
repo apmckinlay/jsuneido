@@ -493,7 +493,7 @@ public class StringMethods extends BuiltinMethods {
 	public static Object Substr(Object self, Object a, Object b) {
 		CharSequence s = toSeq(self);
 		int len = s.length();
-		int i = toInt(a);
+		int i = Ops.index(a);
 		if (i < 0)
 			i += len;
 		i = max(0, min(i, len));
