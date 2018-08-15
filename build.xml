@@ -52,7 +52,7 @@
 	</target>
 	
 	<target name="clean" description="Delete all outputs">
-		<delete dir="target" />
+		<delete dir="target/classes" />
 	</target>
 
 	<target name="rebuild" description="Rebuild all jSuneido JARS"
