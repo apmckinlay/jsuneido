@@ -7,13 +7,12 @@ package suneido.util;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.Date;
 import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
-
-import suneido.util.NotThreadSafe;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.EvictingQueue;
@@ -35,23 +34,40 @@ public class ServerBySocket {
 
 	public void run(int port) throws IOException {
 		try (ServerSocket serverSocket = new ServerSocket(port)) {
-			while (true) {
-				Socket clientSocket = serverSocket.accept();
-				log.add(new LogEntry(clientSocket));
-				// disable Nagle since we don't have gathering write
-				clientSocket.setTcpNoDelay(true);
+			serverSocket.setReuseAddress(true);
+			Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 				try {
-					Runnable handler = handlerFactory.newHandler(clientSocket);
-					executor.execute(handler);
-				} catch (RejectedExecutionException e) {
-					clientSocket.close();
+					executor.shutdownNow();
+					serverSocket.close();
+					Errlog.info("SocketServer:" + port + " closed");
+				} catch (IOException e) {
+					Errlog.error("SocketServer:" + port + " close got", e);
+				}
+			}));
+			while (true) {
+				try {
+					Socket clientSocket = serverSocket.accept();
+					log.add(new LogEntry(clientSocket));
+					// disable Nagle since we don't have gathering write
+					clientSocket.setTcpNoDelay(true);
+					try {
+						Runnable handler = handlerFactory.newHandler(clientSocket);
+						executor.execute(handler);
+					} catch (RejectedExecutionException e) {
+						Errlog.error("SocketServer too many connections, stopping\r\n" +
+								"\tlast 10 connections:\r\n\t" +
+								Joiner.on("\r\n\t").join(log));
+						clientSocket.close();
+						break;
+					}
+				} catch (SocketException e) {
+					if (serverSocket.isClosed()) // shutdown
+						return;
+					Errlog.error("SocketServer", e);
 					break;
 				}
 			}
 		}
-		Errlog.error("SocketServer too many connections, stopping\r\n" +
-				"\tlast 10 connections:\r\n\t" +
-				Joiner.on("\r\n\t").join(log));
 		executor.shutdownNow(); // NOTE: may not clean up all threads or sockets
 		try {
 			boolean result = executor.awaitTermination(10, TimeUnit.SECONDS);

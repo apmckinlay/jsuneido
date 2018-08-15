@@ -6,14 +6,12 @@ package suneido.util;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
+import java.net.StandardSocketOptions;
 import java.nio.channels.*;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
-
-import suneido.util.NotThreadSafe;
 
 /**
  * Socket server framework using NIO Selector for accept and readability.
@@ -54,11 +52,18 @@ public class ServerBySelect {
 	public void open(int port) {
 		try {
 			ServerSocketChannel serverChannel = ServerSocketChannel.open();
-			ServerSocket serverSocket = serverChannel.socket();
-			//serverSocket.setReuseAddress(true);
-			serverSocket.bind(new InetSocketAddress(port));
+			serverChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
+			serverChannel.bind(new InetSocketAddress(port));
 			selector = Selector.open();
 			registerChannel(serverChannel, SelectionKey.OP_ACCEPT);
+			Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+				try {
+					serverChannel.close();
+					Errlog.info("ServerSocketChannel:" + port + " closed");
+				} catch (IOException e) {
+					Errlog.error("ServerSocketChannel:" + port + " close got", e);
+				}
+			}));
 		} catch (IOException e) {
 			throw new RuntimeException("IOException in ServerBySelect.open", e);
 		}
