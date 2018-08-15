@@ -179,6 +179,7 @@ public class Suneido {
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			exiting = true;
 			Suneido.db.close();
+			Errlog.info("database closed");
 		}));
 		scheduleAtFixedRate(db::limitOutstandingTransactions, 1, TimeUnit.SECONDS);
 		scheduleAtFixedRate(db::force, 1, TimeUnit.MINUTES);
