@@ -18,7 +18,6 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
-import suneido.Suneido;
 import suneido.runtime.builtin.SuThread;
 import suneido.util.Errlog;
 
@@ -41,6 +40,10 @@ public class HttpServerMonitor {
 		server.createContext("/", new MyHandler());
 		server.setExecutor(null); // null creates a default executor
 		server.start();
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			server.stop(0);
+			Errlog.info("HttpServerMonitor:" + port + " stopped");
+		}));
 	}
 
 	public static void starting() {
