@@ -115,7 +115,7 @@ public final class Ops {
 			y = y.toString();
 			yClass = String.class;
 		} else if (y instanceof SequenceBase) {
-			((Sequence) y).ck_instantiate();
+			((SequenceBase) y).ck_instantiate();
 			yClass = SuContainer.class;
 		} else if (yClass == SuRecord.class)
 			yClass = SuContainer.class;
