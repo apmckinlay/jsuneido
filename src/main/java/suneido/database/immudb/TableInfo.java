@@ -50,7 +50,7 @@ class TableInfo extends DbHashTrie.Entry {
 		tblnum = rec.getInt(i++);
 		nextfield = rec.getInt(i++);
 		nrows = rec.getInt(i++);
-		totalsize = rec.getInt(i++);
+		totalsize = rec.getLong(i++);
 		ImmutableList.Builder<IndexInfo> list = ImmutableList.builder();
 		for (; i < rec.size(); i += IndexInfo.NFIELDS)
 			list.add(new IndexInfo(rec, i));
