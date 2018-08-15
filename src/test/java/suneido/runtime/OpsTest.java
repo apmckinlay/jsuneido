@@ -378,6 +378,7 @@ public class OpsTest {
 		PortTests.addTest("compare", OpsTest::pt_compare);
 		PortTests.skipTest("lang_sub");
 		PortTests.skipTest("lang_range");
+		PortTests.skipTest("compare_packed");
 		assert PortTests.runFile("lang.test");
 	}
 
