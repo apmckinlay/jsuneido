@@ -134,7 +134,7 @@ public class PackTest {
 		assertThat(Pack.unpackLong(buf), equalTo(n));
 	}
 
-	public static boolean pt_compare(String... data) {
+	public static boolean pt_compare_packed(String... data) {
 		int n = data.length;
 		for (int i = 0; i < n; ++i) {
 			ByteBuffer x = Pack.pack(compile("test", data[i]));

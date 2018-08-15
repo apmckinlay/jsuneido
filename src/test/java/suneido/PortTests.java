@@ -200,7 +200,7 @@ public class PortTests {
 		addTest("lang_range", ExecuteTest::pt_lang_range);
 		addTest("compile", CompileTest::pt_compile);
 		addTest("compare", OpsTest::pt_compare);
-		addTest("compare_packed", PackTest::pt_compare);
+		addTest("compare_packed", PackTest::pt_compare_packed);
 
 		Suneido.openDbms();
 		System.out.println("'" + testdir + "'");
