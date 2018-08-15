@@ -74,11 +74,7 @@ public class SocketServer extends SuClass {
 		if (info.port == 0)
 			info.port = Ops.toInt(c.get1(c, "Port"));
 		args = convert(args, info);
-		Thread thread = new Thread(Suneido.threadGroup,
-				new Listener(info, new Master((SuClass) self, args)));
-		thread.setDaemon(true);
-		thread.setName("SocketServer-" + count.getAndIncrement());
-		thread.start();
+		new Listener(info, new Master((SuClass) self, args)).run();
 		return null;
 	}
 
@@ -152,7 +148,9 @@ public class SocketServer extends SuClass {
 
 		@Override
 		public void run() {
-			SuThread.extraName(info.name);
+			// only set the name if it hasn't been set yet
+			if (!SuThread.extraName(null).contains(" "))
+				SuThread.extraName(info.name);
 			ServerBySocket server = new ServerBySocket(executor(),
 					socket -> master.dup(socket, nconn.getAndIncrement()));
 			try {

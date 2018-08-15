@@ -96,7 +96,7 @@ public class SuThread extends BuiltinClass {
 		return extraName(arg == null ? null : Ops.toStr(arg));
 	}
 
-	public static Object extraName(String extra) {
+	public static String extraName(String extra) {
 		Thread t = Thread.currentThread();
 		String name = t.getName();
 		if (extra != null) {
