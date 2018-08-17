@@ -111,7 +111,7 @@ public class AstCompile {
 		case ADD: // unary
 			value = fold(ast.first());
 			if (value != null)
-				return Numbers.toNum(value);
+				return Ops.uplus(value);
 			break;
 		case AND:
 			for (AstNode expr : ast.children) {
@@ -767,7 +767,7 @@ public class AstCompile {
 			break;
 		case ADD:
 			expression(cg, ast.first());
-			// should have a uplus, but cSuneido doesn't
+			cg.unaryOp("uplus", "Number");
 			break;
 		case NOT:
 			expression(cg, ast.first());

@@ -267,6 +267,10 @@ public final class Ops {
 		throw SuInternalError.unreachable();
 	}
 
+	public static Number uplus(Object x) {
+		return toNum(x);
+	}
+
 	public static boolean not_(Object x) {
 		if (x == Boolean.TRUE)
 			return false;
