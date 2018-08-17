@@ -20,8 +20,6 @@ import suneido.Suneido;
 import suneido.runtime.BlockReturnException;
 import suneido.runtime.Ops;
 import suneido.runtime.SuBoundMethod;
-import suneido.runtime.builtin.ContainerMethods;
-import suneido.runtime.builtin.StringMethods;
 
 public class ExecuteTest {
 
@@ -437,7 +435,7 @@ public class ExecuteTest {
 
 	/**
 	 * PortTests fixture.
-	 * Test [from..to] for both strings and containers.
+	 * Test [from::len] for both strings and containers.
 	 */
 	public static boolean pt_lang_sub(String... args) {
 		String s = args[0];
@@ -445,15 +443,11 @@ public class ExecuteTest {
 		int n = args.length == 4 ? Integer.parseInt(args[2]) : 9999;
 		String expected = args[args.length - 1];
 
-		if (!StringMethods.Substr(s, i, n).equals(expected))
-			return false;
 		if (!Ops.rangeLen(s, i, n).equals(expected))
 			return false;
 
 		SuContainer list = stringToCharList(s);
 		SuContainer expectedList = stringToCharList(expected);
-		if (!ContainerMethods.Slice(list, i, n).equals(expectedList))
-			return false;
 		return Ops.rangeLen(list, i, n).equals(expectedList);
 	}
 
