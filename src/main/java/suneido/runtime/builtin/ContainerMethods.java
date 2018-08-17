@@ -4,10 +4,7 @@
 
 package suneido.runtime.builtin;
 
-import static java.lang.Math.max;
-import static java.lang.Math.min;
 import static suneido.runtime.Numbers.intOrMin;
-import static suneido.runtime.Ops.toInt;
 import static suneido.util.Util.array;
 
 import java.util.AbstractMap;
@@ -295,21 +292,6 @@ public final class ContainerMethods {
 		SuContainer c = toContainer(self);
 		c.setReadonly();
 		return self;
-	}
-
-	@Params("i, n=INTMAX")
-	public static Object Slice(Object self, Object a, Object b) {
-		SuContainer c = toContainer(self);
-		int vecsize = c.vecSize();
-		int i = toInt(a);
-		if (i < 0)
-			i += vecsize;
-		i = max(0, min(i, vecsize));
-		int n = toInt(b);
-		if (n < 0)
-			n += vecsize - i;
-		n = max(0, min(n, vecsize - i));
-		return new SuContainer(c.vec.subList(i, i + n));
 	}
 
 	@Params("block")
