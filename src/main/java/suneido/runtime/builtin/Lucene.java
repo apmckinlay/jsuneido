@@ -67,9 +67,8 @@ public class Lucene extends BuiltinClass {
 	@Params("dir")
 	public static Object AvailableQ(Object self, Object a) {
 		Path path = getPath(a);
-		if (!path.toFile().exists()) {
+		if (!path.toFile().exists())
 			return false;
-		}
 		try	(FSDirectory dir = FSDirectory.open(path);
 				DirectoryReader reader = DirectoryReader.open(dir)) {
 			new IndexSearcher(reader);
@@ -167,9 +166,8 @@ public class Lucene extends BuiltinClass {
 	static IndexWriter writer(String pathStr, boolean create) {
 		Path path = Paths.get(pathStr);
 		boolean dirExists = path.toFile().exists();
-		if (!create && !dirExists) {
+		if (!create && !dirExists)
 			throw dirNotFound("Update", path);
-		}
 		try {
 			Directory dir = FSDirectory.open(path);
 			Analyzer analyzer = analyzer();
@@ -191,9 +189,8 @@ public class Lucene extends BuiltinClass {
 	@Params("dir, query, limit, block")
 	public static Object Search(Object self, Object a, Object b, Object c, Object d) {
 		Path path = getPath(a);
-		if (!path.toFile().exists()) {
+		if (!path.toFile().exists())
 			throw dirNotFound("Search", path);
-		}
 		String queryStr = Ops.toStr(b);
 		int limit = Ops.toInt(c);
 		try (FSDirectory dir = FSDirectory.open(getPath(a));
