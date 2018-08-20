@@ -36,13 +36,20 @@ import suneido.runtime.Params;
 
 /*
 Run: Repl
-1: Lucene.Update("lucene", create:) {|u| u.Insert('now', 'now is the time for all good men') }
+1: Lucene.Update("lucene") {|u| u.Insert('now', 'now is the time for all good men') }
+=> ERROR: Repl Lucene.Update: failed, directory (lucene) does not exist, aborting
 
-2: Lucene.Search("lucene", "good", 5) {|key, fragments| Print(:key, :fragments) }
+2: Lucene.Update("lucene", create:) {|u| u.Insert('now', 'now is the time for all good men') }
+=> "" (produces folder "lucene" with index files)
+
+3: Lucene.Search("lucene", "good", 5) {|key, fragments| Print(:key, :fragments) }
 => fragments: #("now is the time for all <B>good</B> men") key: now
 
-3: Lucene.Search("lucene", "moscow", 5) {|key, fragments| Print(:key, :fragments) }
+4: Lucene.Search("lucene", "moscow", 5) {|key, fragments| Print(:key, :fragments) }
 => ""
+
+5: Lucene.Search("not_lucene", "good", 5) {|key, fragments| Print(:key, :fragments) }
+=> ERROR: Repl Lucene.Search: failed, directory (not_lucene) does not exist, aborting
 */
 
 public class Lucene extends BuiltinClass {
@@ -59,7 +66,10 @@ public class Lucene extends BuiltinClass {
 
 	@Params("dir")
 	public static Object AvailableQ(Object self, Object a) {
-		try	(FSDirectory dir = FSDirectory.open(getPath(a));
+		Path path = getPath(a);
+		if (!path.toFile().exists())
+			return false;
+		try	(FSDirectory dir = FSDirectory.open(path);
 				DirectoryReader reader = DirectoryReader.open(dir)) {
 			new IndexSearcher(reader);
 			return true;
@@ -153,20 +163,34 @@ public class Lucene extends BuiltinClass {
 		}
 	}
 
-	static IndexWriter writer(String path, boolean create) {
+	static IndexWriter writer(String pathStr, boolean create) {
+		Path path = Paths.get(pathStr);
+		boolean dirExists = path.toFile().exists();
+		if (!create && !dirExists)
+			throw dirNotFound("Update", path);
 		try {
-			Directory dir = FSDirectory.open(Paths.get(path));
+			Directory dir = FSDirectory.open(path);
 			Analyzer analyzer = analyzer();
 			IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
 			iwc.setOpenMode(create ? OpenMode.CREATE : OpenMode.APPEND);
 			return new IndexWriter(dir, iwc);
 		} catch (IOException e) {
+			if (!dirExists && path.toFile().exists())
+				path.toFile().delete();
 			throw new SuException("Lucene.Update: can't open index", e);
 		}
 	}
 
+	private static SuException dirNotFound(String fn, Path path) {
+		return new SuException("Lucene." + fn + ": failed, directory (" +
+			path.toString() + ") does not exist, aborting");
+	}
+
 	@Params("dir, query, limit, block")
 	public static Object Search(Object self, Object a, Object b, Object c, Object d) {
+		Path path = getPath(a);
+		if (!path.toFile().exists())
+			throw dirNotFound("Search", path);
 		String queryStr = Ops.toStr(b);
 		int limit = Ops.toInt(c);
 		try (FSDirectory dir = FSDirectory.open(getPath(a));
