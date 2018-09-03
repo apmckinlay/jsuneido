@@ -58,6 +58,7 @@ public class ServerBySelect {
 			registerChannel(serverChannel, SelectionKey.OP_ACCEPT);
 			Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 				try {
+					serverChannel.socket().close();
 					serverChannel.close();
 					Errlog.info("ServerSocketChannel:" + port + " closed");
 				} catch (IOException e) {
