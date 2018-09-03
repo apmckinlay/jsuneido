@@ -48,7 +48,6 @@ import suneido.util.Util;
  */
 public class SocketServer extends SuClass {
 	public static final SocketServer singleton = new SocketServer();
-	private static final AtomicInteger count = new AtomicInteger(0);
 	private static final int MAXTHREADS = 300;
 
 	private SocketServer() {
