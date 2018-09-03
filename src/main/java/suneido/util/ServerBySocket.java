@@ -37,7 +37,6 @@ public class ServerBySocket {
 			serverSocket.setReuseAddress(true);
 			Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 				try {
-					executor.shutdownNow();
 					serverSocket.close();
 					Errlog.info("SocketServer:" + port + " closed");
 				} catch (IOException e) {
@@ -54,16 +53,20 @@ public class ServerBySocket {
 						Runnable handler = handlerFactory.newHandler(clientSocket);
 						executor.execute(handler);
 					} catch (RejectedExecutionException e) {
-						Errlog.error("SocketServer too many connections, stopping\r\n" +
+						Errlog.error("SocketServer:" + port +
+								" too many connections, stopping\r\n" +
 								"\tlast 10 connections:\r\n\t" +
 								Joiner.on("\r\n\t").join(log));
 						clientSocket.close();
 						break;
 					}
 				} catch (SocketException e) {
-					if (serverSocket.isClosed()) // shutdown
+					if (serverSocket.isClosed()) { // shutdown
+						executor.shutdownNow();
+						Errlog.info("SocketServer:" + port + " executor shutdown");
 						return;
-					Errlog.error("SocketServer", e);
+					}
+					Errlog.error("SocketServer:" + port, e);
 					break;
 				}
 			}
@@ -71,7 +74,8 @@ public class ServerBySocket {
 		executor.shutdownNow(); // NOTE: may not clean up all threads or sockets
 		try {
 			boolean result = executor.awaitTermination(10, TimeUnit.SECONDS);
-			Errlog.info("SocketServer awaitTermination(10 sec) returned " + result);
+			Errlog.info("SocketServer:" + port +
+					" awaitTermination(10 sec) returned " + result);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
