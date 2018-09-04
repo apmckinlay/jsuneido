@@ -23,7 +23,7 @@ public class Numbers {
 			return (Dnum) n;
 		if (n instanceof Integer)
 			return Dnum.from((int) n);
-		Ops.likeZero(n);
+		Ops.likeZero(n, "number");
 		return Dnum.Zero;
 	}
 
@@ -35,7 +35,7 @@ public class Numbers {
 	public static Number toNum(Object x) {
 		if (x instanceof Number)
 			return (Number) x;
-		Ops.likeZero(x);
+		Ops.likeZero(x, "number");
 		return 0;
 	}
 

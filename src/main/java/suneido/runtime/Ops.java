@@ -331,16 +331,16 @@ public final class Ops {
 			return (int) x;
 		if (x instanceof Dnum)
 			return ((Dnum) x).intValue();
-		return likeZero(x);
+		return likeZero(x, "integer");
 	}
 
-	static int likeZero(Object x) {
+	static int likeZero(Object x, String toType) {
 		if (x == Boolean.FALSE ||
 				(x instanceof CharSequence && ((CharSequence) x).length() == 0))
 			return 0;
 		throw new SuException((x == Boolean.TRUE)
-			? "can't convert true to number"
-			: "can't convert " + Ops.typeName(x) + " to number");
+			? "can't convert true to " + toType
+			: "can't convert " + Ops.typeName(x) + " to " + toType);
 	}
 
 	public static String toStr(Object x) {
