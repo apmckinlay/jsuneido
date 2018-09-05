@@ -196,8 +196,8 @@ public class PortTests {
 		addTest("dnum_cmp", DnumTest::pt_dnum_cmp);
 		addTest("execute", ExecuteTest::pt_execute);
 		addTest("method", ExecuteTest::pt_method);
-		addTest("lang_sub", ExecuteTest::pt_lang_sub);
-		addTest("lang_range", ExecuteTest::pt_lang_range);
+		addTest("lang_rangeto", ExecuteTest::pt_lang_rangeto);
+		addTest("lang_rangelen", ExecuteTest::pt_lang_rangelen);
 		addTest("compile", CompileTest::pt_compile);
 		addTest("compare", OpsTest::pt_compare);
 		addTest("compare_packed", PackTest::pt_compare_packed);

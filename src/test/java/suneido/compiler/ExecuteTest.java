@@ -421,7 +421,7 @@ public class ExecuteTest {
 	 * PortTests fixture.
 	 * Test [from..to] for both strings and containers.
 	 */
-	public static boolean pt_lang_range(String... args) {
+	public static boolean pt_lang_rangeto(String... args) {
 		String s = args[0];
 		int from = Integer.parseInt(args[1]);
 		int to = Integer.parseInt(args[2]);
@@ -437,7 +437,7 @@ public class ExecuteTest {
 	 * PortTests fixture.
 	 * Test [from::len] for both strings and containers.
 	 */
-	public static boolean pt_lang_sub(String... args) {
+	public static boolean pt_lang_rangelen(String... args) {
 		String s = args[0];
 		int i = Integer.parseInt(args[1]);
 		int n = args.length == 4 ? Integer.parseInt(args[2]) : 9999;
