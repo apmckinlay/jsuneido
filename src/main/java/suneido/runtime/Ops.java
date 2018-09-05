@@ -565,11 +565,11 @@ public final class Ops {
 	private static Object getString(CharSequence s, Object m) {
 		int i = index(m);
 		int len = s.length();
-		if (i < -len || len < i)
+		if (i < -len || len <= i)
 			return "";
 		if (i < 0)
 			i += len;
-		return 0 <= i && i < len ? s.subSequence(i, i + 1) : "";
+		return s.subSequence(i, i + 1);
 	}
 
 	public static int index(Object m) {
