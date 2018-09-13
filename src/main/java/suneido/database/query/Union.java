@@ -171,18 +171,20 @@ public class Union extends Compatible {
 						key.add(k);
 				if (!key.contains(disjoint))
 					key.add(disjoint);
-				if (!superset(key, keys))
-					keys.add(key);
+				keys.add(key);
 			}
 		}
-		return keys;
-	}
-
-	private static boolean superset(List<String> key, List<List<String>> keys) {
-		for (var k : keys)
-			if (key.containsAll(k))
-				return true;
-		return false;
+		// exclude any keys that are super-sets of another key
+		var keys2 = new ArrayList<List<String>>();
+		outer:
+		for (int i = 0; i < keys.size(); ++i) {
+			for (int j = 0; j < keys.size(); ++j) {
+				if (i != j && keys.get(i).containsAll(keys.get(j)))
+					continue outer;
+			}
+			keys2.add(keys.get(i));
+		}
+		return keys2;
 	}
 
 	@Override
