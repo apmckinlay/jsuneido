@@ -158,29 +158,31 @@ public class Union extends Compatible {
 
 	@Override
 	public List<List<String>> keys() {
-		if (disjoint != null) {
-			List<List<String>> kin = intersect_prefix(source.keys(), source2.keys());
-			if (!nil(kin)) {
-				List<List<String>> kout = new ArrayList<>();
-				for (List<String> k : kin)
-					kout.add(k.contains(disjoint) ? k : concat(k,
-							asList(disjoint)));
-				return kout;
+		if (disjoint == null)
+			return asList(allcols);
+
+		var keys = new ArrayList<List<String>>();
+		for (var k1 : source.keys()) {
+			for (var k2 : source2.keys()) {
+				var key = new ArrayList<String>();
+				key.addAll(k1);
+				for (var k : k2)
+					if (!key.contains(k))
+						key.add(k);
+				if (!key.contains(disjoint))
+					key.add(disjoint);
+				if (!superset(key, keys))
+					keys.add(key);
 			}
 		}
-		return asList(source.columns());
+		return keys;
 	}
 
-	private static List<List<String>> intersect_prefix(List<List<String>> keys1,
-			List<List<String>> keys2) {
-		List<List<String>> kout = new ArrayList<>();
-		for (List<String> k1 : keys1)
-			for (List<String> k2 : keys2)
-				if (startsWith(k1, k2))
-					addUnique(kout, k1);
-				else if (startsWith(k2, k1))
-					addUnique(kout, k2);
-		return kout;
+	private static boolean superset(List<String> key, List<List<String>> keys) {
+		for (var k : keys)
+			if (key.containsAll(k))
+				return true;
+		return false;
 	}
 
 	@Override
