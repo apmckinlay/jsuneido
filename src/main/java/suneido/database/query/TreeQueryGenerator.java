@@ -205,6 +205,11 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	}
 
 	@Override
+	public Object subscript(Object term, Object expression) {
+		return new BinOp(Token.SUBSCRIPT, (Expr) term, (Expr) expression);
+	}
+
+	@Override
 	public Object bool(boolean value, int lineNumber) {
 		return value;
 	}
@@ -234,9 +239,7 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 			fname = ((Identifier) function).ident;
 		else if (function instanceof Member) {
 			Member m = (Member) function;
-			if (! (m.left instanceof Identifier))
-				throw new SuException("syntax error");
-			ob = ((Identifier) m.left);
+			ob = ((Expr) m.left);
 			fname = m.right;
 		} else
 			throw new SuException("query functions must be called by name, got " + function.getClass());

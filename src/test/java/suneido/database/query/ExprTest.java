@@ -35,6 +35,12 @@ public class ExprTest {
 	}
 
 	@Test
+	public void expr_features() {
+		CompileQuery.expr("a.b().c()");
+		CompileQuery.expr("s[-1]");
+	}
+
+	@Test
 	public void fields() {
 		List<String> emptyList = Collections.emptyList();
 		fields("123", emptyList);
@@ -98,11 +104,12 @@ public class ExprTest {
 
 	@Test
 	public void eval() {
-		hdr = new Header(asList(asList("a"), asList("a", "b", "c", "d", "e")),
-				asList("a", "b", "c", "d", "e"));
+		hdr = new Header(asList(asList("a"), asList("a", "b", "c", "d", "e", "s")),
+				asList("a", "b", "c", "d", "e", "s"));
 		Record key = new RecordBuilder().add(1).build();
 		Record rec = new RecordBuilder().add(1).add(2).add(3).add(4).
-				add(SuDate.fromLiteral("#20081216.153244828")).build();
+				add(SuDate.fromLiteral("#20081216.153244828")).
+				add("hello").build();
 		row = new Row(key, rec);
 		eval("a + 10", "11");
 		eval("a + -1", "0");
@@ -124,6 +131,7 @@ public class ExprTest {
 		eval("d in (3,4,5)", "true");
 		eval("e < #20081216.152744828", "false");
 		eval("e < #20081216.155544828", "true");
+		eval("s[-1] is 'o'", "true");
 	}
 	private void eval(String expr, String result) {
 		Expr e = CompileQuery.expr(expr);

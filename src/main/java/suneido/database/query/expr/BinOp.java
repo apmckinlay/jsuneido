@@ -91,6 +91,7 @@ public class BinOp extends Expr {
 		case BITXOR:	return bitxor(x, y);
 		case MATCH :	return match(x, y);
 		case MATCHNOT : return matchnot(x, y);
+		case SUBSCRIPT :	return get(x, y);
 		default : 	throw unreachable();
 		}
 	}
@@ -143,8 +144,7 @@ public class BinOp extends Expr {
 			default :	throw unreachable();
 			}
 			return result ? Boolean.TRUE : Boolean.FALSE;
-		}
-		else
+		} else
 			return eval2(left.eval(hdr, row), right.eval(hdr, row));
 	}
 
