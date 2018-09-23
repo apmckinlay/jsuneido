@@ -4,18 +4,19 @@
 
 package suneido.database.query.expr;
 
+// used as temporary intermediate
+// between ParseExpression/TreeQueryGenerator and FunCall
 public class Member {
 	public final Object left;
 	public final String right;
 
 	public Member(Object left, String right) {
-	        this.left = left;
-	        this.right = right;
-        }
+		this.left = left;
+		this.right = right;
+	}
 
 	@Override
-        public String toString() {
-	        return "Member [left=" + left + ", right=" + right + "]";
-        }
-
+	public String toString() {
+		return "Member [left=" + left + ", right=" + right + "]";
+	}
 }
