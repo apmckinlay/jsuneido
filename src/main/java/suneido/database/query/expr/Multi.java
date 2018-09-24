@@ -54,10 +54,12 @@ public abstract class Multi extends Expr {
 			Expr e2 = e.fold();
 			if (e2 != ignore)
 				new_exprs.add(e2);
+			else
+				changed = true;
 			if (e2 != e)
 				changed = true;
 		}
-		return changed || new_exprs.size() != exprs.size() ? new_exprs : null;
+		return changed ? new_exprs : null;
 	}
 
 	protected List<Expr> renameExprs(List<String> from, List<String> to) {
