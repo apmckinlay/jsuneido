@@ -32,8 +32,17 @@ public class Extend extends Query1 {
 		super(source);
 		this.flds = flds;
 		this.exprs = exprs;
+		fold();
 		checkDependencies();
 		init();
+	}
+
+	private void fold() {
+		for (int i = 0; i < exprs.size(); ++i) {
+			Expr e = exprs.get(i);
+			if (e != null)
+				exprs.set(i, e.fold());
+		}
 	}
 
 	private void checkDependencies() {
