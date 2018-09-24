@@ -50,7 +50,9 @@ public class BinOp extends Expr {
 
 	@Override
 	public String toString() {
-		return "(" + left + " " + op.string + " " + right + ")";
+		return (op == Token.SUBSCRIPT)
+			? left + "[" + right + "]"
+			: "(" + left + " " + op.string + " " + right + ")";
 	}
 
 	@Override
