@@ -29,20 +29,56 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="lib/objenesis-2.6.jar"/>
-	<classpathentry kind="lib" path="lib/asm-6.2.jar"/>
-	<classpathentry kind="lib" path="lib/guava-25.1-jre.jar" sourcepath="lib/guava-25.1-jre-sources.jar">
+	<classpathentry kind="lib" path="lib/asm-6.2.1.jar" sourcepath="lib/asm-6.2.1-sources.jar">
 		<attributes>
-			<attribute name="javadoc_location" value="jar:platform:/resource/jsuneido/lib/guava-25.1-jre-javadoc.jar!/"/>
+			<attribute name="javadoc_location" value="jar:platform:/resource/jsuneido/lib/asm-6.2.1-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="lib/checker-compat-qual-2.3.1.jar"/>
-	<classpathentry kind="lib" path="lib/byte-buddy-1.8.0.jar"/>
-	<classpathentry kind="lib" path="lib/byte-buddy-agent-1.8.0.jar"/>
-	<classpathentry kind="lib" path="lib/mockito-core-2.16.0.jar"/>
-	<classpathentry kind="lib" path="lib/asm-util-6.2.jar"/>
-	<classpathentry kind="lib" path="lib/asm-commons-6.2.jar"/>
-	<classpathentry kind="lib" path="lib/asm-tree-6.2.jar"/>
-	<classpathentry kind="lib" path="lib/asm-analysis-6.2.jar"/>
+	<classpathentry kind="lib" path="lib/asm-analysis-6.2.1.jar" sourcepath="lib/asm-analysis-6.2.1-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/jsuneido/lib/asm-analysis-6.2.1-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/asm-commons-6.2.1.jar" sourcepath="lib/asm-commons-6.2.1-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/jsuneido/lib/asm-commons-6.2.1-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/asm-tree-6.2.1.jar" sourcepath="lib/asm-tree-6.2.1-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/jsuneido/lib/asm-tree-6.2.1-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/asm-util-6.2.1.jar" sourcepath="lib/asm-util-6.2.1-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/jsuneido/lib/asm-util-6.2.1-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/byte-buddy-1.8.22.jar" sourcepath="lib/byte-buddy-1.8.22-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/jsuneido/lib/byte-buddy-1.8.22-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/byte-buddy-agent-1.8.22.jar" sourcepath="lib/byte-buddy-agent-1.8.22-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/jsuneido/lib/byte-buddy-agent-1.8.22-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/mockito-core-2.22.0.jar" sourcepath="lib/mockito-core-2.22.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/jsuneido/lib/mockito-core-2.22.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/guava-26.0-jre.jar" sourcepath="lib/guava-26.0-jre-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/jsuneido/lib/guava-26.0-jre-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/checker-compat-qual-2.5.5.jar" sourcepath="lib/checker-compat-qual-2.5.5-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/jsuneido/lib/checker-compat-qual-2.5.5-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
 		<attributes>
 			<attribute name="module" value="true"/>
