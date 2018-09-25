@@ -20,7 +20,7 @@ import suneido.database.query.Row;
 import suneido.runtime.Ops;
 
 public class In extends Expr {
-	public final Expr expr;
+	public Expr expr;
 	private final Set<Object> values;
 	public final Record packed;
 	private boolean isTerm = false; // valid for isTermFields
@@ -64,10 +64,11 @@ public class In extends Expr {
 	public Expr fold() {
 		if (values.isEmpty())
 			return Constant.FALSE;
-		Expr new_expr = expr.fold();
-		if (new_expr instanceof Constant)
-			return Constant.valueOf(eval2(((Constant) new_expr).value));
-		return new_expr == expr ? this : new In(new_expr, values, packed);
+		expr = expr.fold();
+		Object val = expr.constant();
+		if (val != null)
+			return Constant.valueOf(eval2(val));
+		return this;
 	}
 
 	// see also BinOp

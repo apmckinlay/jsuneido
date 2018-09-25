@@ -64,11 +64,10 @@ public class BinOp extends Expr {
 	public Expr fold() {
 		left = left.fold();
 		right = right.fold();
-		if (left instanceof Constant && right instanceof Constant) {
-			Constant kx = (Constant) left;
-			Constant ky = (Constant) right;
-			return Constant.valueOf(eval2(kx.value, ky.value));
-		}
+		Object x = left.constant();
+		Object y = right.constant();
+		if (x != null && y != null)
+			return Constant.valueOf(eval2(x, y));
 		return this;
 	}
 

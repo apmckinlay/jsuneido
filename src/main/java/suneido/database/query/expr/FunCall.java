@@ -14,6 +14,7 @@ import suneido.Suneido;
 import suneido.database.query.Header;
 import suneido.database.query.Row;
 import suneido.runtime.Ops;
+import suneido.util.Util;
 
 public class FunCall extends Multi {
 	private final Expr ob;
@@ -45,8 +46,8 @@ public class FunCall extends Multi {
 
 	@Override
 	public Expr fold() {
-		List<Expr> new_exprs = foldExprs(null);
-		return new_exprs == null ? this : new FunCall(ob, fname, new_exprs);
+		Util.updateAll(exprs, Expr::fold);
+		return this;
 	}
 
 	@Override

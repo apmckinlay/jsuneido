@@ -18,7 +18,6 @@ import com.google.common.collect.Sets;
 import suneido.SuException;
 import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.RecordBuilder;
-import suneido.database.query.expr.Constant;
 import suneido.database.query.expr.Expr;
 
 public class Extend extends Query1 {
@@ -199,10 +198,12 @@ public class Extend extends Query1 {
 	List<Fixed> fixed() {
 		if (fix != null)
 			return fix;
+		Expr e;
+		Object val;
 		fix = new ArrayList<>();
 		for (int i = 0; i < flds.size(); ++i)
-			if (exprs.get(i) instanceof Constant)
-				fix.add(new Fixed(flds.get(i), ((Constant) exprs.get(i)).value));
+			if (null != (e = exprs.get(i)) && null != (val = e.constant()))
+				fix.add(new Fixed(flds.get(i), val));
 		fix = Fixed.combine(fix, source.fixed());
 		return fix;
 	}

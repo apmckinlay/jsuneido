@@ -67,4 +67,9 @@ public class Constant extends Expr {
 		return this;
 	}
 
+	@Override
+	public Object constant() {
+		return value;
+	}
+
 }

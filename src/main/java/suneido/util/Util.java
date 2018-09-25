@@ -7,9 +7,7 @@ package suneido.util;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
-import suneido.util.GuardedBy;
-import suneido.util.ThreadSafe;
+import java.util.function.Function;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -283,6 +281,12 @@ public class Util {
 	@SafeVarargs
 	public static <T> T[] array(T... values) {
 		return values;
+	}
+
+	public static <T> List<T> updateAll(List<T> v, Function<T,T> fn) {
+		for (int i = 0; i < v.size(); ++i)
+			v.set(i, fn.apply(v.get(i)));
+		return v;
 	}
 
 	/**

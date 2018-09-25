@@ -46,4 +46,8 @@ public abstract class Expr {
 		return false;
 	}
 
+	public Object constant() {
+		return null;
+	}
+
 }

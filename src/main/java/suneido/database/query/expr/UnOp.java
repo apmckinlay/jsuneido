@@ -35,8 +35,9 @@ public class UnOp extends Expr {
 	@Override
 	public Expr fold() {
 		expr = expr.fold();
-		if (expr instanceof Constant)
-			return Constant.valueOf(eval2(((Constant) expr).value));
+		Object val = expr.constant();
+		if (val != null)
+			return Constant.valueOf(eval2(val));
 		return this;
 	}
 

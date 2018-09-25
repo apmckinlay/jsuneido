@@ -40,17 +40,20 @@ public class And extends Multi {
 
 	@Override
 	public Expr fold() {
-		List<Expr> new_exprs = foldExprs(Constant.TRUE);
-		boolean alltrue = true;
-		for (Expr e : new_exprs == null ? exprs : new_exprs)
-			if (e instanceof Constant &&
-					! Ops.toBoolean_(((Constant) e).value))
+		// this code should be maintained in parallel with Or.fold
+		var new_exprs = new ArrayList<Expr>(exprs.size());
+		for (var e : exprs) {
+			e = e.fold();
+			var c = e.constant();
+			if (c == Boolean.FALSE)
 				return Constant.FALSE;
-			else
-				alltrue = false;
-		if (alltrue)
+			if (c != Boolean.TRUE)
+				new_exprs.add(e);
+		}
+		if (new_exprs.isEmpty())
 			return Constant.TRUE;
-		return new_exprs == null ? this : new And(new_exprs);
+		exprs = new_exprs;
+		return this;
 	}
 
 	@Override

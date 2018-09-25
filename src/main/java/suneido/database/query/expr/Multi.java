@@ -47,21 +47,6 @@ public abstract class Multi extends Expr {
 		return f;
 	}
 
-	protected List<Expr> foldExprs(Expr ignore) {
-		ArrayList<Expr> new_exprs = new ArrayList<>();
-		boolean changed = false;
-		for (Expr e : exprs) {
-			Expr e2 = e.fold();
-			if (e2 != ignore)
-				new_exprs.add(e2);
-			else
-				changed = true;
-			if (e2 != e)
-				changed = true;
-		}
-		return changed ? new_exprs : null;
-	}
-
 	protected List<Expr> renameExprs(List<String> from, List<String> to) {
 		ArrayList<Expr> new_exprs = new ArrayList<>();
 		boolean changed = false;

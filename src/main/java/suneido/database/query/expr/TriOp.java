@@ -38,8 +38,9 @@ public class TriOp extends Expr {
 		expr = expr.fold();
 		iftrue = iftrue.fold();
 		iffalse = iffalse.fold();
-		if (expr instanceof Constant)
-			return Ops.toBoolean_(((Constant) expr).value) ? iftrue : iffalse;
+		Object val = expr.constant();
+		if (val != null)
+			return Ops.toBoolean_(val) ? iftrue : iffalse;
 		return this;
 	}
 

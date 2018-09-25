@@ -119,13 +119,13 @@ public class Select extends Query1 {
 	private static Fixed fixed(Expr e) {
 		// MAYBE: handle IN
 		if (e instanceof BinOp) {
+			Object val;
 			BinOp binop = (BinOp) e;
 			if (binop.op == IS &&
 					binop.left instanceof Identifier &&
-					binop.right instanceof Constant) {
+					null != (val = binop.right.constant())) {
 				String field = ((Identifier) binop.left).ident;
-				Object value = ((Constant) binop.right).value;
-				return new Fixed(field, value);
+				return new Fixed(field, val);
 			}
 		}
 		return null;
