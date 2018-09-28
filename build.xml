@@ -65,6 +65,7 @@
 		<javac srcdir="${main.srcdir}" destdir="${main.dstdir.classes}"
 				classpathref="main.classpath"
 				includeAntRuntime="false"
+				release="10"
 				debug="true"/>
 	</target>
 
