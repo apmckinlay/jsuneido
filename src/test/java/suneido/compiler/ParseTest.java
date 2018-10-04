@@ -80,6 +80,8 @@ public class ParseTest {
 			"(MEMBER=b (IDENTIFIER=a))");
 		code("a[b]",
 			"(SUBSCRIPT (IDENTIFIER=a) (IDENTIFIER=b))");
+		code("this.a.b",
+			"(MEMBER=b (MEMBER=a (IDENTIFIER=this)))");
 		code(".a.b",
 			"(MEMBER=b (MEMBER=a (SELFREF)))");
 		code("++a.b.c",
