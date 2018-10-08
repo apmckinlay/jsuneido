@@ -142,7 +142,7 @@ public class Table {
 		int i = 0;
 		for (Column cs : columns) {
 			if (cs.field < 0)
-				continue; // skip rules
+				continue; // skip rules and special derived (e.g. _lower!)
 			for (; i < cs.field; ++i)
 				list.add("-");
 			list.add(cs.name);
