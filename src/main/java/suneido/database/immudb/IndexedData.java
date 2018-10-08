@@ -319,9 +319,14 @@ class IndexedData {
 		for (int f : fields)
 			if (f >= 0)
 				rb.add(rec, f);
-			else
+			else {
 				//TODO handle other transforms
-				rb.add(rec.getString(-f - 2).toLowerCase());
+				Object x = rec.get(-f - 2);
+				if (x instanceof String)
+					rb.add(((String) x).toLowerCase());
+				else
+					rb.add(rec, -f - 2);
+			}
 		return rb;
 	}
 
