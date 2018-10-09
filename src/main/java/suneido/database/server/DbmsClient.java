@@ -192,7 +192,7 @@ public class DbmsClient extends Dbms {
 			String s = io.getString();
 			if (Character.isUpperCase(s.charAt(0)))
 				s = Character.toLowerCase(s.charAt(0)) + s.substring(1);
-			else
+			else if (!Header.isSpecialField(s))
 				fields.add(s);
 			if (! s.equals("-"))
 				columns.add(s);

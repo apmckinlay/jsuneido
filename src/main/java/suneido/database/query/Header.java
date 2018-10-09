@@ -14,6 +14,8 @@ import java.util.List;
 
 import com.google.common.base.MoreObjects;
 
+import suneido.util.Util;
+
 public class Header {
 	List<List<String>> flds;
 	List<String> cols;
@@ -111,24 +113,23 @@ public class Header {
 	 * @return A list of the rule columns, i.e. columns() - fields()
 	 */
 	public List<String> rules() {
-		List<String> rules = new ArrayList<>();
-		for (String c : cols)
-			if (!inflds(flds, c))
-				rules.add(c);
-		return rules;
+		return Util.difference(cols, fields());
 	}
 
 	/**
 	 * @return A list of the logical columns with the rules capitalized.
 	 */
 	public List<String> schema() {
-		List<String> schema = new ArrayList<>(fields());
+		var fs = fields();
+		List<String> schema = new ArrayList<>(fs);
 		for (String c : cols)
-			if (! inflds(flds, c)) {
-				String s = c.substring(0, 1).toUpperCase() + c.substring(1);
-				schema.add(s);
-			}
+			if (! fs.contains(c))
+				schema.add(isSpecialField(c) ? c : Util.capitalize(c));
 		return schema;
+	}
+
+	public static boolean isSpecialField(String column) {
+		return column.endsWith("_lower!");
 	}
 
 	public List<String> output_fldsyms() {
@@ -149,13 +150,6 @@ public class Header {
 				}
 		}
 		return timestamp;
-	}
-
-	static boolean inflds(List<List<String>> flds, String field) {
-		for (List<String> f : flds)
-			if (f.contains(field))
-				return true;
-		return false;
 	}
 
 	@Override
