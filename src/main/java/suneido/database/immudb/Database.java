@@ -191,9 +191,10 @@ public class Database implements AutoCloseable {
 		StringObserver so = new StringObserver();
 		Status status = DbCheck.check(filename, this, upto.d, upto.i, so);
 		if (status != Status.OK) {
-			HttpServerMonitor.corrupt();
 			corrupt = true; // prevent writing dbc file
 			trans.lock(); // silently abort all transactions from now on
+			HttpServerMonitor.corrupt();
+			Errlog.error("found corruption, database locked");
 		}
 		return status == Status.OK ? "" : so.toString();
 	}
