@@ -176,7 +176,10 @@ public class AstCompile {
 		String prevSuClassName = suClassName;
 		suClassName = curName;
 		for (AstNode member : ast.second().children) {
-			String name = (String) fold(member.first());
+			Object mem = fold(member.first());
+			if (! (mem instanceof String))
+				throw new SuException("class member names must be strings");
+			String name = (String) mem;
 			Object value = fold(name, member.second());
 			members.put(privatize2(name), value);
 		}
