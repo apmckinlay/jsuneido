@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 import org.junit.Test;
 import org.objectweb.asm.Type;
 
+import suneido.PortTests;
 import suneido.SuException;
 import suneido.Suneido;
 import suneido.runtime.*;
@@ -663,6 +664,12 @@ public class CompileTest {
 		if (i == -1)
 			return r;
 		return r.substring(0, i);
+	}
+
+	@Test
+	public void porttests() {
+		PortTests.addTest("compile", CompileTest::pt_compile);
+		assert PortTests.runFile("constant.test");
 	}
 
 	/**

@@ -16,6 +16,7 @@ import java.nio.ByteBuffer;
 
 import org.junit.Test;
 
+import suneido.PortTests;
 import suneido.SuContainer;
 import suneido.SuDate;
 import suneido.SuRecord;
@@ -132,6 +133,15 @@ public class PackTest {
 		ByteBuffer buf = Pack.packLong(n);
 		assertThat(buf, equalTo(Pack.pack(Dnum.from(n))));
 		assertThat(Pack.unpackLong(buf), equalTo(n));
+	}
+
+	@Test
+	public void porttests() {
+		PortTests.addTest("compare_packed", PackTest::pt_compare_packed);
+		PortTests.skipTest("lang_rangeto");
+		PortTests.skipTest("lang_rangelen");
+		PortTests.skipTest("compare");
+		assert PortTests.runFile("lang.test");
 	}
 
 	public static boolean pt_compare_packed(String... data) {
