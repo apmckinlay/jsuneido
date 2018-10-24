@@ -244,11 +244,11 @@ public class ClassTest {
 		def("C", "class { CallClass() { this } }");
 		test("#(1).Eval(C)", "#(1)");
 
-		testDisp("C.Eval(F)", "C");
+		testDisp("C.Eval(F)", "C /* class */");
 		testDisp("(new C).Eval(F)", "C()");
 
 		def("B", "C { }");
-		testDisp("B.Eval(F)", "B");
+		testDisp("B.Eval(F)", "B /* class : C */");
 	}
 
 	@Test

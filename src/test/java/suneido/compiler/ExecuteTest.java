@@ -234,7 +234,7 @@ public class ExecuteTest {
 		testDisp("F", "F /* function */");
 
 		def("C", "class { }");
-		testDisp("C", "C");
+		testDisp("C", "C /* class */");
 		testDisp("C()", "C()");
 
 		def("C", "class { M() { } }");

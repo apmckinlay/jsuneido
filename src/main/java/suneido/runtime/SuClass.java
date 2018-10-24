@@ -338,13 +338,17 @@ public class SuClass extends SuValue {
 
 	@Override
 	public String display() {
-		if (name.endsWith("$c"))
-			return "/* class */";
+		StringBuilder sb = new StringBuilder();
+		if (name != "" && ! name.endsWith("$c"))
+			sb.append(name).append(' ');
+		sb.append("/* ");
 		if (library != null && ! library.isEmpty())
-			return new StringBuilder().append(name).append(" /* ")
-					.append(library).append(" class */").toString();
-		else
-			return name;
+			sb.append(library).append(' ');
+		sb.append("class");
+		if (baseGlobal != null)
+			sb.append(" : ").append(baseGlobal);
+		sb.append(" */");
+		return sb.toString();
 	}
 
 	public String toDebugString() {
