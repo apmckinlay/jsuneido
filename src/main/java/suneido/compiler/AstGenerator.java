@@ -320,39 +320,6 @@ public class AstGenerator extends Generator<AstNode> {
 		return new AstNode(type, from, to);
 	}
 
-	@Override
-	public AstNode struct(AstNode structMembers, int lineNumber) {
-		if (null == structMembers)
-			structMembers = EMPTY_LIST;
-		return new AstNode(Token.STRUCT, lineNumber, structMembers);
-	}
-
-	@Override
-	public AstNode dll(String libraryName, String userFunctionName,
-			String returnType, AstNode dllParams, int lineNumber) {
-		if (null == dllParams)
-			dllParams = EMPTY_LIST;
-		return new AstNode(Token.DLL, lineNumber, new AstNode(Token.IDENTIFIER,
-				libraryName), new AstNode(Token.STRING, userFunctionName),
-				new AstNode(Token.IDENTIFIER, returnType), dllParams);
-	}
-
-	@Override
-	public AstNode callback(AstNode callbackParams, int lineNumber) {
-		if (null == callbackParams)
-			callbackParams = EMPTY_LIST;
-		return new AstNode(Token.CALLBACK, lineNumber, callbackParams);
-	}
-
-	@Override
-	public AstNode typeList(AstNode list, String name, boolean inTag,
-			String baseType, Token storageType, String numElems) {
-		AstNode type = new AstNode(storageType, new AstNode(Token.IDENTIFIER,
-				baseType, new AstNode(Token.NUMBER, numElems), new AstNode(
-						Token.IN, Boolean.toString(inTag))));
-		return list(list, new AstNode(Token.IDENTIFIER, name, type));
-	}
-
 	private static AstNode list(AstNode list, AstNode next) {
 		if (list == null)
 			list = new AstNode(Token.LIST, new ArrayList<AstNode>());

@@ -74,9 +74,6 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		switch (lexer.getKeyword()) {
 		case FUNCTION:
 		case CLASS:
-		case STRUCT:
-		case DLL:
-		case CALLBACK:
 		case TRUE:
 		case FALSE:
 			return false;

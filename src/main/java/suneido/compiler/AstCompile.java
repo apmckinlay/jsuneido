@@ -97,12 +97,6 @@ public class AstCompile {
 			return foldFunction(name, ast, CallableType.METHOD);
 		case FUNCTION:
 			return foldFunction(name, ast, CallableType.FUNCTION);
-		case STRUCT:
-			return foldStruct(name, ast);
-		case DLL:
-			return foldDll(name, ast);
-		case CALLBACK:
-			return foldCallback(name, ast);
 		case SUB: // unary
 			value = fold(ast.first());
 			if (value != null)
@@ -258,18 +252,6 @@ public class AstCompile {
 				CallableType.WRAPPED_BLOCK, cg.locals);
 		nameEnd();
 		return fn;
-	}
-
-	private static Object foldStruct(String name, AstNode ast) {
-		throw new SuException("jSuneido does not implement struct");
-	}
-
-	private static Object foldDll(String name, AstNode ast) {
-		throw new SuException("jSuneido does not implement dll");
-	}
-
-	private static Object foldCallback(String name, AstNode ast) {
-		throw new SuException("jSuneido does not implement callback");
 	}
 
 	/**

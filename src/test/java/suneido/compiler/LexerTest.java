@@ -167,9 +167,9 @@ public class LexerTest {
 
 	@Test
 	public void keywords() {
-		checkKeywords("break case catch continue class callback default " +
-			"dll do else for forever function if new " +
-			"switch struct super return throw try while true false");
+		checkKeywords("break case catch continue class default " +
+			"do else for forever function if new " +
+			"switch super return throw try while true false");
 	}
 	private static void checkKeywords(String source) {
 		Lexer lexer = new Lexer(source);

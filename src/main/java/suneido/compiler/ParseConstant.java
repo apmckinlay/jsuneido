@@ -33,12 +33,6 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 				return function();
 			case CLASS:
 				return classConstant();
-			case STRUCT:
-				return struct();
-			case DLL:
-				return dll();
-			case CALLBACK:
-				return callback();
 			case TRUE:
 			case FALSE:
 				return bool();
@@ -227,24 +221,4 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		return result;
 	}
 
-	private T struct() {
-		ParseStruct<T, G> p = new ParseStruct<>(this);
-		T result = p.struct();
-		token = p.token;
-		return result;
-	}
-
-	private T dll() {
-		ParseDll<T, G> p = new ParseDll<>(this);
-		T result = p.dll();
-		token = p.token;
-		return result;
-	}
-
-	private T callback() {
-		ParseCallback<T, G> p = new ParseCallback<>(this);
-		T result = p.callback();
-		token = p.token;
-		return result;
-	}
 }

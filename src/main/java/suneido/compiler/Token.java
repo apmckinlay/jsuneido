@@ -48,7 +48,6 @@ public enum Token {
 	BREAK("break"), CONTINUE("continue"),
 	SWITCH("switch"), CASE("case"), DEFAULT("default"),
 	FUNCTION("function"), CLASS("class"), CATCH("catch"),
-	DLL("dll"), STRUCT("struct"), CALLBACK("callback"),
 	NEW("new"), RETURN("return"), TRY("try"), THROW("throw"),
 	SUPER("super"), TRUE("true"), FALSE("false"),
 	IN("in"), THIS("this"),

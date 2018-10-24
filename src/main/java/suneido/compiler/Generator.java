@@ -199,25 +199,4 @@ public abstract class Generator<T> {
 		return null;
 	}
 
-	//
-	// DLL INTERFACE PARSING...
-	//
-
-	public T struct(T structMembers, int lineNumber) {
-		return null;
-	}
-
-	public T dll(String libraryName, String userFunctionName, String returnType,
-			T dllParams, int lineNumber) {
-		return null;
-	}
-
-	public T callback(T dllParams, int lineNumber) {
-		return null;
-	}
-
-	public T typeList(T list, String name, boolean inTag, String baseType,
-			Token storageType, String numElems) {
-		return null;
-	}
 }

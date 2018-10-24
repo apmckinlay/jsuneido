@@ -26,12 +26,6 @@ import suneido.util.ThreadSafe;
  * <li>
  * {@link ParseExpression} - used by ParseFunction</li>
  * <li>
- * {@link ParseStruct} - used by ParseConstant</li>
- * <li>
- * {@link ParseDll} - used by ParseConstant</li>
- * <li>
- * {@link ParseCallback} - used by ParseConstant</li>
- * <li>
  * {@link Generator} - interface, called by parsers with results
  * <li>
  * {@link AstGenerator} - implementation of Generator to create AST</li>
