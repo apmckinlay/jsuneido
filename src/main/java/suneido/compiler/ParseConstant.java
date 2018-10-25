@@ -27,30 +27,11 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 
 	public T constant() {
-		if (token == IDENTIFIER)
-			switch (lexer.getKeyword()) {
-			case FUNCTION:
-				return function();
-			case CLASS:
-				return classConstant();
-			case TRUE:
-			case FALSE:
-				return bool();
-			default:
-				if (lookAhead() == L_CURLY)
-					return classConstant();
-			}
-		return simpleConstant();
-	}
-
-	public T simpleConstant() {
 		switch (token) {
 		case SUB:
 			match();
-			return matchReturn(
-					NUMBER,
-					generator.number("-" + lexer.getValue(),
-							lexer.getLineNumber()));
+			return matchReturn(NUMBER, generator.number("-" + lexer.getValue(),
+						lexer.getLineNumber()));
 		case ADD:
 			match();
 			return number();
@@ -64,11 +45,35 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		case L_CURLY:
 		case L_BRACKET:
 			return object();
-		default:
+		case IS:
+		case ISNT:
+		case AND:
+		case OR:
+		case NOT:
+			if (lexer.getKeyword() != Token.NIL)
+				return matchReturn(generator.string(lexer.getValue(),
+						lexer.getLineNumber()));
+			break;
+		case IDENTIFIER:
+			switch (lexer.getKeyword()) {
+			case FUNCTION:
+				return function();
+			case CLASS:
+				return classConstant();
+			case TRUE:
+			case FALSE:
+				return bool();
+			default:
+				String val = lexer.getValue();
+				Token ahead = lookAhead();
+				if (ahead != COLON && (val.equals("dll") ||
+						val.equals("callback") || val.equals("struct")))
+					syntaxError("jSuneido does not implement " + val);
+				if (ahead == L_CURLY)
+					return classConstant();
+				return matchReturn(generator.string(val, lexer.getLineNumber()));
+			}
 		}
-		if (anyName())
-			return matchReturn(generator.string(lexer.getValue(),
-					lexer.getLineNumber()));
 		syntaxError();
 		return null;
 	}
@@ -87,75 +92,46 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		if (token == L_CURLY)
 			return "";
 		String base = lexer.getValue();
-		int i = base.startsWith("_") ? 1 : 0;
-		if (!Character.isUpperCase(base.charAt(i)))
+		if (!okBase(base))
 			syntaxError("base class must be global defined in library");
 		matchSkipNewlines(IDENTIFIER);
 		return base;
 	}
+	private static boolean okBase(String s) {
+		int i = s.startsWith("_") ? 1 : 0;
+		return s.length() > i && Character.isUpperCase(s.charAt(i));
+	}
+
 	private T memberList(Token open, boolean inClass) {
 		MType which = (open == L_PAREN) ? MType.OBJECT : MType.RECORD;
 		match(open);
 		T members = null;
 		while (token != open.other) {
-			members = generator.memberList(which, members, member(inClass));
+			members = generator.memberList(which, members, member(open.other, inClass));
 			if (token == COMMA || token == SEMICOLON)
 				match();
 		}
 		match(open.other);
 		return members;
 	}
-	private T member(boolean inClass) {
-		T name = memberName(inClass);
-		boolean canBeFunction = token != COLON;
-		if (name != null) {
-			if (token == COLON) {
-				match();
-				if (inClass && token == IDENTIFIER && lexer.getKeyword() == FUNCTION) {
-					canBeFunction = true;
-					match();
-				}
-			} else if (inClass && token != L_PAREN)
-				syntaxError("expected colon after member name");
-		}
-		T value = memberValue(name, canBeFunction, inClass);
-		return generator.memberDefinition(name, value);
-	}
-	private T memberName(boolean inClass) {
-		if (!isMemberName(inClass))
-			if (inClass)
-				syntaxError("class members must be named");
-			else
-				return null;
-		return simpleConstant();
-	}
-	private boolean isMemberName(boolean inClass) {
-		if (! anyName() && token != NUMBER && token != SUB && token != ADD)
-			return false;
-		Lexer ahead = new Lexer(lexer);
-		Token next = ahead.next();
-		if (token == SUB || token == ADD)
-			next = ahead.next();
-		return next == COLON || (inClass && next == L_PAREN);
-	}
-	private T memberValue(T name, boolean canBeFunction, boolean inClass) {
-		T value = null;
-		if (name != null && canBeFunction && token == L_PAREN)
+	private T member(Token closing, boolean inClass) {
+		Token start = token;
+		T name = null;
+		T value = constant();
+		if (inClass && start == IDENTIFIER && token == L_PAREN) {
+			name = value;
 			value = functionWithoutKeyword(inClass);
-		else if (token != COMMA &&
-				token != R_PAREN && token != R_CURLY && token != R_BRACKET) {
-			if (token == FUNCTION) {
-				matchSkipNewlines(FUNCTION);
-				value = functionWithoutKeyword(inClass);
-			} else if (token == CLASS)
-				value = classConstant();
-			else
+		} else if (matchIf(COLON)) {
+			name = value;
+			if (token == COMMA || token == SEMICOLON || token == closing) {
+				value = generator.boolTrue(lexer.getLineNumber());
+			} else {
 				value = constant();
-		} else if (name != null)
-			value = generator.boolTrue(lexer.getLineNumber());
-		else
-			syntaxError();
-		return value;
+			}
+		}
+		if (inClass && name == null)
+			syntaxError("class members must be named");
+		return generator.memberDefinition(name, value);
 	}
 
 	private T bool() {

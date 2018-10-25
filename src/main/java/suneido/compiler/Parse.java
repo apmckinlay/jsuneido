@@ -130,20 +130,4 @@ public class Parse<T, G> {
 		return token;
 	}
 
-	protected boolean anyName() {
-		switch (token) {
-		case IDENTIFIER:
-		case STRING:
-			return true;
-		case IS:
-		case ISNT:
-		case AND:
-		case OR:
-		case NOT:
-			return lexer.getKeyword() != Token.NIL;
-		default:
-			return false;
-		}
-	}
-
 }

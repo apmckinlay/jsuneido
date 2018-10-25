@@ -237,12 +237,11 @@ public class Lexer implements Doesc.Src {
 	private Token identifier() {
 		skipIdentifier();
 		value(null);
-		keyword = ignoreCase
+		Token k = ignoreCase
 				? Token.lookupIgnoreCase(value) : Token.lookup(value);
-		if (charAt(si) == ':' &&
-				(keyword == Token.IS || keyword == Token.ISNT ||
-				keyword == Token.AND || keyword == Token.OR || keyword == Token.NOT))
-			keyword = null;
+		if (charAt(si) == ':' && !(k == DEFAULT || k == TRUE || k == FALSE))
+			return IDENTIFIER;
+		keyword = k;
 		return keyword != null && keyword.isOperator()
 				? keyword : IDENTIFIER;
 	}

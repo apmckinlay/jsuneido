@@ -319,17 +319,19 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		case SUPER:
 			return superCall();
 		default:
-			String identifier = lexer.getValue();
-			if (isGlobal(identifier) && lookAhead(! expectingCompound) == L_CURLY)
-				return generator.constant(constant());
+			String id = lexer.getValue();
+			if (id.equals("dll") || id.equals("callback") || id.equals("struct"))
+				syntaxError("jSuneido does not implement " + id);
+			if (isGlobal(id) && lookAhead(! expectingCompound) == L_CURLY)
+				return generator.constant(constant()); // Base{ => class
 			else {
 				int lineNumber = lexer.getLineNumber();
 				match(IDENTIFIER);
 				if (matchIf(AT)) {
-					identifier = identifier + "@" + lexer.getValue();
+					id += "@" + lexer.getValue();
 					match(IDENTIFIER);
 				}
-				return generator.identifier(identifier, lineNumber);
+				return generator.identifier(id, lineNumber);
 			}
 		}
 	}
