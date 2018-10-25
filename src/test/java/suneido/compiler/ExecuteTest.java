@@ -404,7 +404,7 @@ public class ExecuteTest {
 				ok = result != Boolean.FALSE;
 			} else {
 				result = eval(args[0]);
-			 	Object expectedOb = compile("", expected);
+			 	Object expectedOb = compile(expected);
 				ok = Ops.is(result, expectedOb);
 			}
 			if (! ok) {
@@ -479,7 +479,7 @@ public class ExecuteTest {
 	}
 
 	public static Object toValue(boolean[] str, String[] args, int i) {
-		return str[i] ? args[i] : compile("", args[i]);
+		return str[i] ? args[i] : compile(args[i]);
 	}
 
 }

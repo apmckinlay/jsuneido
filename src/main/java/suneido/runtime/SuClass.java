@@ -339,7 +339,7 @@ public class SuClass extends SuValue {
 	@Override
 	public String display() {
 		StringBuilder sb = new StringBuilder();
-		if (name != "" && ! name.endsWith("$c"))
+		if (name != "" && ! name.endsWith("$c") && !name.equals("eval"))
 			sb.append(name).append(' ');
 		sb.append("/* ");
 		if (library != null && ! library.isEmpty())

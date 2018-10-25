@@ -24,7 +24,6 @@ import suneido.runtime.builtin.ObjectClass;
 import suneido.runtime.builtin.RecordClass;
 
 public class CompileTest {
-
 	private static final String TEST_OBJECT_NAME = "Test";
 
 	/*
@@ -363,6 +362,9 @@ public class CompileTest {
 		test("switch (a) { case 123: b() }",
 				"a, ASTORE 2, 123, ALOAD 2, is_, IFFALSE L1, L2, b, call, POP, GOTO L3, L1, "
 				+ "'unhandled switch case', throw, L4, L3");
+		test("switch (a) { case false: b() }",
+				"a, ASTORE 2, false, ALOAD 2, is_, IFFALSE L1, L2, b, call, POP, GOTO L3, L1, "
+				+ "'unhandled switch case', throw, L4, L3");
 		test("switch (a = b) { case 123: c() }",
 				"&a, b, DUP_X2, AASTORE, ASTORE 2, 123, ALOAD 2, is_, IFFALSE L1, L2, "
 				+ "c, call, POP, GOTO L3, L1, 'unhandled switch case', throw, L4, L3");
@@ -684,7 +686,7 @@ public class CompileTest {
 		String expected = args[2];
 		boolean ok = true;
 		try {
-			Object x = Compiler.compile("", s);
+			Object x = Compiler.compile(s);
 			if (!type.equals(Ops.typeName(x)))
 				ok = false;
 			if (!expected.equals(Ops.display(x)))

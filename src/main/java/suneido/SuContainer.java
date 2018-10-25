@@ -306,7 +306,8 @@ public class SuContainer extends SuValue
 	private static final Pattern idpat;
 	static { idpat = Pattern.compile("^[_a-zA-Z][_a-zA-Z0-9]*[?!]?$"); }
 	static String keyToString(String s) {
-		return idpat.matcher(s).matches() ? s : Ops.display(s);
+		return idpat.matcher(s).matches() && !(s.equals("true") || s.equals("false"))
+				? s : Ops.display(s);
 	}
 
 	@Override

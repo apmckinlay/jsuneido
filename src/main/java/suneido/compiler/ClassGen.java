@@ -136,8 +136,7 @@ public class ClassGen {
 		if (pw != null)
 			cv = new TraceClassVisitor(cw, pw);
 		cv = new CheckClassAdapter(cv, false);
-		cv.visit(V1_5, ACC_PUBLIC + ACC_SUPER, className,
-				null, base, null);
+		cv.visit(V1_5, ACC_PUBLIC + ACC_SUPER, className, null, base, null);
 		cv.visitSource(sourceFile, null);
 		return cv;
 	}

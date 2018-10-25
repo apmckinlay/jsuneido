@@ -42,6 +42,10 @@ import suneido.util.ThreadSafe;
 @ThreadSafe
 public class Compiler {
 
+	public static Object compile(String src) {
+		return compile("", "eval", src, null, Suneido.context, null, true);
+	}
+
 	public static Object compile(String name, String src) {
 		return compile("", name, src, null, Suneido.context, null, true);
 	}

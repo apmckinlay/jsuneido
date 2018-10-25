@@ -92,6 +92,8 @@ public class ParseConstantTest {
 				"(OBJECT (MEMBER null (RECORD (MEMBER (STRING=a) (TRUE)))))");
 		constant("#(class: 123)",
 			"(OBJECT (MEMBER (STRING=class) (NUMBER=123)))");
+		constant("#(function(){})",
+				"(OBJECT (MEMBER null (FUNCTION (LIST) (LIST (NIL)))))");
 	}
 
 	@Test(expected = SuException.class)
