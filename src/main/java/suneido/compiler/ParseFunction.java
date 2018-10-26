@@ -32,12 +32,12 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		// NOTE: lineNumber is starting at arg list LPAREN, which is not ideal.
 		//       Better would be starting on the "function" keyword or member
 		//       name, as the case may be.
-		T params = parameters();
+		T params = parameters(inClass);
 		T body = compound(NORMAL);
 		return generator.function(params, body, inClass, lineNumber);
 	}
 
-	private T parameters() {
+	private T parameters(boolean inClass) {
 		match(L_PAREN);
 		T params = null;
 		if (matchIf(AT)) {
@@ -49,8 +49,11 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 			while (token != R_PAREN) {
 				boolean dot = matchIf(DOT);
 				String name = lexer.getValue();
-				if (dot)
+				if (dot) {
+					if (!inClass)
+						syntaxError("dot parameters only allowed in class methods");
 					name = "." + name;
+				}
 				match(IDENTIFIER);
 				if (matchIf(EQ)) {
 					if (idString())
