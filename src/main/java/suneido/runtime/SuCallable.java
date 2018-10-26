@@ -26,7 +26,7 @@ import suneido.compiler.Disassembler;
  *
  * @author Andrew McKinlay, Victor Schappert
  */
-public class SuCallable extends SuValue {
+public class SuCallable extends SuValue implements Showable {
 	protected String name;
 	protected SuClass myClass;
 	protected FunctionSpec params;
@@ -147,11 +147,7 @@ public class SuCallable extends SuValue {
 		return x instanceof SuCallable && ((SuCallable) x).callableType.isBlock();
 	}
 
-	// --------------------------------------------------------------------------
-
-	//
-	// ANCESTOR CLASS: SuValue
-	//
+	// SuValue methods
 
 	@Override
 	public boolean isCallable() {
@@ -188,6 +184,15 @@ public class SuCallable extends SuValue {
 		}
 		return super.lookup(method);
 	}
+
+	// Showable
+
+	@Override
+	public String show() {
+		return "function" + params.params();
+	}
+
+	// builtin methods
 
 	private static final SuValue Params =
 			new SuBuiltinMethod0("function.Params") {

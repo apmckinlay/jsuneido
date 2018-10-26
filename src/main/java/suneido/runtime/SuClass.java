@@ -6,6 +6,7 @@ package suneido.runtime;
 
 import static suneido.SuException.methodNotFound;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
 
@@ -22,7 +23,7 @@ import suneido.runtime.builtin.ContainerMethods;
  * The methods are instances of generated classes derived from {@link SuCallable})
  * Suneido instances are instances of {@link SuInstance}
  */
-public class SuClass extends SuValue {
+public class SuClass extends SuValue implements Showable {
 	private final String library;
 	private final String name;
 	private final String baseGlobal; // TODO could be int slot
@@ -351,14 +352,26 @@ public class SuClass extends SuValue {
 		return sb.toString();
 	}
 
-	public String toDebugString() {
+	@Override
+	public String show() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(name).append(" = ").append("class");
-		if (baseGlobal != null)
-			sb.append(" : ").append(baseGlobal);
-		sb.append(" {").append("\n");
-		for (Map.Entry<String, Object> e : members.entrySet())
-			sb.append(e).append("\n");
+		if (baseGlobal == null)
+			sb.append("class");
+		else
+			sb.append(baseGlobal);
+		sb.append("{");
+		var keys = new ArrayList<String>(members.keySet());
+		Collections.sort(keys);
+		var sep = "";
+		for (var key : keys) {
+			sb.append(sep).append(key);
+			var val = members.get(key);
+			if (val instanceof SuCallable)
+				sb.append("()");
+			else
+				sb.append(": ").append(val);
+			sep = "; ";
+		}
 		sb.append("}");
 		return sb.toString();
 	}

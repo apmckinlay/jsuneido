@@ -689,13 +689,13 @@ public class CompileTest {
 			Object x = Compiler.compile(s);
 			if (!type.equals(Ops.typeName(x)))
 				ok = false;
-			if (!expected.equals(Ops.display(x)))
+			if (!expected.equals(Showable.show(x)))
 				ok = false;
 			if (!ok)
 				System.out.println("\tgot: " +
-						Ops.typeName(x) + ", " + Ops.display(x));
+						Ops.typeName(x) + ", " + Showable.show(x));
 		} catch (RuntimeException e) {
-			if (!type.equals("Exception"))
+			if (!type.equals("throws"))
 				ok = false;
 			if (!e.getMessage().contains(expected))
 				ok = false;
@@ -704,5 +704,7 @@ public class CompileTest {
 		}
 		return ok;
 	}
+
+
 
 }
