@@ -26,7 +26,7 @@ public class AstVariablesTest {
 		test("++x", "x");
 		test("function (a, b) { }", "a", "b");
 		test("function (@args) { }", "args");
-		test("function (_a, .b, .C, ._d, ._E) { }", "a", "b", "c", "d", "e");
+		test("function (a, _b, _c = 1) { }", "a", "b", "c");
 	}
 
 	private static void test(String code, String... vars) {
