@@ -14,6 +14,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import suneido.PortTests;
 import suneido.SuContainer;
 import suneido.SuException;
 import suneido.Suneido;
@@ -480,6 +481,15 @@ public class ExecuteTest {
 
 	public static Object toValue(boolean[] str, String[] args, int i) {
 		return str[i] ? args[i] : compile(args[i]);
+	}
+
+	@Test
+	public void porttests() {
+		PortTests.addTest("execute", ExecuteTest::pt_execute);
+		PortTests.addTest("lang_rangeto", ExecuteTest::pt_lang_rangeto);
+		PortTests.addTest("lang_rangelen", ExecuteTest::pt_lang_rangelen);
+		assert PortTests.runFile("execute.test");
+		assert PortTests.runFile("execute2.test");
 	}
 
 }
