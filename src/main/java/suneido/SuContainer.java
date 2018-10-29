@@ -767,7 +767,7 @@ public class SuContainer extends SuValue
 	}
 
 	public synchronized SuContainer subList(int from, int to) {
-		return new SuContainer(vec.subList(from, to));
+		return new SuContainer(new ArrayList<Object>(vec.subList(from, to)));
 	}
 
 }
