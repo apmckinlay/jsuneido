@@ -6,6 +6,8 @@ package suneido.compiler;
 
 import java.util.ArrayList;
 
+import suneido.SuException;
+
 public class AstGenerator extends Generator<AstNode> {
 	private static final AstNode NIL_STATEMENT = new AstNode(Token.NIL);
 	private static final AstNode EMPTY_LIST = new AstNode(Token.LIST);
@@ -52,6 +54,12 @@ public class AstGenerator extends Generator<AstNode> {
 
 	@Override
 	public AstNode memberList(MType which, AstNode list, AstNode memdef) {
+		if (list != null)
+			// check for duplicate
+			for (var m : list.children)
+				if (m.first() != null && memdef.first() != null &&
+						m.first().value.equals(memdef.first().value))
+					throw new SuException("duplicate member name");
 		return list(list, memdef);
 	}
 
