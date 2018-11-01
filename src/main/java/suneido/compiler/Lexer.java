@@ -166,7 +166,8 @@ public class Lexer implements Doesc.Src {
 		case '\r':
 			return whitespace(c);
 		case '#':
-			if (! Character.isLetter(charAt(si)))
+			c = charAt(si);
+			if (! (c == '_' || Character.isLetter(c)))
 				return HASH;
 			skipIdentifier();
 			value = srcsub(prev + 1, si);

@@ -14,7 +14,7 @@ public interface Showable {
 	String show();
 
 	static String show(Object x) {
-		return x instanceof Showable ? ((Showable) x).show() : x.toString();
+		return x instanceof Showable ? ((Showable) x).show() : Ops.display(x);
 	}
 
 }
