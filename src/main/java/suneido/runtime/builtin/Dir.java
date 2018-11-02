@@ -29,7 +29,7 @@ public class Dir {
 	public static Object Dir(Object p, Object f, Object d) {
 		boolean files = Ops.toBoolean_(f);
 		boolean details = Ops.toBoolean_(d);
-		String dir = toStr(p);
+		String dir = toStr(p).replace('\\',  '/');
 		String glob;
 		int i = dir.lastIndexOf('/');
 		if (i == -1) {
