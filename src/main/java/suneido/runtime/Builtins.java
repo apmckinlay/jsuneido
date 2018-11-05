@@ -43,7 +43,7 @@ public class Builtins {
 			.put("Deadlock", function(SuDeadlock.class))
 			.put("DeleteDir", function(DeleteDir.class))
 			.put("DeleteFile", function(DeleteFile.class))
-			.put("DeleteFileApi", function(DeleteFileApi.class))
+			.put("DeleteFileApi", function(DeleteFile.class))
 			.put("Dir", function(Dir.class))
 			.put("DirExists?", function(DirExistsQ.class))
 			.put("Display", function(Display.class))
