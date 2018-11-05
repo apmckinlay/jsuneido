@@ -17,10 +17,7 @@ import com.google.common.collect.Lists;
 import suneido.database.immudb.Record;
 import suneido.database.immudb.RecordBuilder;
 import suneido.database.query.Header;
-import suneido.runtime.Ops;
-import suneido.runtime.Pack;
-import suneido.runtime.Range;
-import suneido.runtime.SuInstance;
+import suneido.runtime.*;
 import suneido.runtime.builtin.ContainerMethods;
 import suneido.util.Dnum;
 import suneido.util.NullIterator;
@@ -35,7 +32,7 @@ import suneido.util.Util;
  * Combines an extendible array plus a hash map.
  */
 public class SuContainer extends SuValue
-		implements Comparable<SuContainer>, Iterable<Object> {
+		implements Comparable<SuContainer>, Iterable<Object>, Showable {
 	public final List<Object> vec;
 	private final Map<Object,Object> map;
 	protected Object defval = null;
@@ -308,6 +305,29 @@ public class SuContainer extends SuValue
 	static String keyToString(String s) {
 		return idpat.matcher(s).matches() && !(s.equals("true") || s.equals("false"))
 				? s : Ops.display(s);
+	}
+
+	@Override
+	public String show() {
+		return show("#(", ")");
+	}
+
+	protected String show(String before, String after) {
+		StringBuilder sb = new StringBuilder(before);
+		for (Object x : vec)
+			sb.append(Ops.display(x)).append(", ");
+		var keys = new ArrayList<Object>(map.keySet());
+		Collections.sort(keys, Ops::cmp);
+		var sep = "";
+		for (var key : keys) {
+			sb.append(sep);
+			sep = ", ";
+			sb.append(keyToString(key)).append(":");
+			var val = map.get(key);
+			if (val != Boolean.TRUE)
+				sb.append(" ").append(Showable.show(val));
+		}
+		return sb.append(after).toString();
 	}
 
 	@Override

@@ -133,6 +133,11 @@ public class SuRecord extends SuContainer {
 	}
 
 	@Override
+	public String show() {
+		return show("[", "]");
+	}
+
+	@Override
 	public synchronized void pack(ByteBuffer buf) {
 		super.pack(buf, Pack.Tag.RECORD);
 	}
