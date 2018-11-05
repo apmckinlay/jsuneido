@@ -314,11 +314,13 @@ public class SuContainer extends SuValue
 
 	protected String show(String before, String after) {
 		StringBuilder sb = new StringBuilder(before);
-		for (Object x : vec)
-			sb.append(Ops.display(x)).append(", ");
+		var sep = "";
+		for (Object x : vec) {
+			sb.append(sep).append(Ops.display(x));
+			sep = ", ";
+		}
 		var keys = new ArrayList<Object>(map.keySet());
 		Collections.sort(keys, Ops::cmp);
-		var sep = "";
 		for (var key : keys) {
 			sb.append(sep);
 			sep = ", ";
