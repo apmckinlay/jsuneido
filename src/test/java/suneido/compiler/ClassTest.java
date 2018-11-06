@@ -50,10 +50,10 @@ public class ClassTest {
 		def("A", "class { F() { .G() } G() { 123 } }");
 		test("A().F()", "123");
 
-		def("A", "class { F() { .g() } g() { 123 } }");
+		def("A", "class { F() { .x } x: 123 }");
 		test("A().F()", "123");
 
-		def("A", "class { F() { .x } x: 123 }");
+		def("A", "class { F() { .g() } g() { 123 } }");
 		test("A().F()", "123");
 
 		def("A", "class { New(x) { .X = x } }");

@@ -6,50 +6,59 @@ package suneido.compiler;
 
 import static org.junit.Assert.assertEquals;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import suneido.SuException;
+import suneido.runtime.Ops;
 
 public class ParseConstantTest {
+
+	@Before
+	public void setQuoting() {
+		Ops.default_single_quotes = true;
+	}
+
+	@After
+	public void restoreQuoting() {
+		Ops.default_single_quotes = false;
+	}
+
 	@Test
 	public void constants() {
 		constant("true",
-			"(TRUE)");
+			"(VALUE=true)");
 		constant("false",
-			"(FALSE)");
+			"(VALUE=false)");
 		constant("123",
-			"(NUMBER=123)");
+			"(VALUE=123)");
 		constant("+123",
-			"(NUMBER=123)");
+			"(VALUE=123)");
 		constant("-123",
-			"(NUMBER=-123)");
+			"(VALUE=-123)");
 		constant("123.",
-			"(NUMBER=123.)");
+			"(VALUE=123)");
 		constant("'xyz'",
-			"(STRING=xyz)");
+			"(VALUE='xyz')");
 		constant("#abc",
-			"(STRING=abc)");
+			"(VALUE='abc')");
 		constant("#()",
-			"(OBJECT)");
+			"(OBJECT=#())");
 		constant("#{}",
-			"(RECORD)");
+			"(OBJECT=[])");
 		constant("#(123)",
-			"(OBJECT (MEMBER null (NUMBER=123)))");
-		constant("#{name: fred}",
-			"(RECORD (MEMBER (STRING=name) (STRING=fred)))");
+			"(OBJECT=#(123))");
+		constant("#{name: 'fred'}",
+			"(OBJECT=[name: 'fred'])");
 		constant("#(1, 'x', a: #y, b: true)",
-			"(OBJECT (MEMBER null (NUMBER=1)) (MEMBER null (STRING=x)) " +
-			"(MEMBER (STRING=a) (STRING=y)) (MEMBER (STRING=b) (TRUE)))");
-		constant("+123",
-			"(NUMBER=123)");
-		constant("-123",
-			"(NUMBER=-123)");
+			"(OBJECT=#(1, 'x', a: 'y', b:))");
 		constant("#20090219",
-			"(DATE=20090219)");
+			"(VALUE=#20090219)");
 		constant("#foo",
-			"(STRING=foo)");
+			"(VALUE='foo')");
 		constant("Global",
-			"(STRING=Global)");
+			"(VALUE='Global')");
 		constant("function () { }",
 			"(FUNCTION (LIST) (LIST (NIL)))");
 		constant("function\n () { }",
@@ -59,41 +68,29 @@ public class ParseConstantTest {
 		constant("function (@args) { }",
 			"(FUNCTION (LIST (IDENTIFIER=@args null)) (LIST (NIL)))");
 		constant("function (a, b, c = 1, d = 2) { }",
-			"(FUNCTION (LIST (IDENTIFIER=a null) (IDENTIFIER=b null) (IDENTIFIER=c (NUMBER=1)) (IDENTIFIER=d (NUMBER=2))) (LIST (NIL)))");
+			"(FUNCTION (LIST (IDENTIFIER=a null) (IDENTIFIER=b null) (IDENTIFIER=c (VALUE=1)) (IDENTIFIER=d (VALUE=2))) (LIST (NIL)))");
 		constant("class { }",
-			"(CLASS null (LIST))");
+			"(CLASS=Class# null (VALUE={}))");
 		constant("class\n { }",
-			"(CLASS null (LIST))");
+			"(CLASS=Class# null (VALUE={}))");
 		constant("class : Base { }",
-			"(CLASS (STRING=Base) (LIST))");
+			"(CLASS=Class# (VALUE='Base') (VALUE={}))");
 		constant("Base { }",
-			"(CLASS (STRING=Base) (LIST))");
+			"(CLASS=Class# (VALUE='Base') (VALUE={}))");
 		constant("Base { a: }",
-			"(CLASS (STRING=Base) (LIST (MEMBER (STRING=a) (TRUE))))");
-		constant("Base { 12: 34 }",
-			"(CLASS (STRING=Base) (LIST (MEMBER (NUMBER=12) (NUMBER=34))))");
-		constant("Base { -12: 'abc' }",
-			"(CLASS (STRING=Base) (LIST (MEMBER (NUMBER=-12) (STRING=abc))))");
-		constant("class { a: 1; b: 2, c: 3 \n d: 4}",
-			"(CLASS null (LIST (MEMBER (STRING=a) (NUMBER=1)) (MEMBER (STRING=b) (NUMBER=2)) (MEMBER (STRING=c) (NUMBER=3)) (MEMBER (STRING=d) (NUMBER=4))))");
+			"(CLASS=Class# (VALUE='Base') (VALUE={Class#_a=true}))");
 		constant("class { f() { x } }",
-			"(CLASS null (LIST (MEMBER (STRING=f) (METHOD (LIST) (LIST (IDENTIFIER=x))))))");
-		constant("#()",
-			"(OBJECT)");
-		constant("#{}",
-			"(RECORD)");
-		constant("#(1, 'a', b: 2)",
-			"(OBJECT (MEMBER null (NUMBER=1)) (MEMBER null (STRING=a)) (MEMBER (STRING=b) (NUMBER=2)))");
+			"(CLASS=Class# null (VALUE={Class#_f=(METHOD (LIST) (LIST (IDENTIFIER=x)))}))");
 		constant("#({})",
-				"(OBJECT (MEMBER null (RECORD)))");
+			"(OBJECT=#((OBJECT=[])))");
 		constant("#([])",
-				"(OBJECT (MEMBER null (RECORD)))");
+			"(OBJECT=#((OBJECT=[])))");
 		constant("#([a:])",
-				"(OBJECT (MEMBER null (RECORD (MEMBER (STRING=a) (TRUE)))))");
+			"(OBJECT=#((OBJECT=[a:])))");
 		constant("#(class: 123)",
-			"(OBJECT (MEMBER (STRING=class) (NUMBER=123)))");
+			"(OBJECT=#(class: 123))");
 		constant("#(function(){})",
-				"(OBJECT (MEMBER null (FUNCTION (LIST) (LIST (NIL)))))");
+			"(OBJECT=#((FUNCTION (LIST) (LIST (NIL)))))");
 	}
 
 	@Test(expected = SuException.class)
@@ -108,8 +105,9 @@ public class ParseConstantTest {
 		AstGenerator generator = new AstGenerator();
 		ParseConstant<AstNode, Generator<AstNode>> pc =
 				new ParseConstant<AstNode, Generator<AstNode>>(lexer, generator);
-		AstNode ast = pc.parse();
+		AstNode ast = pc.parse(null);
 		String actual = ast.toString().replace("\n", " ").replaceAll(" +", " ");
+		actual = actual.replaceAll("Class[0-9]+", "Class#");
 //System.out.println("\t\t\"" + actual.substring(23, actual.length() - 2) + "\");");
 		assertEquals(expected, actual);
 	}

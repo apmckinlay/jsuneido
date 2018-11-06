@@ -66,7 +66,7 @@ public class Compiler {
 	private static Object compile(String library, String name, String src,
 			PrintWriter pw, ContextLayered context, SuContainer warnings,
 			boolean wantLineNumbers) {
-		AstNode ast = parse(src);
+		AstNode ast = parse(name, src);
 		if (pw != null)
 			pw.append(ast.toString() + "\n\n");
 		return AstCompile.fold(library, name, src, pw, context, warnings, wantLineNumbers,
@@ -74,11 +74,15 @@ public class Compiler {
 	}
 
 	public static AstNode parse(String src) {
+		return parse("test", src);
+	}
+
+	public static AstNode parse(String name, String src) {
 		Lexer lexer = new Lexer(src);
 		AstGenerator generator = new AstGenerator();
 		ParseConstant<AstNode, Generator<AstNode>> pc =
 				new ParseConstant<AstNode, Generator<AstNode>>(lexer, generator);
-		return pc.parse();
+		return pc.parse(name);
 	}
 
 	public static Object eval(CharSequence s) {

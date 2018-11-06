@@ -4,6 +4,10 @@
 
 package suneido.compiler;
 
+import java.util.Map;
+
+import suneido.SuContainer;
+
 public class TestGenerator extends Generator<Object> {
 
 	private static void print(Object... args) {
@@ -38,20 +42,8 @@ public class TestGenerator extends Generator<Object> {
 	}
 
 	@Override
-	public Object bool(boolean value, int lineNumber) {
-		print("bool", value);
-		return null;
-	}
-
-	@Override
 	public Object conditional(Object expr, Object first, Object second) {
 		print("conditional", expr, first, second);
-		return null;
-	}
-
-	@Override
-	public Object date(String value, int lineNumber) {
-		print("date", value);
 		return null;
 	}
 
@@ -74,27 +66,8 @@ public class TestGenerator extends Generator<Object> {
 	}
 
 	@Override
-	public Object memberDefinition(Object name, Object value) {
-		print("memberDefinition", name, value);
-		return null;
-	}
-
-	@Override
-	public Object memberList(MType which, Object list, Object member) {
-		print("memberList", which, list, member);
-		return null;
-	}
-
-	@Override
-	public Object number(String value) {
-		print("number", value);
-		return "number=" + value;
-	}
-
-	@Override
-	public Object object(suneido.compiler.Generator.MType which,
-			Object members, int lineNumber) {
-		print("object", which, members);
+	public Object object(SuContainer members, int lineNumber) {
+		print("object", members);
 		return null;
 	}
 
@@ -111,12 +84,6 @@ public class TestGenerator extends Generator<Object> {
 	}
 
 	@Override
-	public Object string(String value) {
-		print("string", value);
-		return value;
-	}
-
-	@Override
 	public Object unaryExpression(Token op, Object expression) {
 		print("unaryExpression", op, expression);
 		return null;
@@ -129,7 +96,8 @@ public class TestGenerator extends Generator<Object> {
 	}
 
 	@Override
-	public Object clazz(String base, Object members, int lineNumber) {
+	public Object clazz(String name, String base, Map<String,Object> members,
+			int lineNumber) {
 		print("classEnd", base, members);
 		return "classEnd-result";
 	}
@@ -220,7 +188,12 @@ public class TestGenerator extends Generator<Object> {
 		TestGenerator generator = new TestGenerator();
 		ParseConstant<Object, Generator<Object>> pc =
 				new ParseConstant<Object, Generator<Object>>(lexer, generator);
-		pc.parse();
+		pc.parse("test");
+	}
+
+	@Override
+	public Object value(Object value) {
+		return value;
 	}
 
 }

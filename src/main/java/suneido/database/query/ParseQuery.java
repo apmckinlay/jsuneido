@@ -5,11 +5,8 @@
 package suneido.database.query;
 
 import static suneido.compiler.Token.*;
-import suneido.compiler.Lexer;
-import suneido.compiler.Parse;
-import suneido.compiler.ParseConstant;
-import suneido.compiler.ParseExpression;
-import suneido.compiler.Token;
+
+import suneido.compiler.*;
 import suneido.database.server.ServerData;
 
 public class ParseQuery<T, G extends QueryGenerator<T>> extends Parse<T, G> {
@@ -337,6 +334,5 @@ public class ParseQuery<T, G extends QueryGenerator<T>> extends Parse<T, G> {
 		token = p.token;
 		return result;
 	}
-
 
 }

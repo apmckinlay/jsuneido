@@ -384,8 +384,10 @@ public class StringMethods extends BuiltinMethods {
 		return i < s.length() ? s.charAt(i) : 0;
 	}
 
+	// for debugging
+	// see also AstParse
 	public static Object Parse(Object self) {
-		return Compiler.parse(toStr(self)).toString();
+		return Compiler.parse("", toStr(self)).toString();
 	}
 
 	@Params("s, i = 0")

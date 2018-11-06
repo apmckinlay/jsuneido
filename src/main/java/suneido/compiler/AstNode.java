@@ -11,9 +11,11 @@ import java.util.Objects;
 
 import com.google.common.base.Strings;
 
+import suneido.runtime.Ops;
+
 public class AstNode {
 	public final Token token;
-	public final String value;
+	public final Object value;
 	public final List<AstNode> children;
 	public int lineNumber;
 
@@ -22,7 +24,7 @@ public class AstNode {
 	public static final AstNode nullNode = new AstNode(null, null, UNKNOWN_LINE_NUMBER,
 			emptyList);
 
-	public AstNode(Token token, String value, int lineNumber, List<AstNode> children) {
+	public AstNode(Token token, Object value, int lineNumber, List<AstNode> children) {
 		this.token = token;
 		this.value = value;
 		this.children = children;
@@ -67,6 +69,25 @@ public class AstNode {
 
 	public AstNode(Token token) {
 		this(token, null, UNKNOWN_LINE_NUMBER, emptyList);
+	}
+
+	private static AstNode[] common = {
+			value(Token.VALUE, true),
+			value(Token.VALUE, false),
+			value(Token.VALUE, 0),
+			value(Token.VALUE, Integer.MAX_VALUE),
+			value(Token.VALUE, ""),
+			value(Token.VALUE, "block")
+	};
+
+	public static AstNode value(Object val) {
+		for (var node : common)
+			if (val == node.value)
+				return node;
+		return value(Token.VALUE, val);
+	}
+	public static AstNode value(Token token, Object val) {
+		return new AstNode(token, val, UNKNOWN_LINE_NUMBER, emptyList);
 	}
 
 	public AstNode first() {
@@ -126,7 +147,7 @@ public class AstNode {
 		sb.append(Strings.repeat(" ", indent));
 		sb.append('(').append(token);
 		if (value != null)
-			sb.append('=').append(value);
+			sb.append('=').append(token == Token.VALUE ? Ops.display(value) : value);
 		if (children != null)
 			for (AstNode x : children)
 				sb.append(sep).append(x == null
@@ -167,6 +188,10 @@ public class AstNode {
 			if (child != null)
 				child.depthFirst(visitor);
 		visitor.bottomUp(this);
+	}
+
+	public String strval() {
+		return (String) value;
 	}
 
 //	public static void main(String[] args) {

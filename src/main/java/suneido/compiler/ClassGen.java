@@ -860,8 +860,9 @@ public class ClassGen {
 		// the first instruction of "x = 0". In this case, the "ifTrue" label
 		// will be reused for marking line n+2. However, line n+3 will produce a
 		// new label that is only used for marking line n+3.
+		if (lineNumber < 0)
+			return;
 		if (lineNumber != lastLineNumber) {
-			assert 0 < lineNumber;
 			Label lineNumberLabel = lastLabelNotUsedForLineNumber;
 			if (null == lineNumberLabel) {
 				lineNumberLabel = new Label();

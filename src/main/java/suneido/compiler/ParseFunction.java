@@ -278,7 +278,7 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		int lineNumber = lexer.getLineNumber();
 		match(SWITCH);
 		T expr = (token == L_CURLY)
-			? generator.constant(generator.boolTrue(lineNumber))
+			? generator.value(true)
 			: generator.rvalue(optionalParensExpression());
 		T cases = null;
 		match(L_CURLY);
@@ -287,9 +287,9 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 		if (matchIf(DEFAULT))
 			cases = switchCaseBody(cases, null, context);
 		else {
-			T statements = generator.statementList(null, generator
-					.throwStatement(generator.constant(generator.string(
-							"unhandled switch case", lineNumber)), lineNumber));
+			T statements = generator.statementList(null,
+					generator.throwStatement(
+						generator.value("unhandled switch case"), lineNumber));
 			cases = generator.switchCases(cases, null, statements);
 		}
 		match(R_CURLY);

@@ -6,19 +6,34 @@ package suneido.database.query;
 
 import static org.junit.Assert.assertEquals;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import suneido.compiler.Lexer;
+import suneido.runtime.Ops;
 
+// uses StringGenerator
 public class ParseQueryTest {
+
+	@Before
+	public void setQuoting() {
+		Ops.default_single_quotes = true;
+	}
+
+	@After
+	public void restoreQuoting() {
+		Ops.default_single_quotes = false;
+	}
+
 	@Test
 	public void test() {
 		String[][] cases = new String[][] {
 				{ "insert t1 into t2", null },
 				{ "insert { a: 1, b: '$' } into t",
-						"insert #{s(a): n(1), s(b): s($)} into t" },
+						"insert [a: 1, b: '$'] into t" },
 				{ "update t set a = 1, b = '$'",
-						"update t set a = n(1), b = s($)" },
+						"update t set a = 1, b = '$'" },
 				{ "delete mytable", null },
 				{ "mytable", null },
 				{ "history(x)", null },
@@ -44,9 +59,9 @@ public class ParseQueryTest {
 				{ "a rename b to c, d to e", null },
 				{ "a rename b to c rename d to e", null },
 				{ "x extend a = 1, b = '$'",
-						"x extend a = n(1), b = s($)" },
+						"x extend a = 1, b = '$'" },
 				{ "x where a = 1 and b = '$'",
-						"x where a n(1) IS b s($) IS AND" },
+						"x where a 1 IS b '$' IS AND" },
 				{ "a summarize count", null },
 				{ "a summarize b, c, total d, max e", null },
 		};

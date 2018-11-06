@@ -5,11 +5,8 @@
 package suneido.compiler;
 
 import suneido.SuException;
-import suneido.compiler.Generator;
-import suneido.compiler.Lexer;
-import suneido.compiler.ParseConstant;
-import suneido.database.query.StringGenerator;
 import suneido.database.immudb.Record;
+import suneido.database.query.StringGenerator;
 
 public class ParseDump implements DumpReader.Processor {
 	int name;
@@ -45,7 +42,7 @@ public class ParseDump implements DumpReader.Processor {
 		ParseConstant<String, Generator<String>> pc =
 				new ParseConstant<String, Generator<String>>(lexer, generator);
 		try {
-			pc.parse();
+			pc.parse("test");
 		} catch (RuntimeException e) {
 			if (e.toString().contains("not supported"))
 				return;

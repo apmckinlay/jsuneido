@@ -38,7 +38,7 @@ public class AstVariables {
 			case FOR_IN:
 			case CATCH:
 				if (ast.value != null) {
-					String var = paramToName(ast.value);
+					String var = paramToName(ast.strval());
 					if (Character.isLowerCase(var.charAt(0)))
 						vars.add(var);
 				}

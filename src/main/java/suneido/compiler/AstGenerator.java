@@ -5,8 +5,9 @@
 package suneido.compiler;
 
 import java.util.ArrayList;
+import java.util.Map;
 
-import suneido.SuException;
+import suneido.SuContainer;
 
 public class AstGenerator extends Generator<AstNode> {
 	private static final AstNode NIL_STATEMENT = new AstNode(Token.NIL);
@@ -15,11 +16,11 @@ public class AstGenerator extends Generator<AstNode> {
 		new AstNode(Token.LIST, NIL_STATEMENT);
 
 	@Override
-	public AstNode clazz(String base, AstNode members, int lineNumber) {
-		AstNode baseAst = base == null ? null : new AstNode(Token.STRING, base);
-		if (members == null)
-			members = EMPTY_LIST;
-		return new AstNode(Token.CLASS, lineNumber, baseAst, members);
+	public AstNode clazz(String name, String base, Map<String,Object> members,
+			int lineNumber) {
+		AstNode baseAst = base == null ? null : new AstNode(Token.VALUE, base);
+		return new AstNode(Token.CLASS, name, lineNumber, baseAst,
+				AstNode.value(members));
 	}
 
 	@Override
@@ -53,27 +54,8 @@ public class AstGenerator extends Generator<AstNode> {
 	}
 
 	@Override
-	public AstNode memberList(MType which, AstNode list, AstNode memdef) {
-		if (list != null)
-			// check for duplicate
-			for (var m : list.children)
-				if (m.first() != null && memdef.first() != null &&
-						m.first().value.equals(memdef.first().value))
-					throw new SuException("duplicate member name");
-		return list(list, memdef);
-	}
-
-	@Override
-	public AstNode memberDefinition(AstNode name, AstNode value) {
-		return new AstNode(Token.MEMBER, name, value);
-	}
-
-	@Override
-	public AstNode object(MType which, AstNode members, int lineNumber) {
-		if (members == null)
-			members = EMPTY_LIST;
-		return new AstNode(Token.valueOf(which.toString()), null, lineNumber,
-				members.children);
+	public AstNode object(SuContainer ob, int lineNumber) {
+		return AstNode.value(Token.OBJECT, ob);
 	}
 
 	@Override
@@ -139,7 +121,7 @@ public class AstGenerator extends Generator<AstNode> {
 
 	@Override
 	public AstNode catcher(String variable, String pattern, AstNode statement) {
-		AstNode p = pattern == null ? null : new AstNode(Token.STRING, pattern);
+		AstNode p = pattern == null ? null : AstNode.value(pattern);
 		if (statement == null)
 			statement = EMPTY_LIST;
 		return new AstNode(Token.CATCH, variable, p, statement);
@@ -213,41 +195,6 @@ public class AstGenerator extends Generator<AstNode> {
 	@Override
 	public AstNode unaryExpression(Token op, AstNode expr) {
 		return new AstNode(op, expr);
-	}
-
-	@Override
-	public AstNode number(String value, int lineNumber) {
-		return new AstNode(Token.NUMBER, value, lineNumber);
-	}
-
-	@Override
-	public AstNode number(String value) {
-		return new AstNode(Token.NUMBER, value);
-	}
-
-	@Override
-	public AstNode string(String value, int lineNumber) {
-		return new AstNode(Token.STRING, value, lineNumber);
-	}
-
-	@Override
-	public AstNode string(String value) {
-		return new AstNode(Token.STRING, value);
-	}
-
-	@Override
-	public AstNode date(String value, int lineNumber) {
-		return new AstNode(Token.DATE, value, lineNumber);
-	}
-
-	@Override
-	public AstNode bool(boolean value, int lineNumber) {
-		return new AstNode(value ? Token.TRUE : Token.FALSE, lineNumber);
-	}
-
-	@Override
-	public AstNode boolTrue(int lineNumber) {
-		return new AstNode(Token.TRUE, lineNumber);
 	}
 
 	@Override
@@ -336,6 +283,11 @@ public class AstGenerator extends Generator<AstNode> {
 			list.lineNumber = next.lineNumber;
 		}
 		return list;
+	}
+
+	@Override
+	public AstNode value(Object val) {
+		return val instanceof AstNode ? (AstNode) val : AstNode.value(val);
 	}
 
 //	public static void main(String[] args) {

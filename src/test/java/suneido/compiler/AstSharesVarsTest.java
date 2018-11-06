@@ -6,14 +6,24 @@ package suneido.compiler;
 
 import static org.junit.Assert.assertEquals;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
-import suneido.compiler.AstNode;
-import suneido.compiler.AstSharesVars;
-import suneido.compiler.Compiler;
+import suneido.runtime.Ops;
 import suneido.util.Tr;
 
 public class AstSharesVarsTest {
+
+	@Before
+	public void setQuoting() {
+		Ops.default_single_quotes = true;
+	}
+
+	@After
+	public void restoreQuoting() {
+		Ops.default_single_quotes = false;
+	}
 
 	@Test
 	public void main() {
@@ -60,8 +70,8 @@ public class AstSharesVarsTest {
 		ast("return { return { p } }",
 			"(RETURN (BLOCK () ((RETURN (BLOCK () ((p)) (CLOSURE)))) (CLOSURE)))");
 		ast("F() {|f| p; Q() { f } }",
-			"(CALL (F) ((ARG (STRING=block) (BLOCK ((f null)) ((p) " +
-			"(CALL (Q) ((ARG (STRING=block) (BLOCK () ((f)) null))))) (CLOSURE)))))");
+			"(CALL (F) ((ARG (VALUE='block') (BLOCK ((f null)) ((p) " +
+			"(CALL (Q) ((ARG (VALUE='block') (BLOCK () ((f)) null))))) (CLOSURE)))))");
 	}
 
 	private static void ast(String code, String expected) {

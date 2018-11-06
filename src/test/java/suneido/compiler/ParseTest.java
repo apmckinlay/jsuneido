@@ -4,18 +4,32 @@
 
 package suneido.compiler;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
+import suneido.runtime.Ops;
+
 public class ParseTest {
+
+	@Before
+	public void setQuoting() {
+		Ops.default_single_quotes = true;
+	}
+
+	@After
+	public void restoreQuoting() {
+		Ops.default_single_quotes = false;
+	}
 
 	@Test
 	public void test() {
 		code("a = 123; Print(b: [:a])",
-				"(EQ (IDENTIFIER=a) (NUMBER=123)) (CALL (IDENTIFIER=Print) "
-				+ "(LIST (ARG (STRING=b) (CALL (IDENTIFIER=Record) "
-				+ "(LIST (ARG (STRING=a) (IDENTIFIER=a)))))))");
+				"(EQ (IDENTIFIER=a) (VALUE=123)) (CALL (IDENTIFIER=Print) "
+				+ "(LIST (ARG (VALUE='b') (CALL (IDENTIFIER=Record) "
+				+ "(LIST (ARG (VALUE='a') (IDENTIFIER=a)))))))");
 		code("123",
-			"(NUMBER=123)");
+			"(VALUE=123)");
 		code("foo",
 			"(IDENTIFIER=foo)");
 		code("a ? b : c",
@@ -114,13 +128,13 @@ public class ParseTest {
 			"(EQ (IDENTIFIER=b) (BLOCK (LIST) (LIST (IDENTIFIER=x)) null))");
 		code("f(a) { x }",
 			"(CALL (IDENTIFIER=f) (LIST (ARG null (IDENTIFIER=a)) " +
-				"(ARG (STRING=block) (BLOCK (LIST) (LIST (IDENTIFIER=x)) null))))");
+				"(ARG (VALUE='block') (BLOCK (LIST) (LIST (IDENTIFIER=x)) null))))");
 		code("function () { f(a)\n { x } }",
 			"(FUNCTION (LIST) (LIST (CALL (IDENTIFIER=f) (LIST " +
 				"(ARG null (IDENTIFIER=a)) " +
-				"(ARG (STRING=block) (BLOCK (LIST) (LIST (IDENTIFIER=x)) null))))))");
+				"(ARG (VALUE='block') (BLOCK (LIST) (LIST (IDENTIFIER=x)) null))))))");
 		code("f { x }",
-			"(CALL (IDENTIFIER=f) (LIST (ARG (STRING=block) (BLOCK (LIST) (LIST (IDENTIFIER=x)) null))))");
+			"(CALL (IDENTIFIER=f) (LIST (ARG (VALUE='block') (BLOCK (LIST) (LIST (IDENTIFIER=x)) null))))");
 		code("new c",
 			"(NEW (IDENTIFIER=c) (LIST))");
 		code("new c(a, b)",
@@ -128,38 +142,38 @@ public class ParseTest {
 		code("new a.c",
 			"(NEW (MEMBER=c (IDENTIFIER=a)) (LIST))");
 		code("f(a, k: b)",
-			"(CALL (IDENTIFIER=f) (LIST (ARG null (IDENTIFIER=a)) (ARG (STRING=k) (IDENTIFIER=b))))");
+			"(CALL (IDENTIFIER=f) (LIST (ARG null (IDENTIFIER=a)) (ARG (VALUE='k') (IDENTIFIER=b))))");
 		code("f = function () { }",
 			"(EQ (IDENTIFIER=f) (FUNCTION (LIST) (LIST (NIL))))");
 		code("c = class { }",
-			"(EQ (IDENTIFIER=c) (CLASS null (LIST)))");
+			"(EQ (IDENTIFIER=c) (CLASS=Class# null (VALUE={})))");
 		code("c = Base { }",
-			"(EQ (IDENTIFIER=c) (CLASS (STRING=Base) (LIST)))");
+			"(EQ (IDENTIFIER=c) (CLASS=Class# (VALUE='Base') (VALUE={})))");
 		code("c = C\n {\n T: 'a'\n N()\n { } }",
-			"(EQ (IDENTIFIER=c) (CLASS (STRING=C) (LIST (MEMBER (STRING=T) (STRING=a)) (MEMBER (STRING=N) (METHOD (LIST) (LIST (NIL)))))))");
+			"(EQ (IDENTIFIER=c) (CLASS=Class# (VALUE='C') (VALUE={T=a, N=(METHOD (LIST) (LIST (NIL)))})))");
 		code("O('v'\n #(H F #()))",
-			"(CALL (IDENTIFIER=O) (LIST (ARG null (STRING=v)) (ARG null (OBJECT (MEMBER null (STRING=H)) (MEMBER null (STRING=F)) (MEMBER null (OBJECT))))))");
+			"(CALL (IDENTIFIER=O) (LIST (ARG null (VALUE='v')) (ARG null (OBJECT=#('H', 'F', (OBJECT=#()))))))");
 		code("f(u:)",
-			"(CALL (IDENTIFIER=f) (LIST (ARG (STRING=u) (TRUE))))");
+			"(CALL (IDENTIFIER=f) (LIST (ARG (VALUE='u') (VALUE=true))))");
 		code("x = [a,b]",
 			"(EQ (IDENTIFIER=x) (CALL (IDENTIFIER=Record) (LIST (ARG null (IDENTIFIER=a)) (ARG null (IDENTIFIER=b)))))");
 		code(".x = class\n { }",
-			"(EQ (MEMBER=x (SELFREF)) (CLASS null (LIST)))");
+			"(EQ (MEMBER=x (SELFREF)) (CLASS=Class# null (VALUE={})))");
 		code(".x.f().\n g()",
 			"(CALL (MEMBER=g (CALL (MEMBER=f (MEMBER=x (SELFREF))) (LIST))) (LIST))");
 		code("100.Times() { }",
-			"(CALL (MEMBER=Times (NUMBER=100)) (LIST (ARG (STRING=block) (BLOCK (LIST) (LIST (NIL)) null))))");
+			"(CALL (MEMBER=Times (VALUE=100)) (LIST (ARG (VALUE='block') (BLOCK (LIST) (LIST (NIL)) null))))");
 		code("100.Times()\n { }",
-			"(CALL (MEMBER=Times (NUMBER=100)) (LIST (ARG (STRING=block) (BLOCK (LIST) (LIST (NIL)) null))))");
+			"(CALL (MEMBER=Times (VALUE=100)) (LIST (ARG (VALUE='block') (BLOCK (LIST) (LIST (NIL)) null))))");
 		code("100.Times { }",
-			"(CALL (MEMBER=Times (NUMBER=100)) (LIST (ARG (STRING=block) (BLOCK (LIST) (LIST (NIL)) null))))");
+			"(CALL (MEMBER=Times (VALUE=100)) (LIST (ARG (VALUE='block') (BLOCK (LIST) (LIST (NIL)) null))))");
 		code("100.Times\n { }",
-			"(CALL (MEMBER=Times (NUMBER=100)) (LIST (ARG (STRING=block) (BLOCK (LIST) (LIST (NIL)) null))))");
+			"(CALL (MEMBER=Times (VALUE=100)) (LIST (ARG (VALUE='block') (BLOCK (LIST) (LIST (NIL)) null))))");
 
 		code("123 + 456",
-			"(BINARYOP (ADD) (NUMBER=123) (NUMBER=456))");
+			"(BINARYOP (ADD) (VALUE=123) (VALUE=456))");
 		code("s = 'fred'",
-			"(EQ (IDENTIFIER=s) (STRING=fred))");
+			"(EQ (IDENTIFIER=s) (VALUE='fred'))");
 		code("foo",
 			"(IDENTIFIER=foo)");
 		code("return",
@@ -211,14 +225,14 @@ public class ParseTest {
 		code("try f catch(e) g",
 			"(TRY (IDENTIFIER=f) (CATCH=e null (IDENTIFIER=g)))");
 		code("try f catch(e, 'p') g",
-			"(TRY (IDENTIFIER=f) (CATCH=e (STRING=p) (IDENTIFIER=g)))");
+			"(TRY (IDENTIFIER=f) (CATCH=e (VALUE='p') (IDENTIFIER=g)))");
 		code("switch a \n { }",
 			"(SWITCH (RVALUE (IDENTIFIER=a)) (LIST "
-			+ "(CASE (LIST) (LIST (THROW (STRING=unhandled switch case))))))");
+			+ "(CASE (LIST) (LIST (THROW (VALUE='unhandled switch case'))))))");
 		code("switch (a) { case b: f }",
 			"(SWITCH (RVALUE (IDENTIFIER=a)) (LIST "
 			+ "(CASE (LIST (IDENTIFIER=b)) (LIST (IDENTIFIER=f))) "
-			+ "(CASE (LIST) (LIST (THROW (STRING=unhandled switch case))))))");
+			+ "(CASE (LIST) (LIST (THROW (VALUE='unhandled switch case'))))))");
 		code("switch a \n { default: f }",
 			"(SWITCH (RVALUE (IDENTIFIER=a)) (LIST (CASE (LIST) (LIST (IDENTIFIER=f)))))");
 		code("switch (a) { case b: f \n case c,d: g; h; default: i }",
@@ -242,20 +256,20 @@ public class ParseTest {
 		code("return .x.f().\n g()",
 			"(RETURN (CALL (MEMBER=g (CALL (MEMBER=f (MEMBER=x (SELFREF))) (LIST))) (LIST)))");
 		code("args.Each {|x, y|\n z }",
-			"(CALL (MEMBER=Each (IDENTIFIER=args)) (LIST (ARG (STRING=block) (BLOCK (LIST (IDENTIFIER=x null) (IDENTIFIER=y null)) (LIST (IDENTIFIER=z)) null))))");
+			"(CALL (MEMBER=Each (IDENTIFIER=args)) (LIST (ARG (VALUE='block') (BLOCK (LIST (IDENTIFIER=x null) (IDENTIFIER=y null)) (LIST (IDENTIFIER=z)) null))))");
 		code("args.Each()\n {|x, y|\n z }",
-			"(CALL (MEMBER=Each (IDENTIFIER=args)) (LIST (ARG (STRING=block) (BLOCK (LIST (IDENTIFIER=x null) (IDENTIFIER=y null)) (LIST (IDENTIFIER=z)) null))))");
+			"(CALL (MEMBER=Each (IDENTIFIER=args)) (LIST (ARG (VALUE='block') (BLOCK (LIST (IDENTIFIER=x null) (IDENTIFIER=y null)) (LIST (IDENTIFIER=z)) null))))");
 		code("args.Each\n {|x, y|\n z }",
-			"(CALL (MEMBER=Each (IDENTIFIER=args)) (LIST (ARG (STRING=block) (BLOCK (LIST (IDENTIFIER=x null) (IDENTIFIER=y null)) (LIST (IDENTIFIER=z)) null))))");
+			"(CALL (MEMBER=Each (IDENTIFIER=args)) (LIST (ARG (VALUE='block') (BLOCK (LIST (IDENTIFIER=x null) (IDENTIFIER=y null)) (LIST (IDENTIFIER=z)) null))))");
 		code("s[from .. to]",
 			"(SUBSCRIPT (IDENTIFIER=s) (RANGETO (IDENTIFIER=from) (IDENTIFIER=to)))");
 		code("a in (b, c)",
 			"(IN (IDENTIFIER=a) (LIST (IDENTIFIER=b) (IDENTIFIER=c)))");
 
 		code("a = 123; Print(b: [:a])",
-				"(EQ (IDENTIFIER=a) (NUMBER=123)) (CALL (IDENTIFIER=Print) "
-				+ "(LIST (ARG (STRING=b) (CALL (IDENTIFIER=Record) "
-				+ "(LIST (ARG (STRING=a) (IDENTIFIER=a)))))))");
+				"(EQ (IDENTIFIER=a) (VALUE=123)) (CALL (IDENTIFIER=Print) "
+				+ "(LIST (ARG (VALUE='b') (CALL (IDENTIFIER=Record) "
+				+ "(LIST (ARG (VALUE='a') (IDENTIFIER=a)))))))");
 	}
 
 	private static void code(String code, String expected) {

@@ -11,14 +11,11 @@ import java.util.Collections;
 import java.util.List;
 
 import suneido.SuContainer;
-import suneido.SuDate;
 import suneido.SuException;
 import suneido.SuRecord;
-import suneido.compiler.AstNode;
 import suneido.compiler.Token;
 import suneido.database.immudb.Transaction;
 import suneido.database.query.expr.*;
-import suneido.runtime.Numbers;
 
 @SuppressWarnings("unchecked")
 public class TreeQueryGenerator extends QueryGenerator<Object> {
@@ -210,23 +207,8 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	}
 
 	@Override
-	public Object bool(boolean value, int lineNumber) {
-		return value;
-	}
-
-	@Override
 	public Object conditional(Object expr, Object iftrue, Object iffalse) {
 		return new TriOp((Expr) expr, (Expr) iftrue, (Expr) iffalse);
-	}
-
-	@Override
-	public Object constant(Object value) {
-		return Constant.valueOf(value);
-	}
-
-	@Override
-	public Object date(String value, int lineNumber) {
-		return SuDate.fromLiteral(value);
 	}
 
 	// QueryFirst('tables where tablename.Lower() is "columns"')
@@ -253,45 +235,9 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 		return new Identifier(text);
 	}
 
-	public static class MemDef {
-		public final Object name;
-		public final Object value;
-
-		public MemDef(Object name, Object value) {
-			this.name = name;
-			this.value = value;
-		}
-	}
 	@Override
-	public Object memberDefinition(Object name, Object value) {
-		return new MemDef(name, value);
-	}
-	@Override
-	public Object memberList(MType which, Object members, Object member) {
-		SuContainer rec = object(which, members, AstNode.UNKNOWN_LINE_NUMBER);
-		MemDef m = (MemDef) member;
-		if (m.name == null)
-			rec.add(m.value);
-		else
-			rec.put(m.name, m.value);
-		return rec;
-	}
-
-	@Override
-	public Object number(String value) {
-		return Numbers.stringToNumber(value);
-	}
-
-	@Override
-	public SuContainer object(MType which, Object members, int lineNumber) {
-		return members == null
-				? which == MType.RECORD ? new SuRecord() : new SuContainer()
-				: (SuContainer) members;
-	}
-
-	@Override
-	public Object string(String value) {
-		return value;
+	public SuContainer object(SuContainer ob, int lineNumber) {
+		return ob;
 	}
 
 	@Override
@@ -339,6 +285,11 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	@Override
 	public String getView(String name) {
 		return tran.getView(name);
+	}
+
+	@Override
+	public Object value(Object value) {
+		return Constant.valueOf(value);
 	}
 
 }

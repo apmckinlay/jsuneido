@@ -5,12 +5,14 @@
 package suneido.runtime.builtin;
 
 import java.lang.ref.SoftReference;
+import java.util.Map;
 
 import suneido.SuContainer;
 import suneido.compiler.AstNode;
 import suneido.compiler.Token;
 import suneido.runtime.Ops;
 import suneido.runtime.Params;
+import suneido.runtime.SuClass;
 import suneido.runtime.VirtualContainer;
 
 public class AstParse {
@@ -18,7 +20,7 @@ public class AstParse {
 	@Params("string")
 	public static Object AstParse(Object a) {
 		String src = Ops.toStr(a);
-		AstNode ast = suneido.compiler.Compiler.parse(src);
+		AstNode ast = suneido.compiler.Compiler.parse(null, src);
 		return new AstWrapper(ast);
 	}
 
@@ -42,7 +44,7 @@ public class AstParse {
 				ob = new SoftReference<>(c = new SuContainer());
 				c.put("Token", node.token.toString());
 				if (node.value != null)
-					c.put("Value", node.value);
+					c.put("Value", handleClass(node.value));
 				c.put("Line", node.lineNumber);
 				if (node.children == null)
 					c.put("Children", SuContainer.EMPTY);
@@ -59,6 +61,12 @@ public class AstParse {
 				}
 			}
 			return c;
+		}
+
+		private static Object handleClass(Object value) {
+			if (value instanceof Map)
+				value = new SuClass("", "", null, value);
+			return value;
 		}
 
 		@Override

@@ -15,6 +15,7 @@ import suneido.SuException;
 import suneido.SuInternalError;
 import suneido.compiler.ParseFunction.Context;
 import suneido.database.query.ParseQuery;
+import suneido.runtime.Numbers;
 
 public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	boolean EQ_as_IS = false;
@@ -211,9 +212,6 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		return term(false);
 	}
 
-	private static final String INT_MAX_STR;
-	static { INT_MAX_STR = Integer.toString(Integer.MAX_VALUE); }
-
 	private T term(boolean newTerm) {
 		Token preincdec = null;
 		if (token == INC || token == DEC) {
@@ -236,7 +234,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			} else if (matchIf(L_BRACKET)) {
 				T expr;
 				if (token == RANGETO || token == RANGELEN) {
-					expr = generator.number("0", lexer.getLineNumber());
+					expr = generator.value(0);
 				} else {
 					expr = expression();
 				}
@@ -245,7 +243,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 					match();
 					T expr2;
 					if (R_BRACKET == token) {
-						expr2 = generator.number(INT_MAX_STR, lexer.getLineNumber());
+						expr2 = generator.value(Integer.MAX_VALUE);
 					} else {
 						expr2 = expression();
 					}
@@ -275,13 +273,10 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		switch (token) {
 		case STRING:
 			// don't call constant because it allows concatenation
-			return matchReturn(
-					STRING,
-					generator.constant(generator.string(lexer.getValue(),
-							lexer.getLineNumber())));
+			return matchReturn(generator.value(lexer.getValue()));
 		case NUMBER:
 		case HASH:
-			return generator.constant(constant());
+			return constant();
 		case L_CURLY:
 			return block();
 		case DOT:
@@ -292,7 +287,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			return matchReturn(R_PAREN, generator.rvalue(expression()));
 		case L_BRACKET:
 			if (inQuery)
-				return generator.constant(constant());
+				return constant();
 			else {
 				int lineNumber = lexer.getLineNumber();
 				match(L_BRACKET);
@@ -313,9 +308,9 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		case CLASS:
 			return constant();
 		case TRUE:
+			return matchReturn(generator.value(true));
 		case FALSE:
-			return matchReturn(generator.constant(generator.bool(
-					lexer.getKeyword() == TRUE, lexer.getLineNumber())));
+			return matchReturn(generator.value(false));
 		case SUPER:
 			return superCall();
 		default:
@@ -323,7 +318,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 			if (id.equals("dll") || id.equals("callback") || id.equals("struct"))
 				syntaxError("jSuneido does not implement " + id);
 			if (isGlobal(id) && lookAhead(! expectingCompound) == L_CURLY)
-				return generator.constant(constant()); // Base{ => class
+				return constant(); // Base{ => class
 			else {
 				int lineNumber = lexer.getLineNumber();
 				match(IDENTIFIER);
@@ -373,7 +368,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		while (token == NEWLINE && !expectingCompound && lookAhead() == L_CURLY)
 			match();
 		if (token == L_CURLY) {
-			args = generator.argumentList(args, generator.string("block"), block());
+			args = generator.argumentList(args, generator.value("block"), block());
 		}
 		return args;
 	}
@@ -403,7 +398,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 				if (! keywords.add(identifier))
 					throw new SuException("duplicate argument name: " + identifier);
 				match(IDENTIFIER);
-				keyword = generator.string(identifier);
+				keyword = generator.value(identifier);
 				expr = generator.identifier(identifier, lineNumber);
 			} else {
 				if (isKeyword()) {
@@ -418,7 +413,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 						(token == COMMA || token == closing || isKeyword()));
 
 				expr = trueDefault
-						? generator.boolTrue(lexer.getLineNumber())
+						? generator.value(true)
 						: expression();
 			}
 			args = generator.argumentList(args, keyword, expr);
@@ -434,9 +429,9 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	private T keyword() {
 		T keyword;
 		if (token == STRING || token == IDENTIFIER)
-			keyword = generator.string(lexer.getValue());
+			keyword = generator.value(lexer.getValue());
 		else if (token == NUMBER)
-			keyword = generator.number(lexer.getValue());
+			keyword = generator.value(Numbers.stringToNumber(lexer.getValue()));
 		else
 			throw new SuInternalError("invalid keyword");
 		match();

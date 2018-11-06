@@ -44,7 +44,7 @@ public class AstSetsDynamic {
 
 		private void checkLvalue(AstNode lvalue) {
 			if (lvalue.token == Token.IDENTIFIER &&
-					AstCompile.isDynamic(lvalue.value))
+					AstCompile.isDynamic(lvalue.strval()))
 				setsDynamic = true;
 		}
 

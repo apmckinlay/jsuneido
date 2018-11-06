@@ -4,14 +4,16 @@
 
 package suneido.database.query;
 
-import static suneido.compiler.Generator.MType.OBJECT;
 import static suneido.compiler.Token.ADD;
 import static suneido.compiler.Token.AND;
 import static suneido.compiler.Token.OR;
 import static suneido.compiler.Token.SUB;
 
-import suneido.SuValue;
+import java.util.Map;
+
+import suneido.SuContainer;
 import suneido.compiler.Token;
+import suneido.runtime.Showable;
 
 public class StringGenerator extends QueryGenerator<String> {
 
@@ -23,10 +25,6 @@ public class StringGenerator extends QueryGenerator<String> {
 	@Override
 	public String conditional(String expression, String first, String second) {
 		return "(" + expression + " ? " + first + " : " + second + ")";
-	}
-
-	public String constant(SuValue result) {
-		return result.toString();
 	}
 
 	@Override
@@ -76,26 +74,6 @@ public class StringGenerator extends QueryGenerator<String> {
 	@Override
 	public String unaryExpression(Token op, String expression) {
 		return expression + " " + (op == ADD | op == SUB ? "u" : "") + op;
-	}
-
-	@Override
-	public String number(String value) {
-		return "n(" + value + ")";
-	}
-
-	@Override
-	public String string(String value) {
-		return "s(" + value + ")";
-	}
-
-	@Override
-	public String date(String value, int lineNumber) {
-		return "d(" + value + ")";
-	}
-
-	@Override
-	public String bool(boolean value, int lineNumber) {
-		return "b(" + value + ")";
 	}
 
 	@Override
@@ -229,7 +207,7 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String clazz(String base, String members, int lineNumber) {
+	public String clazz(String name, String base, Map<String,Object> members, int lineNumber) {
 		if ("Object".equals(base))
 			base = null;
 		return "class" + str(" : ", base, "") + " { " + str("", members, " ")
@@ -237,19 +215,8 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String memberDefinition(String name, String value) {
-		return str("", name, ": ") + value;
-	}
-
-	@Override
-	public String memberList(MType which, String list, String member) {
-		return str("", list, ", ") + member;
-	}
-
-	@Override
-	public String object(MType which, String members, int lineNumber) {
-		return "#" + (which == OBJECT ? "(" : "{") + str(members)
-				+ (which == OBJECT ? ")" : "}");
+	public String object(SuContainer members, int lineNumber) {
+		return members.show();
 	}
 
 	private static String str(String x) {
@@ -399,6 +366,11 @@ public class StringGenerator extends QueryGenerator<String> {
 	public String sumops(String sumops, String name, Token op, String field) {
 		return str("", sumops, ", ") + str("", name, " = ") + op.string
 				+ str(" ", field, "");
+	}
+
+	@Override
+	public String value(Object value) {
+		return Showable.show(value);
 	}
 
 }

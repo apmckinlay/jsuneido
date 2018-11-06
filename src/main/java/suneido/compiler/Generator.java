@@ -4,6 +4,10 @@
 
 package suneido.compiler;
 
+import java.util.Map;
+
+import suneido.SuContainer;
+
 public abstract class Generator<T> {
 
 	public T assignment(T term, Token op, T expression) {
@@ -62,26 +66,6 @@ public abstract class Generator<T> {
 
 	public T whileStatement(T expr, T statement) {
 		return null;
-	}
-
-	public T number(String value, int lineNumber) {
-		return number(value);
-	}
-
-	public abstract T number(String value);
-
-	public T string(String value, int lineNumber) {
-		return string(value);
-	}
-
-	public abstract T string(String value);
-
-	public abstract T date(String value, int lineNumber);
-
-	public abstract T bool(boolean value, int lineNumber); // Actual boolean literal in source
-
-	public T boolTrue(int lineNumber) { // Synthetic true literal inserted by the compiler
-		return bool(true, lineNumber);
 	}
 
 	public T breakStatement(int lineNumber) {
@@ -167,23 +151,13 @@ public abstract class Generator<T> {
 		return null;
 	}
 
-	public abstract T memberDefinition(T name, T value);
-
-	public abstract T memberList(MType which, T list, T member);
-
-	public T clazz(String base, T members, int lineNumber) {
+	public T clazz(String name, String base, Map<String,Object> members, int lineNumber) {
 		return null;
 	}
 
-	public enum MType { OBJECT, RECORD }
-
-	public abstract T object(MType which, T members, int lineNumber);
+	public abstract T object(SuContainer members, int lineNumber);
 
 	public T rvalue(T expr) {
-		return expr;
-	}
-
-	public T constant(T expr) {
 		return expr;
 	}
 
@@ -198,5 +172,7 @@ public abstract class Generator<T> {
 	public T range(Token type, T expr1, T expr2) {
 		return null;
 	}
+
+	public abstract T value(Object value);
 
 }

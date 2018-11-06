@@ -705,6 +705,4 @@ public class CompileTest {
 		return ok;
 	}
 
-
-
 }

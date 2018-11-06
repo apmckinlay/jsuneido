@@ -8,14 +8,15 @@ import static suneido.compiler.ClassGen.javify;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.objectweb.asm.Label;
 
-import suneido.*;
+import suneido.SuContainer;
+import suneido.SuException;
+import suneido.SuInternalError;
 import suneido.runtime.*;
 
 /**
@@ -75,21 +76,9 @@ public class AstCompile {
 			return null;
 		Object value;
 		switch (ast.token) {
-		case TRUE:
-			return Boolean.TRUE;
-		case FALSE:
-			return Boolean.FALSE;
-		case STRING:
+		case VALUE:
 			return ast.value;
-		case NUMBER:
-			return Numbers.stringToNumber(ast.value);
-		case DATE:
-			SuDate date = SuDate.fromLiteral(ast.value);
-			if (date == null)
-				throw new SuException("bad date literal");
-			return date;
 		case OBJECT:
-		case RECORD:
 			return foldObject(ast);
 		case CLASS:
 			return foldClass(name, ast);
@@ -143,17 +132,17 @@ public class AstCompile {
 	}
 
 	private Object foldObject(AstNode ast) {
-		if (ast.token == Token.OBJECT && ast.children.size() == 0)
-			return SuContainer.EMPTY;
-		SuContainer c = (ast.token == Token.OBJECT)
-				? new SuContainer() : new SuRecord();
-		for (AstNode member : ast.children) {
-			AstNode name = member.first();
-			Object value = fold(member.second());
-			if (name == null)
-				c.add(value);
-			else
-				c.put(fold(name), value);
+		SuContainer c = (SuContainer) ast.value;
+		for (int i = 0; i < c.vecSize(); ++i) {
+			Object e = c.vec.get(i);
+			if (e instanceof AstNode)
+				c.vec.set(i, fold((AstNode) e));
+		}
+		for (var e : c.mapEntrySet()) {
+			if (e.getKey() instanceof AstNode)
+				throw new SuException("object member names must be scalar");
+			if (e.getValue() instanceof AstNode)
+				c.put(e.getKey(), fold((AstNode) e.getValue()));
 		}
 		c.setReadonly();
 		return c;
@@ -161,39 +150,24 @@ public class AstCompile {
 
 	private Object foldClass(String outerName, AstNode ast) {
 		nameBegin(outerName, "$c");
-		String base = ast.first() == null ? null : ast.first().value;
+		String base = ast.first() == null ? null : ast.first().strval();
 		if (base != null && base.startsWith("_"))
 			base = context.overload(base);
-		Map<String, Object> members = new HashMap<>();
+		@SuppressWarnings("unchecked")
+		Map<String, Object> members = (Map<String, Object>) ast.second().value;
 		SuClass prevSuClass = suClass;
 		SuClass c = suClass = new SuClass(library, curName, base, members);
 		String prevSuClassName = suClassName;
-		suClassName = curName;
-		for (AstNode member : ast.second().children) {
-			Object mem = fold(member.first());
-			if (! (mem instanceof String))
-				throw new SuException("class member names must be strings");
-			String name = (String) mem;
-			Object value = fold(name, member.second());
-			members.put(privatize2(name), value);
-		}
+		suClassName = ast.strval();
+		for (var e : members.entrySet())
+			if (e.getValue() instanceof AstNode) {
+				var name = e.getKey();
+				members.put(e.getKey(), fold(name, (AstNode) e.getValue()));
+			}
 		suClassName = prevSuClassName;
 		suClass = prevSuClass;
 		nameEnd();
 		return c;
-	}
-
-	private String privatize(AstNode ast, String name) {
-		return inMethod && ast.token == Token.SELFREF ? privatize2(name) : name;
-	}
-
-	private String privatize2(String name) {
-		if (name.startsWith("get_") && name.length() > 4
-				&& Character.isLowerCase(name.charAt(4)))
-			return "Get_" + suClassName + name.substring(3);
-		if (Character.isLowerCase(name.charAt(0)))
-			return suClassName + "_" + name;
-		return name;
 	}
 
 	private SuCompiledCallable foldFunction(String name, AstNode ast,
@@ -238,7 +212,7 @@ public class AstCompile {
 			boolean useArgsArray = false;
 			if (nParams > MAX_DIRECT_ARGS)
 				useArgsArray = true;
-			else if (nParams > 0 && params.get(0).value.startsWith("@"))
+			else if (nParams > 0 && params.get(0).strval().startsWith("@"))
 				useArgsArray = true;
 			cg.wrapBlockWithClosure(iBlockDef, nParams, useArgsArray);
 		}
@@ -269,7 +243,7 @@ public class AstCompile {
 		putLineNumber(cg, ast);
 
 		for (AstNode param : params)
-			cg.param(param.value, fold(param.first()), inMethod ? suClassName
+			cg.param(param.strval(), fold(param.first()), inMethod ? suClassName
 					+ "_" : "");
 
 		superInit(cg, ast);
@@ -298,14 +272,14 @@ public class AstCompile {
 		boolean shares = AstSharesVars.check(ast);
 		if (params.size() > MAX_DIRECT_ARGS)
 			return true;
-		if (params.size() > 0 && params.get(0).value.startsWith("@"))
+		if (params.size() > 0 && params.get(0).strval().startsWith("@"))
 			return true;
 		return shares;
 	}
 
 	private void superChecks(int i, AstNode stat) {
 		if (stat.token == Token.CALL && stat.first().token == Token.SUPER
-				&& stat.first().value.equals("New")) {
+				&& stat.first().strval().equals("New")) {
 			onlyAllowSuperInNew(stat);
 			onlyAllowSuperFirst(i, stat);
 		}
@@ -334,7 +308,7 @@ public class AstCompile {
 		if (!statements.isEmpty()) {
 			AstNode stat = statements.get(0);
 			if (stat.token == Token.CALL && stat.first().token == Token.SUPER
-					&& stat.first().value.equals("New"))
+					&& stat.first().strval().equals("New"))
 				return true;
 		}
 		return false;
@@ -442,7 +416,7 @@ public class AstCompile {
 
 	private static String needNullCheck(ClassGen cg, AstNode ast) {
 		ast = stripRvalue(ast);
-		if (isLocal(ast) && !cg.neverNull(ast.value))
+		if (isLocal(ast) && !cg.neverNull(ast.strval()))
 			return "UninitializedVariable";
 		else if (ast.token == Token.CALL)
 			return "NoReturnValue";
@@ -518,7 +492,7 @@ public class AstCompile {
 		int tmp = cg.iter();
 		cg.jump(labels.cont);
 		Object loop = cg.placeLabel();
-		cg.next(ast.value, tmp);
+		cg.next(ast.strval(), tmp);
 		compound(cg, ast.second(), labels);
 		cg.placeLabel(labels.cont);
 		cg.hasNext(tmp);
@@ -628,7 +602,7 @@ public class AstCompile {
 		if (catcher == null)
 			cg.startCatch(null, null, tc);
 		else {
-			String var = catcher.value;
+			String var = catcher.strval();
 			String pattern = (catcher.first() == null) ? null : Ops
 					.toStr(fold(catcher.first()));
 			cg.startCatch(var, pattern, tc);
@@ -688,7 +662,7 @@ public class AstCompile {
 	}
 
 	private static boolean isLocal(AstNode ast) {
-		return ast.token == Token.IDENTIFIER && !isGlobal(ast.value);
+		return ast.token == Token.IDENTIFIER && !isGlobal(ast.strval());
 	}
 
 	/** leaves a value on the stack */
@@ -849,7 +823,7 @@ public class AstCompile {
 
 	private void identifier(ClassGen cg, AstNode ast, ExprOption option) {
 		putLineNumber(cg, ast);
-		String name = ast.value;
+		String name = ast.strval();
 		if (isOverload(name))
 			cg.constant(context.get(context.slotForName(name.substring(1))));
 		else if (isGlobal(name))
@@ -873,7 +847,22 @@ public class AstCompile {
 	private void member(ClassGen cg, AstNode ast) {
 		expression(cg, ast.first());
 		putLineNumber(cg, ast);
-		cg.constant(privatize(ast.first(), ast.value));
+		cg.constant(privatizeRef(ast.first(), ast.strval()));
+	}
+
+	// privatize .name member references in code
+	private String privatizeRef(AstNode ast, String name) {
+		if (inMethod && ast.token == Token.SELFREF &&
+				Character.isLowerCase(name.charAt(0))) {
+			// ideally we wouldn't handle get_ here, only in privatizeDef
+			// but we have many get_ methods called as regular functions
+			if (name.startsWith("get_") && name.length() > 4
+					&& Character.isLowerCase(name.charAt(4)))
+				return "Get_" + suClassName + name.substring(3);
+			else
+				return suClassName + "_" + name;
+		}
+		return name;
 	}
 
 	private void trinaryExpression(ClassGen cg, AstNode ast) {
@@ -965,7 +954,7 @@ public class AstCompile {
 				cg.invokeMethod();
 			}
 		} else if (fn.token == Token.SUPER) {
-			cg.superCallTarget(fn.value);
+			cg.superCallTarget(fn.strval());
 			callArguments(cg, args);
 			putLineNumber(cg, ast);
 			cg.invokeSuper();
@@ -974,10 +963,10 @@ public class AstCompile {
 			// then call a copy function (or better copy-on-write)
 			callArguments(cg, args);
 			putLineNumber(cg, ast);
-			cg.invokeDirect(fn.value);
+			cg.invokeDirect(fn.strval());
 		} else if (isGlobal(fn)) {
 			cg.pushThis();
-			cg.iconst(context.slotForName(fn.value));
+			cg.iconst(context.slotForName(fn.strval()));
 			if (args.token != Token.AT
 					&& args.children.size() <= MAX_DIRECT_ARGS
 					&& !hasNamed(args)) {
@@ -1013,7 +1002,7 @@ public class AstCompile {
 
 	private static boolean isGlobal(AstNode fn) {
 		return fn.token == Token.IDENTIFIER
-				&& Character.isUpperCase(fn.value.charAt(0));
+				&& Character.isUpperCase(fn.strval().charAt(0));
 	}
 
 	private class VarArgs {
@@ -1080,7 +1069,7 @@ public class AstCompile {
 
 	private void atArgument(ClassGen cg, AstNode args) {
 		VarArgs vargs = new VarArgs(cg, 2);
-		vargs.special(args.value.charAt(0) == '1' ? "EACH1" : "EACH");
+		vargs.special(args.strval().charAt(0) == '1' ? "EACH1" : "EACH");
 		vargs.expression(args.first());
 	}
 
@@ -1232,7 +1221,7 @@ public class AstCompile {
 		switch (ast.token) {
 		case IDENTIFIER:
 			putLineNumber(cg, ast);
-			String name = ast.value;
+			String name = ast.strval();
 			if (isGlobal(name))
 				throw new SuException("globals are read-only");
 			else if (isDynamic(name))

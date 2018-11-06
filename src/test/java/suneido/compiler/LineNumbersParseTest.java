@@ -24,35 +24,18 @@ public class LineNumbersParseTest {
 		runTests(BASIC_TEST_CASES);
 	}
 
-	//
-	// TEST CASES
-	//
-
 	private static final String[] BASIC_TEST_CASES = new String[] {
-		"10",
-			"NUMBER=10@1",
-		"false",
-			"FALSE@1",
-		"'string'",
-			"STRING=string@1",
-		"#20140827.123456",
-			"DATE=20140827.123456@1",
-		"#()",
-			"OBJECT@1",
-		"#(a\nb)",
-			"OBJECT@1\n\tMEMBER@1\n\t\tSTRING=a@1\n\tMEMBER@2\n\t\tSTRING=b@2",
-
 		"function(){}",
 			"FUNCTION@1\n\tLIST@?\n\tLIST@?\n\t\tNIL@?",
 
 		"function(){4}",
-			"FUNCTION@1\n\tLIST@?\n\tLIST@1\n\t\tNUMBER=4@1",
+			"FUNCTION@1\n\tLIST@?\n\tLIST@?\n\t\tVALUE=4@?",
 
 		"function(){call()}",
 		"FUNCTION@1\n\tLIST@?\n\tLIST@1\n\t\tCALL@1\n\t\t\tIDENTIFIER=call@1\n\t\t\tLIST@?",
 
 		"function() { \n#() }",
-			"FUNCTION@1\n\tLIST@?\n\tLIST@2\n\t\tOBJECT@2",
+			"FUNCTION@1\n\tLIST@?\n\tLIST@?\n\t\tOBJECT=#()@?",
 
 		"function(){return}",
 		"FUNCTION@1\n\tLIST@?\n\tLIST@1\n\t\tRETURN@1",
@@ -81,7 +64,7 @@ public class LineNumbersParseTest {
 				"\t\t\t\t\t\tIDENTIFIER=it@1",
 
 		"function(){throw\n'x'}",
-		"FUNCTION@1\n\tLIST@?\n\tLIST@1\n\t\tTHROW@1\n\t\t\tSTRING=x@2",
+		"FUNCTION@1\n\tLIST@?\n\tLIST@1\n\t\tTHROW@1\n\t\t\tVALUE=x@?",
 
 		"function(){(x)}",
 		"FUNCTION@1\n\tLIST@?\n\tLIST@1\n\t\tRVALUE@1\n\t\t\tIDENTIFIER=x@1",
@@ -89,13 +72,13 @@ public class LineNumbersParseTest {
 		"function(){x in (1,2\n'3')}",
 		"FUNCTION@1\n" +
 				"\tLIST@?\n" +
-				"\tLIST@2\n" +
-				"\t\tIN@2\n" +
+				"\tLIST@1\n" +
+				"\t\tIN@1\n" +
 				"\t\t\tIDENTIFIER=x@1\n" +
-				"\t\t\tLIST@2\n" +
-				"\t\t\t\tNUMBER=1@1\n" +
-				"\t\t\t\tNUMBER=2@1\n" +
-				"\t\t\t\tSTRING=3@2",
+				"\t\t\tLIST@?\n" +
+				"\t\t\t\tVALUE=1@?\n" +
+				"\t\t\t\tVALUE=2@?\n" +
+				"\t\t\t\tVALUE=3@?",
 
 		"function() {\n x\n?y\n:z }",
 		"FUNCTION@1\n\tLIST@?\n\tLIST@4\n\t\tQ_MARK@4\n\t\t\tIDENTIFIER=x@2\n\t\t\tIDENTIFIER=y@3\n\t\t\tIDENTIFIER=z@4",
@@ -106,32 +89,32 @@ public class LineNumbersParseTest {
 				"\t\tIDENTIFIER=x@?\n" +
 				"\tLIST@2\n" +
 				"\t\tOR@2\n" +
-				"\t\t\tAND@2\n" +
-				"\t\t\t\tSTRING=literal@2\n" +
-				"\t\t\t\tNUMBER=4@2\n" +
-				"\t\t\t\tTRUE@2\n" +
-				"\t\t\t\tFALSE@2\n" +
+				"\t\t\tAND@?\n" +
+				"\t\t\t\tVALUE=literal@?\n" +
+				"\t\t\t\tVALUE=4@?\n" +
+				"\t\t\t\tVALUE=true@?\n" +
+				"\t\t\t\tVALUE=false@?\n" +
 				"\t\t\tBINARYOP@2\n" +
 				"\t\t\t\tCAT@?\n" +
 				"\t\t\t\tBINARYOP@2\n" +
 				"\t\t\t\t\tSUB@?\n" +
 				"\t\t\t\t\tBINARYOP@2\n" +
 				"\t\t\t\t\t\tADD@?\n" +
-				"\t\t\t\t\t\tSUB@2\n" +
-				"\t\t\t\t\t\t\tNUMBER=5@2\n" +
+				"\t\t\t\t\t\tSUB@?\n" +
+				"\t\t\t\t\t\t\tVALUE=5@?\n" +
 				"\t\t\t\t\t\tIDENTIFIER=x@2\n" +
 				"\t\t\t\t\tBINARYOP@2\n" +
 				"\t\t\t\t\t\tMUL@?\n" +
-				"\t\t\t\t\t\tCLASS@2\n" +
-				"\t\t\t\t\t\t\tLIST@?\n" +
+				"\t\t\t\t\t\tCLASS=Class#@2\n" +
+				"\t\t\t\t\t\t\tVALUE={}@?\n" +
 				"\t\t\t\t\t\tFUNCTION@2\n" +
 				"\t\t\t\t\t\t\tLIST@?\n" +
 				"\t\t\t\t\t\t\tLIST@?\n" +
 				"\t\t\t\t\t\t\t\tNIL@?\n" +
 				"\t\t\t\tBLOCK@2\n" +
 				"\t\t\t\t\tLIST@?\n" +
-				"\t\t\t\t\tLIST@2\n" +
-				"\t\t\t\t\t\tDATE=20140827@2",
+				"\t\t\t\t\tLIST@?\n" +
+				"\t\t\t\t\t\tVALUE=#20140827@?",
 
 		"function() { switch(x) { } }",
 		"FUNCTION@1\n" +
@@ -145,7 +128,7 @@ public class LineNumbersParseTest {
 				"\t\t\t\t\tLIST@?\n" +
 				"\t\t\t\t\tLIST@1\n" +
 				"\t\t\t\t\t\tTHROW@1\n" +
-				"\t\t\t\t\t\t\tSTRING=unhandled switch case@1",
+				"\t\t\t\t\t\t\tVALUE=unhandled switch case@?",
 
 		"function () { .a }",
 		"FUNCTION@1\n\tLIST@?\n\tLIST@1\n\t\tMEMBER=a@1\n\t\t\tSELFREF@1",
@@ -154,51 +137,19 @@ public class LineNumbersParseTest {
 		"FUNCTION@1\n\tLIST@?\n\tLIST@1\n\t\tRETURN@1\n\t\t\tCALL@1\n\t\t\t\tIDENTIFIER=Record@1\n\t\t\t\tLIST@?",
 
 		"function() { return x[..1] }",
-		"FUNCTION@1\n\tLIST@?\n\tLIST@1\n\t\tRETURN@1\n\t\t\tSUBSCRIPT@1\n\t\t\t\tIDENTIFIER=x@1\n\t\t\t\tRANGETO@1\n\t\t\t\t\tNUMBER=0@1\n\t\t\t\t\tNUMBER=1@1",
+		"FUNCTION@1\n\tLIST@?\n\tLIST@1\n\t\tRETURN@1\n\t\t\tSUBSCRIPT@1\n\t\t\t\tIDENTIFIER=x@1\n\t\t\t\tRANGETO@?\n\t\t\t\t\tVALUE=0@?\n\t\t\t\t\tVALUE=1@?",
 
 		"function() { return x[1..] }",
-		"FUNCTION@1\n\tLIST@?\n\tLIST@1\n\t\tRETURN@1\n\t\t\tSUBSCRIPT@1\n\t\t\t\tIDENTIFIER=x@1\n\t\t\t\tRANGETO@1\n\t\t\t\t\tNUMBER=1@1\n\t\t\t\t\tNUMBER=2147483647@1",
+		"FUNCTION@1\n\tLIST@?\n\tLIST@1\n\t\tRETURN@1\n\t\t\tSUBSCRIPT@1\n\t\t\t\tIDENTIFIER=x@1\n\t\t\t\tRANGETO@?\n\t\t\t\t\tVALUE=1@?\n\t\t\t\t\tVALUE=2147483647@?",
 
 		"function() { super.Destroy() }",
 		"FUNCTION@1\n\tLIST@?\n\tLIST@1\n\t\tCALL@1\n\t\t\tSUPER=Destroy@1\n\t\t\tLIST@?",
 
 		"function() { x(y:1) }",
-		"FUNCTION@1\n\tLIST@?\n\tLIST@1\n\t\tCALL@1\n\t\t\tIDENTIFIER=x@1\n\t\t\tLIST@1\n\t\t\t\tARG@1\n\t\t\t\t\tSTRING=y@?\n\t\t\t\t\tNUMBER=1@1",
+		"FUNCTION@1\n\tLIST@?\n\tLIST@1\n\t\tCALL@1\n\t\t\tIDENTIFIER=x@1\n\t\t\tLIST@?\n\t\t\t\tARG@?\n\t\t\t\t\tVALUE=y@?\n\t\t\t\t\tVALUE=1@?",
 
 		"function() { x(y:) }",
-		"FUNCTION@1\n\tLIST@?\n\tLIST@1\n\t\tCALL@1\n\t\t\tIDENTIFIER=x@1\n\t\t\tLIST@1\n\t\t\t\tARG@1\n\t\t\t\t\tSTRING=y@?\n\t\t\t\t\tTRUE@1",
-
-//		"function() { new X }",
-//		"",
-//
-		"class { method() { .x } }",
-		"CLASS@1\n\tLIST@1\n\t\tMEMBER@1\n\t\t\tSTRING=method@1\n\t\t\tMETHOD@1\n\t\t\t\tLIST@?\n\t\t\t\tLIST@1\n\t\t\t\t\tMEMBER=x@1\n\t\t\t\t\t\tSELFREF@1",
-
-		"class { Method() { .X() } }",
-		"CLASS@1\n" +
-				"\tLIST@1\n" +
-				"\t\tMEMBER@1\n" +
-				"\t\t\tSTRING=Method@1\n" +
-				"\t\t\tMETHOD@1\n" +
-				"\t\t\t\tLIST@?\n" +
-				"\t\t\t\tLIST@1\n" +
-				"\t\t\t\t\tCALL@1\n" +
-				"\t\t\t\t\t\tMEMBER=X@1\n" +
-				"\t\t\t\t\t\t\tSELFREF@1\n" +
-				"\t\t\t\t\t\tLIST@?",
-
-		"class { method() {\n\n4\n $\n#20140828} }",
-		"CLASS@1\n" +
-				"\tLIST@1\n" +
-				"\t\tMEMBER@1\n" +
-				"\t\t\tSTRING=method@1\n" +
-				"\t\t\tMETHOD@1\n" +
-				"\t\t\t\tLIST@?\n" +
-				"\t\t\t\tLIST@5\n" +
-				"\t\t\t\t\tBINARYOP@5\n" +
-				"\t\t\t\t\t\tCAT@?\n" +
-				"\t\t\t\t\t\tNUMBER=4@3\n" +
-				"\t\t\t\t\t\tDATE=20140828@5",
+		"FUNCTION@1\n\tLIST@?\n\tLIST@1\n\t\tCALL@1\n\t\t\tIDENTIFIER=x@1\n\t\t\tLIST@?\n\t\t\t\tARG@?\n\t\t\t\t\tVALUE=y@?\n\t\t\t\t\tVALUE=true@?"
 	};
 
 	//
@@ -270,6 +221,7 @@ public class LineNumbersParseTest {
 				lexer, new AstGenerator());
 		AstNode ast = parser.constant();
 		String printout = print(ast);
+		printout = printout.replaceAll("Class[0-9]+", "Class#");
 		assertEquals(expectedPrintout, printout);
 	}
 }

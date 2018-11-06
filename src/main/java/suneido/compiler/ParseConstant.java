@@ -6,13 +6,15 @@ package suneido.compiler;
 
 import static suneido.compiler.Token.*;
 
-import suneido.compiler.Generator.MType;
+import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
-// TODO change to build and return the actual value, rather than AstNode tree
-// inefficient to build AST and then traverse it to build e.g. object
-// maybe handle line numbers in ParseFunction/Expression
-// see cSuneido compile.cpp & gSuneido constant.go
+import suneido.*;
+import suneido.runtime.Numbers;
+import suneido.runtime.Ops;
+
 public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
+	private static AtomicInteger classNum = new AtomicInteger();
 
 	ParseConstant(Lexer lexer, G generator) {
 		super(lexer, generator);
@@ -22,19 +24,28 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		super(parse);
 	}
 
-	public T parse() {
-		return matchReturn(EOF, constant());
+	public T parse(String name) {
+		return matchReturn(EOF, constant(name));
 	}
 
 	public T constant() {
+		return constant(null);
+	}
+
+	public T constant(String name) {
+		return generator.value(constantValue(name));
+	}
+
+	// for simple values it returns the actual value
+	// functions are still T (AstNode)
+	public Object constantValue(String name) {
 		switch (token) {
 		case SUB:
 			match();
-			return matchReturn(NUMBER, generator.number("-" + lexer.getValue(),
-						lexer.getLineNumber()));
+			return Ops.uminus(number());
 		case ADD:
 			match();
-			return number();
+			return Ops.uplus(number());
 		case NUMBER:
 			return number();
 		case STRING:
@@ -50,16 +61,18 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		case AND:
 		case OR:
 		case NOT:
-			if (lexer.getKeyword() != Token.NIL)
-				return matchReturn(generator.string(lexer.getValue(),
-						lexer.getLineNumber()));
+			if (lexer.getKeyword() != Token.NIL) {
+				String val = lexer.getValue();
+				match();
+				return val;
+			}
 			break;
 		case IDENTIFIER:
 			switch (lexer.getKeyword()) {
 			case FUNCTION:
 				return function();
 			case CLASS:
-				return classConstant();
+				return classConstant(name);
 			case TRUE:
 			case FALSE:
 				return bool();
@@ -70,81 +83,30 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 						val.equals("callback") || val.equals("struct")))
 					syntaxError("jSuneido does not implement " + val);
 				if (ahead == L_CURLY)
-					return classConstant();
-				return matchReturn(generator.string(val, lexer.getLineNumber()));
+					return classConstant(name);
+				match();
+				return val;
 			}
 		}
 		syntaxError();
 		return null;
 	}
 
-	private T classConstant() {
-		int lineNumber = lexer.getLineNumber();
-		String base = classBase();
-		T members = memberList(L_CURLY, true);
-		return generator.clazz(base == "" ? null : base, members, lineNumber);
-	}
-	private String classBase() {
-		if (lexer.getKeyword() == CLASS) {
-			matchSkipNewlines(CLASS);
-			matchIf(COLON);
-		}
-		if (token == L_CURLY)
-			return "";
-		String base = lexer.getValue();
-		if (!okBase(base))
-			syntaxError("base class must be global defined in library");
-		matchSkipNewlines(IDENTIFIER);
-		return base;
-	}
-	private static boolean okBase(String s) {
-		int i = s.startsWith("_") ? 1 : 0;
-		return s.length() > i && Character.isUpperCase(s.charAt(i));
+	private boolean bool() {
+		boolean val = lexer.getKeyword() == TRUE;
+		match();
+		return val;
 	}
 
-	private T memberList(Token open, boolean inClass) {
-		MType which = (open == L_PAREN) ? MType.OBJECT : MType.RECORD;
-		match(open);
-		T members = null;
-		while (token != open.other) {
-			members = generator.memberList(which, members, member(open.other, inClass));
-			if (token == COMMA || token == SEMICOLON)
-				match();
-		}
-		match(open.other);
-		return members;
-	}
-	private T member(Token closing, boolean inClass) {
-		Token start = token;
-		T name = null;
-		T value = constant();
-		if (inClass && start == IDENTIFIER && token == L_PAREN) {
-			name = value;
-			value = functionWithoutKeyword(inClass);
-		} else if (matchIf(COLON)) {
-			name = value;
-			if (token == COMMA || token == SEMICOLON || token == closing) {
-				value = generator.boolTrue(lexer.getLineNumber());
-			} else {
-				value = constant();
-			}
-		}
-		if (inClass && name == null)
-			syntaxError("class members must be named");
-		return generator.memberDefinition(name, value);
+	private Number number() {
+		String val = lexer.getValue();
+		match(NUMBER);
+		return Numbers.stringToNumber(val);
 	}
 
-	private T bool() {
-		return matchReturn(generator.bool(lexer.getKeyword() == TRUE,
-				lexer.getLineNumber()));
-	}
-
-	private T number() {
-		return matchReturn(NUMBER,
-				generator.number(lexer.getValue(), lexer.getLineNumber()));
-	}
-
-	private T string() {
+	private String string() {
+		// overhead of StringBuilder not worth it
+		// because usually no concatenation
 		String s = "";
 		while (true) {
 			s += lexer.getValue();
@@ -153,17 +115,10 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 				break;
 			matchSkipNewlines(CAT);
 		}
-		return generator.string(s, lexer.getLineNumber());
+		return s;
 	}
 
-	private T date() {
-		T date = generator.date(lexer.getValue(), lexer.getLineNumber());
-		if (date == null)
-			syntaxError("invalid date literal: " + lexer.getValue());
-		return matchReturn(NUMBER, date);
-	}
-
-	private T hashConstant() {
+	private Object hashConstant() {
 		match();
 		switch (token) {
 		case NUMBER:
@@ -178,11 +133,97 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		}
 	}
 
+	private SuDate date() {
+		SuDate date = SuDate.fromLiteral(lexer.getValue());
+		if (date == null)
+			throw new SuException("bad date literal");
+		match(NUMBER);
+		return date;
+	}
+
 	public T object() {
 		int lineNumber = lexer.getLineNumber();
-		MType which = (token == L_PAREN ? MType.OBJECT : MType.RECORD);
-		T members = memberList(token, false);
-		return generator.object(which, members, lineNumber);
+		var con = new ObjectContainer(
+				token == L_PAREN ? new SuContainer() : new SuRecord());
+		memberList(con, token, null);
+		return generator.object(con.ob, lineNumber);
+	}
+
+	private T classConstant(String name) {
+		if (name == null)
+			name = "Class" + classNum.getAndIncrement();
+		int lineNumber = lexer.getLineNumber();
+		String base = classBase();
+		var con = new ClassContainer();
+		memberList(con, L_CURLY, name);
+		return generator.clazz(name, base, con.data, lineNumber);
+	}
+	private String classBase() {
+		if (lexer.getKeyword() == CLASS) {
+			matchSkipNewlines(CLASS);
+			matchIf(COLON);
+		}
+		if (token == L_CURLY)
+			return null;
+		String base = lexer.getValue();
+		if (!okBase(base))
+			syntaxError("base class must be global defined in library");
+		matchSkipNewlines(IDENTIFIER);
+		return base;
+	}
+	private static boolean okBase(String s) {
+		int i = s.startsWith("_") ? 1 : 0;
+		return s.length() > i && Character.isUpperCase(s.charAt(i));
+	}
+
+	private void memberList(Container con, Token opening, String className) {
+		match(opening);
+		var closing = opening.other;
+		while (!matchIf(closing)) {
+			member(con, closing, className);
+			if (token == COMMA || token == SEMICOLON)
+				match();
+		}
+	}
+	private void member(Container con, Token closing, String className) {
+		var inClass = className != null;
+		Token start = token;
+		var m = constantValue(null);
+		if (matchIf(COLON)) {
+			if (inClass)
+				m = privatizeDef(className, m);
+			if (token == COMMA || token == SEMICOLON || token == closing) {
+				putMem(con, m, true);
+			} else {
+				var val = constantValue(null);
+				putMem(con, m,  val);
+			}
+		} else if (inClass && start == IDENTIFIER && token == L_PAREN)
+			putMem(con, privatizeDef(className, m), functionWithoutKeyword(inClass));
+		else if (inClass)
+			syntaxError("class members must be named");
+		else
+			con.add(m);
+	}
+
+	// privatize member names in class definitions
+	private String privatizeDef(String className, Object m) {
+		if (!(m instanceof String))
+			syntaxError("class member names must be strings");
+		String name = (String) m;
+		if (!Character.isLowerCase(name.charAt(0)))
+			return name;
+		if (name.startsWith("get_") && name.length() > 4
+				&& Character.isLowerCase(name.charAt(4)))
+			return "Get_" + className + name.substring(3);
+		else
+			return className + "_" + name;
+	}
+
+	private void putMem(Container con, Object mem, Object val) {
+		if (null != con.get(mem))
+			syntaxError("duplicate member name (" + mem + ")");
+		con.put(mem, val);
 	}
 
 	private T function() {
@@ -195,6 +236,49 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		T result = p.functionWithoutKeyword(inClass);
 		token = p.token;
 		return result;
+	}
+
+	private static abstract class Container {
+		abstract void add(Object val);
+		abstract Object get(Object key);
+		abstract void put(Object key, Object val);
+	}
+
+	private static class ObjectContainer extends Container {
+		final SuContainer ob; // could be SuRecord
+
+		ObjectContainer(SuContainer ob) {
+			this.ob = ob;
+		}
+		@Override
+		void add(Object val) {
+			ob.add(val);
+		}
+		@Override
+		Object get(Object key) {
+			return ob.getIfPresent(key);
+		}
+		@Override
+		void put(Object key, Object val) {
+			ob.put(key, val);
+		}
+	}
+
+	private static class ClassContainer extends Container {
+		final HashMap<String,Object> data = new HashMap<>();
+
+		@Override
+		void add(Object val) {
+			throw SuInternalError.unreachable();
+		}
+		@Override
+		Object get(Object key) {
+			return data.get(key);
+		}
+		@Override
+		void put(Object key, Object val) {
+			data.put((String) key, val);
+		}
 	}
 
 }
