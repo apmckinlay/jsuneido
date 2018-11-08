@@ -490,6 +490,7 @@ public class ExecuteTest {
 		PortTests.addTest("lang_rangelen", ExecuteTest::pt_lang_rangelen);
 		assert PortTests.runFile("execute.test");
 		assert PortTests.runFile("execute2.test");
+		assert PortTests.runFile("classimpl.test");
 	}
 
 }
