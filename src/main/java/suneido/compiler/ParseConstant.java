@@ -211,13 +211,21 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 		if (!(m instanceof String))
 			syntaxError("class member names must be strings");
 		String name = (String) m;
+		if (name.startsWith("Getter_") &&
+				name.length() > 7 && !Character.isUpperCase(name.charAt(7)))
+			syntaxError("invalid getter (" + name + ")");
 		if (!Character.isLowerCase(name.charAt(0)))
 			return name;
+		if (name.startsWith("getter_")) {
+			if (name.length() <= 7 || !Character.isLowerCase(name.charAt(7)))
+				syntaxError("invalid getter (" + name + ")");
+			return "Getter_" + className + name.substring(6);
+		}
+		// TODO remove after transition from get_ to getter_
 		if (name.startsWith("get_") && name.length() > 4
 				&& Character.isLowerCase(name.charAt(4)))
 			return "Get_" + className + name.substring(3);
-		else
-			return className + "_" + name;
+		return className + "_" + name;
 	}
 
 	private void putMem(Container con, Object mem, Object val) {

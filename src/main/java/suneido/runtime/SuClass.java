@@ -61,16 +61,32 @@ public class SuClass extends SuValue implements Showable {
 			return value instanceof SuCallable && self != null
 					? new SuBoundMethod(self, (SuCallable) value) : value;
 		if (hasGet_) {
-			value = get2("Get_");
-			if (value instanceof SuCallable)
-				return ((SuCallable) value).eval(self, member);
+			if (null != (value = get2("Getter_")))
+				return meval1(self, value, member, "Getter_");
+			// TODO remove after transition from get_ to getter_
+			if (null != (value = get2("Get_")))
+				return meval1(self, value, member, "Get_");
 			hasGet_ = false; // avoid future attempts
 		}
-		String getter = ("Get_" + member).intern();
-		value = get2(getter);
-		if (value instanceof SuCallable)
-			return ((SuCallable) value).eval(self);
+		String name;
+		if (null != (value = get2(name = ("Getter_" + member).intern())))
+			return meval0(self, value, name);
+		// TODO remove after transition from get_ to getter_
+		if (null != (value = get2(name = ("Get_" + member).intern())))
+			return meval0(self, value, name);
 		return null;
+	}
+
+	private static Object meval0(Object self, Object method, String name) {
+		if (method instanceof SuValue)
+			return ((SuValue) method).eval0(self);
+		throw new SuException("can't call " + Ops.typeName(self) + " (" + name + ")");
+	}
+
+	private static Object meval1(Object self, Object method, Object member, String name) {
+		if (method instanceof SuValue)
+			return ((SuValue) method).eval1(self, member);
+		throw new SuException("can't call " + Ops.typeName(self) + " (" + name + ")");
 	}
 
 	Object get2(Object member) {
