@@ -926,6 +926,8 @@ public class AstCompile {
 		AstNode fn = ast.first();
 		AstNode args = ast.second();
 		if (fn.token == Token.MEMBER) {
+			if ("New".equals(fn.strval()))
+				throw new SuException("cannot explicitly call New method");
 			member(cg, fn);
 			if (args.token != Token.AT
 					&& args.children.size() <= MAX_DIRECT_ARGS
