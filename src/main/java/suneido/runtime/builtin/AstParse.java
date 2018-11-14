@@ -5,6 +5,7 @@
 package suneido.runtime.builtin;
 
 import java.lang.ref.SoftReference;
+import java.util.HashMap;
 import java.util.Map;
 
 import suneido.SuContainer;
@@ -12,7 +13,6 @@ import suneido.compiler.AstNode;
 import suneido.compiler.Token;
 import suneido.runtime.Ops;
 import suneido.runtime.Params;
-import suneido.runtime.SuClass;
 import suneido.runtime.VirtualContainer;
 
 public class AstParse {
@@ -64,8 +64,18 @@ public class AstParse {
 		}
 
 		private static Object handleClass(Object value) {
-			if (value instanceof Map)
-				value = new SuClass("", "", null, value);
+			if (value instanceof Map) {
+				@SuppressWarnings("unchecked")
+				var map = (HashMap<String,Object>) value;
+				var ob = new SuContainer();
+				for (var e : map.entrySet()) {
+					var val = e.getValue();
+					if (val instanceof AstNode)
+						val = new AstWrapper((AstNode) val);
+					ob.put(e.getKey(), val);
+				}
+				value = ob;
+			}
 			return value;
 		}
 
