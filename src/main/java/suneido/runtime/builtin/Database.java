@@ -49,6 +49,10 @@ public class Database extends BuiltinClass {
 		return TheDbms.dbms().finalSize();
 	}
 
+	public static SuContainer Info(Object self){
+		return TheDbms.dbms().info();
+	}
+
 	@Params("string")
 	public static Object Kill(Object self, Object a) {
 		return TheDbms.dbms().kill(Ops.toStr(a));

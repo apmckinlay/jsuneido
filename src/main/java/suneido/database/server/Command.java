@@ -288,6 +288,17 @@ public enum Command {
 		}
 	},
 	/**
+	 * Return a list of server information.  ({@link suneido.database.runtime.Database#Info})
+	 * <p>
+	 * Object()
+	 */
+	INFO {
+		@Override
+		public void execute(SuChannel io) {
+			io.put(true).putPacked(dbms().info());
+		}
+	},
+	/**
 	 * Return a list of the keys for a query or cursor ({@link DbmsQuery#keys})
 	 * <p>
 	 * query or cursor int, 'q' or 'c' &rarr; list of string list

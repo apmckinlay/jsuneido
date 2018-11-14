@@ -85,6 +85,11 @@ public class DbmsUnauth extends Dbms {
 	}
 
 	@Override
+	public SuContainer info() {
+		throw notauth;
+	}
+
+	@Override
 	public int kill(String s) {
 		throw notauth;
 	}
