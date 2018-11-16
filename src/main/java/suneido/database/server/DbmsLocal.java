@@ -161,6 +161,16 @@ public class DbmsLocal extends Dbms {
 	}
 
 	@Override
+	public SuContainer info() {
+		SuContainer info = new SuContainer();
+		info.put("timeoutMin", Suneido.cmdlineoptions.timeoutMin);
+		info.put("maxUpdateTranSec", Suneido.cmdlineoptions.max_update_tran_sec);
+		info.put("maxWritesPerTran", Suneido.cmdlineoptions.max_writes_per_tran);
+		info.put("currentSize", size());
+		return info;
+	}
+
+	@Override
 	public long size() {
 		return db.size();
 	}

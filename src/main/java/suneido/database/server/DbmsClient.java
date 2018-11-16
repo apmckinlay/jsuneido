@@ -265,6 +265,12 @@ public class DbmsClient extends Dbms {
 	}
 
 	@Override
+	public SuContainer info() {
+		send(INFO);
+		return (SuContainer) io.getPacked();
+	}
+
+	@Override
 	public int kill(String s) {
 		send(KILL, s);
 		return io.getInt();
