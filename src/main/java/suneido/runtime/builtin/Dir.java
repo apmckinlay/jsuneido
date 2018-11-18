@@ -23,6 +23,7 @@ import suneido.runtime.Ops;
 import suneido.runtime.Params;
 import suneido.runtime.Sequence;
 import suneido.util.Dnum;
+import suneido.util.Errlog;
 
 public class Dir {
 	@Params("path = '*', files = false, details = false")
@@ -37,7 +38,7 @@ public class Dir {
 			dir = ".";
 		} else {
 			glob = dir.substring(i + 1);
-			dir = dir.substring(0, i);
+			dir = dir.substring(0, i +1);
 		}
 		if (glob.endsWith("*.*")) // *.* only matches if there is a literal '.'
 			glob = glob.substring(0, glob.length() - 2);
@@ -66,6 +67,7 @@ public class Dir {
 				ds = Files.newDirectoryStream(dir, glob);
 				iter = ds.iterator();
 			} catch (IOException e) {
+				Errlog.info("Dir failed: " + e);
 				return Collections.emptyIterator();
 			}
 			if (files)
