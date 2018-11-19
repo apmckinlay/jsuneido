@@ -8,10 +8,7 @@ import static suneido.runtime.Ops.toStr;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.*;
 import java.util.Collections;
 import java.util.Iterator;
 
@@ -67,7 +64,8 @@ public class Dir {
 				ds = Files.newDirectoryStream(dir, glob);
 				iter = ds.iterator();
 			} catch (IOException e) {
-				Errlog.info("Dir failed: " + e);
+				if (! (e instanceof NoSuchFileException))
+					Errlog.info("Dir failed: " + e);
 				return Collections.emptyIterator();
 			}
 			if (files)
