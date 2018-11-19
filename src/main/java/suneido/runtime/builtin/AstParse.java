@@ -44,7 +44,7 @@ public class AstParse {
 				ob = new SoftReference<>(c = new SuContainer());
 				c.put("Token", node.token.toString());
 				if (node.value != null)
-					c.put("Value", handleClass(node.value));
+					c.put("Value", handleNested(node.value));
 				c.put("Line", node.lineNumber);
 				if (node.children == null)
 					c.put("Children", SuContainer.EMPTY);
@@ -63,20 +63,38 @@ public class AstParse {
 			return c;
 		}
 
-		private static Object handleClass(Object value) {
-			if (value instanceof Map) {
+		private static Object handleNested(Object value) {
+			var wrapped = nested(value);
+			return wrapped == null ? value : wrapped;
+		}
+
+		// returns null if object didn't need wrapping
+		// recursive to handle nested objects/classes
+		private static Object nested(Object value) {
+			if (value instanceof AstNode) {
+				return new AstWrapper((AstNode) value);
+			} else if (value instanceof SuContainer) {
+				var ob = (SuContainer) value;
+				for (int i = 0; i < ob.vecSize(); ++i) {
+					var val = nested(ob.vecGet(i));
+					if (val != null)
+						ob.vecSet(i, val);
+				}
+				for (var e : ob.mapEntrySet()) {
+					var val = nested(e.getValue());
+					if (val != null)
+						ob.putMap(e.getKey(), val);
+				}
+				return value;
+			} else if (value instanceof Map) { // class
 				@SuppressWarnings("unchecked")
 				var map = (HashMap<String,Object>) value;
 				var ob = new SuContainer();
-				for (var e : map.entrySet()) {
-					var val = e.getValue();
-					if (val instanceof AstNode)
-						val = new AstWrapper((AstNode) val);
-					ob.put(e.getKey(), val);
-				}
-				value = ob;
-			}
-			return value;
+				for (var e : map.entrySet())
+					ob.put(e.getKey(), handleNested(e.getValue()));
+				return ob;
+			} else
+				return null;
 		}
 
 		@Override

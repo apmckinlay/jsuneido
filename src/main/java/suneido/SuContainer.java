@@ -107,6 +107,10 @@ public class SuContainer extends SuValue
 	public synchronized Object vecGet(int i) {
 		return vec.get(i);
 	}
+	/** WARNING: does not handle migration */
+	public synchronized Object vecSet(int i, Object value) {
+		return vec.set(i, value);
+	}
 	public synchronized Object mapGet(Object key) {
 		return map.get(key);
 	}
@@ -170,7 +174,7 @@ public class SuContainer extends SuValue
 	}
 
 	/** used by CallRule, bypasses readonly */
-	protected void putMap(Object key, Object value) {
+	public void putMap(Object key, Object value) {
 		map.put(key, value);
 	}
 
