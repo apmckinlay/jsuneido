@@ -8,23 +8,24 @@ import static suneido.runtime.Ops.toStr;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.*;
-import java.util.Collections;
-import java.util.Iterator;
-
-import com.google.common.collect.Iterators;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 
 import suneido.SuContainer;
 import suneido.SuDate;
+import suneido.SuException;
 import suneido.runtime.Ops;
 import suneido.runtime.Params;
-import suneido.runtime.Sequence;
 import suneido.util.Dnum;
 import suneido.util.Errlog;
 
 public class Dir {
-	@Params("path = '*', files = false, details = false")
-	public static Object Dir(Object p, Object f, Object d) {
+	private static final int MAXFILES = 10000;
+
+	@Params("path = '*', files = false, details = false, block = false")
+	public static Object Dir(Object p, Object f, Object d, Object block) {
 		boolean files = Ops.toBoolean_(f);
 		boolean details = Ops.toBoolean_(d);
 		String dir = toStr(p).replace('\\',  '/');
@@ -40,72 +41,26 @@ public class Dir {
 		if (glob.endsWith("*.*")) // *.* only matches if there is a literal '.'
 			glob = glob.substring(0, glob.length() - 2);
 		Path path = FileSystems.getDefault().getPath(dir); // Path.of for 11
-		return new Sequence(new SuDir(path, glob, files, details));
-	}
-
-	private static class SuDir implements Iterable<Object> {
-		final Path dir;
-		final String glob;
-		final boolean files;
-		final boolean details;
-
-		SuDir(Path dir, String glob, boolean files, boolean details) {
-			this.dir = dir;
-			this.glob = glob;
-			this.files = files;
-			this.details = details;
+		SuContainer ob = (block == Boolean.FALSE) ? new SuContainer() : null;
+		try (var ds = Files.newDirectoryStream(path, glob)) {
+			for (var x : ds) {
+				File file = x.toFile();
+				if (files && file.isDirectory())
+					continue;
+				Object value = details ? detailsOf(file) : nameOf(file);
+				if (ob != null) {
+					ob.add(value);
+					if (ob.size() > MAXFILES)
+						throw new SuException("Dir: too many files (>" + MAXFILES + ")");
+				} else
+					Ops.call(block, value);
+			}
+		} catch (IOException e) {
+			if (! (e instanceof NoSuchFileException))
+				Errlog.info("Dir failed: " + e);
+			return ob == null ? null : new SuContainer();
 		}
-
-		@Override
-		public Iterator<Object> iterator() {
-			DirectoryStream<Path> ds;
-			Iterator<Path> iter;
-			try {
-				ds = Files.newDirectoryStream(dir, glob);
-				iter = ds.iterator();
-			} catch (IOException e) {
-				if (! (e instanceof NoSuchFileException))
-					Errlog.info("Dir failed: " + e);
-				return Collections.emptyIterator();
-			}
-			if (files)
-				iter = Iterators.filter(iter,
-						(Path p) -> !p.toFile().isDirectory());
-			return new Iter(ds, iter);
-		}
-
-		class Iter implements Iterator<Object> {
-			final DirectoryStream<Path> ds;
-			final Iterator<Path> iter;
-
-			Iter(DirectoryStream<Path> ds, Iterator<Path> iter) {
-				this.ds = ds;
-				this.iter = iter;
-			}
-
-			@Override
-			public boolean hasNext() {
-				if (iter.hasNext())
-					return true;
-				try {
-					ds.close();
-				} catch (IOException e) {
-					throw new RuntimeException(e);
-				}
-				return false;
-			}
-
-			@Override
-			public Object next() {
-				File file = iter.next().toFile();
-				return details ? detailsOf(file) : nameOf(file);
-			}
-
-			@Override
-			public void remove() {
-				throw new UnsupportedOperationException();
-			}
-		}
+		return ob;
 	}
 
 	private static String nameOf(File f) {
