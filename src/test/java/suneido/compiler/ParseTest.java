@@ -44,9 +44,9 @@ public class ParseTest {
 			"(BINARYOP (BITXOR) (BINARYOP (BITXOR) (IDENTIFIER=a) (IDENTIFIER=b)) (IDENTIFIER=c))");
 		code("a & b & c",
 			"(BINARYOP (BITAND) (BINARYOP (BITAND) (IDENTIFIER=a) (IDENTIFIER=b)) (IDENTIFIER=c))");
-		code("a == b == c",
+		code("a is b is c",
 			"(BINARYOP (IS) (BINARYOP (IS) (IDENTIFIER=a) (IDENTIFIER=b)) (IDENTIFIER=c))");
-		code("a != b != c",
+		code("a isnt b isnt c",
 			"(BINARYOP (ISNT) (BINARYOP (ISNT) (IDENTIFIER=a) (IDENTIFIER=b)) (IDENTIFIER=c))");
 		code("a =~ b =~ c",
 			"(BINARYOP (MATCH) (BINARYOP (MATCH) (IDENTIFIER=a) (IDENTIFIER=b)) (IDENTIFIER=c))");
@@ -80,7 +80,7 @@ public class ParseTest {
 			"(BINARYOP (ADD) (BINARYOP (MUL) (IDENTIFIER=a) (IDENTIFIER=b)) (BINARYOP (MUL) (IDENTIFIER=c) (IDENTIFIER=d)))");
 		code("a * (b + c) * d",
 			"(BINARYOP (MUL) (BINARYOP (MUL) (IDENTIFIER=a) (RVALUE (BINARYOP (ADD) (IDENTIFIER=b) (IDENTIFIER=c)))) (IDENTIFIER=d))");
-		code("+ - ! ~ x",
+		code("+ - not ~ x",
 			"(ADD (SUB (NOT (BITNOT (IDENTIFIER=x)))))");
 		code("--x",
 			"(PREINCDEC (DEC) (IDENTIFIER=x))");

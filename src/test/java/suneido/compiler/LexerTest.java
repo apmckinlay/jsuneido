@@ -55,14 +55,14 @@ public class LexerTest {
 
 	@Test
 	public void operators() {
-		check("= == != =~ !~ ! ++ -- < <= > >= << >> <<= >>= | |= & &= ^ ^=" +
-				"+ += - -= $ $= * *= / /= % %= && || and or xor not is isnt",
-				EQ, IS, ISNT, MATCH, MATCHNOT, NOT, INC, DEC,
+		check("= =~ !~ ++ -- < <= > >= << >> <<= >>= | |= & &= ^ ^=" +
+				"+ += - -= $ $= * *= / /= % %= and or not is isnt",
+				EQ, MATCH, MATCHNOT, INC, DEC,
 				LT, LTE, GT, GTE, LSHIFT, RSHIFT, LSHIFTEQ, RSHIFTEQ,
 				BITOR, BITOREQ, BITAND, BITANDEQ, BITXOR, BITXOREQ,
 				ADD, ADDEQ, SUB, SUBEQ, CAT, CATEQ,
-				MUL, MULEQ, DIV, DIVEQ, MOD, MODEQ, AND, OR,
-				AND, OR, ISNT, NOT, IS, ISNT);
+				MUL, MULEQ, DIV, DIVEQ, MOD, MODEQ,
+				AND, OR, NOT, IS, ISNT);
 	}
 
 	private static void check(String source, Token... results) {

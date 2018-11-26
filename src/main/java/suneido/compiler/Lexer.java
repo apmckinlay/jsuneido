@@ -123,9 +123,9 @@ public class Lexer implements Doesc.Src {
 		case ':':
 			return matchIf(':') ? RANGELEN : COLON;
 		case '=' :
-			return matchIf('=') ? IS : matchIf('~') ? MATCH : EQ;
+			return matchIf('~') ? MATCH : EQ;
 		case '!':
-			return matchIf('=') ? ISNT : matchIf('~') ? MATCHNOT : NOT;
+			return matchIf('~') ? MATCHNOT : ERROR;
 		case '<':
 			return matchIf('<') ? (matchIf('=') ? LSHIFTEQ : LSHIFT)
 					: matchIf('>') ? ISNT : matchIf('=') ? LTE : LT;
@@ -133,9 +133,9 @@ public class Lexer implements Doesc.Src {
 			return matchIf('>') ? (matchIf('=') ? RSHIFTEQ : RSHIFT)
 					: matchIf('=') ? GTE : GT;
 		case '|':
-			return matchIf('|') ? OR : matchIf('=') ? BITOREQ : BITOR;
+			return matchIf('=') ? BITOREQ : BITOR;
 		case '&':
-			return matchIf('&') ? AND : matchIf('=') ? BITANDEQ : BITAND;
+			return matchIf('=') ? BITANDEQ : BITAND;
 		case '^':
 			return matchIf('=') ? BITXOREQ : BITXOR;
 		case '-':

@@ -81,7 +81,7 @@ public class ExprTest {
 		fold("1 + 2 in (2,3,4)", "true");
 		fold("3 * 4 in (2,3,4)", "false");
 		fold("a in ()", "false");
-		fold("!(a in ())", "true");
+		fold("not(a in ())", "true");
 	}
 	private static void fold(String expr, String expected) {
 		Expr e = CompileQuery.expr(expr);
@@ -122,7 +122,7 @@ public class ExprTest {
 		eval("d % 3", "1");
 		eval("a + b = c", "true");
 		eval("a = 1", "true");
-		eval("b != 2", "false");
+		eval("b isnt 2", "false");
 		eval("a is 2", "false");
 		eval("9 > d", "true");
 		eval("c <= 3", "true");

@@ -61,7 +61,7 @@ public class CompileTest {
  				"a, b, add, ARETURN");
 		test("-a",
 				"a, uminus, ARETURN");
-		test("! a",
+		test("not a",
 				"a, not, ARETURN");
 		test("a = b",
 				"&a, b, DUP_X2, AASTORE, ARETURN");
@@ -283,10 +283,10 @@ public class CompileTest {
 				"&a, b, DUP_X2, AASTORE, bool, IFFALSE L1, c, call, POP, L1");
 		test("if (a) b() else c()",
 				"a, bool, IFFALSE L1, b, call, POP, GOTO L2, L1, c, call, POP, L2");
-		test("if (a && b) c else a",
+		test("if (a and b) c else a",
 				"a, bool, IFFALSE L1, b, bool, IFFALSE L1, " +
 				"c, POP, GOTO L2, L1, a, POP, L2");
-		test("if (a || b) c else a",
+		test("if (a or b) c else a",
 				"a, bool, IFTRUE L1, b, bool, IFFALSE L2, " +
 				"L1, c, POP, GOTO L3, L2, a, POP, L3");
 	}

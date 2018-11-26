@@ -259,7 +259,7 @@ public class QueryTest extends TestBase {
 			"max_cost\n" +
 			"300\n");
 
-		test1("customer where !(id in ())",
+		test1("customer where (id not in ())",
 				"id	name	city\n" +
 				"'a'	'axon'	'saskatoon'\n" +
 				"'c'	'calac'	'calgary'\n" +

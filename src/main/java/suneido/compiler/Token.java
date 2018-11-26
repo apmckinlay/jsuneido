@@ -123,7 +123,6 @@ public enum Token {
 			if (t.string != null && Character.isLetter(t.string.charAt(0)))
 				keywords.put(t.string, t);
 		keywords.put("destroy", DROP);
-		keywords.put("xor", ISNT);
 	}
 	public static Token lookup(String s) {
 		return keywords.get(s);

@@ -80,14 +80,14 @@ public class ExecuteTest {
 				"#(f: 6, g: 7, d: 4, e: 5, b: 2, c: 3, a: 1, j: 10, k: 11, h: 8, i: 9)");
 	}
 	@Test public void test_and() {
-		test("true && false", "false");
-		test("false && true", "false");
-		test("true && true", "true");
+		test("true and false", "false");
+		test("false and true", "false");
+		test("true and true", "true");
 	}
 	@Test public void test_or() {
-		test("true || false", "true");
-		test("false || true", "true");
-		test("false || false", "false");
+		test("true or false", "true");
+		test("false or true", "true");
+		test("false or false", "false");
 	}
 	@Test public void test_conditional() {
 		test("true ? 123 : 456", "123");
