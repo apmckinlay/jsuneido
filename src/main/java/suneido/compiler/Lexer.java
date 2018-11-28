@@ -123,9 +123,9 @@ public class Lexer implements Doesc.Src {
 		case ':':
 			return matchIf(':') ? RANGELEN : COLON;
 		case '=' :
-			return matchIf('~') ? MATCH : EQ;
+			return matchIf('=') ? IS : matchIf('~') ? MATCH : EQ;
 		case '!':
-			return matchIf('~') ? MATCHNOT : ERROR;
+			return matchIf('=') ? ISNT : matchIf('~') ? MATCHNOT : NOT;
 		case '<':
 			return matchIf('<') ? (matchIf('=') ? LSHIFTEQ : LSHIFT)
 					: matchIf('>') ? ISNT : matchIf('=') ? LTE : LT;

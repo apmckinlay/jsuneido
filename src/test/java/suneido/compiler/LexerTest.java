@@ -55,9 +55,9 @@ public class LexerTest {
 
 	@Test
 	public void operators() {
-		check("= =~ !~ ++ -- < <= > >= << >> <<= >>= | |= & &= ^ ^=" +
+		check("= == != =~ !~ ++ -- < <= > >= << >> <<= >>= | |= & &= ^ ^=" +
 				"+ += - -= $ $= * *= / /= % %= and or not is isnt",
-				EQ, MATCH, MATCHNOT, INC, DEC,
+				EQ, IS, ISNT, MATCH, MATCHNOT, INC, DEC,
 				LT, LTE, GT, GTE, LSHIFT, RSHIFT, LSHIFTEQ, RSHIFTEQ,
 				BITOR, BITOREQ, BITAND, BITANDEQ, BITXOR, BITXOREQ,
 				ADD, ADDEQ, SUB, SUBEQ, CAT, CATEQ,
