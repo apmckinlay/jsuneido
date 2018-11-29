@@ -42,7 +42,6 @@ public class Builtins {
 			.put("Date?", function(DateQ.class))
 			.put("Deadlock", function(SuDeadlock.class))
 			.put("DeleteDir", function(DeleteDir.class))
-			.put("DeleteFile", function(DeleteFile.class))
 			.put("DeleteFileApi", function(DeleteFile.class))
 			.put("Dir", function(Dir.class))
 			.put("DirExists?", function(DirExistsQ.class))
