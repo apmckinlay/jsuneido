@@ -395,6 +395,8 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 				int lineNumber = lexer.getLineNumber();
 				match(COLON);
 				String identifier = lexer.getValue();
+				if (!Character.isLowerCase(identifier.charAt(0)))
+					syntaxError("expecting local variable name");
 				if (! keywords.add(identifier)) //FIXME e.g. '1' and '01'
 					throw new SuException("duplicate argument name: " + identifier);
 				match(IDENTIFIER);
