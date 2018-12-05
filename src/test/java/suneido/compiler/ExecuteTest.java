@@ -10,6 +10,8 @@ import static suneido.compiler.Compiler.compile;
 import static suneido.compiler.Compiler.eval;
 import static suneido.util.testing.Throwing.assertThrew;
 
+import java.util.Arrays;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,9 +20,7 @@ import suneido.PortTests;
 import suneido.SuContainer;
 import suneido.SuException;
 import suneido.Suneido;
-import suneido.runtime.BlockReturnException;
-import suneido.runtime.Ops;
-import suneido.runtime.SuBoundMethod;
+import suneido.runtime.*;
 
 public class ExecuteTest {
 
@@ -392,6 +392,10 @@ public class ExecuteTest {
 			Object result;
 			boolean ok;
 			if (expected.equals("throws")) {
+				if (args[2].contains("super requires parent")) {
+					System.out.println("SKIP " + Arrays.toString(args));
+					return true;
+				}
 				expected = "throws: " + args[2];
 				try {
 					result = Ops.display(eval(args[0]));
@@ -485,12 +489,21 @@ public class ExecuteTest {
 
 	@Test
 	public void porttests() {
+		Suneido.context.set("Def", Builtins.function(Def.class));
 		PortTests.addTest("execute", ExecuteTest::pt_execute);
 		PortTests.addTest("lang_rangeto", ExecuteTest::pt_lang_rangeto);
 		PortTests.addTest("lang_rangelen", ExecuteTest::pt_lang_rangelen);
 		assert PortTests.runFile("execute.test");
 		assert PortTests.runFile("execute2.test");
 		assert PortTests.runFile("classimpl.test");
+	}
+
+	public static class Def {
+		@Params("name, value")
+		public static Object Def(Object name, Object value) {
+			Suneido.context.set(Ops.toStr(name), value);
+			return null;
+		}
 	}
 
 }

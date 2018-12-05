@@ -130,7 +130,7 @@ public class Builtins {
 			.build();
 	}
 
-	private static SuCallable function(Class<?> c) {
+	public static SuCallable function(Class<?> c) {
 		Map<String, SuCallable> ms = BuiltinMethods.functions(c);
 		return Iterables.getOnlyElement(ms.values());
 	}
