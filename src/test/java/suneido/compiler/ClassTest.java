@@ -261,9 +261,9 @@ public class ClassTest {
 	public void test_super() { // super must be first
 		try {
 			compile("A", "class { New() { F(); super() } }");
-			fail("call to super must come first");
+			fail("super(...) must be first");
 		} catch (Exception e) {
-			assertEquals("call to super must come first", e.toString());
+			assertEquals("super(...) must be first statement", e.toString());
 		}
 	}
 

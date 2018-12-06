@@ -292,7 +292,7 @@ public class AstCompile {
 
 	private static void onlyAllowSuperFirst(int i, AstNode stat) {
 		if (i != 0)
-			throw new SuException("call to super must come first");
+			throw new SuException("super(...) must be first statement");
 	}
 
 	/** add super init call to New methods if not explicitly called */
