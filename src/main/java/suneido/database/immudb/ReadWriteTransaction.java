@@ -303,7 +303,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 		Iterator<Entry<Index, TranIndex>> iter = indexes.entrySet().iterator();
 		Entry<Index,TranIndex> e = iter.next();
 		do {
-			// before table
+			// before each table
 			int tblnum = e.getKey().tblnum;
 			TableInfo ti = (TableInfo) dbinfo.get(tblnum);
 
@@ -317,7 +317,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 			for (IndexInfo ii : ti.indexInfo)
 				info.add(ii); // no dups, so only adds ones not already there
 
-			// after table
+			// after each table
 			TableInfoDelta d = tidelta(tblnum);
 			assert ! info.isEmpty();
 			ti = new TableInfo(tblnum, ti.nextfield,
