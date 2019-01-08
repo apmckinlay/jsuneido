@@ -169,6 +169,15 @@ class UpdateTransaction extends ReadWriteTransaction {
 		return ir;
 	}
 
+	@Override
+	boolean exists(int tblnum, int[] colNums, Record key) {
+		Index index = index(tblnum, colNums);
+		TranIndex ti = getIndex(index);
+		var ir = indexRange(index);
+		ir.lo = ir.hi = key;
+		return 0 != ti.get(key);
+	}
+
 	// -------------------------------------------------------------------------
 
 	@Override

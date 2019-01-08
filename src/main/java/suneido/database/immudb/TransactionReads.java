@@ -11,7 +11,7 @@ import suneido.util.MergeTree;
 /**
  * Accumulates reads done by a transaction on a single index.
  * Operates in two stages, first simply accumulating a list of reads.
- * Then build combines overlapping ranges.
+ * Then build() combines overlapping ranges.
  * After build, contains can be used to validate a transaction's reads.
  */
 class TransactionReads {

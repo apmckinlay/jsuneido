@@ -23,6 +23,7 @@ class IndexRange implements Comparable<IndexRange> {
 		hi = Dbpkg.MIN_RECORD;
 	}
 
+	// used by tests
 	public IndexRange(Record lo, Record hi) {
 		this.lo = lo;
 		this.hi = hi;

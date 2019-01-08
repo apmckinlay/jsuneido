@@ -138,10 +138,6 @@ class ReadTransaction extends Transaction {
 		return iter.eof() ? null : input(iter.keyadr());
 	}
 
-	boolean exists(int tblnum, int[] colNums, Record key) {
-		return 0 != getIndex(tblnum, colNums).get(key);
-	}
-
 	@Override
 	public Table getTable(String tableName) {
 		return schema.get(tableName);
