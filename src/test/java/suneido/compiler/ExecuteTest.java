@@ -384,8 +384,10 @@ public class ExecuteTest {
 	 * PortTests fixture.
 	 */
 	public static boolean pt_execute(String... args) {
-		if (args[0].contains("Name(foo)") || args[0].contains("Name(c.Foo)"))
+		if (args[0].contains("Name(foo)") || args[0].contains("Name(c.Foo)")) {
+			System.out.println("SKIP " + Arrays.toString(args));
 			return true;
+		}
 		Ops.default_single_quotes = true;
 		try {
 			String expected = "**notfalse**";
