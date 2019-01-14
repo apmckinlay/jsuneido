@@ -500,6 +500,7 @@ public class ExecuteTest {
 		assert PortTests.runFile("execute.test");
 		assert PortTests.runFile("execute2.test");
 		assert PortTests.runFile("classimpl.test");
+		System.out.println("PASS");
 	}
 
 	public static class Def {
