@@ -12,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import gnu.trove.map.hash.TIntObjectHashMap;
+import suneido.Suneido;
 import suneido.database.immudb.Bootstrap.TN;
 import suneido.database.immudb.Dbpkg.Status;
 import suneido.util.Errlog;
@@ -72,7 +73,7 @@ class DbRebuild {
 			// NOTE: at this point it could be bad data rather than bad index
 			// in which case rebuilding from data won't help.
 			// Could avoid this with better info from check_data_and_indexes.
-			return null;
+			return rebuildFromData();
 		} catch (Throwable e) {
 			Errlog.error("Rebuild", e);
 			return null;
@@ -119,9 +120,12 @@ class DbRebuild {
 		copyGoodPrefix(check);
 		try(Database db = newdb(check.dOkSize())) {
 			assert db != null;
-			if (check.dIterNotFinished())
+			Date lastOkDate = check.lastOkDate();
+			if (check.dIterNotFinished() &&
+					!"trunc".equals(Suneido.cmdlineoptions.actionArg)) {
 				System.out.println("Reprocessing data ...");
-			Date lastOkDate = reprocess(db, check);
+				lastOkDate = reprocess(db, check);
+			}
 			System.out.println("Checking rebuilt database ...");
 			db.persist();
 			Status status = DbCheck.check(newFilename, db.dstor, db.istor,

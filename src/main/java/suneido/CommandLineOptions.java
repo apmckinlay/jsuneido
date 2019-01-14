@@ -72,13 +72,13 @@ public class CommandLineOptions {
 				setAction(Action.CHECK);
 				if (arg.startsWith("-check:"))
 					actionArg = arg.substring(7);
-			} else if (arg.equals("-rebuild"))
+			} else if (arg.equals("-rebuild")) {
 				setAction(Action.REBUILD);
-			else if (arg.startsWith("-rebuild:")) {
+			} else if (arg.equals("-rebuild/truncate")) {
+				setAction(Action.REBUILD);
+				actionArg = "trunc";
+			} else if (arg.startsWith("-rebuild:")) {
 				setAction(Action.REBUILD2);
-				actionArg = arg.substring(9);
-			} else if (arg.startsWith("-rebuild-")) {
-				setAction(Action.REBUILD3);
 				actionArg = arg.substring(9);
 			} else if (arg.equals("-compact"))
 				setAction(Action.COMPACT);

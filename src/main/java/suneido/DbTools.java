@@ -166,18 +166,10 @@ public class DbTools {
 		System.out.println("Rebuild " + dbFilename + " ...");
 		File tempfile = FileUtils.tempfile("d", "i", "c");
 		String cmd = "-rebuild:" + dbFilename + SEPARATOR + tempfile;
-		boolean dbi = new File(dbFilename + "i").canRead();
-		if (dbi && Jvm.runWithNewJvm(cmd)) {
-			if (! tempfile.isFile())
-				return; // assume db was ok, rebuild not needed
-		} else {
-			if (! dbi)
-				System.out.println("No usable indexes");
-			// couldn't rebuild from data + indexes, try from just data
-			cmd = "-rebuild-" + dbFilename + SEPARATOR + tempfile;
-			if (! Jvm.runWithNewJvm(cmd))
-				Errlog.fatal("Rebuild FAILED " + cmd);
-		}
+		if (! Jvm.runWithNewJvm(cmd))
+			Errlog.fatal("Rebuild FAILED " + cmd);
+		if (! tempfile.isFile())
+			return; // assume db was ok, rebuild not needed
 		Dbpkg.renameDbWithBackup(tempfile.toString(), dbFilename);
 		tempfile.delete();
 	}
@@ -188,7 +180,9 @@ public class DbTools {
 		String dbFilename = arg.substring(0, i);
 		String tempfile = arg.substring(i + SEPARATOR.length());
 		Stopwatch sw = Stopwatch.createStarted();
-		String result = Dbpkg.rebuild(dbFilename, tempfile);
+		String result = new File(dbFilename + "i").canRead()
+				? Dbpkg.rebuild(dbFilename, tempfile)
+				: Dbpkg.rebuildFromData(dbFilename, tempfile);
 		if (result == null)
 			System.exit(-1);
 		else if (new File(tempfile).isFile()){
@@ -196,21 +190,6 @@ public class DbTools {
 			System.out.println("Rebuild completed in " + sw);
 		} else
 			System.out.println("Rebuild not done, database OK");
-	}
-
-	/** called in a new jvm */
-	static void rebuild3(String arg) {
-		int i = arg.indexOf(SEPARATOR);
-		String dbFilename = arg.substring(0, i);
-		String tempfile = arg.substring(i + SEPARATOR.length());
-		Stopwatch sw = Stopwatch.createStarted();
-		String result = Dbpkg.rebuildFromData(dbFilename, tempfile);
-		if (result == null)
-			System.exit(-1);
-		else {
-			Errlog.warn("Rebuilt " + dbFilename + ": " + result);
-			System.out.println("Rebuild from data completed in " + sw);
-		}
 	}
 
 }
