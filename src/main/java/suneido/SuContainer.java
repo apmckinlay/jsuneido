@@ -770,6 +770,7 @@ public class SuContainer extends SuValue
 	}
 
 	public synchronized void setDefault(Object value) {
+		checkReadonly();
 		defval = value;
 	}
 
