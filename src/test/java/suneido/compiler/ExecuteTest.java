@@ -388,6 +388,7 @@ public class ExecuteTest {
 			System.out.println("SKIP " + Arrays.toString(args));
 			return true;
 		}
+		//System.out.println(Arrays.toString(args));
 		Ops.default_single_quotes = true;
 		try {
 			String expected = "**notfalse**";
@@ -421,6 +422,9 @@ public class ExecuteTest {
 				System.out.println("expected: " + expected);
 			}
 			return ok;
+		} catch (Throwable e) {
+			System.out.println("threw: " + e);
+			return false;
 		} finally {
 			Ops.default_single_quotes = false;
 		}

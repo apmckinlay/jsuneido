@@ -17,8 +17,10 @@ import com.google.common.primitives.Booleans;
 
 import suneido.compiler.CompileTest;
 import suneido.compiler.ExecuteTest;
+import suneido.compiler.ExecuteTest.Def;
 import suneido.compiler.Lexer;
 import suneido.compiler.Token;
+import suneido.runtime.Builtins;
 import suneido.runtime.OpsTest;
 import suneido.runtime.PackTest;
 import suneido.util.DnumTest;
@@ -201,12 +203,16 @@ public class PortTests {
 		addTest("compile", CompileTest::pt_compile);
 		addTest("compare", OpsTest::pt_compare);
 		addTest("compare_packed", PackTest::pt_compare_packed);
+		Suneido.context.set("Def", Builtins.function(Def.class));
 
 		Suneido.openDbms();
 		System.out.println("'" + testdir + "'");
+		var ok = true;
 		for (String filename : new File(testdir).list())
 			if (filename.endsWith(".test"))
-				runFile(filename);
+				ok = runFile(filename) && ok;
+		if (!ok)
+			System.out.println("FAILURES");
 	}
 
 }
