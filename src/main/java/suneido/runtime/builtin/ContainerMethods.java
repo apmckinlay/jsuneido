@@ -35,14 +35,13 @@ public final class ContainerMethods {
 		ArgsIterator iter = new ArgsIterator(args);
 		while (iter.hasNext()) {
 			Object x = iter.next();
-			if (x instanceof Map.Entry
-					&& ((Map.Entry<Object, Object>) x).getKey().equals("at")) {
-				atArg = ((Map.Entry<Object, Object>) x).getValue();
-				if (iter.hasNext())
-					addUsage();
-				break;
-			}
-			++numValuesToAdd;
+			if (x instanceof Map.Entry) {
+					if (((Map.Entry<Object, Object>) x).getKey().equals("at")) {
+						atArg = ((Map.Entry<Object, Object>) x).getValue();
+						break;
+					}
+			} else
+				++numValuesToAdd;
 		}
 		if (0 == numValuesToAdd) {
 			// nothing to do
