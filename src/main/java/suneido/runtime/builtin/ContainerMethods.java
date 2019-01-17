@@ -294,13 +294,6 @@ public final class ContainerMethods {
 	}
 
 	@Params("block")
-	public static Object Sort(Object self, Object a) {
-		SuContainer c = toContainer(self);
-		c.sort(a);
-		return c;
-	}
-
-	@Params("block")
 	public static Object SortE(Object self, Object a) {
 		SuContainer c = toContainer(self);
 		c.sort(a);
