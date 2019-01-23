@@ -24,7 +24,7 @@ class StoredRecordIterator extends UnmodifiableIterator<Record> {
 
 	@Override
 	public boolean hasNext() {
-		return adr <= last;
+		return Integer.compareUnsigned(adr, last) <= 0;
 	}
 
 	@Override
@@ -33,7 +33,7 @@ class StoredRecordIterator extends UnmodifiableIterator<Record> {
 		ByteBuffer buf = stor.buffer(adr);
 		DataRecord r = new DataRecord(stor, adr);
 		int len = r.storSize();
-		if (adr < last)
+		if (Integer.compareUnsigned(adr, last) < 0)
 			adr = stor.advance(adr, skipPadding(buf, len));
 		else
 			adr = last + 1;

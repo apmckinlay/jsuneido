@@ -80,7 +80,8 @@ class DbCheck {
 		} else
 			print(check.status());
 		print(details);
-		println(status + " " + lastCommit(status));
+		println(status + " " + lastCommit(status) +
+				" ok sizes " + check.dOkSize() + ", " + check.iOkSize());
 		if (! filename.equals(""))
 			if (status == Status.OK)
 				DbGood.create(filename + "c", dstor.sizeFrom(0));

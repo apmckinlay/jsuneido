@@ -7,11 +7,10 @@ package suneido.database.immudb;
 import java.nio.ByteBuffer;
 import java.util.Date;
 
-import suneido.util.Immutable;
-
 import com.google.common.base.MoreObjects;
 
 import suneido.util.Errlog;
+import suneido.util.Immutable;
 
 /**
  * Check database integrity.<p>
@@ -24,8 +23,8 @@ class Check {
 	private static final int CORRUPT = -1;
 	private final Storage dstor;
 	private final Storage istor;
-	private int dUpTo = Integer.MAX_VALUE;
-	private int iUpTo = Integer.MAX_VALUE;
+	private int dUpTo = Storage.MAX_ADR;
+	private int iUpTo = Storage.MAX_ADR;
 	/** set by findLast for fastcheck */
 	private int lastadr = 0;
 	private Date lastOkDate = null;
@@ -152,7 +151,7 @@ class Check {
 				iInfo = null;
 				if (iIter.eof())
 					dIter.advance();
-			} else if (dIter.adr() < iInfo.lastadr)
+			} else if (Integer.compareUnsigned(dIter.adr(), iInfo.lastadr) < 0)
 				dIter.advance();
 			else // diter has gone past iIter with no match - no point continuing
 				break;

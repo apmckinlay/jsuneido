@@ -23,7 +23,8 @@ import com.google.common.primitives.UnsignedInts;
  * <li>allocations cannot straddle chunks and will be bumped to next chunk
  * <li>long offsets are divided by ALIGN and passed as int "addresses" (adr),
  * 		to reduce the space to store them.
- *		 Addresses are really unsigned ints, but we use int since that's all Java has.
+ *		Addresses are really unsigned ints, but we use int since that's all Java has.
+ *		WARNING: must use Integer.compareUnsigned, NOT < or >
  * 		To keep 0 as a special value, addresses start at 1.
  * 		See offsetToAdr and adrToOffset.
  * <li>therefore maximum file size is unsigned int max * ALIGN (32gb)
@@ -44,6 +45,7 @@ import com.google.common.primitives.UnsignedInts;
  */
 abstract class Storage implements AutoCloseable {
 	protected final static int FIRST_ADR = 2;
+	protected final static int MAX_ADR = 0xffffffff;
 	protected static final int SHIFT = 3; // i.e. 8 byte alignment
 	private static final long MAX_SIZE = 0xffffffffL << SHIFT;
 	static final int ALIGN = (1 << SHIFT); // must be power of 2

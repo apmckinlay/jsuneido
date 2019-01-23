@@ -34,7 +34,7 @@ class StorageIter {
 	private int cksum; // of current commit/persist
 	private boolean verifyChecksums = true;
 	private boolean checkType = false; // only applies to data not index file
-	private int upTo = Integer.MAX_VALUE;
+	private int upTo = Storage.MAX_ADR;
 
 	StorageIter(Storage stor) {
 		this(stor, Storage.FIRST_ADR);
@@ -106,7 +106,8 @@ class StorageIter {
 	}
 
 	boolean eof() {
-		return stor.sizeFrom(adr) <= 0 || adr >= upTo;
+		return stor.sizeFrom(adr) <= 0 ||
+				Integer.compareUnsigned(adr, upTo) >= 0;
 	}
 
 	/** skips aborted commits */
