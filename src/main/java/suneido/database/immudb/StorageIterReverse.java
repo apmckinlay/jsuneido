@@ -4,8 +4,6 @@
 
 package suneido.database.immudb;
 
-//TODO change to use adr instead of pos (like HistoryIterator)
-
 /**
  * Minimal reverse iterator.
  * @see StorageIter
