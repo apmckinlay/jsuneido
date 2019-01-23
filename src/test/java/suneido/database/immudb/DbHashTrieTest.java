@@ -123,7 +123,7 @@ public class DbHashTrieTest {
 
 		int at = tree.store(nullTranslator);
 
-		tree = DbHashTrie.from(stor, at);
+		tree = DbHashTrie.load(stor, at, nullTranslator);
 		for (int i = 32; i < 64; ++i)
 			assertNull(tree.get(i));
 		add(32, 123);
@@ -136,11 +136,11 @@ public class DbHashTrieTest {
 		assertThat(get(32), equalTo(123));
 		assertThat(get(64), equalTo(456));
 
-		tree = DbHashTrie.from(stor, at2);
+		tree = DbHashTrie.load(stor, at2, nullTranslator);
 		assertThat(get(32), equalTo(123));
 		assertThat(get(64), equalTo(456));
 
-		tree = DbHashTrie.from(stor, at2);
+		tree = DbHashTrie.load(stor, at2, nullTranslator);
 		assertThat(get(32), equalTo(123));
 		assertThat(get(64), equalTo(456));
 		Random rand = new Random(1234);
@@ -149,7 +149,7 @@ public class DbHashTrieTest {
 		addRandom(rand, N);
 		at2 = tree.store(nullTranslator);
 
-		tree = DbHashTrie.from(stor, at2);
+		tree = DbHashTrie.load(stor, at2, nullTranslator);
 		addRandom(rand, N);
 		rand.setSeed(1234);
 		for (int i = 0; i < N * 2; ++i) {
@@ -177,7 +177,7 @@ public class DbHashTrieTest {
 		Random rand = new Random(46578);
 		addRandom(rand, 100);
 		int adr = tree.store(nullTranslator);
-		tree = DbHashTrie.from(stor, adr);
+		tree = DbHashTrie.load(stor, adr, nullTranslator);
 		proc = mock(DbHashTrie.Process.class);
 		tree.traverseUnstored(proc);
 		verifyZeroInteractions(proc);

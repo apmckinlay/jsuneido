@@ -9,13 +9,13 @@ import static com.google.common.base.Preconditions.checkArgument;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
+import com.google.common.base.Strings;
+
 import suneido.util.Immutable;
 import suneido.util.NotThreadSafe;
 
-import com.google.common.base.Strings;
-
 /**
- * Persistent semi-immutable hash tree used for storing dbinfo and redirections.
+ * Persistent semi-immutable hash tree used for storing dbinfo.
  * loaded => immutable => with => mutable => freeze/store => immutable
  * Mutable within a thread confined transaction.
  * EXCEPT even when "immutable" get will load nodes on demand
@@ -50,10 +50,6 @@ abstract class DbHashTrie {
 
 	static DbHashTrie empty(Storage stor) {
 		return new EmptyNode(stor);
-	}
-
-	static DbHashTrie from(Storage stor, int at) {
-		return new Node(stor, at);
 	}
 
 	/** loads the entire tree into memory */
@@ -164,10 +160,8 @@ abstract class DbHashTrie {
 				Entry e = (Entry) data[i];
 				return e.key() == key ? e : null;
 			} else { // pointer to child
-				Object e = data[i];
-				if (e instanceof Integer)
-					data[i] = e = new Node(stor, ((Integer) data[i]));
-				return ((Node) e).get(key, shift + BITS_PER_LEVEL);
+				Node e = (Node) data[i];
+				return e.get(key, shift + BITS_PER_LEVEL);
 			}
 		}
 
