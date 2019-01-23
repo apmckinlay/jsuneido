@@ -63,17 +63,15 @@ class DbRebuild {
 				} // else indexes corrupt
 			} else if (check.lastOkDate() != null) { // checksum error
 				System.out.println("Data and indexes match up to " +
-							format(check.lastOkDate()));
-					String result = fix(check);
-					if (result != null)
-						return result;
-				// else fall through
+							format(check.lastOkDate()) +
+							" ok sizes " + check.dOkSize() + ", " + check.iOkSize());
+				return fix(check);
 			}
 			System.out.println("No usable indexes");
 			// NOTE: at this point it could be bad data rather than bad index
 			// in which case rebuilding from data won't help.
 			// Could avoid this with better info from check_data_and_indexes.
-			return rebuildFromData();
+			return null;
 		} catch (Throwable e) {
 			Errlog.error("Rebuild", e);
 			return null;
