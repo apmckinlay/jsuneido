@@ -71,11 +71,14 @@ public class ClientServerTest {
 		result = dbmsClient.exec(SuContainer.of("Object", 123));
 		assertThat(result, equalTo(SuContainer.of(123)));
 
+		String tables_header = "Header{" +
+				"flds=[[table, tablename, nrows, totalsize]], " +
+				"cols=[table, tablename, nrows, totalsize]}";
+
 		// GET1
 		hr = dbmsClient.get(Dir.NEXT, "tables", false);
-		assertThat(hr.header.toString(),
-				equalTo("Header{flds=[[table, tablename]], cols=[table, tablename]}"));
-		assertThat(hr.row.toString(), startsWith("[1,\"tables\"]"));
+		assertThat(hr.header.toString(), equalTo(tables_header));
+		assertThat(hr.row.toString(), startsWith("[1,\"tables\""));
 
 		// GET1 eof
 		hr = dbmsClient.get(Dir.NEXT, "tables where table = 999", false);
@@ -84,30 +87,27 @@ public class ClientServerTest {
 		// GET1 with transaction, READCOUNT
 		t = dbmsClient.transaction(true);
 		hr = t.get(Dir.NEXT, "tables where tablename = 'tmp'", true);
-		assertThat(hr.header.toString(),
-				equalTo("Header{flds=[[table, tablename]], cols=[table, tablename]}"));
-		assertThat(hr.row.toString(), startsWith("[5,\"tmp\"]"));
+		assertThat(hr.header.toString(), equalTo(tables_header));
+		assertThat(hr.row.toString(), startsWith("[5,\"tmp\""));
 		assertThat(t.readCount(), equalTo(1));
 		t.abort();
 
 		// GET, HEADER, QUERY
 		t = dbmsClient.transaction(false);
 		q = t.query("tables");
-		assertThat(q.header().toString(),
-				equalTo("Header{flds=[[table, tablename]], cols=[table, tablename]}"));
-		assertThat(q.get(Dir.PREV).toString(), startsWith("[5,\"tmp\"]"));
+		assertThat(q.header().toString(), equalTo(tables_header));
+		assertThat(q.get(Dir.PREV).toString(), startsWith("[5,\"tmp\""));
 		t.abort();
 
 		// GET, REWIND
 		q = dbmsClient.cursor("tables");
-		assertThat(q.header().toString(),
-				equalTo("Header{flds=[[table, tablename]], cols=[table, tablename]}"));
+		assertThat(q.header().toString(), equalTo(tables_header));
 		t = dbmsClient.transaction(false);
 		q.setTransaction(t);
-		assertThat(q.get(Dir.NEXT).toString(), startsWith("[1,\"tables\"]"));
+		assertThat(q.get(Dir.NEXT).toString(), startsWith("[1,\"tables\""));
 		q.rewind();
 		q.setTransaction(t);
-		assertThat(q.get(Dir.NEXT).toString(), startsWith("[1,\"tables\"]"));
+		assertThat(q.get(Dir.NEXT).toString(), startsWith("[1,\"tables\""));
 		t.abort();
 
 		// KEYS

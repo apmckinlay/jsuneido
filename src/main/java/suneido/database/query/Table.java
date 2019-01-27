@@ -45,7 +45,9 @@ public class Table extends Query {
 		table = tablename;
 		tbl = tran.ck_getTable(table);
 		singleton = tbl.singleton();
-		impl = table.equals("indexes") ? new IndexesImpl() : new Impl();
+		impl = table.equals("indexes") ? new IndexesImpl()
+				: table.equals("tables") ? new TablesImpl()
+				: new Impl();
 	}
 
 	@Override
@@ -275,7 +277,9 @@ public class Table extends Query {
 
 	@Override
 	boolean singleDbTable() {
-		return true;
+		// tables and indexes have generated records with calculated fields
+		// so they don't have the address required by TempIndex for single
+		return !table.equals("tables") && !table.equals("indexes");
 	}
 
 	@Override
@@ -327,6 +331,40 @@ public class Table extends Query {
 			return rec;
 		}
 
+	}
+
+	/** adds derived "totalsize" and "nrows" */
+	private class TablesImpl extends Impl {
+
+		@Override
+		List<String> fields() {
+			return add_columns(super.fields());
+		}
+
+		@Override
+		List<String> columns() {
+			return add_columns(super.columns());
+		}
+
+		private List<String> add_columns(List<String> list) {
+			ImmutableList.Builder<String> b = ImmutableList.builder();
+			b.addAll(list);
+			b.add("nrows");
+			b.add("totalsize");
+			return b.build();
+		}
+
+		@Override
+		Record process(Record rec) {
+			RecordBuilder rb = new RecordBuilder();
+			rb.addAll(rec);
+			for (int i = rec.size(); i < 2; ++i)
+				rb.add("");
+			var tblnum = rec.getInt(0);
+			rb.add(tran.tableCount(tblnum));
+			rb.add(tran.tableSize(tblnum));
+			return rb.build();
+		}
 	}
 
 	/** adds derived "columns" i.e. "fields" converted from numbers to names */
