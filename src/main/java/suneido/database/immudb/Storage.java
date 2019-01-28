@@ -12,7 +12,7 @@ import com.google.common.primitives.UnsignedInts;
 
 // TODO eliminate +1 on addresses
 // since reserving the first unit of storage prevents a zero address
-// BUT this will change the database i.e. mean a version increment
+// BUT this will change the database i.e. require a version increment
 
 /**
  * Chunked storage access. Abstract base class for MemStorage and MmapFile.
@@ -31,7 +31,7 @@ import com.google.common.primitives.UnsignedInts;
  * <li>blocks should not start with (long) 0 since that is used to detect padding
  * </ul>
  * WARNING: Operations are <b>not</b> synchronized.
- * In particular, access to chunks is <b>not</b> thread safe.
+ * In particular, access to the chunks array is <b>not</b> thread safe.
  * Thread safety and visibility must be ensured externally.
  * <ul>
  * <li>For visibility, readers must acquire a lock when starting
