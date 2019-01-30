@@ -42,6 +42,7 @@ public class PtrBtree {
 		}
 	}
 
+	//--------------------------------------------------------------------------
 	private static abstract class Node {
 		ArrayList<String> items = new ArrayList<>();
 
@@ -58,6 +59,7 @@ public class PtrBtree {
 		abstract StringBuilder toString(StringBuilder sb, String indent);
 	}
 
+	//--------------------------------------------------------------------------
 	private static class TreeNode extends Node {
 		ArrayList<Node> nodes = new ArrayList<>();
 
@@ -109,14 +111,20 @@ public class PtrBtree {
 		}
 	}
 
+	//--------------------------------------------------------------------------
 	private static class LeafNode extends Node {
+		ArrayList<String> buffer = new ArrayList<>();
+
 		@Override
 		Pivot put(String item) {
-			items.add(item);
-			Collections.sort(items); // should do binary search & insert
-			if (items.size() <= MAX_ITEMS)
+			buffer.add(item);
+			var n = items.size() + buffer.size();
+			if (n <= MAX_ITEMS)
 				return null;
 			// else split
+			items.addAll(buffer);
+			buffer.clear();
+			Collections.sort(items);
 			var newnode = new LeafNode();
 			var pivot = new Pivot(items.get(MID), newnode);
 			newnode.items.addAll(items.subList(MID+1, items.size()));
@@ -128,15 +136,19 @@ public class PtrBtree {
 			sb.append(indent);
 			for (var s : items)
 				sb.append(s).append(" ");
+			sb.append("| ");
+			for (var s : buffer)
+				sb.append(s).append(" ");
 			sb.append("\n");
 			return sb;
 		}
 		@Override
 		boolean has(String item) {
-			return items.contains(item);
+			return items.contains(item) || buffer.contains(item);
 		}
 	}
 
+	//--------------------------------------------------------------------------
 	public static void main(String[] args) {
 		PtrBtree t = new PtrBtree();
 
@@ -147,6 +159,7 @@ public class PtrBtree {
 			t.put(data[i]);
 			for (var j = 0; j < data.length; ++j)
 				assert t.has(data[j]) == (j <= i);
+//			System.out.println(t);
 		}
 		System.out.println(t);
 	}
@@ -252,6 +265,5 @@ public class PtrBtree {
 		"match",
 		"tasty",
 		"stick",
-		"plants"
 	};
 }
