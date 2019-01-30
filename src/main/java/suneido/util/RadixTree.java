@@ -119,6 +119,9 @@ public class RadixTree {
 		private boolean empty() {
 			if (value != null)
 				return false;
+			return noChildren();
+		}
+		private boolean noChildren() {
 			for (var i = 0; i < children.length; ++i)
 				if (children[i] != null)
 					return false;
@@ -137,27 +140,61 @@ public class RadixTree {
 		@Override
 		public String toString() {
 			var sb = new StringBuilder();
-			toString(sb, "", 0, this);
+			toString(sb, "", 0);
 			return sb.toString();
 		}
-		private static void toString(StringBuilder sb, String indent, int c, Node node) {
+		private void toString(StringBuilder sb, String indent, int c) {
 			sb.append(indent);
 			if (c == 0)
 				sb.append("node");
 			else
 				sb.append((char) c).append(":");
-			if (!node.prefix.isEmpty())
-				sb.append(" ").append(node.prefix);
-			if (node.value != null)
-				sb.append(" = ").append(node.value);
+			if (!prefix.isEmpty())
+				sb.append(" ").append(prefix);
+			if (value != null)
+				sb.append(" = ").append(value);
 			sb.append("\n");
 			indent += "    ";
-			for (var i = 0; i < node.children.length; ++i) {
-				if (node.children[i] != null)
-					toString(sb, indent, i, node.children[i]); // recurse
-			}
+			for (var i = 0; i < children.length; ++i)
+				if (children[i] != null)
+					children[i].toString(sb, indent, i); // recurse
 		}
 
+		private void gather(Stats stats, int depth) {
+			++stats.nodes;
+			if (noChildren())
+				++stats.leaves;
+			if (value != null) {
+				++stats.keys;
+				stats.totalDepth += depth;
+				if (depth > stats.maxDepth)
+					stats.maxDepth = depth;
+			}
+			++depth;
+			for (var i = 0; i < children.length; ++i)
+				if (children[i] != null)
+					children[i].gather(stats, depth); // recurse
+		}
+
+	}
+
+	private static class Stats {
+		int keys = 0;
+		int nodes = 0;
+		int leaves = 0;
+		int totalDepth = 0; // divide by keys to get average
+		int maxDepth = 0;
+
+		@Override
+		public String toString() {
+			return "keys " + keys + ", nodes " + nodes + ", leaves " + leaves +
+					", avgKeysPerNode " + Math.round((float) nodes / keys) +
+					", avgDepth " + Math.round((float) totalDepth / keys) +
+					", maxDepth " + maxDepth;
+		}
+	}
+	private void gather(Stats stats) {
+		root.gather(stats, 0);
 	}
 
 	public static void main(String[] args) {
@@ -175,6 +212,9 @@ public class RadixTree {
 			}
 		}
 		System.out.println(rt);
+		Stats stats = new Stats();
+		rt.gather(stats);
+		System.out.println(stats);
 		for (var i = 0; i < data.length; ++i) {
 			//System.out.println("DEL " + data[i]);
 			assert rt.del(data[i]).equals(i);
