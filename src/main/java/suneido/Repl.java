@@ -8,6 +8,8 @@ import java.io.*;
 
 import suneido.compiler.Compiler;
 import suneido.database.immudb.Dbpkg;
+import suneido.runtime.Concats;
+import suneido.runtime.Except;
 import suneido.runtime.Ops;
 import suneido.util.Errlog;
 
@@ -70,7 +72,11 @@ public class Repl {
 				Object result = Compiler.eval(code);
 				if (result != null) {
 					String type = Ops.typeName(result);
-					if (type.equals("String") || type.equals("Number") ||
+					if (result instanceof Concats)
+						type = " <Concat>";
+					else if (result instanceof Except)
+						type = " <Except>";
+					else if (type.equals("String") || type.equals("Number") ||
 							type.equals("Boolean") || type.equals("Date"))
 						type = "";
 					else

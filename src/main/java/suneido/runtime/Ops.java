@@ -194,9 +194,9 @@ public final class Ops {
 	}
 
 	private static Object cat3(Object x, Object y) {
-		if (x instanceof Concats)
-			return ((Concats) x).append(y);
-		Object result = cat2(coerceStr(x), coerceStr(y));
+		Object result = (x instanceof Concats)
+				? ((Concats) x).append(y)
+				: cat2(coerceStr(x), coerceStr(y));
 		if (x instanceof Except)
 			return Except.As(x, result);
 		if (y instanceof Except)
