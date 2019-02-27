@@ -233,6 +233,7 @@ public class Union extends Compatible {
 		}
 	}
 
+	// NOTE: doesn't actually do any lookups if disjoint
 	private Row getLookup(Dir dir) {
 		if (first)
 			first = false;
