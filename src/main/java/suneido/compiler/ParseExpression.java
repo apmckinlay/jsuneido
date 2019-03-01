@@ -88,6 +88,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 		T expr = bitorExpression();
 		Token op = token;
 		if (isIn()) {
+			matchSkipNewlines();
 			T exprs = null;
 			match(L_PAREN);
 			while (token != R_PAREN) {
@@ -106,7 +107,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	private boolean isIn() {
 		if (token == NOT && lookAhead() == IDENTIFIER && ahead.getKeyword() == IN)
 			match();
-		return matchIf(IN);
+		return lexer.getKeyword() == IN;
 	}
 
 	private T bitorExpression() {
