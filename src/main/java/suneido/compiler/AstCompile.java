@@ -200,7 +200,6 @@ public class AstCompile {
 			// by this.closure(...) did detect a closure.
 			SuCompiledCallable f = function(null, ast, CallableType.BLOCK);
 			cg.constant(f);
-			cg.addBlockReturnCatcher();
 		} else {
 			assert Token.CLOSURE == ast.third().token;
 			// Third will be Token.CLOSURE where a previous call to
@@ -216,6 +215,7 @@ public class AstCompile {
 				useArgsArray = true;
 			cg.wrapBlockWithClosure(iBlockDef, nParams, useArgsArray);
 		}
+		cg.addBlockReturnCatcher();
 	}
 
 	private SuCompiledCallable closure(ClassGen cg, AstNode ast) {

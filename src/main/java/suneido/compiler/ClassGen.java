@@ -696,7 +696,6 @@ public class ClassGen {
 		mv.visitMethodInsn(INVOKESPECIAL, className, "<init>",
 				"(Ljava/lang/Object;Ljava/lang/Object;[Ljava/lang/Object;)V",
 				false);
-		addBlockReturnCatcher();
 	}
 
 	void addBlockReturnCatcher() {
