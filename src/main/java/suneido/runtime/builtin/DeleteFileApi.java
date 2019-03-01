@@ -10,10 +10,10 @@ import java.io.File;
 
 import suneido.runtime.Params;
 
-public class DeleteFile {
+public class DeleteFileApi {
 
 	@Params("filename")
-	public static Boolean DeleteFile(Object filename) {
+	public static Boolean DeleteFileApi(Object filename) {
 		return new File(toStr(filename)).delete();
 	}
 
