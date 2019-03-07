@@ -37,3 +37,4 @@ gradlew
 gradle/
 
 bin/
+.history/

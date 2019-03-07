@@ -45,7 +45,8 @@ public abstract class SequenceBase extends SuContainer {
 	}
 
 	private boolean override(String method) {
-		return method == "Instantiated?" || (! instantiated && ! duped);
+		return method == "Instantiated?" ||
+			(! instantiated && (! duped || infinite()));
 	}
 
 	// public so ProGuard won't strip it
@@ -83,6 +84,10 @@ public abstract class SequenceBase extends SuContainer {
 			if (sb.length() > 0)
 				sb.delete(sb.length() - sep.length(), sb.length());
 			return sb.toString();
+		}
+
+		public static Object InfiniteQ(Object self) {
+			return ((SequenceBase) self).infinite();
 		}
 
 	}
