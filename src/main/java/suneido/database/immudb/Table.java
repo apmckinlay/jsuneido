@@ -99,7 +99,10 @@ public class Table {
 	}
 
 	public boolean singleton() {
-		return indexes.first().colNums.length == 0;
+		for (var i : indexes)
+			if (i.colNums.length == 0)
+				return true;
+		return false;
 	}
 
 	public List<String> getColumns() {
