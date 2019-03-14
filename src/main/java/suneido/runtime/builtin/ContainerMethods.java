@@ -99,15 +99,6 @@ public final class ContainerMethods {
 		return new Sequence(toContainer(self).iterable(iterWhich(args), IterResult.ASSOC));
 	}
 
-	public static Object Base(Object self) {
-		return false;
-	}
-
-	@Params("value")
-	public static Boolean BaseQ(Object self, Object a) {
-		return false;
-	}
-
 	public static Object Copy(Object self) {
 		return new SuContainer(toContainer(self));
 	}
@@ -242,11 +233,6 @@ public final class ContainerMethods {
 			return new Sequence(ob.iterable(IterWhich.ALL, IterResult.KEY));
 		Args.massage(FunctionSpec.NO_PARAMS, args); // args must be named
 		return new Sequence(ob.iterable(iterWhich(args), IterResult.KEY));
-	}
-
-	@Params("string")
-	public static Object MethodQ(Object self, Object a) {
-		return false;
 	}
 
 	public static Object Size(Object self, Object... args) {
