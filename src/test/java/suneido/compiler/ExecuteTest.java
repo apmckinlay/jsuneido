@@ -504,6 +504,7 @@ public class ExecuteTest {
 		assert PortTests.runFile("execute.test");
 		assert PortTests.runFile("execute2.test");
 		assert PortTests.runFile("classimpl.test");
+		assert PortTests.runFile("strings.test");
 		assert PortTests.runFile("objects.test");
 		System.out.println("PASS");
 	}
