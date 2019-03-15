@@ -64,4 +64,21 @@ public class StringMethodsTest {
 		assertEquals(result, StringMethods.replace(s, pat, rep, n));
 	}
 
+	@Test
+	public void test_isGlobal() {
+		assert(StringMethods.isGlobal("F"));
+		assert(StringMethods.isGlobal("Foo"));
+		assert(StringMethods.isGlobal("Foo_123_Bar"));
+		assert(StringMethods.isGlobal("Foo!"));
+		assert(StringMethods.isGlobal("Foo?"));
+
+		assert(!StringMethods.isGlobal(""));
+		assert(!StringMethods.isGlobal("f"));
+		assert(!StringMethods.isGlobal("foo"));
+		assert(!StringMethods.isGlobal("_foo"));
+		assert(!StringMethods.isGlobal("Foo!bar"));
+		assert(!StringMethods.isGlobal("Foo?bar"));
+		assert(!StringMethods.isGlobal("Foo.bar"));
+	}
+
 }

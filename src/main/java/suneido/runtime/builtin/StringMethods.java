@@ -117,12 +117,16 @@ public class StringMethods extends BuiltinMethods {
 		return result;
 	}
 
-	static final Pattern globalRx = Pattern.compile("[A-Z][_a-zA-Z0-9][!?]?");
-
 	private static Object seval(String s) {
-		return globalRx.matcher(s).matches()
+		return isGlobal(s)
 				? Suneido.context.get(s)
 				: Compiler.eval(s);
+	}
+
+	static final Pattern globalRx = Pattern.compile("[A-Z][_a-zA-Z0-9]*[!?]?");
+
+	static boolean isGlobal(String s) {
+		return globalRx.matcher(s).matches();
 	}
 
 	@Params("pattern, part = false")
