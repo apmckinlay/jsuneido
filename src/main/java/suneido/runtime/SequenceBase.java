@@ -49,8 +49,7 @@ public abstract class SequenceBase extends SuContainer {
 			(! instantiated && (! duped || infinite()));
 	}
 
-	// public so ProGuard won't strip it
-	public static class Methods {
+	static class Methods {
 		public static Object Iter(Object self) {
 			return ((SequenceBase) self).iter();
 		}
