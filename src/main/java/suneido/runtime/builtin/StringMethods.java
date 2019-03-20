@@ -82,14 +82,14 @@ public class StringMethods extends BuiltinMethods {
 	}
 
 	@Params("c")
-	public static Object CountChar(Object self, Object a) {
+	public static Object Count(Object self, Object a) {
 		String s = toStr(self);
-		String sc = toStr(a);
-		if (sc.length() != 1)
-			throw new SuException("usage: string.CountChar(c)");
-		char c = sc.charAt(0);
+		String substr = toStr(a);
+
+		if (substr.length() == 0)
+			return 0;
 		int n = 0;
-		for (int i = 0; (i = s.indexOf(c, i)) != -1; ++i)
+		for (int i = 0; (i = s.indexOf(substr, i)) != -1; i += substr.length())
 			++n;
 		return n;
 	}
