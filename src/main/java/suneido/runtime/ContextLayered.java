@@ -8,6 +8,7 @@ import suneido.SuException;
 import suneido.TheDbms;
 import suneido.compiler.Compiler;
 import suneido.database.server.Dbms.LibGet;
+import suneido.util.ByteBuffers;
 
 /**
  * Old style context with a stack of layered libraries "in use"
@@ -40,7 +41,7 @@ public class ContextLayered extends Context {
 		for (LibGet libget : TheDbms.dbms().libget(name)) {
 			String src = getOverride(libget.library, name);
 			if (src == null)
-				src = (String) Pack.unpack(libget.text);
+				src = ByteBuffers.bufferToString(libget.text);
 			try {
 				result = Compiler.compile(libget.library, name, src, this);
 				// needed inside loop for overloading references

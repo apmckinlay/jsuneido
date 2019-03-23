@@ -4,6 +4,7 @@
 
 package suneido.database.server;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -16,6 +17,7 @@ import suneido.database.immudb.*;
 import suneido.database.query.CompileQuery;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Request;
+import suneido.runtime.Pack;
 import suneido.runtime.builtin.ServerEval;
 import suneido.util.Errlog;
 
@@ -111,8 +113,12 @@ public class DbmsLocal extends Dbms {
 				if (group_fld < 0 || text_fld < 0)
 					continue; // library is invalid, ignore it
 				Record rec = tran.lookup(table.num(), "name,group", key);
-				if (rec != null)
-					srcs.add(new LibGet(lib, rec.getRaw(text_fld)));
+				if (rec != null) {
+					ByteBuffer raw = rec.getRaw(text_fld);
+					byte c = raw.get();
+					assert c == Pack.Tag.STRING;
+					srcs.add(new LibGet(lib, raw));
+				}
 			}
 		} finally {
 			tran.complete();
