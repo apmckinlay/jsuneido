@@ -65,7 +65,7 @@ class CheckTable implements Callable<String> {
 		IndexIter iter = btree.iterator();
 		Record prevkey = null;
 		for (iter.next(); !iter.eof(); iter.next()) {
-			Record key = (Record) iter.curKey();
+			Record key = iter.curKey();
 			if (prevkey != null && isUnique(index, key) && key.equals(prevkey)) {
 				details += tableName + ": duplicate in " + index + " " + key + "\n";
 				return false;
