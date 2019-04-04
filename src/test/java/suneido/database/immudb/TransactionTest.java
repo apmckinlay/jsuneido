@@ -97,7 +97,7 @@ public class TransactionTest {
 		assertThat(t.tableSize(tblnum), equalTo(0L));
 		t.addRecord("tmp", rec(123, "foo"));
 		assertThat(t.tableCount(tblnum), equalTo(1));
-		assertThat(t.tableSize(tblnum), equalTo(15L));
+		assertThat(t.tableSize(tblnum), equalTo(13L));
 		assertNotNull(t.lookup(tblnum, new int[] { 0 }, rec(123)));
 		check(t, "tmp", rec(123, "foo"));
 		t = null;
@@ -108,7 +108,7 @@ public class TransactionTest {
 
 		ReadTransaction rt = db.readTransaction();
 		assertThat(rt.tableCount(tblnum), equalTo(1));
-		assertThat(rt.tableSize(tblnum), equalTo(15L));
+		assertThat(rt.tableSize(tblnum), equalTo(13L));
 		DataRecord r = rt.lookup(tblnum, new int[] { 0 }, rec(123));
 		assertThat(r, equalTo(rec(123, "foo")));
 		rt.complete();

@@ -14,17 +14,20 @@ import java.util.ArrayList;
 
 import org.junit.Test;
 
+import suneido.runtime.Pack.Tag;
 import suneido.util.Dnum;
 
 public class PackDnumTest {
 
 	@Test
-	public void test_coefBytes() {
-		ck("99", (byte) 99);
-		ck("9876", (byte) 98, (byte) 76);
-		ck("1111", (byte) 11, (byte) 11);
-		ck("1234560000654321", (byte) 12, (byte) 34, (byte) 56, (byte) 0,
-				(byte) 0, (byte) 65, (byte) 43, (byte) 21);
+	public void test_representation() {
+		ck("0", bytes(Tag.PLUS));
+		ck("inf", bytes(Tag.PLUS, 0xff, 0xff));
+		ck("-inf", bytes(Tag.MINUS, 0, 0));
+		ck("99", bytes(Tag.PLUS, 0x82, 99));
+		ck("9876", bytes(Tag.PLUS, 0x84, 98, 76));
+		ck("-1111", bytes(Tag.MINUS, 0x7b, ~11, ~11));
+		ck("1234560000654321", bytes(Tag.PLUS, 0x90, 12, 34, 56, 0, 0, 65, 43, 21));
 
 		long n = 11;
 		for (int i = 1; i < 8; ++i) {
@@ -32,15 +35,23 @@ public class PackDnumTest {
 			n = n * 100 + 11;
 		}
 	}
+	byte[] bytes(int... ints) {
+		var bytes = new byte[ints.length];
+		for (int i = 0; i < ints.length; i++)
+			bytes[i] = (byte) ints[i];
+		return bytes;
+	}
 	private static void ck(String s, byte... expected) {
-		assertThat(coefBytes(Dnum.parse(s).coef()), equalTo(expected.length));
-		byte[] bytes = new byte[8];
-		assertThat(coefBytes(Dnum.parse(s).coef(), bytes),
-				equalTo(expected.length));
-		for (int i = 0; i < expected.length; ++i)
-			assertThat(bytes[i], equalTo(expected[i]));
-		for (int i = expected.length; i < bytes.length; ++i)
-			assertThat(bytes[i], equalTo((byte) 0));
+		var dn = Dnum.parse(s);
+		int n = PackDnum.packSize(dn);
+		assert n < 20;
+		var buf = ByteBuffer.allocate(n);
+		PackDnum.pack(dn, buf);
+		buf.flip();
+
+		assertThat(buf.remaining(), equalTo(expected.length));
+		for (var b : expected)
+			assertThat(buf.get(), equalTo(b));
 	}
 
 	@Test
@@ -58,8 +69,8 @@ public class PackDnumTest {
 			PackDnum.pack(dn, buf);
 			buf.flip();
 			buf.get(); // tag
-			Dnum d2 = (Dnum) PackDnum.unpack(buf);
-			assertThat(d2, equalTo(dn));
+			var d2 = PackDnum.unpack(buf);
+			assert Ops.is(dn, d2) : "expected " + dn + " got " + d2;
 			buf.position(0);
 			packed.add(buf);
 			}

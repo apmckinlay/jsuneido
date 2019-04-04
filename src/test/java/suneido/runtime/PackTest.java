@@ -9,7 +9,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static suneido.compiler.Compiler.compile;
-import static suneido.runtime.Pack.*;
+import static suneido.runtime.Pack.pack;
+import static suneido.runtime.Pack.packLong;
+import static suneido.runtime.Pack.unpack;
 import static suneido.util.ByteBuffers.bufferUcompare;
 
 import java.nio.ByteBuffer;
@@ -66,14 +68,14 @@ public class PackTest {
 
 	@Test
 	public void pack_int_bug() {
-		assertEquals(4, packSizeLong(10000));
+		assertEquals(4, PackDnum.packSizeLong(1234));
 
-		ByteBuffer buf = packLong(10000);
+		ByteBuffer buf = packLong(1234);
 		assertEquals(4, buf.remaining());
 		assertEquals(0x03, buf.get(0));
-		assertEquals((byte) 0x82, buf.get(1));
-		assertEquals(0x00, buf.get(2));
-		assertEquals(0x01, buf.get(3));
+		assertEquals((byte) 0x84, buf.get(1));
+		assertEquals(12, buf.get(2));
+		assertEquals(34, buf.get(3));
 	}
 
 	@Test
@@ -90,11 +92,11 @@ public class PackTest {
 
 	@Test
 	public void pack_number_size() {
-		assertThat(packSizeLong(1000), equalTo(4));
-		assertThat(packSizeLong(10000), equalTo(4));
-		assertThat(packSizeLong(10001), equalTo(6));
-		assertThat(packSizeLong(Integer.MAX_VALUE), equalTo(8));
-		assertThat(packSize(Dnum.from(Integer.MAX_VALUE)), equalTo(8));
+		assertThat(PackDnum.packSizeLong(1234), equalTo(4));
+		assertThat(PackDnum.packSizeLong(12345), equalTo(5));
+		assertThat(PackDnum.packSizeLong(1234567), equalTo(6));
+		assertThat(PackDnum.packSizeLong(Integer.MAX_VALUE), equalTo(7));
+		assertThat(PackDnum.packSize(Dnum.from(Integer.MAX_VALUE)), equalTo(7));
 	}
 
 	@Test
@@ -132,7 +134,7 @@ public class PackTest {
 	void upl(long n) {
 		ByteBuffer buf = Pack.packLong(n);
 		assertThat(buf, equalTo(Pack.pack(Dnum.from(n))));
-		assertThat(Pack.unpackLong(buf), equalTo(n));
+		assertThat(PackDnum.unpackLong(buf), equalTo(n));
 	}
 
 	@Test

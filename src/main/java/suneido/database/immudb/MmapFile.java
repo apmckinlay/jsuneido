@@ -25,7 +25,7 @@ class MmapFile extends Storage {
 	static final int MMAP_CHUNK_SIZE = 64 * 1024 * 1024; // 64 mb
 	static final byte[] MAGIC = { 's', 'n', 'd', 'o' };
 	static final ByteBuffer magic = ByteBuffer.allocate(4).put(MAGIC);
-	static final int VERSION = 1;
+	static final int VERSION = 2;
 	private final File file;
 	private final FileChannel.MapMode mode;
 	private final RandomAccessFile fin;

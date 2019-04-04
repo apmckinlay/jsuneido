@@ -179,4 +179,49 @@ public class ByteBuffers {
 		return true;
 	}
 
+	// varint -------------------------------------------------------
+
+	/** put a varint zig zag encoded long to a ByteBuffer */
+	public static void putVarint(ByteBuffer buf, long n) {
+		n = (n << 1) ^ (n >> 63); // zig zag encoding
+		putUVarint(buf, n);
+	}
+
+	/** put an unsigned varint encoded long to a ByteBuffer */
+	public static void putUVarint(ByteBuffer buf, long n) {
+		while ((n & ~0x7FL) != 0) {
+			buf.put((byte) ((n & 0x7F) | 0x80));
+			n >>>= 7;
+		}
+		buf.put((byte) (n & 0x7F));
+	}
+
+	/** get a varint zig zag encoded long from a ByteBuffer */
+	public static long getVarint(ByteBuffer buf) {
+		long n = getUVarint(buf);
+		long tmp = (((n << 63) >> 63) ^ n) >> 1;
+		return tmp ^ (n & (1L << 63));
+	}
+
+	/** get an unsigned varint encoded long from a ByteBuffer */
+	public static long getUVarint(ByteBuffer buf) {
+		long n = 0L;
+		int i = 0;
+		byte b;
+		while (((b = buf.get()) & 0x80L) != 0) {
+			n |= (long) (b & 0x7F) << i;
+			i += 7;
+			assert i <= 63;
+		}
+		n |= ((long) b << i);
+		return n;
+	}
+
+	public static int varintSize(long n) {
+		if (n == 0)
+			return 1;
+		var bits = 64 - Long.numberOfLeadingZeros(n);
+		return (bits + 6) / 7;
+	}
+
 }

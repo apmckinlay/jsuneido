@@ -11,7 +11,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 import suneido.SuException;
 import suneido.database.immudb.Dbpkg;
@@ -67,7 +66,7 @@ class DumpReader {
 	private int getRecordSize() throws IOException {
 		byte[] buf = new byte[4];
 		verify(fin.read(buf) == buf.length);
-		int n = ByteBuffer.wrap(buf).order(ByteOrder.LITTLE_ENDIAN).getInt();
+		int n = ByteBuffer.wrap(buf).getInt();
 		return n;
 	}
 

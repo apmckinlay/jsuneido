@@ -8,6 +8,8 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static suneido.util.ByteBuffers.bufferToHex;
+import static suneido.util.ByteBuffers.stringToBuffer;
 
 import org.junit.Test;
 
@@ -15,11 +17,23 @@ public class RecordTest {
 
 	@Test
 	public void main() {
-		Record r = record("one", "two", "three");
+		var r = record("one", "two", "three");
 		assertEquals(3, r.size());
 		assertEquals("one", r.get(0));
 		assertEquals("two", r.get(1));
 		assertEquals("three", r.get(2));
+	}
+
+	@Test
+	public void representation() {
+		var rb = new RecordBuilder();
+		var r = rb.build();
+		assertEquals("00", bufferToHex(r.getBuffer()));
+
+		rb.add(stringToBuffer("one"));
+		r = rb.build();
+		assertEquals("40 01 07 04 6f 6e 65", bufferToHex(r.getBuffer()));
+
 	}
 
 	@Test
@@ -53,15 +67,15 @@ public class RecordTest {
 
 	@Test
 	public void length() {
-		assertThat(ArrayRecord.length(0, 0), equalTo(5));
-		assertThat(ArrayRecord.length(1, 1), equalTo(7));
-		assertThat(ArrayRecord.length(1, 200), equalTo(206));
-		assertThat(ArrayRecord.length(1, 248), equalTo(254));
+		assertThat(ArrayRecord.length(0, 0), equalTo(1));
+		assertThat(ArrayRecord.length(1, 1), equalTo(5));
+		assertThat(ArrayRecord.length(1, 200), equalTo(204));
+		assertThat(ArrayRecord.length(1, 251), equalTo(255));
 
-		assertThat(ArrayRecord.length(1, 250), equalTo(258));
-		assertThat(ArrayRecord.length(1, 300), equalTo(308));
+		assertThat(ArrayRecord.length(1, 252), equalTo(258));
+		assertThat(ArrayRecord.length(1, 300), equalTo(306));
 
-		assertThat(ArrayRecord.length(1, 0x10000), equalTo(0x1000c));
+		assertThat(ArrayRecord.length(1, 0x10000), equalTo(0x1000a));
 	}
 
 	@Test
@@ -84,7 +98,7 @@ public class RecordTest {
 		assertThat(rb.size(), equalTo(2));
 	}
 
-	public static Record record(Object... data) {
+	public static BufRecord record(Object... data) {
 		RecordBuilder rb = new RecordBuilder();
 		for (Object d : data)
 			if (d instanceof String)

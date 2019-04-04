@@ -43,4 +43,32 @@ public class ByteBuffersTest {
 		assertEquals(buf, buf2);
 	}
 
+	@Test
+	public void varint_test() {
+		vi(0);
+		vi(1);
+		vi(123);
+		vi(1234);
+		vi(12345678);
+		vi(1234567890);
+	}
+
+	private static void vi(long n) {
+		var buf = ByteBuffer.allocate(10);
+		ByteBuffers.putUVarint(buf, n);
+		buf.rewind();
+		var n2 = ByteBuffers.getUVarint(buf);
+		assertEquals(n2, n);
+		buf.rewind();
+		ByteBuffers.putVarint(buf, n);
+		buf.rewind();
+		n2 = ByteBuffers.getVarint(buf);
+		assertEquals(n2, n);
+		buf.rewind();
+		ByteBuffers.putVarint(buf, -n);
+		buf.rewind();
+		n2 = ByteBuffers.getVarint(buf);
+		assertEquals(n2, -n);
+	}
+
 }

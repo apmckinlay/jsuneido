@@ -6,11 +6,10 @@ package suneido.database.immudb;
 
 import java.nio.ByteBuffer;
 
-import suneido.util.Immutable;
-
 import com.google.common.base.MoreObjects;
 
 import suneido.util.ByteBuffers;
+import suneido.util.Immutable;
 
 /**
  * A record stored in a ByteBuffer in the same format as cSuneido.
@@ -21,8 +20,8 @@ import suneido.util.ByteBuffers;
  */
 @Immutable
 class BufRecord extends Record {
-	static class Mode { static final byte BYTE = 'c', SHORT = 's', INT = 'l'; }
-	static class Offset { static final int MODE = 0, NFIELDS = 2, BODY = 4; }
+	static class Mode { static final byte BYTE = 1, SHORT = 2, INT = 3; }
+	static class Offset { static final int BODY = 2; }
 	protected final ByteBuffer buf;
 	/** non-zero when the record is a key within a BtreeNode */
 	protected final int bufpos;
@@ -44,13 +43,15 @@ class BufRecord extends Record {
 	}
 
 	private int mode() {
-		return buf.get(bufpos + Offset.MODE);
+		return (buf.get(bufpos) & 0xff) >>> 6;
 	}
 
+	/** Number of fields */
 	@Override
 	public int size() {
-		int si = bufpos + Offset.NFIELDS;
-		return (buf.get(si) & 0xff) + ((buf.get(si + 1) & 0xff) << 8);
+		if (buf.get(bufpos) == 0)
+			return 0;
+		return buf.getShort(bufpos) & 0x3fff;
 	}
 
 	@Override
@@ -66,19 +67,17 @@ class BufRecord extends Record {
 	@Override
 	public int fieldOffset(int i) {
 		assert i >= -1;
-		// to match cSuneido use little endian (least significant first)
+		assert buf.get(bufpos) != 0;
 		switch (mode()) {
 		case Mode.BYTE:
-			return bufpos + (buf.get(bufpos + Offset.BODY + i + 1) & 0xff);
+			int bi = bufpos + Offset.BODY + i + 1;
+			return bufpos + (buf.get(bi) & 0xff);
 		case Mode.SHORT:
 			int si = bufpos + Offset.BODY + 2 * (i + 1);
-			return bufpos + ((buf.get(si) & 0xff) + ((buf.get(si + 1) & 0xff) << 8));
+			return bufpos + (buf.getShort(si) & 0xffff);
 		case Mode.INT:
 			int ii = bufpos + Offset.BODY + 4 * (i + 1);
-			return bufpos + ((buf.get(ii) & 0xff) |
-					((buf.get(ii + 1) & 0xff) << 8) |
-			 		((buf.get(ii + 2) & 0xff) << 16) |
-			 		((buf.get(ii + 3) & 0xff) << 24));
+			return bufpos + buf.getInt(ii);
 		default:
 			throw new Error("invalid record type: " + mode());
 		}
@@ -87,6 +86,8 @@ class BufRecord extends Record {
 	/** Number of bytes e.g. for storing */
 	@Override
 	public int packSize() {
+		if (buf.get(bufpos) == 0)
+			return 1;
 		return fieldOffset(-1) - bufpos;
 	}
 

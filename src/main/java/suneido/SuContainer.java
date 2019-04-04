@@ -5,6 +5,9 @@
 package suneido;
 
 import static suneido.runtime.Numbers.intOrMin;
+import static suneido.util.ByteBuffers.getUVarint;
+import static suneido.util.ByteBuffers.putUVarint;
+import static suneido.util.ByteBuffers.varintSize;
 import static suneido.util.Verify.verify;
 
 import java.nio.ByteBuffer;
@@ -499,16 +502,21 @@ public class SuContainer extends SuValue
 		if (size() == 0)
 			return ps;
 
-		ps += 4; // vec size
+		ps += varintSize(vec.size()); // vec size
 		for (Object x : vec)
-			ps += 4 /* value size */+ Pack.packSize(x, nest);
+			ps += packSizeValue(x, nest);
 
-		ps += 4; // map size
+		ps += varintSize(map.size());
 		for (Map.Entry<Object, Object> e : map.entrySet())
-			ps += 4 /* member size */ + Pack.packSize(e.getKey(), nest)
-					+ 4 /* value size */ + Pack.packSize(e.getValue(), nest);
+			ps += packSizeValue(e.getKey(), nest) +
+					packSizeValue(e.getValue(), nest);
 
 		return ps;
+	}
+
+	private static int packSizeValue(Object x, int nest) {
+		var n = Pack.packSize(x, nest);
+		return varintSize(n) + n;
 	}
 
 	static final int NESTING_LIMIT = 20;
@@ -528,11 +536,11 @@ public class SuContainer extends SuValue
 		buf.put(tag);
 		if (size() == 0)
 			return;
-		buf.putInt(vec.size() ^ 0x80000000);
+		putUVarint(buf, vec.size());
 		for (Object x : vec)
 			packvalue(buf, x);
 
-		buf.putInt(map.size() ^ 0x80000000);
+		putUVarint(buf, map.size());
 		for (Map.Entry<Object, Object> e : map.entrySet()) {
 			packvalue(buf, e.getKey()); // member
 			packvalue(buf, e.getValue()); // value
@@ -540,7 +548,7 @@ public class SuContainer extends SuValue
 	}
 
 	private static void packvalue(ByteBuffer buf, Object x) {
-		buf.putInt(Pack.packSize(x) ^ 0x80000000);
+		putUVarint(buf, Pack.packSize(x));
 		Pack.pack(x, buf);
 	}
 
@@ -551,10 +559,10 @@ public class SuContainer extends SuValue
 	public static Object unpack(ByteBuffer buf, SuContainer c) {
 		if (buf.remaining() == 0)
 			return c;
-		int n = buf.getInt() ^ 0x80000000; // vec size
+		int n = (int) getUVarint(buf); // vec size
 		for (int i = 0; i < n; ++i)
 			c.vec.add(unpackvalue(buf));
-		n = buf.getInt() ^ 0x80000000; // map size
+		n = (int) getUVarint(buf); // map size
 		for (int i = 0; i < n; ++i) {
 			Object key = unpackvalue(buf);
 			Object val = unpackvalue(buf);
@@ -565,7 +573,7 @@ public class SuContainer extends SuValue
 	}
 
 	private static Object unpackvalue(ByteBuffer buf) {
-		int n = buf.getInt() ^ 0x80000000;
+		int n = (int) getUVarint(buf);
 		ByteBuffer buf2 = buf.slice();
 		buf2.limit(n);
 		buf.position(buf.position() + n);

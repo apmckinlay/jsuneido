@@ -12,6 +12,7 @@ import java.util.Iterator;
 import suneido.runtime.Ops;
 import suneido.runtime.Pack;
 import suneido.runtime.Pack.Tag;
+import suneido.runtime.PackDnum;
 import suneido.util.ByteBuffers;
 import suneido.util.CommaStringBuilder;
 
@@ -151,7 +152,7 @@ public abstract class Record
 		int off = fieldOffset(i);
 		b.position(off);
 		b.limit(off + fieldLength(i));
-		return Pack.unpackLong(b);
+		return PackDnum.unpackLong(b);
 		//PERF change unpackLong to take buf,i,n and not mutate to eliminate duplicate
 	}
 

@@ -32,7 +32,7 @@ public class StoredRecordIteratorTest {
 
 	private int record(int len) {
 		DataRecord r = new RecordBuilder()
-			.add(Strings.repeat("x", len - 7))
+			.add(Strings.repeat("x", len - 5))
 			.build();
 		assertThat(r.bufSize(), is(len));
 		r.tblnum(512);

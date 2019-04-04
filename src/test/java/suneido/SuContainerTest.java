@@ -12,14 +12,11 @@ import static org.junit.Assert.assertTrue;
 import static suneido.runtime.Pack.pack;
 import static suneido.runtime.Pack.unpack;
 
-import java.nio.ByteBuffer;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import suneido.runtime.Ops;
-import suneido.util.ByteBuffers;
 import suneido.util.Dnum;
 
 public class SuContainerTest {
@@ -180,15 +177,6 @@ public class SuContainerTest {
 		c.add(nested);
 		c.put(999, nested);
 		assertEquals(c, unpack(pack(c)));
-
-		SuContainer list = new SuContainer();
-		list.add("nextfield");
-		list.add("nrows");
-		list.add("table");
-		list.add("tablename");
-		list.add("totalsize");
-		ByteBuffer buf = pack(list);
-		assertEquals("06800000058000000a046e6578746669656c6480000006046e726f777380000006047461626c658000000a047461626c656e616d658000000a04746f74616c73697a6580000000", ByteBuffers.bufferToHex(buf).replace(" ", ""));
 	}
 
 	@Test(expected = SuException.class)

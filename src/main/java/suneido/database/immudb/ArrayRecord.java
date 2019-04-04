@@ -5,7 +5,6 @@
 package suneido.database.immudb;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 
 import gnu.trove.list.array.TIntArrayList;
@@ -73,6 +72,9 @@ class ArrayRecord extends Record {
 
 	// convert to BufRecord ----------------------------------------------------
 
+	static final int HDRLEN = 2;
+	static final int MAXFIELDS = 0x3fff;
+
 	BufRecord bufRecord() {
 		if (bufrec == null)
 			bufrec = new BufRecord(pack());
@@ -82,7 +84,8 @@ class ArrayRecord extends Record {
 	private ByteBuffer pack() {
 		int length = packSize();
 		ByteBuffer buf = ByteBuffer.allocate(length);
-		pack(buf, length);
+		if (length > 1)
+			pack(buf, length);
 		return buf;
 	}
 
@@ -96,16 +99,18 @@ class ArrayRecord extends Record {
 	}
 
 	static int length(int nfields, int datasize) {
+		if (nfields == 0)
+			return 1;
 		// Mode.BYTE
-		int length = 4 + (1 + nfields) + datasize;
+		int length = HDRLEN + (1 + nfields) + datasize;
 		if (length < 0x100)
 			return length;
 		// Mode.SHORT
-		length = 4 + 2 * (1 + nfields) + datasize;
+		length = HDRLEN + 2 * (1 + nfields) + datasize;
 		if (length < 0x10000)
 			return length;
 		// Mode.INT
-		return 4 + 4 * (1 + nfields) + datasize;
+		return HDRLEN + 4 * (1 + nfields) + datasize;
 	}
 
 	private void pack(ByteBuffer dst, int length) {
@@ -116,15 +121,15 @@ class ArrayRecord extends Record {
 	}
 
 	static void packHeader(ByteBuffer dst, int length, TIntArrayList lens) {
-		dst.order(ByteOrder.LITTLE_ENDIAN); // to match cSuneido format
-		byte mode = mode(length);
-		dst.put(mode);
-		dst.put((byte) 0);
 		int nfields = lens.size();
-		assert 0 <= nfields && nfields <= Short.MAX_VALUE;
-		dst.putShort((short) nfields);
-		packOffsets(dst, length, lens, mode);
-		dst.order(ByteOrder.BIG_ENDIAN);
+		if (nfields == 0)
+			dst.put((byte) 0);
+		else {
+			assert 0 <= nfields && nfields <= MAXFIELDS;
+			byte mode = mode(length);
+			dst.putShort((short) ((mode << 14) | nfields));
+			packOffsets(dst, length, lens, mode);
+		}
 	}
 	private static byte mode(int length) {
 		if (length < 0x100)

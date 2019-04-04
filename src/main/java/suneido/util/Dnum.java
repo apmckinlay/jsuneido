@@ -42,7 +42,7 @@ public class Dnum extends Number implements Comparable<Dnum> {
 	public final static Dnum Inf = new Dnum(POS_INF, 1, 0);
 	public final static Dnum MinusInf = new Dnum(NEG_INF, 1, 0);
 
-	private final static long pow10[] = {
+	public final static long pow10[] = {
 			1L,
 			10L,
 			100L,
@@ -129,7 +129,7 @@ public class Dnum extends Number implements Comparable<Dnum> {
 		}
 
 	// the maximum we can safely shift left (*10)
-	private static int maxShift(long x) {
+	public static int maxShift(long x) {
 		int i = ilog10(x);
 		return i > MAX_SHIFT ? 0 : MAX_SHIFT - i;
 		}
@@ -636,11 +636,35 @@ public class Dnum extends Number implements Comparable<Dnum> {
 		throw new RuntimeException("can't convert number to integer");
 	}
 
+	/** returns Long.MIN_VALUE if not representable as long */
+	public static long longOrMin(byte sign, long coef, byte exp) {
+		if (sign == ZERO)
+			return 0;
+		if (sign != NEG_INF && sign != POS_INF) {
+			if (0 < exp && exp < MAX_DIGITS &&
+					(coef % pow10[MAX_DIGITS - exp]) == 0)
+				return sign * (coef / pow10[MAX_DIGITS - exp]); // usual case
+			if (exp == MAX_DIGITS)
+				return sign * coef;
+			if (exp == MAX_DIGITS + 1)
+				return sign * (coef * 10);
+			if (exp == MAX_DIGITS + 2)
+				return sign * (coef * 100);
+			if (exp == MAX_DIGITS + 3 && coef < Long.MAX_VALUE / 1000)
+				return sign * (coef * 1000);
+		}
+		return Long.MIN_VALUE;
+	}
+
 	/** @return integer value if in range, else Integer.MIN_VALUE
 	 * This is a workaround for Java not being able to (efficiently)
 	 * return multiple values.
 	 * The drawback is that you can't handle the full int range. */
 	public int intOrMin() {
+		return intOrMin(sign, coef, exp);
+	}
+
+	public static int intOrMin(byte sign, long coef, byte exp) {
 		if (sign == ZERO)
 			return 0;
 		if (sign != NEG_INF && sign != POS_INF &&

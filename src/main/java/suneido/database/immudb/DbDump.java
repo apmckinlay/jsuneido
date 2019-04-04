@@ -8,7 +8,6 @@ import static suneido.util.ByteBuffers.stringToBuffer;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.channels.WritableByteChannel;
 import java.util.List;
 
@@ -50,7 +49,7 @@ class DbDump {
 	}
 
 	private static void writeFileHeader(WritableByteChannel out) throws IOException {
-		write(out, "Suneido dump 1.0\n");
+		write(out, "Suneido dump 2\n");
 	}
 
 	private static int dump1(WritableByteChannel out, ReadTransaction t, String tablename,
@@ -71,7 +70,7 @@ class DbDump {
 
 	private static int writeTableData(WritableByteChannel out, ReadTransaction t,
 			String tablename) throws IOException {
-		ByteBuffer buf = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
+		ByteBuffer buf = ByteBuffer.allocate(4);
 		Table table = t.getTable(tablename);
 		List<String> fields = table.getFields();
 		boolean squeeze = needToSqueeze(t, table.num, fields);

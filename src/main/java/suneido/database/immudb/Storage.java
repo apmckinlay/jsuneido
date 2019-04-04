@@ -5,7 +5,6 @@
 package suneido.database.immudb;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.Arrays;
 
 import com.google.common.primitives.UnsignedInts;
@@ -84,7 +83,7 @@ abstract class Storage implements AutoCloseable {
 		if (chunk >= chunks.length)
 			growChunks(chunk);
 		if (chunks[chunk] == null)
-			chunks[chunk] = get(chunk).order(ByteOrder.BIG_ENDIAN); // map
+			chunks[chunk] = get(chunk); // map
 		long offset = storSize;
 		storSize += n;
 		return offsetToAdr(offset);

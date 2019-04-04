@@ -11,7 +11,6 @@ import static suneido.util.Verify.verify;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.channels.ReadableByteChannel;
 
 import suneido.database.query.Request;
@@ -53,6 +52,8 @@ class DbLoad {
 		String s = getline(in);
 		if (s == null || ! s.startsWith("Suneido dump"))
 			throw new RuntimeException("not a valid dump file");
+		if (! s.startsWith("Suneido dump 2"))
+			throw new RuntimeException("wrong dump file version");
 	}
 
 	private static String readTableHeader(ReadableByteChannel in)
@@ -77,8 +78,8 @@ class DbLoad {
 			throws IOException {
 		print(tablename);
 		int nrecs = 0;
-		ByteBuffer intbuf = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN);
-		ByteBuffer recbuf = ByteBuffer.allocate(4096).order(ByteOrder.LITTLE_ENDIAN);
+		ByteBuffer intbuf = ByteBuffer.allocate(4);
+		ByteBuffer recbuf = ByteBuffer.allocate(500_000);
 		BulkTransaction t = db.bulkTransaction();
 		try {
 			Table table = t.getTable(tablename);
@@ -90,9 +91,6 @@ class DbLoad {
 				int n = readInt(in, intbuf);
 				if (n == 0)
 					break;
-				if (n > recbuf.capacity())
-					recbuf = ByteBuffer.allocate(Math.max(n, 2 * recbuf.capacity()))
-							.order(ByteOrder.LITTLE_ENDIAN);
 				last = load_data_record(in, table.num, t, recbuf, n);
 				if (first == 0)
 					first = last;
@@ -144,16 +142,16 @@ class DbLoad {
 		//System.out.print(s);
 	}
 
-//	public static void main(String[] args) throws IOException  {
-//		String dbfilename = "suneido.db";
-//		Stopwatch sw = Stopwatch.createStarted();
-//		Database db = DatabasePackage.dbpkg.create(dbfilename);
-//		try (FileInputStream fis = new FileInputStream("database.su")) {
-//			loadDatabase(db, fis.getChannel());
-//		}
-//		db.close();
-//		System.out.println("Loaded in " + sw);
-//		DbTools.checkPrint(DatabasePackage.dbpkg, dbfilename);
-//	}
+	// public static void main(String[] args) throws IOException  {
+	// 	String dbfilename = "suneido.db";
+	// 	Stopwatch sw = Stopwatch.createStarted();
+	// 	Database db = Dbpkg.create(dbfilename);
+	// 	try (FileInputStream fis = new FileInputStream("database.su")) {
+	// 		loadDatabase(db, fis.getChannel());
+	// 	}
+	// 	db.close();
+	// 	System.out.println("Loaded in " + sw);
+	// 	DbTools.checkPrint(dbfilename);
+	// }
 
 }
