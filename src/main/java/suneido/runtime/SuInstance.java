@@ -17,17 +17,9 @@ import suneido.runtime.builtin.ContainerMethods;
 import suneido.util.PairStack;
 
 /**
- * <p>
  * An instance of a Suneido class. The class itself is represented by an
  * instance of {@link SuClass}.
- * </p>
- * <p>
- * NOTE: In cSuneido, there is no explicit {@code SuInstance} and class
- * instances are represented by {@code SuObject}s. See, <em>eg</em>
- * {@code SuObject::myclass}.
- * </p>
  */
-// FIXME: Deal with thread safety issues
 public class SuInstance extends SuValue {
 	final SuClass myclass;
 	private final Map<String, Object> ivars;

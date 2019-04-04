@@ -28,10 +28,9 @@ import suneido.util.PairStack;
 import suneido.util.Util;
 
 //TODO detect the same modification-during-iteration as cSuneido (see ObjectsTest)
-//TODO resolve concurrency issues flagged below
 
 /**
- * Suneido's single container type.
+ * Suneido's primary container type.
  * Combines an extendible array plus a hash map.
  */
 public class SuContainer extends SuValue
@@ -187,12 +186,7 @@ public class SuContainer extends SuValue
 	}
 
 	/**
-	 * Get method which attempts to avoid boxing of the key if the key is an
-	 * {@code int} value.
-	 * @param at Integer key
-	 * @return Result of the get operation
-	 * @author Victor Schappert
-	 * @since 20130717
+	 * Get method to avoid boxing int keys
 	 * @see #getDefault(int, Object)
 	 * @see #getIfPresent(int)
 	 */
@@ -214,13 +208,7 @@ public class SuContainer extends SuValue
 	}
 
 	/**
-	 * Get-with-default method which attempts to avoid boxing of the key if
-	 * the key is an {@code int} value.
-	 * @param at Integer key
-	 * @param defval Default value to insert if {@code at} not present
-	 * @return Result of the get operation
-	 * @author Victor Schappert
-	 * @since 20130717
+	 * Get-with-default method to avoid boxing int keys
 	 * @see #get(int)
 	 * @see #getIfPresent(int)
 	 */
@@ -243,12 +231,7 @@ public class SuContainer extends SuValue
 	}
 
 	/**
-	 * Get-if-present method which attempts to avoid boxing of the key if the
-	 * key is an {@code int} value.
-	 * @param at Integer key
-	 * @return Result of the get operation
-	 * @author Victor Schappert
-	 * @since 20130717
+	 * Get-if-present method to avoid boxing int keys
 	 * @see #get(int)
 	 * @see #getDefault(int, Object)
 	 */
