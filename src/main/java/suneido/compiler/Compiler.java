@@ -10,6 +10,7 @@ import suneido.SuContainer;
 import suneido.Suneido;
 import suneido.runtime.ContextLayered;
 import suneido.runtime.Ops;
+import suneido.util.Dnum;
 import suneido.util.ThreadSafe;
 
 /**
@@ -66,6 +67,10 @@ public class Compiler {
 	private static Object compile(String library, String name, String src,
 			PrintWriter pw, ContextLayered context, SuContainer warnings,
 			boolean wantLineNumbers) {
+		if ("inf".equals(src))
+			return Dnum.Inf;
+		if ("-inf".equals(src))
+			return Dnum.MinusInf;
 		AstNode ast = parse(name, src);
 		if (pw != null)
 			pw.append(ast.toString() + "\n\n");
