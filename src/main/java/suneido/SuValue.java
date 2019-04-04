@@ -15,7 +15,7 @@ import suneido.runtime.SuClass;
 
 /**
  * Base class for Suneido data types.
- * e.g. {@link SuContainer}, {@link SuRecord}, {@link SuClass}
+ * e.g. {@link SuObject}, {@link SuRecord}, {@link SuClass}
  */
 public class SuValue implements Packable {
 
@@ -26,7 +26,7 @@ public class SuValue implements Packable {
 
 	/**
 	 * <p>Computes the contribution of a value to the hash code of a container
-	 * which it belongs to. Overridden by {@link SuContainer}</p>
+	 * which it belongs to. Overridden by {@link SuObject}</p>
 	 * <p>The {@link #hashCode()} contract applies equally to this method. In
 	 * particular, for any two SuValue objects {@code A} and {@code B} such that
 	 * {@code A.equals(B)}, {@code A.hashCodeContrib()} must be equal to
@@ -133,7 +133,7 @@ public class SuValue implements Packable {
 		throw new SuException("can't pack " + typeName());
 	}
 
-	public SuContainer toContainer() {
+	public SuObject toContainer() {
 		return null;
 	}
 

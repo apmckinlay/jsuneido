@@ -33,13 +33,13 @@ import suneido.util.Util;
  * Suneido's primary container type.
  * Combines an extendible array plus a hash map.
  */
-public class SuContainer extends SuValue
-		implements Comparable<SuContainer>, Iterable<Object>, Showable {
+public class SuObject extends SuValue
+		implements Comparable<SuObject>, Iterable<Object>, Showable {
 	public final List<Object> vec;
 	private final Map<Object,Object> map;
 	protected Object defval = null;
 	private boolean readonly = false;
-	public final static SuContainer EMPTY = empty();
+	public final static SuObject EMPTY = empty();
 
 	@SuppressWarnings("serial")
 	private static class CanonicalMap extends HashMap<Object, Object> {
@@ -63,47 +63,47 @@ public class SuContainer extends SuValue
 		}
 	}
 
-	public SuContainer(int vecCapacity) {
+	public SuObject(int vecCapacity) {
 		vec = new ArrayList<>(vecCapacity);
 		map = new CanonicalMap();
 	}
 
-	public SuContainer() {
+	public SuObject() {
 		this(10);
 	}
 
 	/** create a new container and add the specified values */
-	public SuContainer(Iterable<?> c) {
+	public SuObject(Iterable<?> c) {
 		this(10);
 		addAll(c);
 	}
 
-	public SuContainer(SuContainer other) {
+	public SuObject(SuObject other) {
 		this(other.vecSize());
 		vec.addAll(other.vec);
 		map.putAll(other.map);
 		defval = other.defval;
 	}
 
-	private SuContainer(List<Object> vec) {
+	private SuObject(List<Object> vec) {
 		this(vec, new CanonicalMap());
 	}
 
-	private SuContainer(List<Object> vec, Map<Object,Object> map) {
+	private SuObject(List<Object> vec, Map<Object,Object> map) {
 		this.vec = vec;
 		this.map = map;
 	}
 
 	/** only used to initialize EMPTY */
-	private static SuContainer empty() {
-		SuContainer c =
-				new SuContainer(Collections.emptyList(), Collections.emptyMap());
+	private static SuObject empty() {
+		SuObject c =
+				new SuObject(Collections.emptyList(), Collections.emptyMap());
 		c.readonly = true;
 		return c;
 	}
 
-	public static SuContainer of(Object ...values) {
-		return new SuContainer(Lists.newArrayList(values));
+	public static SuObject of(Object ...values) {
+		return new SuObject(Lists.newArrayList(values));
 	}
 
 	public synchronized Object vecGet(int i) {
@@ -153,7 +153,7 @@ public class SuContainer extends SuValue
 			put(at, value);
 	}
 
-	public synchronized void merge(SuContainer c) {
+	public synchronized void merge(SuObject c) {
 		vec.addAll(c.vec);
 		map.putAll(c.map);
 		migrate();
@@ -198,8 +198,8 @@ public class SuContainer extends SuValue
 		Object x = getIfPresent(key);
 		if (x != null)
 			return x;
-		if (defval instanceof SuContainer) {
-			x = new SuContainer((SuContainer) defval);
+		if (defval instanceof SuObject) {
+			x = new SuObject((SuObject) defval);
 			if (! readonly)
 				put(key, x);
 			return x;
@@ -216,8 +216,8 @@ public class SuContainer extends SuValue
 		Object x = getIfPresent(at);
 		if (x != null)
 			return x;
-		if (defval instanceof SuContainer) {
-			x = new SuContainer((SuContainer) defval);
+		if (defval instanceof SuObject) {
+			x = new SuObject((SuObject) defval);
 			if (! readonly)
 				insert(at, x);
 			return x;
@@ -346,7 +346,7 @@ public class SuContainer extends SuValue
 	@Override
 	public synchronized int hashCodeContrib() {
 		return 31 * 31 * vec.size() + 31 * map.size()
-				+ SuContainer.class.hashCode();
+				+ SuObject.class.hashCode();
 	}
 
 	/**
@@ -375,8 +375,8 @@ public class SuContainer extends SuValue
 	}
 
 	// avoid infinite recursion from self-reference
-	private static boolean equals2(SuContainer x, Object value, PairStack stack) {
-		SuContainer y = Ops.toContainer(value);
+	private static boolean equals2(SuObject x, Object value, PairStack stack) {
+		SuObject y = Ops.toContainer(value);
 		if (y == null)
 			return false;
 		if (x.vec.size() != y.vec.size() || x.map.size() != y.map.size())
@@ -405,18 +405,18 @@ public class SuContainer extends SuValue
 			return true;
 		if (x instanceof SuInstance && y instanceof SuInstance)
 			return SuInstance.equals2((SuInstance) x, (SuInstance) y, stack);
-		SuContainer cx = Ops.toContainer(x);
+		SuObject cx = Ops.toContainer(x);
 		return (cx == null) ? Ops.is_(x, y) : equals2(cx, y, stack);
 	}
 
 	@Override
-	public synchronized int compareTo(SuContainer that) {
+	public synchronized int compareTo(SuObject that) {
 		if (this == that)
 			return 0;
 		return compare2(that, new PairStack());
 	}
 
-	private int compare2(SuContainer that, PairStack stack) {
+	private int compare2(SuObject that, PairStack stack) {
 		if (stack.contains(this, that))
 			return 0; // comparison is already in progress
 		stack.push(this, that);
@@ -430,10 +430,10 @@ public class SuContainer extends SuValue
 	private static int compare3(Object x, Object y, PairStack stack) {
 		if (x == y)
 			return 0;
-		SuContainer cx = Ops.toContainer(x);
+		SuObject cx = Ops.toContainer(x);
 		if (cx == null)
 			return Ops.cmp(x, y);
-		SuContainer cy = Ops.toContainer(y);
+		SuObject cy = Ops.toContainer(y);
 		return (cy == null) ? Ops.cmp(x, y) : cx.compare2(cy, stack);
 	}
 
@@ -536,10 +536,10 @@ public class SuContainer extends SuValue
 	}
 
 	public static Object unpack(ByteBuffer buf) {
-		return unpack(buf, new SuContainer());
+		return unpack(buf, new SuObject());
 	}
 
-	public static Object unpack(ByteBuffer buf, SuContainer c) {
+	public static Object unpack(ByteBuffer buf, SuObject c) {
 		if (buf.remaining() == 0)
 			return c;
 		int n = (int) getUVarint(buf); // vec size
@@ -563,17 +563,17 @@ public class SuContainer extends SuValue
 		return Pack.unpack(buf2);
 	}
 
-	public synchronized SuContainer setReadonly() {
+	public synchronized SuObject setReadonly() {
 		if (readonly)
 			return this;
 		readonly = true;
 		// recurse
 		for (Object x : vec)
-			if (x instanceof SuContainer)
-				((SuContainer) x).setReadonly();
+			if (x instanceof SuObject)
+				((SuObject) x).setReadonly();
 		for (Object x : map.values())
-			if (x instanceof SuContainer)
-				((SuContainer) x).setReadonly();
+			if (x instanceof SuObject)
+				((SuObject) x).setReadonly();
 		return this;
 	}
 
@@ -582,7 +582,7 @@ public class SuContainer extends SuValue
 	}
 
 	public synchronized Object slice(int i) {
-		SuContainer c = new SuContainer();
+		SuObject c = new SuObject();
 		c.vec.addAll(vec.subList(i, vec.size()));
 		c.map.putAll(map);
 		return c;
@@ -621,7 +621,7 @@ public class SuContainer extends SuValue
 
 		@Override
 		public Iterator<Object> iterator() {
-			return SuContainer.this.iterator(iterWhich, iterResult);
+			return SuObject.this.iterator(iterWhich, iterResult);
 		}
 	}
 
@@ -668,7 +668,7 @@ public class SuContainer extends SuValue
 			case ENTRY:
 				return value;
 			case ASSOC:
-				return SuContainer.of(key, value);
+				return SuObject.of(key, value);
 			default:
 				throw SuInternalError.unreachable();
 			}
@@ -766,7 +766,7 @@ public class SuContainer extends SuValue
 	}
 
 	@Override
-	public SuContainer toContainer() {
+	public SuObject toContainer() {
 		return this;
 	}
 
@@ -784,8 +784,8 @@ public class SuContainer extends SuValue
 		return ContainerMethods.lookup(method);
 	}
 
-	public synchronized SuContainer subList(int from, int to) {
-		return new SuContainer(new ArrayList<Object>(vec.subList(from, to)));
+	public synchronized SuObject subList(int from, int to) {
+		return new SuObject(new ArrayList<Object>(vec.subList(from, to)));
 	}
 
 }

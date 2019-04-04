@@ -104,9 +104,9 @@ public final class Ops {
 			xClass = String.class;
 		} else if (x instanceof SequenceBase) {
 			((SequenceBase) x).ck_instantiate();
-			xClass = SuContainer.class;
+			xClass = SuObject.class;
 		} else if (xClass == SuRecord.class)
-			xClass = SuContainer.class;
+			xClass = SuObject.class;
 
 		if (yClass == Integer.class) {
 			y = Dnum.from((int) y);
@@ -116,9 +116,9 @@ public final class Ops {
 			yClass = String.class;
 		} else if (y instanceof SequenceBase) {
 			((SequenceBase) y).ck_instantiate();
-			yClass = SuContainer.class;
+			yClass = SuObject.class;
 		} else if (yClass == SuRecord.class)
-			yClass = SuContainer.class;
+			yClass = SuObject.class;
 
 		if (xClass == yClass && x instanceof Comparable)
 			return ((Comparable<Object>) x).compareTo(y);
@@ -143,9 +143,9 @@ public final class Ops {
 		if (yClass == SuDate.class)
 			return +1;
 
-		if (xClass == SuContainer.class)
+		if (xClass == SuObject.class)
 			return -1;
-		if (yClass == SuContainer.class)
+		if (yClass == SuObject.class)
 			return +1;
 
 		return ComparisonChain.start()
@@ -396,7 +396,7 @@ public final class Ops {
 			return "\"" + s.replace("\"", "\\\"") + "\"";
 	}
 
-	public static SuContainer toContainer(Object x) {
+	public static SuObject toContainer(Object x) {
 		return x instanceof SuValue ? ((SuValue) x).toContainer() : null;
 	}
 

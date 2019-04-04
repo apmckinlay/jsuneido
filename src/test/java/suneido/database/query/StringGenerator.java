@@ -11,7 +11,7 @@ import static suneido.compiler.Token.SUB;
 
 import java.util.Map;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.compiler.Token;
 import suneido.runtime.Showable;
 
@@ -215,7 +215,7 @@ public class StringGenerator extends QueryGenerator<String> {
 	}
 
 	@Override
-	public String object(SuContainer members, int lineNumber) {
+	public String object(SuObject members, int lineNumber) {
 		return members.show();
 	}
 

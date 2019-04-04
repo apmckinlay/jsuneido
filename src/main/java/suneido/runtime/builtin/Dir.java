@@ -13,7 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.SuDate;
 import suneido.SuException;
 import suneido.runtime.Ops;
@@ -41,7 +41,7 @@ public class Dir {
 		if (glob.endsWith("*.*")) // *.* only matches if there is a literal '.'
 			glob = glob.substring(0, glob.length() - 2);
 		Path path = FileSystems.getDefault().getPath(dir); // Path.of for 11
-		SuContainer ob = (block == Boolean.FALSE) ? new SuContainer() : null;
+		SuObject ob = (block == Boolean.FALSE) ? new SuObject() : null;
 		try (var ds = Files.newDirectoryStream(path, glob)) {
 			for (var x : ds) {
 				File file = x.toFile();
@@ -58,7 +58,7 @@ public class Dir {
 		} catch (IOException e) {
 			if (! (e instanceof NoSuchFileException))
 				Errlog.info("Dir failed: " + e);
-			return ob == null ? null : new SuContainer();
+			return ob == null ? null : new SuObject();
 		}
 		return ob;
 	}
@@ -70,8 +70,8 @@ public class Dir {
 		return s;
 	}
 
-	private static SuContainer detailsOf(File f) {
-		SuContainer ob = new SuContainer();
+	private static SuObject detailsOf(File f) {
+		SuObject ob = new SuObject();
 		ob.put("name", nameOf(f));
 		ob.put("size", Dnum.from(f.length()));
 		ob.put("date", SuDate.fromTime(f.lastModified()));

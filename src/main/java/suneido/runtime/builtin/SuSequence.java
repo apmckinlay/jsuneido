@@ -6,7 +6,7 @@ package suneido.runtime.builtin;
 
 import java.util.Iterator;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.SuValue;
 import suneido.runtime.*;
 
@@ -37,7 +37,7 @@ public class SuSequence extends SequenceBase {
 	@Override
 	protected SuValue copy() {
 		Object iter = iter();
-		SuContainer c = new SuContainer();
+		SuObject c = new SuObject();
 		Object x;
 		while (iter != (x = Ops.invoke0(iter, "Next")))
 			c.add(x);

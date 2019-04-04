@@ -19,7 +19,7 @@ import java.nio.ByteBuffer;
 import org.junit.Test;
 
 import suneido.PortTests;
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.SuDate;
 import suneido.SuRecord;
 import suneido.util.Dnum;
@@ -40,7 +40,7 @@ public class PackTest {
 		test("");
 		test("abc");
 		test(SuDate.now());
-		test(new SuContainer());
+		test(new SuObject());
 		test(new SuRecord());
 		test(10000);
 		test(10001);

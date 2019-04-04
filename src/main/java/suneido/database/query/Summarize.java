@@ -15,7 +15,7 @@ import java.util.Set;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.SuException;
 import suneido.SuInternalError;
 import suneido.database.immudb.Record;
@@ -434,7 +434,7 @@ public class Summarize extends Query1 {
 
 		@Override
 		Object result() {
-			SuContainer list = new SuContainer();
+			SuObject list = new SuObject();
 			for (Object x : set)
 				list.add(x);
 			if (list.size() <= 3) // to ensure consistent order for tests

@@ -27,7 +27,7 @@ import suneido.util.NotThreadSafe;
 import suneido.util.Util;
 
 @NotThreadSafe
-public class SuRecord extends SuContainer {
+public class SuRecord extends SuObject {
 	private Header hdr;
 	private SuTransaction tran;
 	private int recadr;
@@ -311,7 +311,7 @@ public class SuRecord extends SuContainer {
 		return deps;
 	}
 
-	public synchronized void update(SuContainer ob) {
+	public synchronized void update(SuObject ob) {
 		ck_modify("Update");
 		Record newrec = ob.toDbRecord(hdr);
 		recadr = tran.getTransaction().update(recadr, newrec);

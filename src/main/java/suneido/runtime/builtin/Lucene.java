@@ -26,7 +26,7 @@ import org.apache.lucene.search.highlight.TextFragment;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.SuException;
 import suneido.SuValue;
 import suneido.runtime.BuiltinClass;
@@ -210,7 +210,7 @@ public class Lucene extends BuiltinClass {
 				String content = doc.get("content");
 				TokenStream tokenStream = analyzer.tokenStream("content", content);
 				TextFragment[] frag = highlighter.getBestTextFragments(tokenStream,	content, false, 4);
-				SuContainer fragments = new SuContainer();
+				SuObject fragments = new SuObject();
 
 				for (int j = 0; j < frag.length; j++) {
 					if ((frag[j] != null) && (frag[j].getScore() > 0)) {

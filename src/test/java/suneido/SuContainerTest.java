@@ -35,7 +35,7 @@ public class SuContainerTest {
 	public void canonical() {
 		Object[] a = { 100, Dnum.from(100), Dnum.parse("1e2") };
 		for (Object x : a) {
-			SuContainer c = new SuContainer();
+			SuObject c = new SuObject();
 			c.put(x, true);
 			for (Object y : a)
 				assert c.get(y) == Boolean.TRUE
@@ -44,12 +44,12 @@ public class SuContainerTest {
 		}
 
 		Dnum n = Dnum.parse("1.5");
-		assertThat(SuContainer.canonical(n), equalTo(n));
+		assertThat(SuObject.canonical(n), equalTo(n));
 	}
 
 	@Test
 	public void add_put() {
-		SuContainer c = new SuContainer();
+		SuObject c = new SuObject();
 
 		assertEquals(0, c.size());
 		assertEquals("#()", c.toString());
@@ -80,7 +80,7 @@ public class SuContainerTest {
 		assertEquals("#(12, 'ef', 'cd', ab: 34)", c.toString());
 	}
 
-	private static void equals(SuContainer c, Object... members) {
+	private static void equals(SuObject c, Object... members) {
 		assert members.length % 2 == 0 : "usage: pairs of key,value";
 		assertEquals(members.length / 2, c.size());
 		int i = 0;
@@ -92,8 +92,8 @@ public class SuContainerTest {
 
 	@Test
 	public void equals_hash() {
-		SuContainer one = new SuContainer();
-		SuContainer two = new SuContainer();
+		SuObject one = new SuObject();
+		SuObject two = new SuObject();
 		assertEquals(one, two);
 		assertEquals(two, one);
 		assertEquals(one.hashCode(), two.hashCode());
@@ -121,7 +121,7 @@ public class SuContainerTest {
 
 	@Test
 	public void delete() {
-		SuContainer c = new SuContainer();
+		SuObject c = new SuObject();
 		assertFalse(c.delete(0));
 		assertFalse(c.delete(""));
 		assert c.size() == 0;
@@ -136,7 +136,7 @@ public class SuContainerTest {
 
 	@Test
 	public void erase() {
-		SuContainer c = new SuContainer();
+		SuObject c = new SuObject();
 		assertFalse(c.erase(0));
 		assertFalse(c.erase(""));
 		assert c.size() == 0;
@@ -155,7 +155,7 @@ public class SuContainerTest {
 
 	@Test
 	public void test_pack() {
-		SuContainer c = new SuContainer();
+		SuObject c = new SuObject();
 		assertEquals(c, unpack(pack(c)));
 
 		c.add(1);
@@ -172,7 +172,7 @@ public class SuContainerTest {
 			c.put(i, i);
 		assertEquals(c, unpack(pack(c)));
 
-		SuContainer nested = new SuContainer();
+		SuObject nested = new SuObject();
 		nested.add(1);
 		c.add(nested);
 		c.put(999, nested);
@@ -181,23 +181,23 @@ public class SuContainerTest {
 
 	@Test(expected = SuException.class)
 	public void packNest() {
-		SuContainer c = new SuContainer();
+		SuObject c = new SuObject();
 		c.add(c);
 		c.packSize();
 	}
 
 	public void hashCodeNest() {
-		SuContainer c = new SuContainer();
+		SuObject c = new SuObject();
 		c.add(c);
 		c.hashCode();
-		c = new SuContainer();
+		c = new SuObject();
 		c.put(c, c);
 		c.hashCode();
 	}
 
 	@Test
 	public void escaping() {
-		SuContainer c = new SuContainer();
+		SuObject c = new SuObject();
 		String[] strings = new String[] { "plain", "single's", "double\"s", "back\\slash" };
 		for (String s : strings)
 			c.add(s);

@@ -7,7 +7,7 @@ package suneido.compiler;
 import java.util.ArrayList;
 import java.util.Map;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 
 public class AstGenerator extends Generator<AstNode> {
 	private static final AstNode NIL_STATEMENT = new AstNode(Token.NIL);
@@ -54,7 +54,7 @@ public class AstGenerator extends Generator<AstNode> {
 	}
 
 	@Override
-	public AstNode object(SuContainer ob, int lineNumber) {
+	public AstNode object(SuObject ob, int lineNumber) {
 		return AstNode.value(Token.OBJECT, ob);
 	}
 

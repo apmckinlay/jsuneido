@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.SuException;
 import suneido.SuValue;
 import suneido.Suneido;
@@ -270,7 +270,7 @@ public class SuClass extends SuValue implements Showable {
 
 	@Params("all=false")
 	public static Object Members(Object self, Object all) {
-		SuContainer c = new SuContainer();
+		SuObject c = new SuObject();
 		((SuClass) self).members2(c, all == Boolean.TRUE);
 		if (all == Boolean.TRUE) {
 			c.sort(false);
@@ -279,7 +279,7 @@ public class SuClass extends SuValue implements Showable {
 		return c;
 	}
 
-	public void members2(SuContainer c, boolean all) {
+	public void members2(SuObject c, boolean all) {
 		for (Map.Entry<String, Object> e : members.entrySet())
 			if (e.getValue() != null)
 				c.add(e.getKey());

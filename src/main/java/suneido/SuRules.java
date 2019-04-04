@@ -16,7 +16,7 @@ import suneido.util.Util;
 
 /**
  * Used by {@link SuRecordNew} to implements rules.
- * Layered on top of {@link SuContainer} and below {@link SuObservers}
+ * Layered on top of {@link SuObject} and below {@link SuObservers}
  * <p>
  * usedBy is for invalidation.
  * It is cumulative and may contain extra fields if the dependencies change.
@@ -32,7 +32,7 @@ import suneido.util.Util;
  * If none have changed, then the field is actually still valid
  * and we avoid running the rule.
  */
-public class SuRules extends SuContainer {
+public class SuRules extends SuObject {
 	/** usedBy is cumulative (never cleared) */
 	private final SetMultimap<Object, Object> usedBy;
 	/** dependencies is accurate for the last time the rule ran */
@@ -151,8 +151,8 @@ public class SuRules extends SuContainer {
 
 	private void addDependency(Object field, Object field2, Object value) {
 		usedBy.put(field2, field);
-		if (value instanceof SuContainer &&
-				! ((SuContainer) value).getReadonly())
+		if (value instanceof SuObject &&
+				! ((SuObject) value).getReadonly())
 			value = INCONSISTENT;
 		// add field2 to field dependencies (if not already there)
 		for (Dependency d : dependencies.get(field)) {

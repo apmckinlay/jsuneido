@@ -10,6 +10,6 @@ public class Locals {
 
 	@Params("offset")
 	public static Object Locals(Object a) {
-		return new suneido.SuContainer();
+		return new suneido.SuObject();
 	}
 }

@@ -6,7 +6,7 @@ package suneido.runtime;
 
 import java.nio.ByteBuffer;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.SuValue;
 
 /** Wraps an SuValue and delegates to it with synchronized methods */
@@ -74,7 +74,7 @@ public class ConcurrentValue extends SuValue {
 	}
 
 	@Override
-	synchronized public SuContainer toContainer() {
+	synchronized public SuObject toContainer() {
 		return value.toContainer();
 	}
 

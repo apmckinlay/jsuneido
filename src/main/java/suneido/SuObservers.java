@@ -18,7 +18,7 @@ import com.google.common.collect.Sets;
 /**
  * Used by {@link SuRecordNew} to implements observers.
  * Layered on top of {@link SuRules}
- * which is layered on top of {@link SuContainer}.
+ * which is layered on top of {@link SuObject}.
  */
 public class SuObservers extends SuRules {
 	private final List<Object> observers = Lists.newArrayList();

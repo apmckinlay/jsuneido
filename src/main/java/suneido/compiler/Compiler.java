@@ -6,7 +6,7 @@ package suneido.compiler;
 
 import java.io.PrintWriter;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.Suneido;
 import suneido.runtime.ContextLayered;
 import suneido.runtime.Ops;
@@ -51,7 +51,7 @@ public class Compiler {
 		return compile("", name, src, null, Suneido.context, null, true);
 	}
 
-	public static Object compile(String name, String src, SuContainer warnings) {
+	public static Object compile(String name, String src, SuObject warnings) {
 		return compile("", name, src, null, Suneido.context, warnings, true);
 	}
 
@@ -65,7 +65,7 @@ public class Compiler {
 	} // testing only
 
 	private static Object compile(String library, String name, String src,
-			PrintWriter pw, ContextLayered context, SuContainer warnings,
+			PrintWriter pw, ContextLayered context, SuObject warnings,
 			boolean wantLineNumbers) {
 		if ("inf".equals(src))
 			return Dnum.Inf;

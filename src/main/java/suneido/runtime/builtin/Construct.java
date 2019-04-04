@@ -5,7 +5,7 @@
 package suneido.runtime.builtin;
 
 import static suneido.util.Util.array;
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.SuException;
 import suneido.Suneido;
 import suneido.runtime.Args;
@@ -20,8 +20,8 @@ public class Construct {
 	public static Object Construct(Object what, Object s) {
 		String suffix = Ops.toStr(s);
 		Object[] newargs = noArgs;
-		if (what instanceof SuContainer) {
-			SuContainer c = Ops.toContainer(what);
+		if (what instanceof SuObject) {
+			SuObject c = Ops.toContainer(what);
 			what = c.get(0);
 			if (what == null)
 				throw new SuException("Construct: object requires member 0");

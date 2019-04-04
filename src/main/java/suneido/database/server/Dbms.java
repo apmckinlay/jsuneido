@@ -7,7 +7,7 @@ package suneido.database.server;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.SuDate;
 import suneido.database.query.Header;
 import suneido.database.query.Query.Dir;
@@ -37,7 +37,7 @@ public abstract class Dbms {
 	public abstract int load(String filename);
 	public abstract Object run(String s);
 	public abstract long size();
-	public abstract SuContainer connections();
+	public abstract SuObject connections();
 
 	public abstract int cursors();
 	public abstract String sessionid(String s);
@@ -46,9 +46,9 @@ public abstract class Dbms {
 	}
 	public abstract int finalSize();
 	public abstract void log(String s);
-	public abstract SuContainer info();
+	public abstract SuObject info();
 	public abstract int kill(String s);
-	public abstract Object exec(SuContainer c);
+	public abstract Object exec(SuObject c);
 
 	public static class HeaderAndRow {
 		public final Header header;

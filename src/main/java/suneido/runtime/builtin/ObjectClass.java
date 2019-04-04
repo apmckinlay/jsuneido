@@ -4,7 +4,7 @@
 
 package suneido.runtime.builtin;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.runtime.Args;
 import suneido.runtime.BuiltinClass;
 
@@ -21,7 +21,7 @@ public class ObjectClass extends BuiltinClass {
 
 	/** used by direct calls in generated code */
 	public static Object create(Object... args) {
-		return Args.collectArgs(new SuContainer(), args);
+		return Args.collectArgs(new SuObject(), args);
 	}
 
 }

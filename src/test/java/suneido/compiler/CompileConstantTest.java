@@ -9,7 +9,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.SuDate;
 import suneido.SuRecord;
 import suneido.runtime.SuCallBase;
@@ -34,12 +34,12 @@ public class CompileConstantTest {
 		assertEquals(SuDate.fromLiteral("20090310.1026"),
 				compile("#20090310.1026"));
 
-		SuContainer c = new SuContainer();
+		SuObject c = new SuObject();
 		c.add(12);
 		c.put("ab", "cd");
 		assertEquals(c, compile("#(12, ab: cd)"));
 
-		SuContainer cc = new SuContainer();
+		SuObject cc = new SuObject();
 		cc.add(0);
 		cc.add(c);
 		assertEquals(cc, compile("#(0, (12, ab: cd))"));
@@ -47,7 +47,7 @@ public class CompileConstantTest {
 		compile("#(function () { }, function () { })");
 		compile("#(a: (b: function () { }))");
 
-		assertEquals(new SuContainer(), compile("#()"));
+		assertEquals(new SuObject(), compile("#()"));
 		assertEquals(new SuRecord(), compile("#{}"));
 
 		assertTrue(compile("function () { }") instanceof SuCallBase);

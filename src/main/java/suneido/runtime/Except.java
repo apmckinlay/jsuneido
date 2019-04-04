@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 import com.google.common.collect.Lists;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.SuValue;
 
 /**
@@ -120,7 +120,7 @@ public final class Except extends String2 {
 		Throwable e = ((Except) self).throwable;
 		ArrayList<StackTraceElement> stack = Lists.newArrayList();
 		getStack(e, stack);
-		SuContainer calls = new SuContainer();
+		SuObject calls = new SuObject();
 		for (int i = stack.size() - 1; i >= 0; --i)
 			if (!stack.get(i).toString().contains(".java:"))
 				calls.add(callob(stack.get(i)));
@@ -140,10 +140,10 @@ public final class Except extends String2 {
 			dest.add(stackTrace[i]); // reverse order
 	}
 
-	private static SuContainer callob(StackTraceElement x) {
-		SuContainer call = new SuContainer();
+	private static SuObject callob(StackTraceElement x) {
+		SuObject call = new SuObject();
 		call.put("fn", x.toString());
-		call.put("locals", new SuContainer());
+		call.put("locals", new SuObject());
 		return call;
 	}
 	private static String translateMsgToSuneido(Throwable throwable) {

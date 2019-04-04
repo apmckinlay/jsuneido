@@ -6,11 +6,11 @@ package suneido.runtime;
 
 import java.nio.ByteBuffer;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.SuValue;
 
 public abstract class VirtualContainer extends SuValue {
-	abstract protected SuContainer value();
+	abstract protected SuObject value();
 
 	@Override
 	public boolean equals(Object other) {
@@ -43,7 +43,7 @@ public abstract class VirtualContainer extends SuValue {
 	}
 
 	@Override
-	public SuContainer toContainer() {
+	public SuObject toContainer() {
 		return value();
 	}
 	

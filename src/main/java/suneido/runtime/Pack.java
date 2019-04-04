@@ -94,7 +94,7 @@ public class Pack {
 	}
 
 	public static int packSize(Object x, int nest) {
-		return x instanceof SuContainer ? ((SuContainer) x).packSize(nest)
+		return x instanceof SuObject ? ((SuObject) x).packSize(nest)
 				: packSize(x);
 	}
 
@@ -114,7 +114,7 @@ public class Pack {
 		case Tag.STRING:
 			return unpackString(buf);
 		case Tag.OBJECT:
-			return SuContainer.unpack(buf);
+			return SuObject.unpack(buf);
 		case Tag.RECORD:
 			return SuRecord.unpack(buf);
 		case Tag.DATE:

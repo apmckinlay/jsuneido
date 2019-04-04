@@ -4,13 +4,13 @@
 
 package suneido.runtime.builtin;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.TheDbms;
 
 public class Libraries {
 
-	public static SuContainer Libraries() {
-		return new SuContainer(TheDbms.dbms().libraries());
+	public static SuObject Libraries() {
+		return new SuObject(TheDbms.dbms().libraries());
 	}
 
 }

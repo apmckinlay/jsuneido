@@ -14,7 +14,7 @@ import java.util.ArrayList;
 
 import org.junit.Test;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.SuRecord;
 import suneido.SuValue;
 import suneido.runtime.Args;
@@ -30,19 +30,19 @@ public class ArgsTest {
 		Object s = "hello";
 		String a = "a";
 		String x = "x";
-		SuContainer c = new SuContainer();
-		SuContainer ias = new SuContainer();
+		SuObject c = new SuObject();
+		SuObject ias = new SuObject();
 		ias.add(i);
 		ias.put(a, s);
-		SuContainer sxi = new SuContainer();
+		SuObject sxi = new SuObject();
 		sxi.add(s);
 		sxi.put(x, i);
-		SuContainer isasxi = new SuContainer();
+		SuObject isasxi = new SuObject();
 		isasxi.add(i);
 		isasxi.add(s);
 		isasxi.put(a, s);
 		isasxi.put(x, i);
-		SuContainer isax = new SuRecord();
+		SuObject isax = new SuRecord();
 		isax.add(i);
 		isax.add(s);
 		isax.add(a);

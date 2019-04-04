@@ -8,7 +8,7 @@ import java.lang.ref.SoftReference;
 import java.util.HashMap;
 import java.util.Map;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.compiler.AstNode;
 import suneido.compiler.Token;
 import suneido.runtime.Ops;
@@ -26,7 +26,7 @@ public class AstParse {
 
 	private static class AstWrapper extends VirtualContainer {
 		final AstNode node;
-		SoftReference<SuContainer> ob = new SoftReference<>(null);
+		SoftReference<SuObject> ob = new SoftReference<>(null);
 
 		public AstWrapper(AstNode node) {
 			this.node = node;
@@ -38,18 +38,18 @@ public class AstParse {
 		}
 
 		@Override
-		protected SuContainer value() {
-			SuContainer c = ob.get();
+		protected SuObject value() {
+			SuObject c = ob.get();
 			if (c == null) {
-				ob = new SoftReference<>(c = new SuContainer());
+				ob = new SoftReference<>(c = new SuObject());
 				c.put("Token", node.token.toString());
 				if (node.value != null)
 					c.put("Value", handleNested(node.value));
 				c.put("Line", node.lineNumber);
 				if (node.children == null)
-					c.put("Children", SuContainer.EMPTY);
+					c.put("Children", SuObject.EMPTY);
 				else {
-					SuContainer c2 = new SuContainer(node.children.size());
+					SuObject c2 = new SuObject(node.children.size());
 					int i = 0;
 					for (AstNode child : node.children)
 						if (child != null)
@@ -73,8 +73,8 @@ public class AstParse {
 		private static Object nested(Object value) {
 			if (value instanceof AstNode) {
 				return new AstWrapper((AstNode) value);
-			} else if (value instanceof SuContainer) {
-				var ob = (SuContainer) value;
+			} else if (value instanceof SuObject) {
+				var ob = (SuObject) value;
 				for (int i = 0; i < ob.vecSize(); ++i) {
 					var val = nested(ob.vecGet(i));
 					if (val != null)
@@ -89,7 +89,7 @@ public class AstParse {
 			} else if (value instanceof Map) { // class
 				@SuppressWarnings("unchecked")
 				var map = (HashMap<String,Object>) value;
-				var ob = new SuContainer();
+				var ob = new SuObject();
 				for (var e : map.entrySet())
 					ob.put(e.getKey(), handleNested(e.getValue()));
 				return ob;

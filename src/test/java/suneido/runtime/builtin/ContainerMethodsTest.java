@@ -14,7 +14,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.runtime.Ops;
 import suneido.runtime.builtin.ContainerMethods;
 
@@ -91,7 +91,7 @@ public class ContainerMethodsTest {
 	}
 
 	private static void testjoin(String result, String sep, Object... values) {
-		SuContainer c = new SuContainer(Arrays.asList(values));
+		SuObject c = new SuObject(Arrays.asList(values));
 		assertEquals(result, ContainerMethods.lookup("Join").eval1(c, sep));
 	}
 

@@ -10,7 +10,7 @@ import java.util.Deque;
 import suneido.util.Immutable;
 import suneido.util.ThreadSafe;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 
 /**
  * used to auto-register dependencies
@@ -20,7 +20,7 @@ public class RuleContext {
 	private static final ThreadLocal<Deque<Rule>> activeRules =
 			ThreadLocal.withInitial(ArrayDeque::new);
 
-	public static void push(SuContainer rec, Object member) {
+	public static void push(SuObject rec, Object member) {
 		activeRules.get().push(new Rule(rec, member));
 	}
 
@@ -28,17 +28,17 @@ public class RuleContext {
 		return activeRules.get().peek();
 	}
 
-	public static void pop(SuContainer rec, Object member) {
+	public static void pop(SuObject rec, Object member) {
 		Rule ar = activeRules.get().pop();
 		assert rec == ar.rec && member == ar.member;
 	}
 
 	@Immutable
 	public static class Rule {
-		public final SuContainer rec; // TODO should be SuRecord
+		public final SuObject rec; // TODO should be SuRecord
 		public final Object member;
 
-		public Rule(SuContainer rec, Object member) {
+		public Rule(SuObject rec, Object member) {
 			this.rec = rec;
 			this.member = member;
 		}

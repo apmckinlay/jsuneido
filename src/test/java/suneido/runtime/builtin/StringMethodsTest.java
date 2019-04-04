@@ -8,7 +8,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 
 public class StringMethodsTest {
 
@@ -23,7 +23,7 @@ public class StringMethodsTest {
 	}
 
 	private static void split(String s, String sep, String... list) {
-		SuContainer c = StringMethods.split(s, sep);
+		SuObject c = StringMethods.split(s, sep);
 		assertEquals(list.length, c.size());
 		for (int i = 0; i < list.length; ++i)
 			assertEquals(list[i], c.get(i));

@@ -4,13 +4,13 @@
 
 package suneido.runtime.builtin;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.runtime.Builtins;
 
 public class BuiltinNames {
 
-	public static SuContainer BuiltinNames() {
-		return new SuContainer(Builtins.builtinNames());
+	public static SuObject BuiltinNames() {
+		return new SuObject(Builtins.builtinNames());
 	}
 
 }

@@ -23,7 +23,7 @@ public class SuTransaction extends SuValue {
 	private final DbmsTran t;
 	private boolean update = false;
 	private String conflict = null;
-	private SuContainer data = null;
+	private SuObject data = null;
 	private static final BuiltinMethods methods =
 			new BuiltinMethods("transaction", SuTransaction.class, "Transactions");
 
@@ -180,7 +180,7 @@ public class SuTransaction extends SuValue {
 	public static Object Data(Object self) {
 		SuTransaction tran = (SuTransaction) self;
 		if (tran.data == null)
-			tran.data = new SuContainer();
+			tran.data = new SuObject();
 		return tran.data;
 	}
 

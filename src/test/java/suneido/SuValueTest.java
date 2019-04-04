@@ -17,12 +17,12 @@ import suneido.util.Dnum;
 public class SuValueTest {
 	@Test
 	public void compareTo() {
-		SuContainer c1 = new SuContainer();
+		SuObject c1 = new SuObject();
 		c1.add(0);
-		SuContainer c2 = new SuContainer();
+		SuObject c2 = new SuObject();
 		c2.add(0);
 		c2.add(1);
-		SuContainer c3 = new SuContainer();
+		SuObject c3 = new SuObject();
 		c3.add(1);
 		Object[] values = {
 			false, true,
@@ -32,7 +32,7 @@ public class SuValueTest {
 			SuDate.fromLiteral("20080522.143622123"),
 			SuDate.fromLiteral("20081216.152744828"),
 			SuDate.fromLiteral("20081216.153244828"),
-			new SuContainer(), c1, c2, c3 };
+			new SuObject(), c1, c2, c3 };
 		for (int i = 0; i < values.length; ++i)
 			for (int j = 0; j < values.length; ++j)
 				assertEquals(display(values[i]) + " cmp " + display(values[j]),

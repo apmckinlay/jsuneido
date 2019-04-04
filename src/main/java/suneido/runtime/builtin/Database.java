@@ -4,7 +4,7 @@
 
 package suneido.runtime.builtin;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.SuException;
 import suneido.TheDbms;
 import suneido.runtime.*;
@@ -49,7 +49,7 @@ public class Database extends BuiltinClass {
 		return TheDbms.dbms().finalSize();
 	}
 
-	public static SuContainer Info(Object self){
+	public static SuObject Info(Object self){
 		return TheDbms.dbms().info();
 	}
 
@@ -68,7 +68,7 @@ public class Database extends BuiltinClass {
 	}
 
 	public static Object Transactions(Object self) {
-		return new SuContainer(TheDbms.dbms().transactions());
+		return new SuObject(TheDbms.dbms().transactions());
 	}
 
 	@Params("table = ''")

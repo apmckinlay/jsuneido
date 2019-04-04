@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.objectweb.asm.Label;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.SuException;
 import suneido.SuInternalError;
 import suneido.runtime.*;
@@ -39,18 +39,18 @@ public class AstCompile {
 	private int fnId = -1;
 	private final ContextLayered context;
 	@SuppressWarnings("unused")
-	private final SuContainer warnings;
+	private final SuObject warnings;
 	private final boolean wantLineNumbers;
 
 	public static Object fold(String library, String globalName, String src,
-			PrintWriter pw, ContextLayered context, SuContainer warnings,
+			PrintWriter pw, ContextLayered context, SuObject warnings,
 			boolean wantLineNumbers, AstNode ast) {
 		return new AstCompile(library, globalName, src, pw, context, warnings,
 				wantLineNumbers).fold(ast);
 	}
 
 	private AstCompile(String library, String globalName, String src,
-			PrintWriter pw, ContextLayered context, SuContainer warnings,
+			PrintWriter pw, ContextLayered context, SuObject warnings,
 			boolean wantLineNumbers) {
 		this.library = library;
 		this.globalName = globalName;
@@ -132,7 +132,7 @@ public class AstCompile {
 	}
 
 	private Object foldObject(AstNode ast) {
-		SuContainer c = (SuContainer) ast.value;
+		SuObject c = (SuObject) ast.value;
 		for (int i = 0; i < c.vecSize(); ++i) {
 			Object e = c.vec.get(i);
 			if (e instanceof AstNode)
@@ -1109,7 +1109,7 @@ public class AstCompile {
 	 * an SuContainer and pass them with EACH
 	 */
 	private void optimizeArguments(ClassGen cg, AstNode args) {
-		SuContainer constArgs = new SuContainer();
+		SuObject constArgs = new SuObject();
 		List<Object> unnamed = new ArrayList<>();
 		List<AstNode> named = new ArrayList<>();
 		splitArgs(args, unnamed, named, constArgs);
@@ -1117,7 +1117,7 @@ public class AstCompile {
 	}
 
 	private void splitArgs(AstNode args, List<Object> unnamed,
-			List<AstNode> named, SuContainer constArgs) {
+			List<AstNode> named, SuObject constArgs) {
 		for (AstNode arg : args.children) {
 			Object name = fold(arg.first());
 			Object value = fold(arg.second());
@@ -1139,7 +1139,7 @@ public class AstCompile {
 	}
 
 	private void pushArgs(ClassGen cg, List<Object> unnamed,
-			List<AstNode> named, SuContainer constArgs) {
+			List<AstNode> named, SuObject constArgs) {
 		int nargs = unnamed.size() + 3 * named.size();
 		if (constArgs.size() >= MIN_TO_OPTIMIZE) {
 			nargs += 2; // EACH constArgs

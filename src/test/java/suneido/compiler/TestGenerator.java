@@ -6,7 +6,7 @@ package suneido.compiler;
 
 import java.util.Map;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 
 public class TestGenerator extends Generator<Object> {
 
@@ -66,7 +66,7 @@ public class TestGenerator extends Generator<Object> {
 	}
 
 	@Override
-	public Object object(SuContainer members, int lineNumber) {
+	public Object object(SuObject members, int lineNumber) {
 		print("object", members);
 		return null;
 	}

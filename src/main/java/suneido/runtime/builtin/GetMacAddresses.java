@@ -9,7 +9,7 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.SuException;
 import suneido.util.Util;
 
@@ -17,8 +17,8 @@ import com.google.common.collect.Lists;
 
 public class GetMacAddresses {
 
-	public static SuContainer GetMacAddresses() {
-		return new SuContainer(getMacAddresses());
+	public static SuObject GetMacAddresses() {
+		return new SuObject(getMacAddresses());
 	}
 
 	private static ArrayList<String> getMacAddresses() {

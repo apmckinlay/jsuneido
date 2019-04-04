@@ -21,7 +21,7 @@ import suneido.runtime.builtin.SuTransaction;
 
 /**
  * Implements a new version of SuRecord
- * by layering {@link SuRules} and {@link SuObservers} on top of {@link SuContainer}
+ * by layering {@link SuRules} and {@link SuObservers} on top of {@link SuObject}
  *
  * NOTE: this version is not in use, it does not pass all the tests
  */

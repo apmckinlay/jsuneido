@@ -77,7 +77,7 @@ public class StringMethods extends BuiltinMethods {
 
 	@Params("object=false")
 	public static Object Compile(Object self, Object a) {
-		SuContainer warnings = (a == Boolean.FALSE) ? null : (SuContainer) a;
+		SuObject warnings = (a == Boolean.FALSE) ? null : (SuObject) a;
 		return Compiler.compile("stringCompile", toStr(self), warnings);
 	}
 
@@ -111,7 +111,7 @@ public class StringMethods extends BuiltinMethods {
 
 	public static Object Eval2(Object self) {
 		Object value = seval(toStr(self));
-		SuContainer result = new SuContainer();
+		SuObject result = new SuObject();
 		if (value != null)
 			result.add(value);
 		return result;
@@ -321,10 +321,10 @@ public class StringMethods extends BuiltinMethods {
 		Regex.Result result = prev ? pat.lastMatch(s, pos) : pat.firstMatch(s, pos);
 		if (result == null)
 			return Boolean.FALSE;
-		SuContainer ob = new SuContainer();
+		SuObject ob = new SuObject();
 		for (int i = 0; i <= result.groupCount(); ++i) {
 			int start = result.pos[i];
-			ob.add(SuContainer.of(start, result.end[i] - start));
+			ob.add(SuObject.of(start, result.end[i] - start));
 		}
 		return ob;
 	}
@@ -482,11 +482,11 @@ public class StringMethods extends BuiltinMethods {
 		return split(s, sep);
 	}
 
-	static SuContainer split(String s, String sep) {
+	static SuObject split(String s, String sep) {
 		if (sep.equals(""))
 			throw new SuException(
 					"string.Split: separator must not be empty string");
-		SuContainer ob = new SuContainer();
+		SuObject ob = new SuObject();
 		int i = 0;
 		for (int j; -1 != (j = s.indexOf(sep, i)); i = j + sep.length())
 			ob.add(s.substring(i, j));

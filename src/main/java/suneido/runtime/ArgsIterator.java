@@ -4,8 +4,8 @@
 
 package suneido.runtime;
 
-import static suneido.SuContainer.IterResult.ENTRY;
-import static suneido.SuContainer.IterWhich.ALL;
+import static suneido.SuObject.IterResult.ENTRY;
+import static suneido.SuObject.IterWhich.ALL;
 import static suneido.runtime.Args.Special.EACH;
 import static suneido.runtime.Args.Special.EACH1;
 import static suneido.runtime.Args.Special.NAMED;

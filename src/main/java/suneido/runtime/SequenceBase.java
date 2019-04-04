@@ -6,7 +6,7 @@ package suneido.runtime;
 
 import java.nio.ByteBuffer;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.SuException;
 import suneido.SuValue;
 
@@ -16,7 +16,7 @@ import suneido.SuValue;
  * Derived classes must define instantiate, copy, iter, and iterator
  * and must set duped in iter and iterator
  */
-public abstract class SequenceBase extends SuContainer {
+public abstract class SequenceBase extends SuObject {
 	private static final BuiltinMethods methods =
 			new BuiltinMethods("sequence", Methods.class, "Sequences");
 	protected boolean instantiated = false;
@@ -63,7 +63,7 @@ public abstract class SequenceBase extends SuContainer {
 			// for common usage: for m in ob.Members().Copy()
 			SequenceBase seq = (SequenceBase) self;
 			if (seq.instantiated)
-				return new SuContainer(seq);
+				return new SuObject(seq);
 			if (seq.infinite())
 				throw new SuException("can't instantiate infinite sequence");
 			return seq.copy();
@@ -91,7 +91,7 @@ public abstract class SequenceBase extends SuContainer {
 
 	}
 
-	protected SuContainer ck_instantiate() {
+	protected SuObject ck_instantiate() {
 		if (instantiated)
 			return this;
 		if (infinite())
@@ -150,7 +150,7 @@ public abstract class SequenceBase extends SuContainer {
 	}
 
 	@Override
-	public SuContainer toContainer() {
+	public SuObject toContainer() {
 		ck_instantiate();
 		return this;
 	}

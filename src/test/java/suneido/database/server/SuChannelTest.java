@@ -13,7 +13,7 @@ import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.SuInternalError;
 import suneido.util.ByteBuffers;
 
@@ -109,8 +109,8 @@ public class SuChannelTest {
 		server.write();
 	}
 
-	private static SuContainer container() {
-		SuContainer c = new SuContainer();
+	private static SuObject container() {
+		SuObject c = new SuObject();
 		c.add(123);
 		c.put("foo", "bar");
 		return c;

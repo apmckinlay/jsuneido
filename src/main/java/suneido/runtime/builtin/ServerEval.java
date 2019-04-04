@@ -4,7 +4,7 @@
 
 package suneido.runtime.builtin;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.Suneido;
 import suneido.TheDbms;
 import suneido.runtime.Args;
@@ -13,11 +13,11 @@ import suneido.runtime.Ops;
 public class ServerEval {
 
 	public static Object ServerEval(Object... args) {
-		SuContainer c = Args.collectArgs(new SuContainer(), args);
+		SuObject c = Args.collectArgs(new SuObject(), args);
 		return TheDbms.dbms().exec(c);
 	}
 
-	public static Object exec(SuContainer c) {
+	public static Object exec(SuObject c) {
 		Object[] args = new Object[] { Args.Special.EACH1, c };
 		String fname = Ops.toStr(c.get(0));
 		int i = fname.indexOf('.');

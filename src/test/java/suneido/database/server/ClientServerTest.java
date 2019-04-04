@@ -10,7 +10,7 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.TheDbms;
 import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Record;
@@ -68,8 +68,8 @@ public class ClientServerTest {
 		assertThat(t.complete(), equalTo(null));
 
 		// EXEC
-		result = dbmsClient.exec(SuContainer.of("Object", 123));
-		assertThat(result, equalTo(SuContainer.of(123)));
+		result = dbmsClient.exec(SuObject.of("Object", 123));
+		assertThat(result, equalTo(SuObject.of(123)));
 
 		String tables_header = "Header{" +
 				"flds=[[table, tablename, nrows, totalsize]], " +

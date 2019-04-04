@@ -222,9 +222,9 @@ public class DbmsClient extends Dbms {
 	}
 
 	@Override
-	public SuContainer connections() {
+	public SuObject connections() {
 		send(CONNECTIONS);
-		return (SuContainer) io.getPacked();
+		return (SuObject) io.getPacked();
 	}
 
 	@Override
@@ -247,7 +247,7 @@ public class DbmsClient extends Dbms {
 	}
 
 	@Override
-	public Object exec(SuContainer c) {
+	public Object exec(SuObject c) {
 		sendValue(EXEC, c);
 		return valueResult();
 	}
@@ -265,9 +265,9 @@ public class DbmsClient extends Dbms {
 	}
 
 	@Override
-	public SuContainer info() {
+	public SuObject info() {
 		send(INFO);
-		return (SuContainer) io.getPacked();
+		return (SuObject) io.getPacked();
 	}
 
 	@Override

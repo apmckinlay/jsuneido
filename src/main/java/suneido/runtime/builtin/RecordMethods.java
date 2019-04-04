@@ -6,7 +6,7 @@ package suneido.runtime.builtin;
 
 import java.util.Map;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.SuException;
 import suneido.SuRecord;
 import suneido.runtime.ArgsIterator;
@@ -93,7 +93,7 @@ public class RecordMethods {
 	@Params("object = false")
 	public static Object Update(Object self, Object a) {
 		SuRecord rec = (SuRecord) self;
-		SuContainer newrec = (a == Boolean.FALSE) ? rec : Ops.toContainer(a);
+		SuObject newrec = (a == Boolean.FALSE) ? rec : Ops.toContainer(a);
 		rec.update(newrec);
 		return null;
 	}

@@ -144,7 +144,7 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 	public T object() {
 		int lineNumber = lexer.getLineNumber();
 		var con = new ObjectContainer(
-				token == L_PAREN ? new SuContainer() : new SuRecord());
+				token == L_PAREN ? new SuObject() : new SuRecord());
 		memberList(con, token, null);
 		return generator.object(con.ob, lineNumber);
 	}
@@ -253,9 +253,9 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 
 	private static class ObjectContainer extends Container {
-		final SuContainer ob; // could be SuRecord
+		final SuObject ob; // could be SuRecord
 
-		ObjectContainer(SuContainer ob) {
+		ObjectContainer(SuObject ob) {
 			this.ob = ob;
 		}
 		@Override

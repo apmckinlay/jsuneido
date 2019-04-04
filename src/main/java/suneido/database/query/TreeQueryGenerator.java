@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.SuException;
 import suneido.SuRecord;
 import suneido.compiler.Token;
@@ -236,7 +236,7 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	}
 
 	@Override
-	public SuContainer object(SuContainer ob, int lineNumber) {
+	public SuObject object(SuObject ob, int lineNumber) {
 		return ob;
 	}
 

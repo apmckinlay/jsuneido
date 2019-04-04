@@ -10,15 +10,15 @@ import static suneido.util.Util.array;
 import java.util.AbstractMap;
 import java.util.Map;
 
-import suneido.SuContainer;
-import suneido.SuContainer.IterResult;
-import suneido.SuContainer.IterWhich;
+import suneido.SuObject;
+import suneido.SuObject.IterResult;
+import suneido.SuObject.IterWhich;
 import suneido.SuException;
 import suneido.SuValue;
 import suneido.runtime.*;
 import suneido.util.Util.Range;
 
-/** Used by {@link SuContainer} */
+/** Used by {@link SuObject} */
 public final class ContainerMethods {
 	private static final BuiltinMethods methods =
 			new BuiltinMethods("object", ContainerMethods.class, "Objects");
@@ -29,7 +29,7 @@ public final class ContainerMethods {
 
 	@SuppressWarnings("unchecked")
 	public static Object Add(Object self, Object... args) {
-		SuContainer c = (SuContainer) self;
+		SuObject c = (SuObject) self;
 		int numValuesToAdd = 0;
 		Object atArg = null;
 		ArgsIterator iter = new ArgsIterator(args);
@@ -61,7 +61,7 @@ public final class ContainerMethods {
 		throw new SuException("usage: object.Add(value, ... [ at: position ])");
 	}
 
-	private static void addAt(SuContainer c, int at, int count, Object...args) {
+	private static void addAt(SuObject c, int at, int count, Object...args) {
 		final int endIndex = at + count;
 		final ArgsIterator iter = new ArgsIterator(args);
 		for (; at < endIndex; ++at) {
@@ -73,7 +73,7 @@ public final class ContainerMethods {
 		}
 	}
 
-	private static void putAt(SuContainer c, Object atArg, int numValuesToAdd,
+	private static void putAt(SuObject c, Object atArg, int numValuesToAdd,
 			Object... args) {
 		if (1 == numValuesToAdd) {
 			c.put(atArg, new ArgsIterator(args).next());
@@ -83,11 +83,11 @@ public final class ContainerMethods {
 		}
 	}
 
-	private static SuContainer toContainer(Object x) {
-		if (x instanceof SuContainer)
-			return (SuContainer) x;
+	private static SuObject toContainer(Object x) {
+		if (x instanceof SuObject)
+			return (SuObject) x;
 		if (x instanceof SuValue) {
-			SuContainer c = Ops.toContainer(x);
+			SuObject c = Ops.toContainer(x);
 			if (c != null)
 				return c;
 		}
@@ -100,7 +100,7 @@ public final class ContainerMethods {
 	}
 
 	public static Object Copy(Object self) {
-		return new SuContainer(toContainer(self));
+		return new SuObject(toContainer(self));
 	}
 
 	public static Object Delete(Object self, Object... args) {
@@ -108,7 +108,7 @@ public final class ContainerMethods {
 	}
 
 	static Object delete(Object self, Object[] args) {
-		SuContainer c = toContainer(self);
+		SuObject c = toContainer(self);
 		ArgsIterator iter = new ArgsIterator(args);
 		if (! iter.hasNext())
 			deleteUsage();
@@ -140,11 +140,11 @@ public final class ContainerMethods {
 	@Params("value, block=false")
 	public static Object EqualRange(Object self, Object a, Object b) {
 		Range r = toContainer(self).equalRange(a, b);
-		return SuContainer.of(r.left, r.right);
+		return SuObject.of(r.left, r.right);
 	}
 
 	public static Object Erase(Object self, Object... args) {
-		SuContainer c = toContainer(self);
+		SuObject c = toContainer(self);
 		ArgsIterator iter = new ArgsIterator(args);
 		if (! iter.hasNext())
 			eraseUsage();
@@ -167,7 +167,7 @@ public final class ContainerMethods {
 
 	public static Object Eval2(Object self, Object... args) {
 		Object value = evaluate(self, args);
-		SuContainer result = new SuContainer();
+		SuObject result = new SuObject();
 		if (value != null)
 			result.add(value);
 		return result;
@@ -228,7 +228,7 @@ public final class ContainerMethods {
 	}
 
 	public static Object Members(Object self, Object... args) {
-		SuContainer ob = toContainer(self);
+		SuObject ob = toContainer(self);
 		if (args.length == 0)
 			return new Sequence(ob.iterable(IterWhich.ALL, IterResult.KEY));
 		Args.massage(FunctionSpec.NO_PARAMS, args); // args must be named
@@ -237,7 +237,7 @@ public final class ContainerMethods {
 
 	public static Object Size(Object self, Object... args) {
 		Args.massage(FunctionSpec.NO_PARAMS, args); // args must be named
-		SuContainer c = toContainer(self);
+		SuObject c = toContainer(self);
 		switch (iterWhich(args)) {
 		case LIST:
 			return c.vecSize();
@@ -268,39 +268,39 @@ public final class ContainerMethods {
 	}
 
 	public static Object ReverseE(Object self) {
-		SuContainer c = toContainer(self);
+		SuObject c = toContainer(self);
 		c.reverse();
 		return c;
 	}
 
 	public static Object Set_readonly(Object self) {
-		SuContainer c = toContainer(self);
+		SuObject c = toContainer(self);
 		c.setReadonly();
 		return self;
 	}
 
 	@Params("block")
 	public static Object SortE(Object self, Object a) {
-		SuContainer c = toContainer(self);
+		SuObject c = toContainer(self);
 		c.sort(a);
 		return c;
 	}
 
 	public static Object Values(Object self, Object... args) {
 		Args.massage(FunctionSpec.NO_PARAMS, args); // args must be named
-		SuContainer c = toContainer(self);
+		SuObject c = toContainer(self);
 		return new Sequence(c.iterable(iterWhich(args), IterResult.VALUE));
 	}
 
 	@Params("value=null")
 	public static Object Set_default(Object self, Object a) {
-		SuContainer c = toContainer(self);
+		SuObject c = toContainer(self);
 		c.setDefault(a);
 		return c;
 	}
 
 	public static Object UniqueE(Object self) {
-		SuContainer c = toContainer(self);
+		SuObject c = toContainer(self);
 		c.unique();
 		return c;
 	}

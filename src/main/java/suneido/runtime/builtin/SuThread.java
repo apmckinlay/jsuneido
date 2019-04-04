@@ -7,7 +7,7 @@ package suneido.runtime.builtin;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.SuException;
 import suneido.Suneido;
 import suneido.TheDbms;
@@ -75,7 +75,7 @@ public class SuThread extends BuiltinClass {
 
 	public static Object List(Object self) {
 		Thread[] threads = list();
-		SuContainer list = new SuContainer(threads.length);
+		SuObject list = new SuObject(threads.length);
 		for (Thread t : threads)
 			list.put(t.getName(), t.getState().toString());
 		return list;

@@ -9,7 +9,7 @@ import static suneido.database.server.Dbms.isTran;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.SuException;
 import suneido.TheDbms;
 import suneido.database.immudb.Dbpkg;
@@ -133,7 +133,7 @@ public enum Command {
 	CONNECTIONS {
 		@Override
 		public void execute(SuChannel io) {
-			SuContainer result = dbms().connections();
+			SuObject result = dbms().connections();
 			io.put(true).putPacked(result);
 		}
 	},
@@ -199,7 +199,7 @@ public enum Command {
 	EXEC {
 		@Override
 		public void execute(SuChannel io) {
-			SuContainer c = (SuContainer) io.getPacked();
+			SuObject c = (SuObject) io.getPacked();
 			Object result = ServerEval.exec(c);
 			valueResult(io, result);
 		}

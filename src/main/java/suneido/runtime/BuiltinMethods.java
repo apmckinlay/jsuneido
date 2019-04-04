@@ -16,7 +16,7 @@ import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.SuInternalError;
 import suneido.SuValue;
 import suneido.runtime.builtin.ContainerMethods;
@@ -36,7 +36,7 @@ import suneido.runtime.builtin.StringMethods;
  * Uses {@link Builtin} to wrap MethodHandle's into an {@link SuCallable}.
  * Also handles user defined methods e.g. Numbers, Strings
  * Used for methods for Java types e.g. {@link NumberMethods}, {@link StringMethods}
- * and for separate methods e.g. {@link ContainerMethods} for {@link SuContainer}
+ * and for separate methods e.g. {@link ContainerMethods} for {@link SuObject}
  * Is the base class for {@link BuiltinClass}
  */
 public class BuiltinMethods extends SuValue {

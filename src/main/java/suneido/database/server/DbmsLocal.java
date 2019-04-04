@@ -54,9 +54,9 @@ public class DbmsLocal extends Dbms {
 	}
 
 	@Override
-	public SuContainer connections() {
-		return Suneido.server == null ? SuContainer.EMPTY
-				: new SuContainer(Suneido.server.connections()).setReadonly();
+	public SuObject connections() {
+		return Suneido.server == null ? SuObject.EMPTY
+				: new SuObject(Suneido.server.connections()).setReadonly();
 	}
 
 	@Override
@@ -167,8 +167,8 @@ public class DbmsLocal extends Dbms {
 	}
 
 	@Override
-	public SuContainer info() {
-		SuContainer info = new SuContainer();
+	public SuObject info() {
+		SuObject info = new SuObject();
 		info.put("timeoutMin", Suneido.cmdlineoptions.timeoutMin);
 		info.put("maxUpdateTranSec", Suneido.cmdlineoptions.max_update_tran_sec);
 		info.put("maxWritesPerTran", Suneido.cmdlineoptions.max_writes_per_tran);
@@ -197,7 +197,7 @@ public class DbmsLocal extends Dbms {
 	}
 
 	@Override
-	public Object exec(SuContainer c) {
+	public Object exec(SuObject c) {
 		return ServerEval.exec(c);
 	}
 

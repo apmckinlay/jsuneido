@@ -6,7 +6,7 @@ package suneido.database.server;
 
 import java.util.List;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.SuDate;
 import suneido.SuException;
 import suneido.database.query.Query.Dir;
@@ -40,7 +40,7 @@ public class DbmsUnauth extends Dbms {
 	}
 
 	@Override
-	public SuContainer connections() {
+	public SuObject connections() {
 		throw notauth;
 	}
 
@@ -70,7 +70,7 @@ public class DbmsUnauth extends Dbms {
 	}
 
 	@Override
-	public Object exec(SuContainer c) {
+	public Object exec(SuObject c) {
 		throw notauth;
 	}
 
@@ -85,7 +85,7 @@ public class DbmsUnauth extends Dbms {
 	}
 
 	@Override
-	public SuContainer info() {
+	public SuObject info() {
 		throw notauth;
 	}
 

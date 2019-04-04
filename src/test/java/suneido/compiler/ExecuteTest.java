@@ -17,7 +17,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import suneido.PortTests;
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.SuException;
 import suneido.Suneido;
 import suneido.runtime.*;
@@ -441,8 +441,8 @@ public class ExecuteTest {
 		String expected = args[3];
 		if (!Ops.rangeTo(s, from, to).equals(expected))
 			return false;
-		SuContainer list = stringToCharList(s);
-		SuContainer expectedList = stringToCharList(expected);
+		SuObject list = stringToCharList(s);
+		SuObject expectedList = stringToCharList(expected);
 		return Ops.rangeTo(list, from, to).equals(expectedList);
 	}
 
@@ -459,14 +459,14 @@ public class ExecuteTest {
 		if (!Ops.rangeLen(s, i, n).equals(expected))
 			return false;
 
-		SuContainer list = stringToCharList(s);
-		SuContainer expectedList = stringToCharList(expected);
+		SuObject list = stringToCharList(s);
+		SuObject expectedList = stringToCharList(expected);
 		return Ops.rangeLen(list, i, n).equals(expectedList);
 	}
 
-	private static SuContainer stringToCharList(String s) {
+	private static SuObject stringToCharList(String s) {
 		char[] ca = s.toCharArray();
-		SuContainer list = new SuContainer();
+		SuObject list = new SuObject();
 		for (char c : ca)
 			list.add(String.valueOf(c));
 		return list;

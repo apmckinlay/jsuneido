@@ -9,7 +9,7 @@ import static suneido.util.Util.listToCommas;
 import java.util.ArrayList;
 import java.util.List;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.SuException;
 import suneido.SuRecord;
 import suneido.SuValue;
@@ -71,11 +71,11 @@ public class SuQuery extends SuValue {
 		for (String col : ((SuQuery) self).q.header().columns())
 			if (!col.endsWith("_deps"))
 				cols.add(col);
-		return new SuContainer(cols);
+		return new SuObject(cols);
 	}
 
 	public static Object RuleColumns(Object self) {
-		return new SuContainer(((SuQuery) self).q.header().rules());
+		return new SuObject(((SuQuery) self).q.header().rules());
 	}
 
 	public static Object Explain(Object self) {
@@ -87,7 +87,7 @@ public class SuQuery extends SuValue {
 	}
 
 	public static Object Keys(Object self) {
-		SuContainer c = new SuContainer();
+		SuObject c = new SuObject();
 		for (List<String> key : ((SuQuery) self).q.keys())
 			c.add(listToCommas(key));
 		return c;
@@ -119,7 +119,7 @@ public class SuQuery extends SuValue {
 
 	@Params("record")
 	public static Object Output(Object self, Object a) {
-		SuContainer rec = Ops.toContainer(a);
+		SuObject rec = Ops.toContainer(a);
 		if (rec == null)
 			throw new SuException("can't convert " + Ops.typeName(a) + " to object");
 		DbmsQuery q = ((SuQuery) self).q;
@@ -128,7 +128,7 @@ public class SuQuery extends SuValue {
 	}
 
 	public static Object Order(Object self) {
-		return new SuContainer(((SuQuery) self).q.ordering());
+		return new SuObject(((SuQuery) self).q.ordering());
 	}
 
 	public static Object Rewind(Object self) {

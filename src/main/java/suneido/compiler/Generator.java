@@ -6,7 +6,7 @@ package suneido.compiler;
 
 import java.util.Map;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 
 public abstract class Generator<T> {
 
@@ -155,7 +155,7 @@ public abstract class Generator<T> {
 		return null;
 	}
 
-	public abstract T object(SuContainer members, int lineNumber);
+	public abstract T object(SuObject members, int lineNumber);
 
 	public T rvalue(T expr) {
 		return expr;

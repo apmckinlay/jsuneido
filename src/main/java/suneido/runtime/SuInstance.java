@@ -10,7 +10,7 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
-import suneido.SuContainer;
+import suneido.SuObject;
 import suneido.SuException;
 import suneido.SuValue;
 import suneido.runtime.builtin.ContainerMethods;
@@ -136,8 +136,8 @@ public class SuInstance extends SuValue {
 	}
 
 	@Params("all=false")
-	public static SuContainer Members(Object self, Object all) {
-		SuContainer c = new SuContainer(((SuInstance) self).ivars.keySet());
+	public static SuObject Members(Object self, Object all) {
+		SuObject c = new SuObject(((SuInstance) self).ivars.keySet());
 		if (all == Boolean.TRUE) {
 			((SuInstance) self).myclass.members2(c, true);
 			c.sort(false);
@@ -216,7 +216,7 @@ public class SuInstance extends SuValue {
 		stack.push(x, y);
 		try {
 			for (Map.Entry<String, Object> e : x.ivars.entrySet())
-				if (! SuContainer.equals3(e.getValue(), y.ivars.get(e.getKey()), stack))
+				if (! SuObject.equals3(e.getValue(), y.ivars.get(e.getKey()), stack))
 					return false;
 			return true;
 		} finally {
