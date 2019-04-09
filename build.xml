@@ -4,7 +4,7 @@
 
 	<property name="lib.dir" value="lib"/>
 
-	<property name="main.srcdir" value="src/main/java"/>
+	<property name="main.srcdir" value="src"/>
 	<property name="main.dstdir.classes" value="target/classes"/>
 	<property name="target.jar" value="target/jsuneido.jar"/>
 

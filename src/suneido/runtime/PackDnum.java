@@ -35,14 +35,14 @@ public class PackDnum {
 	}
 
 	public static int packSize(Dnum num) {
-		return packSize(num.sign(), num.coef(), num.exp());
+		return packSize(num.sign(), num.coef());
 	}
 
-	public static int packSize(int sign, long n, int e) {
+	public static int packSize(int sign, long n) {
 		if (sign == 0)
 			return 1; // just tag
 		if (sign == Dnum.NEG_INF || sign == Dnum.POS_INF)
-			return 3; // just tag
+			return 3;
 		return 2 + coefBytes(n);
 	}
 
@@ -169,6 +169,7 @@ public class PackDnum {
 	}
 
 	// long versions ------------------------------------------------
+	// avoid allocation by not converting to Dnum
 
 	public static int packSizeLong(long n) {
 		if (n == 0) {
@@ -181,8 +182,7 @@ public class PackDnum {
 		}
 		var p = Dnum.maxShift(n);
 		n *= Dnum.pow10[p];
-		var exp = Dnum.MAX_DIGITS - p;
-		return packSize(sign, n, exp);
+		return packSize(sign, n);
 	}
 
 	public static void packLong(long n, ByteBuffer buf) {

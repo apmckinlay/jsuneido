@@ -9,7 +9,7 @@ package suneido;
  * because {@link Bootstrap} does its own command line option handling.
  */
 
-public class CommandLineOptions {
+public class CommandLineOptions { 
 	private static final int DEFAULT_PORT = 3147;
 	private final String[] args;
 	private int arg_i = 0;
