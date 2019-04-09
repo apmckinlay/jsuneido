@@ -32,11 +32,14 @@ public class RegexReplace {
 					sb.append('&');
 				else if (rc == 'u' || rc == 'l' || rc == 'U' || rc == 'L'
 						|| rc == 'E')
-					tr = Character.toUpperCase(rc);
+					tr = rc;
 				else
 					sb.append(rc);
-			} else
+			} else {
 				sb.append(trcase(tr, rc));
+				if (tr == 'u' || tr == 'l')
+					tr = 'E';
+			}
 		}
 
 	}
@@ -49,8 +52,10 @@ public class RegexReplace {
 		switch (tr) {
 		case 'E':
 			return rc;
+		case 'l':
 		case 'L':
 			return Character.toLowerCase(rc);
+		case 'u':
 		case 'U':
 			return Character.toUpperCase(rc);
 		default:
@@ -65,8 +70,16 @@ public class RegexReplace {
 		case 'E':
 			sb.append(group);
 			break;
+		case 'l':
+			sb.append(Character.toLowerCase(group.charAt(0)));
+			sb.append(group.substring(1));
+			break;
 		case 'L':
 			sb.append(group.toLowerCase());
+			break;
+		case 'u':
+			sb.append(Character.toUpperCase(group.charAt(0)));
+			sb.append(group.substring(1));
 			break;
 		case 'U':
 			sb.append(group.toUpperCase());

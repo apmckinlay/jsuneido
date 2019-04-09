@@ -191,6 +191,7 @@ public class PortTests {
 		addTest("ptest", (a) -> a[0].equals(a[1]));
 		addTest("tr", TrTest::pt_tr);
 		addTest("regex_match", RegexTest::pt_regex_match);
+		addTest("regex_replace", RegexTest::pt_regex_replace);
 		addTest("dnum_add", DnumTest::pt_dnum_add);
 		addTest("dnum_sub", DnumTest::pt_dnum_sub);
 		addTest("dnum_mul", DnumTest::pt_dnum_mul);

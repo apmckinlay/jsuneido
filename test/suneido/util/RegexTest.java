@@ -396,4 +396,20 @@ public class RegexTest {
 		return ok;
 	}
 
+	public static boolean pt_regex_replace(String... args) {
+		String s = args[0];
+		Regex.Pattern pat = Regex.compile(args[1]);
+		Regex.Result result = pat.firstMatch(s, 0);
+		assert result != null;
+		var sb = new StringBuilder();
+		sb.append(s.substring(0, result.pos[0]));
+		RegexReplace.append(s, result, args[2], sb);
+		sb.append(s.substring(result.end[0]));
+		if (!args[3].equals(sb.toString())) {
+			System.out.println("got: " + sb + " expected: " + args[3]);
+			return false;
+		}
+		return true;
+	}
+
 }
