@@ -11,7 +11,7 @@ import java.nio.ByteBuffer;
 
 /**
  * A {@link BtreeNode} wrapping a ByteBuffer from the database.
- * "updating" a BtreeDbNode produces a {@link BtreeDbMemNode}
+ * "updating" a BtreeDbNode produces a {@link BtreeMemNode}
  * Immutable except for refs.
  */
 class BtreeDbNode extends BtreeNode {
