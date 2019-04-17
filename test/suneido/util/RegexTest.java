@@ -29,7 +29,9 @@ public class RegexTest {
 		test("a?", "Branch(1, 2) 'a'");
 		test("abc?de", "'ab' Branch(1, 2) 'c' 'de'");
 		test("abc+de", "'ab' 'c' Branch(-1, 1) 'de'");
+		test("abc+?de", "'ab' 'c' Branch(1, -1) 'de'");
 		test("abc*de", "'ab' Branch(1, 3) 'c' Branch(-1, 1) 'de'");
+		test("abc*?de", "'ab' Branch(3, 1) 'c' Branch(1, -1) 'de'");
 		test("ab\\.?cd", "'ab' Branch(1, 2) '.' 'cd'");
 		test("(ab+c)+x", "Left1 'a' 'b' Branch(-1, 1) 'c' Right1 Branch(-6, 1) 'x'");
 		test("ab|cd",
