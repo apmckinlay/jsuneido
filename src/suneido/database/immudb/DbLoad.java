@@ -79,7 +79,7 @@ class DbLoad {
 		print(tablename);
 		int nrecs = 0;
 		ByteBuffer intbuf = ByteBuffer.allocate(4);
-		ByteBuffer recbuf = ByteBuffer.allocate(500_000);
+		ByteBuffer recbuf = ByteBuffer.allocate(4_000_000);
 		BulkTransaction t = db.bulkTransaction();
 		try {
 			Table table = t.getTable(tablename);
