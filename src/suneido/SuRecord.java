@@ -35,7 +35,7 @@ public class SuRecord extends SuObject {
 
 	private Status status;
 	private final List<Object> observers = Lists.newArrayList();
-	private final Set<Object> invalid = Sets.newHashSet(); // used by rules
+	private final Set<Object> invalid; // used by rules
 	private final SetMultimap<Object, Object> dependencies;
 	private final Deque<Object> activeRules = new ArrayDeque<>();
 	private final Set<Object> invalidated = Sets.newLinkedHashSet(); // for observers
@@ -48,6 +48,7 @@ public class SuRecord extends SuObject {
 		tran = null;
 		recadr = 0;
 		status = Status.NEW;
+		invalid = Sets.newHashSet();
 		dependencies = HashMultimap.create();
 	}
 
@@ -57,6 +58,7 @@ public class SuRecord extends SuObject {
 		tran = null;
 		recadr = 0;
 		status = r.status;
+		invalid = Sets.newHashSet(r.invalid);
 		dependencies = HashMultimap.create(r.dependencies);
 	}
 
@@ -73,6 +75,7 @@ public class SuRecord extends SuObject {
 		this.tran = tran;
 		this.recadr = row.address();
 		status = Status.OLD;
+		invalid = Sets.newHashSet();
 		dependencies = HashMultimap.create();
 
 		for (Iterator<Row.Entry> iter = row.iterator(hdr); iter.hasNext();) {
@@ -87,6 +90,7 @@ public class SuRecord extends SuObject {
 		this.tran = tran;
 		recadr = 0;
 		status = Status.OLD;
+		invalid = Sets.newHashSet();
 		dependencies = HashMultimap.create();
 		int i = 0;
 		for (String field : flds)
