@@ -6,15 +6,15 @@ package suneido.runtime.builtin;
 
 import java.util.Map;
 
-import suneido.SuObject;
 import suneido.SuException;
+import suneido.SuObject;
 import suneido.SuRecord;
 import suneido.runtime.ArgsIterator;
 import suneido.runtime.BuiltinMethods;
 import suneido.runtime.Ops;
 import suneido.runtime.Params;
 
-/** {@link SuRecord} delegates invoke to here */
+/** Used by {@link SuRecord} */
 public class RecordMethods {
 	public static final BuiltinMethods methods =
 			new BuiltinMethods("record", RecordMethods.class, "Records");
@@ -37,7 +37,7 @@ public class RecordMethods {
 			((SuRecord) self).delete();
 			return null;
 		} else
-			return ContainerMethods.delete(self, args);
+			return ObjectMethods.delete(self, args);
 	}
 
 	@Params("field")

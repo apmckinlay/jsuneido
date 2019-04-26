@@ -21,7 +21,7 @@ import suneido.database.immudb.Record;
 import suneido.database.immudb.RecordBuilder;
 import suneido.database.query.Header;
 import suneido.runtime.*;
-import suneido.runtime.builtin.ContainerMethods;
+import suneido.runtime.builtin.ObjectMethods;
 import suneido.util.Dnum;
 import suneido.util.NullIterator;
 import suneido.util.PairStack;
@@ -781,7 +781,7 @@ public class SuObject extends SuValue
 
 	@Override
 	public SuValue lookup(String method) {
-		return ContainerMethods.lookup(method);
+		return ObjectMethods.lookup(method);
 	}
 
 	public synchronized SuObject subList(int from, int to) {

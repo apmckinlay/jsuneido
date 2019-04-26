@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 
-import suneido.runtime.builtin.ContainerMethods;
+import suneido.runtime.builtin.ObjectMethods;
 import suneido.util.NullIterator;
 
 /**
@@ -23,7 +23,7 @@ import suneido.util.NullIterator;
  * Handles EACH, EACH1, NAMED.
  * Returns Map.Entry for named arguments.
  *
- * Used by {@link ContainerMethods.evaluate} and {@link Ops.callString}
+ * Used by {@link ObjectMethods.evaluate} and {@link Ops.callString}
  *
  * @see Args
  */

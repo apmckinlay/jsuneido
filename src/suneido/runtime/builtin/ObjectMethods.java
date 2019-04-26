@@ -10,21 +10,21 @@ import static suneido.util.Util.array;
 import java.util.AbstractMap;
 import java.util.Map;
 
+import suneido.SuException;
 import suneido.SuObject;
 import suneido.SuObject.IterResult;
 import suneido.SuObject.IterWhich;
-import suneido.SuException;
 import suneido.SuValue;
 import suneido.runtime.*;
 import suneido.util.Util.Range;
 
 /** Used by {@link SuObject} */
-public final class ContainerMethods {
+public final class ObjectMethods {
 	private static final BuiltinMethods methods =
-			new BuiltinMethods("object", ContainerMethods.class, "Objects");
+			new BuiltinMethods("object", ObjectMethods.class, "Objects");
 
 	/** no instances, all static */
-	private ContainerMethods() {
+	private ObjectMethods() {
 	}
 
 	@SuppressWarnings("unchecked")

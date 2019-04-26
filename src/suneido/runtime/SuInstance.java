@@ -13,7 +13,7 @@ import java.util.Map;
 import suneido.SuObject;
 import suneido.SuException;
 import suneido.SuValue;
-import suneido.runtime.builtin.ContainerMethods;
+import suneido.runtime.builtin.ObjectMethods;
 import suneido.util.PairStack;
 
 /**
@@ -105,11 +105,11 @@ public class SuInstance extends SuValue {
 	}
 
 	public static Object Eval(Object self, Object... args) {
-		return ContainerMethods.Eval(self, args);
+		return ObjectMethods.Eval(self, args);
 	}
 
 	public static Object Eval2(Object self, Object... args) {
-		return ContainerMethods.Eval2(self, args);
+		return ObjectMethods.Eval2(self, args);
 	}
 
 	@Params("key, block")
