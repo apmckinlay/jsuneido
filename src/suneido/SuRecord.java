@@ -261,6 +261,8 @@ public class SuRecord extends SuObject {
 					return x;
 				} else
 					throw new SuException("invalid Rule_" + key);
+			} catch (Throwable e) {
+				throw new SuException(e + " (rule for " + key + ")", e, true);
 			} finally {
 				RuleContext.pop(this, key);
 			}

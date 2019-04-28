@@ -17,8 +17,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import suneido.PortTests;
-import suneido.SuObject;
 import suneido.SuException;
+import suneido.SuObject;
 import suneido.Suneido;
 import suneido.runtime.*;
 
@@ -504,7 +504,7 @@ public class ExecuteTest {
 		PortTests.addTest("method", ExecuteTest::pt_method);
 		assert PortTests.runFile("execute.test");
 		assert PortTests.runFile("execute2.test");
-		assert PortTests.runFile("classimpl.test");
+		assert PortTests.runFile("class.test");
 		assert PortTests.runFile("strings.test");
 		assert PortTests.runFile("objects.test");
 		System.out.println("PASS");
