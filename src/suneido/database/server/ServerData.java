@@ -79,8 +79,10 @@ public class ServerData {
 	}
 
 	public void endQuery(int qn) {
-		getQuery(qn).close();
-		verify(queries.remove(qn) != null);
+		var q = getQuery(qn);
+		if (q != null)
+			q.close();
+		queries.remove(qn);
 	}
 
 	public int addCursor(DbmsQuery q) {
@@ -90,8 +92,10 @@ public class ServerData {
 	}
 
 	public void endCursor(int qn) {
-		getCursor(qn).close();
-		verify(cursors.remove(qn) != null);
+		var c = getCursor(qn);
+		if (c != null)
+			c.close();
+		cursors.remove(qn);
 	}
 
 	public DbmsTran getTransaction(int tn) {
