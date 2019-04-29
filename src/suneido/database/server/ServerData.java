@@ -9,9 +9,8 @@ import static suneido.util.Verify.verify;
 import java.io.Closeable;
 import java.util.*;
 
-import suneido.util.NotThreadSafe;
-
 import suneido.util.Errlog;
+import suneido.util.NotThreadSafe;
 
 /**
  * Each connection/session has its own ServerData instance

@@ -18,22 +18,21 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.function.BiConsumer;
 
-import suneido.util.NotThreadSafe;
-import suneido.util.ThreadSafe;
-
 import com.google.common.base.Strings;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
-import suneido.Suneido;
 import suneido.SuException;
+import suneido.Suneido;
 import suneido.util.Errlog;
+import suneido.util.NotThreadSafe;
 import suneido.util.ServerBySelect;
 import suneido.util.ServerBySelect.Handler;
+import suneido.util.ThreadSafe;
 
 /**
  * Server side of the client-server protocol.
  * {@link DbmsClient} is the client side.
- * Based on {@link suneido.util.ServerBySelect}.
+ * Uses {@link suneido.util.ServerBySelect}.
  * See {@link Command} for the actual request implementations.
  */
 public class DbmsServer {
