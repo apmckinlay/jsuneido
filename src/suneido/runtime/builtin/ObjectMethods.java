@@ -16,7 +16,6 @@ import suneido.SuObject.IterResult;
 import suneido.SuObject.IterWhich;
 import suneido.SuValue;
 import suneido.runtime.*;
-import suneido.util.Util.Range;
 
 /** Used by {@link SuObject} */
 public final class ObjectMethods {
@@ -99,6 +98,11 @@ public final class ObjectMethods {
 		return new Sequence(toContainer(self).iterable(iterWhich(args), IterResult.ASSOC));
 	}
 
+	@Params("value, block=false")
+	public static Object BinarySearch(Object self, Object a, Object b) {
+		return toContainer(self).binarySearch(a, b);
+	}
+
 	public static Object Copy(Object self) {
 		return new SuObject(toContainer(self));
 	}
@@ -135,12 +139,6 @@ public final class ObjectMethods {
 
 	private static void deleteUsage() {
 		throw new SuException("usage: object.Delete(member ...) or object.Delete(all:)");
-	}
-
-	@Params("value, block=false")
-	public static Object EqualRange(Object self, Object a, Object b) {
-		Range r = toContainer(self).equalRange(a, b);
-		return SuObject.of(r.left, r.right);
 	}
 
 	public static Object Erase(Object self, Object... args) {
@@ -217,9 +215,10 @@ public final class ObjectMethods {
 		return sb.toString();
 	}
 
+	//TODO remove once everyone has switched to BinarySearch
 	@Params("value, block=false")
 	public static Object LowerBound(Object self, Object a, Object b) {
-		return toContainer(self).lowerBound(a, b);
+		return toContainer(self).binarySearch(a, b);
 	}
 
 	@Params("key")
@@ -303,11 +302,6 @@ public final class ObjectMethods {
 		SuObject c = toContainer(self);
 		c.unique();
 		return c;
-	}
-
-	@Params("value, block=false")
-	public static Object UpperBound(Object self, Object a, Object b) {
-		return toContainer(self).upperBound(a, b);
 	}
 
 	public static SuCallable lookup(String method) {

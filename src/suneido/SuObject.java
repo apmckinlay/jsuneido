@@ -717,27 +717,11 @@ public class SuObject extends SuValue
 			vec.remove(vec.size() - 1);
 	}
 
-	public synchronized int lowerBound(Object value, final Object fn) {
+	public synchronized int binarySearch(Object value, final Object fn) {
 		if (fn == Boolean.FALSE)
 			return Util.lowerBound(vec, value, Ops.comp);
 		else
 			return Util.lowerBound(vec, value, (Object x, Object y) ->
-					Ops.call(fn, x, y) == Boolean.TRUE ? -1 : 1);
-	}
-
-	public synchronized int upperBound(Object value, final Object fn) {
-		if (fn == Boolean.FALSE)
-			return Util.upperBound(vec, value, Ops.comp);
-		else
-			return Util.upperBound(vec, value, (Object x, Object y) ->
-					Ops.call(fn, x, y) == Boolean.TRUE ? -1 : 1);
-	}
-
-	public synchronized Util.Range equalRange(Object value, final Object fn) {
-		if (fn == Boolean.FALSE)
-			return Util.equalRange(vec, value, Ops.comp);
-		else
-			return Util.equalRange(vec, value, (Object x, Object y) ->
 					Ops.call(fn, x, y) == Boolean.TRUE ? -1 : 1);
 	}
 
