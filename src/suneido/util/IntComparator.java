@@ -4,6 +4,7 @@
 
 package suneido.util;
 
+@FunctionalInterface
 public interface IntComparator {
 
 	int compare(int x, int y);
