@@ -31,7 +31,16 @@ public class Benchmark {
 		long t1 = System.nanoTime();
 		f.run(nreps);
 		long dur = System.nanoTime() - t1;
-		System.out.println(name + ": " + (dur / nreps) + " ns");
+		var each = dur / nreps;
+		var units = "ns";
+		if (each > 10_000_000) {
+			units = "ms";
+			each = (each + 500_000) / 1_000_000;
+		} else if (each > 10_000) {
+			units = "us";
+			each = (each + 500) / 1000;
+		}
+		System.out.println(name + ": " + each + " " + units);
 	}
 
 	// estimate how many repetitions per second
