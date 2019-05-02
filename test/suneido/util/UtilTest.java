@@ -8,7 +8,10 @@ import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static suneido.util.Util.*;
+import static suneido.util.Util.bytesToString;
+import static suneido.util.Util.lowerBound;
+import static suneido.util.Util.stringToBytes;
+import static suneido.util.Util.upperBound;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,7 +22,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import suneido.runtime.Ops;
-import suneido.util.Util.Range;
 
 public class UtilTest {
 
@@ -135,17 +137,6 @@ public class UtilTest {
 		assertEquals(1, upperBound(asList(123), 456));
 		assertEquals(3, upperBound(asList(0, 123, 123, 456), 123));
 		assertEquals(4, upperBound(asList(0, 123, 123, 456), 456));
-	}
-
-	@Test
-	public void test_equalRange() {
-		assertEquals(new Range(0,0), equalRange(Collections.emptyList(), 123));
-		assertEquals(new Range(0,0), equalRange(asList(456), 123));
-		assertEquals(new Range(0, 1), equalRange(asList(123), 123));
-		assertEquals(new Range(0, 2), equalRange(asList(123, 123, 456), 123));
-		assertEquals(new Range(1,1), equalRange(asList(123), 456));
-		assertEquals(new Range(1, 3), equalRange(asList(0, 123, 123, 456), 123));
-		assertEquals(new Range(3, 4), equalRange(asList(0, 123, 123, 456), 456));
 	}
 
 	@Test
