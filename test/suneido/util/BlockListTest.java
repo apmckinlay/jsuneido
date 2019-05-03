@@ -1,4 +1,4 @@
-/* Copyright 2012 (c) Suneido Software Corp. All rights reserved.
+/* Copyright 2019 (c) Suneido Software Corp. All rights reserved.
  * Licensed under GPLv2.
  */
 
@@ -6,8 +6,8 @@ package suneido.util;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static suneido.util.testing.Benchmark.benchmark;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -16,46 +16,62 @@ import org.junit.Test;
 
 import com.google.common.collect.Lists;
 
-public class IntMergeTreeTest {
+public class BlockListTest {
+	private Random rand = new Random();
+	private BlockList b = new BlockList();
 
 	@Test
 	public void test() {
-		Random rand = new Random(98707);
-
-		final int NKEYS = 10;
-		int[] keys = new int[NKEYS];
-		for (int i = 0; i < NKEYS; ++i)
-			keys[i] = rand.nextInt(NKEYS);
-
-		IntMergeTree mt = new IntMergeTree();
-		for (int key : keys)
-			mt.add(key);
-		assertThat(mt.size(), equalTo(NKEYS));
-		Arrays.sort(keys);
-
-		int i = 0;
-		IntMergeTree.Iter iter = mt.iter();
-		for (int x = iter.next(); x != Integer.MAX_VALUE; x = iter.next()) {
-			assertThat("i=" + i, x, equalTo(keys[i++]));
+		assertThat(b.size(), equalTo(0));
+		b.sort(); // empty
+		int n = addRandom(1);
+		assertThat(b.size(), equalTo(1));
+		n += addRandom(BlockList.BLOCKSIZE / 2);
+		assertThat(b.size(), equalTo(n));
+		b.sort(); // single block
+		for (int i = 1; i < n; ++i)
+			assert b.get(i-1) <= b.get(i);
+		n += addRandom(BlockList.BLOCKSIZE * 11);
+		b.sort(); // multiple blocks
+		assert b.size() == n;
+		int prev = b.get(0);
+		for (int i = 1; i < n; ++i) {
+			var x = b.get(i);
+			assert x >= prev;
+			prev = x;
 		}
-		assertThat(i, equalTo(NKEYS));
 
-		i = NKEYS;
-		iter = mt.iter();
-		for (int x = iter.prev(); x != Integer.MIN_VALUE; x = iter.prev()) {
-			assertThat("i=" + i, x, equalTo(keys[--i]));
-		}
-		assertThat(i, equalTo(0));
+		var iter = b.iter();
+		for (int i = 0; i < n; ++i)
+			assertThat(iter.next(), equalTo(b.get(i)));
+
+		iter = b.iter();
+		for (int i = n-1; i >= 0; --i)
+			assertThat(iter.prev(), equalTo(b.get(i)));
+	}
+
+	@Test
+	public void indirect() {
+		String[] vals = new String[]{"joe", "amy", "bob"};
+		var b = new BlockList((i,j) -> vals[i].compareTo(vals[j]));
+		b.add(0);
+		b.add(1);
+		b.add(2);
+		b.sort();
+		assertThat(b.get(0), equalTo(1)); // amy
+		assertThat(b.get(1), equalTo(2)); // bob
+		assertThat(b.get(2), equalTo(0)); // joe
 	}
 
 	@Test
 	public void seek() {
-		IntMergeTree mt = new IntMergeTree();
+		BlockList b = new BlockList();
 		for (int i = 0; i < 10; ++i)
-			mt.add(i);
-		mt.add(5); // dup
+			b.add(i);
+		b.add(5); // dup
+		b.sort();
 
-		IntMergeTree.Iter iter = mt.iter();
+		BlockList.Iter iter = b.iter();
 		iter.seekFirst(5);
 		assertThat(iter.next(), equalTo(5));
 		assertThat(iter.next(), equalTo(5));
@@ -69,34 +85,30 @@ public class IntMergeTreeTest {
 
 	@Test
 	public void switch_direction() {
-		IntMergeTree mt = new IntMergeTree();
+		BlockList b = new BlockList();
 		for (int i = 0; i < 6; ++i)
-			mt.add(i);
+			b.add(i);
+		b.sort();
 
-		IntMergeTree.Iter iter = mt.iter();
+		BlockList.Iter iter = b.iter();
 		assertThat(iter.next(), equalTo(0));
 		assertThat(iter.prev(), equalTo(Integer.MIN_VALUE));
 		assertThat(iter.next(), equalTo(0));
 
-		iter = mt.iter();
+		iter = b.iter();
 		assertThat(iter.prev(), equalTo(5));
 		assertThat(iter.prev(), equalTo(4));
 		assertThat(iter.next(), equalTo(5));
 		assertThat(iter.next(), equalTo(Integer.MAX_VALUE));
 		assertThat(iter.prev(), equalTo(5));
 
-		/* tree is:
-		 * 		[4, 5]
-		 * 		[0, 1, 2, 3]
-		 * test reading next/prev at node boundary
-		 */
-		iter = mt.iter();
+		iter = b.iter();
 		assertThat(iter.prev(), equalTo(5));
 		assertThat(iter.prev(), equalTo(4));
 		assertThat(iter.prev(), equalTo(3));
 		assertThat(iter.next(), equalTo(4));
 
-		iter = mt.iter();
+		iter = b.iter();
 		assertThat(iter.next(), equalTo(0));
 		assertThat(iter.next(), equalTo(1));
 		assertThat(iter.next(), equalTo(2));
@@ -107,17 +119,18 @@ public class IntMergeTreeTest {
 
 	@Test
 	public void switch_direction2() {
-		IntMergeTree mt = new IntMergeTree();
+		BlockList b = new BlockList();
 		final int N = 1023;
 		for (int i = 0; i < N; ++i)
-			mt.add(i);
-		IntMergeTree.Iter iter = mt.iter();
+			b.add(i);
+		b.sort();
+		BlockList.Iter iter = b.iter();
 		for (int i = 0; i < N - 1; ++i) {
 			assertThat(iter.next(), equalTo(i));
 			assertThat(iter.next(), equalTo(i + 1));
 			assertThat(iter.prev(), equalTo(i));
 		}
-		iter = mt.iter();
+		iter = b.iter();
 		for (int i = N - 1; i > 0; --i) {
 			assertThat(iter.prev(), equalTo(i));
 			assertThat(iter.prev(), equalTo(i - 1));
@@ -130,11 +143,12 @@ public class IntMergeTreeTest {
 		Random rand = new Random(98707);
 		for (int reps = 0; reps < 100; ++reps) {
 			final int NKEYS = 5 + rand.nextInt(95);
-			IntMergeTree mt = new IntMergeTree();
+			BlockList b = new BlockList();
 			for (int i = 0; i < NKEYS; ++i)
-				mt.add(rand.nextInt(NKEYS));
+				b.add(rand.nextInt(NKEYS));
+			b.sort();
 			List<Integer> keys = Lists.newArrayList();
-			IntMergeTree.Iter iter = mt.iter();
+			BlockList.Iter iter = b.iter();
 			for (int i = 0; i < NKEYS / 5; ++i)
 				keys.add(iter.prev());
 			iter.prev();
@@ -146,7 +160,33 @@ public class IntMergeTreeTest {
 		}
 	}
 
+	private int addRandom(int n) {
+		for (int i = 0; i < n; ++i)
+			b.add(rand.nextInt());
+		return n;
+	}
+
+	@Test
+	public void benchmarkBlockList() {
+		benchmark("BlockList", (long nreps) -> {
+			final int N = 111_111;
+			while (nreps-- > 0) {
+				b = new BlockList();
+				addRandom(N);
+				b.sort();
+
+				var iter = b.iter();
+				int n = 0;
+				while (Integer.MAX_VALUE != iter.next())
+					++n;
+				assert n == N;
+
+				for (int i = 0; i < N; ++i) {
+					iter.seekFirst(rand.nextInt());
+					iter.next();
+				}
+			}
+		});
+	}
+
 }
-
-
-

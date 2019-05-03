@@ -17,8 +17,8 @@ import suneido.database.immudb.Record;
 import suneido.database.immudb.RecordStore;
 import suneido.database.immudb.Transaction;
 import suneido.util.ArraysList;
+import suneido.util.BlockList;
 import suneido.util.IntComparator;
-import suneido.util.IntMergeTree;
 
 public class TempIndex extends Query1 {
 	private final List<String> order;
@@ -33,8 +33,8 @@ public class TempIndex extends Query1 {
 		Record ykey = stor.get(yi);
 		return xkey.compareTo(ykey);
 	};
-	private final IntMergeTree index = new IntMergeTree(cmp);
-	private IntMergeTree.Iter iter;
+	private final BlockList index = new BlockList(cmp);
+	private BlockList.Iter iter;
 	private final Keyrange sel = new Keyrange();
 	private final boolean single;
 
@@ -91,8 +91,6 @@ public class TempIndex extends Query1 {
 
 	private void iterate_setup(Dir dir) {
 		stor = Dbpkg.recordStore();
-		index.clear();
-		refs.clear();
 		Header srchdr = source.header();
 		Row row;
 		while (null != (row = source.get(Dir.NEXT))) {
@@ -103,6 +101,7 @@ public class TempIndex extends Query1 {
 				throw new SuException("temp index entry size > 4000: " + order);
 			index.add(stor.add(key));
 		}
+		index.sort();
 		iter = index.iter();
 	}
 
