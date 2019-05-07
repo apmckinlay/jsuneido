@@ -49,7 +49,7 @@ public class Args {
 		if (fs.atParam) {
 			if (args_each) {
 				// function (@params) (@args)
-				SuObject c = Ops.toContainer(args[1]);
+				SuObject c = Ops.toObject(args[1]);
 				if (c == null)
 					throw new SuException("@args requires object");
 				locals[0] = c.slice(args[0] == EACH ? 0 : 1);
@@ -73,7 +73,7 @@ public class Args {
 			}
 			else if (args[i] == EACH || args[i] == EACH1) {
 				int start = args[i] == EACH ? 0 : 1;
-				SuObject c = Ops.toContainer(args[++i]);
+				SuObject c = Ops.toObject(args[++i]);
 				if (c.vecSize() - start > nlocals - li)
 					throw new SuException("too many arguments");
 				for (int j = start; j < c.vecSize(); ++j)
@@ -106,10 +106,10 @@ public class Args {
 				i += 2;
 			}
 			else if (args[i] == EACH)
-				c.merge(Ops.toContainer(args[++i]));
+				c.merge(Ops.toObject(args[++i]));
 			else if (args[i] == EACH1) {
 				int extra = c.vecSize();
-				c.merge(Ops.toContainer(args[++i]));
+				c.merge(Ops.toObject(args[++i]));
 				c.delete(extra);
 			} else
 				c.add(args[i]);

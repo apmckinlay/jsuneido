@@ -11,7 +11,7 @@ public class ObjectQ {
 
 	@Params("value")
 	public static Boolean ObjectQ(Object a) {
-		return null != Ops.toContainer(a);
+		return null != Ops.toObject(a);
 	}
 
 }

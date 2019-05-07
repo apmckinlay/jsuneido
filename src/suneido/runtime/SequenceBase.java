@@ -150,7 +150,7 @@ public abstract class SequenceBase extends SuObject {
 	}
 
 	@Override
-	public SuObject toContainer() {
+	public SuObject toObject() {
 		ck_instantiate();
 		return this;
 	}

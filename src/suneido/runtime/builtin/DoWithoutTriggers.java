@@ -13,7 +13,7 @@ public class DoWithoutTriggers {
 
 	@Params("tables, block")
 	public static Object DoWithoutTriggers(Object tables, Object block) {
-		SuObject c = Ops.toContainer(tables);
+		SuObject c = Ops.toObject(tables);
 		try {
 			for (Object x : c.vec)
 				TheDbms.dbms().disableTrigger(Ops.toStr(x));

@@ -43,15 +43,15 @@ public abstract class VirtualContainer extends SuValue {
 	}
 
 	@Override
-	public SuObject toContainer() {
+	public SuObject toObject() {
 		return value();
 	}
-	
+
 	@Override
 	public SuValue lookup(String method) {
 		return value().lookup(method);
 	}
-	
+
 	@Override
 	public Object eval(Object self, Object... args) {
 		return super.eval(value(), args);

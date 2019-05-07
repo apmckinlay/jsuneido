@@ -133,7 +133,7 @@ public class SuValue implements Packable {
 		throw new SuException("can't pack " + typeName());
 	}
 
-	public SuObject toContainer() {
+	public SuObject toObject() {
 		return null;
 	}
 

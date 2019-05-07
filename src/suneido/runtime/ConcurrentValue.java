@@ -74,8 +74,8 @@ public class ConcurrentValue extends SuValue {
 	}
 
 	@Override
-	synchronized public SuObject toContainer() {
-		return value.toContainer();
+	synchronized public SuObject toObject() {
+		return value.toObject();
 	}
 
 	@Override

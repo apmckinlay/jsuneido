@@ -46,7 +46,7 @@ public class ArgsIterator implements Iterator<Object>, Iterable<Object> {
 		Object x = args[argi];
 		if (x != EACH && x != EACH1)
 			return true;
-		return Ops.toContainer(args[argi + 1]).size() > (x == EACH1 ? 1 : 0);
+		return Ops.toObject(args[argi + 1]).size() > (x == EACH1 ? 1 : 0);
 	}
 
 	@Override
@@ -55,7 +55,7 @@ public class ArgsIterator implements Iterator<Object>, Iterable<Object> {
 			return each.next();
 		Object x = args[argi++];
 		if (x == EACH || x == EACH1) {
-			each = Ops.toContainer(args[argi++]).iterator(ALL, ENTRY);
+			each = Ops.toObject(args[argi++]).iterator(ALL, ENTRY);
 			if (x == EACH1 && each.hasNext())
 				each.next();
 			return next();

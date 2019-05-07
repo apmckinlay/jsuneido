@@ -119,7 +119,7 @@ public class SuQuery extends SuValue {
 
 	@Params("record")
 	public static Object Output(Object self, Object a) {
-		SuObject rec = Ops.toContainer(a);
+		SuObject rec = Ops.toObject(a);
 		if (rec == null)
 			throw new SuException("can't convert " + Ops.typeName(a) + " to object");
 		DbmsQuery q = ((SuQuery) self).q;

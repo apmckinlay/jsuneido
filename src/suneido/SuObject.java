@@ -376,7 +376,7 @@ public class SuObject extends SuValue
 
 	// avoid infinite recursion from self-reference
 	private static boolean equals2(SuObject x, Object value, PairStack stack) {
-		SuObject y = Ops.toContainer(value);
+		SuObject y = Ops.toObject(value);
 		if (y == null)
 			return false;
 		if (x.vec.size() != y.vec.size() || x.map.size() != y.map.size())
@@ -405,7 +405,7 @@ public class SuObject extends SuValue
 			return true;
 		if (x instanceof SuInstance && y instanceof SuInstance)
 			return SuInstance.equals2((SuInstance) x, (SuInstance) y, stack);
-		SuObject cx = Ops.toContainer(x);
+		SuObject cx = Ops.toObject(x);
 		return (cx == null) ? Ops.is_(x, y) : equals2(cx, y, stack);
 	}
 
@@ -430,10 +430,10 @@ public class SuObject extends SuValue
 	private static int compare3(Object x, Object y, PairStack stack) {
 		if (x == y)
 			return 0;
-		SuObject cx = Ops.toContainer(x);
+		SuObject cx = Ops.toObject(x);
 		if (cx == null)
 			return Ops.cmp(x, y);
-		SuObject cy = Ops.toContainer(y);
+		SuObject cy = Ops.toObject(y);
 		return (cy == null) ? Ops.cmp(x, y) : cx.compare2(cy, stack);
 	}
 
@@ -750,7 +750,7 @@ public class SuObject extends SuValue
 	}
 
 	@Override
-	public SuObject toContainer() {
+	public SuObject toObject() {
 		return this;
 	}
 

@@ -21,7 +21,7 @@ public class Construct {
 		String suffix = Ops.toStr(s);
 		Object[] newargs = noArgs;
 		if (what instanceof SuObject) {
-			SuObject c = Ops.toContainer(what);
+			SuObject c = Ops.toObject(what);
 			what = c.get(0);
 			if (what == null)
 				throw new SuException("Construct: object requires member 0");

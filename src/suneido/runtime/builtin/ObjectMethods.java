@@ -82,11 +82,11 @@ public final class ObjectMethods {
 		}
 	}
 
-	private static SuObject toContainer(Object x) {
+	private static SuObject toObject(Object x) {
 		if (x instanceof SuObject)
 			return (SuObject) x;
 		if (x instanceof SuValue) {
-			SuObject c = Ops.toContainer(x);
+			SuObject c = Ops.toObject(x);
 			if (c != null)
 				return c;
 		}
@@ -95,16 +95,16 @@ public final class ObjectMethods {
 
 	public static Object Assocs(Object self, Object... args) {
 		Args.massage(FunctionSpec.NO_PARAMS, args);
-		return new Sequence(toContainer(self).iterable(iterWhich(args), IterResult.ASSOC));
+		return new Sequence(toObject(self).iterable(iterWhich(args), IterResult.ASSOC));
 	}
 
 	@Params("value, block=false")
 	public static Object BinarySearch(Object self, Object a, Object b) {
-		return toContainer(self).binarySearch(a, b);
+		return toObject(self).binarySearch(a, b);
 	}
 
 	public static Object Copy(Object self) {
-		return new SuObject(toContainer(self));
+		return new SuObject(toObject(self));
 	}
 
 	public static Object Delete(Object self, Object... args) {
@@ -112,7 +112,7 @@ public final class ObjectMethods {
 	}
 
 	static Object delete(Object self, Object[] args) {
-		SuObject c = toContainer(self);
+		SuObject c = toObject(self);
 		ArgsIterator iter = new ArgsIterator(args);
 		if (! iter.hasNext())
 			deleteUsage();
@@ -142,7 +142,7 @@ public final class ObjectMethods {
 	}
 
 	public static Object Erase(Object self, Object... args) {
-		SuObject c = toContainer(self);
+		SuObject c = toObject(self);
 		ArgsIterator iter = new ArgsIterator(args);
 		if (! iter.hasNext())
 			eraseUsage();
@@ -183,27 +183,27 @@ public final class ObjectMethods {
 
 	@Params("value")
 	public static Object Find(Object self, Object a) {
-		Object key = toContainer(self).find(a);
+		Object key = toObject(self).find(a);
 		return key == null ? false : key;
 	}
 
 	@Params("member, block")
 	public static Object GetDefault(Object self, Object a, Object b) {
-		Object x = toContainer(self).getIfPresent(a);
+		Object x = toObject(self).getIfPresent(a);
 		if (x != null)
 			return x;
 		return SuCallable.isBlock(b) ? Ops.call(b) : b;
 	}
 
 	public static Object Iter(Object self) {
-		return new IterJtoS(toContainer(self));
+		return new IterJtoS(toObject(self));
 	}
 
 	@Params("string = ''")
 	public static Object Join(Object self, Object a) {
 		String sep = Ops.toStr(a);
 		StringBuilder sb = new StringBuilder();
-		for (Object x : toContainer(self).vec) {
+		for (Object x : toObject(self).vec) {
 			if (Ops.isString(x))
 				sb.append(x.toString());
 			else
@@ -218,16 +218,16 @@ public final class ObjectMethods {
 	//TODO remove once everyone has switched to BinarySearch
 	@Params("value, block=false")
 	public static Object LowerBound(Object self, Object a, Object b) {
-		return toContainer(self).binarySearch(a, b);
+		return toObject(self).binarySearch(a, b);
 	}
 
 	@Params("key")
 	public static Object MemberQ(Object self, Object a) {
-		return toContainer(self).containsKey(a);
+		return toObject(self).containsKey(a);
 	}
 
 	public static Object Members(Object self, Object... args) {
-		SuObject ob = toContainer(self);
+		SuObject ob = toObject(self);
 		if (args.length == 0)
 			return new Sequence(ob.iterable(IterWhich.ALL, IterResult.KEY));
 		Args.massage(FunctionSpec.NO_PARAMS, args); // args must be named
@@ -236,7 +236,7 @@ public final class ObjectMethods {
 
 	public static Object Size(Object self, Object... args) {
 		Args.massage(FunctionSpec.NO_PARAMS, args); // args must be named
-		SuObject c = toContainer(self);
+		SuObject c = toObject(self);
 		switch (iterWhich(args)) {
 		case LIST:
 			return c.vecSize();
@@ -263,43 +263,43 @@ public final class ObjectMethods {
 	}
 
 	public static Object ReadonlyQ(Object self) {
-		return toContainer(self).getReadonly();
+		return toObject(self).getReadonly();
 	}
 
 	public static Object ReverseE(Object self) {
-		SuObject c = toContainer(self);
+		SuObject c = toObject(self);
 		c.reverse();
 		return c;
 	}
 
 	public static Object Set_readonly(Object self) {
-		SuObject c = toContainer(self);
+		SuObject c = toObject(self);
 		c.setReadonly();
 		return self;
 	}
 
 	@Params("block")
 	public static Object SortE(Object self, Object a) {
-		SuObject c = toContainer(self);
+		SuObject c = toObject(self);
 		c.sort(a);
 		return c;
 	}
 
 	public static Object Values(Object self, Object... args) {
 		Args.massage(FunctionSpec.NO_PARAMS, args); // args must be named
-		SuObject c = toContainer(self);
+		SuObject c = toObject(self);
 		return new Sequence(c.iterable(iterWhich(args), IterResult.VALUE));
 	}
 
 	@Params("value=null")
 	public static Object Set_default(Object self, Object a) {
-		SuObject c = toContainer(self);
+		SuObject c = toObject(self);
 		c.setDefault(a);
 		return c;
 	}
 
 	public static Object UniqueE(Object self) {
-		SuObject c = toContainer(self);
+		SuObject c = toObject(self);
 		c.unique();
 		return c;
 	}

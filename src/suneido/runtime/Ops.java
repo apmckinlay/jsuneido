@@ -396,8 +396,8 @@ public final class Ops {
 			return "\"" + s.replace("\"", "\\\"") + "\"";
 	}
 
-	public static SuObject toContainer(Object x) {
-		return x instanceof SuValue ? ((SuValue) x).toContainer() : null;
+	public static SuObject toObject(Object x) {
+		return x instanceof SuValue ? ((SuValue) x).toObject() : null;
 	}
 
 	public static String typeName(Object x) {

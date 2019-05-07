@@ -93,7 +93,7 @@ public class RecordMethods {
 	@Params("object = false")
 	public static Object Update(Object self, Object a) {
 		SuRecord rec = (SuRecord) self;
-		SuObject newrec = (a == Boolean.FALSE) ? rec : Ops.toContainer(a);
+		SuObject newrec = (a == Boolean.FALSE) ? rec : Ops.toObject(a);
 		rec.update(newrec);
 		return null;
 	}
