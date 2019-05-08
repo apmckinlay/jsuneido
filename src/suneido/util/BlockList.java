@@ -131,7 +131,6 @@ public class BlockList {
 		int i1 = start, lim1 = i2;
 		int x1 = get(i1), x2 = get(i2);
 		if (cmp.compare(get(i2-1), x2) < 0) {
-System.out.println("SKIP MERGE");
 			return; // already in order
 		}
 		while (i1 < lim1 || i2 < lim2) {
