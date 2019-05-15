@@ -14,9 +14,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.objectweb.asm.Label;
 
-import suneido.SuObject;
 import suneido.SuException;
 import suneido.SuInternalError;
+import suneido.SuObject;
 import suneido.runtime.*;
 
 /**
@@ -965,7 +965,10 @@ public class AstCompile {
 			// then call a copy function (or better copy-on-write)
 			callArguments(cg, args);
 			putLineNumber(cg, ast);
-			cg.invokeDirect(fn.strval());
+			String f = fn.strval();
+			if (f.equals("["))
+				f = hasUnnamed(args) ? "Object" : "Record";
+			cg.invokeDirect(f);
 		} else if (isGlobal(fn)) {
 			cg.pushThis();
 			cg.iconst(context.slotForName(fn.strval()));
@@ -998,8 +1001,12 @@ public class AstCompile {
 
 	/** Helper calls to Object and Record */
 	private static boolean isDirect(AstNode fn) {
-		return fn.token == Token.IDENTIFIER
-				&& (fn.value.equals("Object") || fn.value.equals("Record"));
+		return fn.token == Token.IDENTIFIER && (fn.value.equals("[") ||
+				fn.value.equals("Object") || fn.value.equals("Record"));
+	}
+
+	private static boolean hasUnnamed(AstNode args) {
+		return args.children.size() > 0 && args.first().first() == null;
 	}
 
 	private static boolean isGlobal(AstNode fn) {

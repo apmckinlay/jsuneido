@@ -26,7 +26,7 @@ public class ParseTest {
 	public void test() {
 		code("a = 123; Print(b: [:a])",
 				"(EQ (IDENTIFIER=a) (VALUE=123)) (CALL (IDENTIFIER=Print) "
-				+ "(LIST (ARG (VALUE='b') (CALL (IDENTIFIER=Record) "
+				+ "(LIST (ARG (VALUE='b') (CALL (IDENTIFIER=[) "
 				+ "(LIST (ARG (VALUE='a') (IDENTIFIER=a)))))))");
 		code("123",
 			"(VALUE=123)");
@@ -156,7 +156,7 @@ public class ParseTest {
 		code("f(u:)",
 			"(CALL (IDENTIFIER=f) (LIST (ARG (VALUE='u') (VALUE=true))))");
 		code("x = [a,b]",
-			"(EQ (IDENTIFIER=x) (CALL (IDENTIFIER=Record) (LIST (ARG null (IDENTIFIER=a)) (ARG null (IDENTIFIER=b)))))");
+			"(EQ (IDENTIFIER=x) (CALL (IDENTIFIER=[) (LIST (ARG null (IDENTIFIER=a)) (ARG null (IDENTIFIER=b)))))");
 		code(".x = class\n { }",
 			"(EQ (MEMBER=x (SELFREF)) (CLASS=Class# null (VALUE={})))");
 		code(".x.f().\n g()",
@@ -268,7 +268,7 @@ public class ParseTest {
 
 		code("a = 123; Print(b: [:a])",
 				"(EQ (IDENTIFIER=a) (VALUE=123)) (CALL (IDENTIFIER=Print) "
-				+ "(LIST (ARG (VALUE='b') (CALL (IDENTIFIER=Record) "
+				+ "(LIST (ARG (VALUE='b') (CALL (IDENTIFIER=[) "
 				+ "(LIST (ARG (VALUE='a') (IDENTIFIER=a)))))))");
 	}
 

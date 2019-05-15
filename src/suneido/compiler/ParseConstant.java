@@ -142,10 +142,13 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 
 	public T object() {
+		var type = token;
 		int lineNumber = lexer.getLineNumber();
 		var con = new ObjectContainer(
-				token == L_PAREN ? new SuObject() : new SuRecord());
+				type == L_PAREN ? new SuObject() : new SuRecord());
 		memberList(con, token, null);
+		if (type == L_BRACKET && con.ob.vecSize() > 0)
+			return generator.object(new SuObject(con.ob), lineNumber);
 		return generator.object(con.ob, lineNumber);
 	}
 

@@ -134,7 +134,7 @@ public class LineNumbersParseTest {
 		"FUNCTION@1\n\tLIST@?\n\tLIST@1\n\t\tMEMBER=a@1\n\t\t\tSELFREF@1",
 
 		"function() { return [] } ",
-		"FUNCTION@1\n\tLIST@?\n\tLIST@1\n\t\tRETURN@1\n\t\t\tCALL@1\n\t\t\t\tIDENTIFIER=Record@1\n\t\t\t\tLIST@?",
+		"FUNCTION@1\n\tLIST@?\n\tLIST@1\n\t\tRETURN@1\n\t\t\tCALL@1\n\t\t\t\tIDENTIFIER=[@1\n\t\t\t\tLIST@?",
 
 		"function() { return x[..1] }",
 		"FUNCTION@1\n\tLIST@?\n\tLIST@1\n\t\tRETURN@1\n\t\t\tSUBSCRIPT@1\n\t\t\t\tIDENTIFIER=x@1\n\t\t\t\tRANGETO@?\n\t\t\t\t\tVALUE=0@?\n\t\t\t\t\tVALUE=1@?",
