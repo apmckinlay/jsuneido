@@ -64,6 +64,7 @@ public class Builtins {
 			.put("GetTempFileName", function(GetTempFileName.class))
 			.put("GetTempPath", function(GetTempPath.class))
 			.put("Hash", function(Hash.class))
+			.put("Instance?", function(InstanceQ.class))
 			.put("Libraries", function(Libraries.class))
 			.put("LibraryOverride", function(LibraryOverride.class))
 			.put("LibraryOverrideClear", function(LibraryOverrideClear.class))
