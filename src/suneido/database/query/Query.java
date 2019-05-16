@@ -29,7 +29,7 @@ public abstract class Query {
 	private final Cache cache = new Cache();
 	private List<String> tempindex;
 	public enum Dir { NEXT, PREV }
-	private double cost = 0; // set by setup, used by explain
+	private double cost = 0; // set by setup, used by strategy
 
 	protected static final List<String> noFields = Collections.emptyList();
 	protected static final Set<String> noNeeds = Collections.emptySet();
@@ -87,7 +87,7 @@ public abstract class Query {
 		throw new SuException("can't output to this query");
 	}
 
-	public String explain() {
+	public String strategy() {
 		return toString() + " [nrecs~ " + Math.round(nrecords()) +
 				" cost~ " + Math.round(cost) + "]";
 	}

@@ -515,8 +515,8 @@ public class DbmsClient extends Dbms {
 		}
 
 		@Override
-		public String explain() {
-			send(EXPLAIN, qn, c_or_q());
+		public String strategy() {
+			send(STRATEGY, qn, c_or_q());
 			return io.getString();
 		}
 

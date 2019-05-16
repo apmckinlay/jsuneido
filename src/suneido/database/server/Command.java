@@ -9,8 +9,8 @@ import static suneido.database.server.Dbms.isTran;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-import suneido.SuObject;
 import suneido.SuException;
+import suneido.SuObject;
 import suneido.TheDbms;
 import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Record;
@@ -205,14 +205,14 @@ public enum Command {
 		}
 	},
 	/**
-	 * Return the strategy for a query or cursor ({@link DbmsQuery#explain})
+	 * Return the strategy for a query or cursor ({@link DbmsQuery#strategy})
 	 * <p>
 	 * query or cursor int, 'q' or 'c' &rarr; string
 	 */
-	EXPLAIN {
+	STRATEGY {
 		@Override
 		public void execute(SuChannel io) {
-			String result = q_or_c(io).explain();
+			String result = q_or_c(io).strategy();
 			io.put(true).put(result);
 		}
 	},

@@ -57,9 +57,9 @@ public class ClientServerTest {
 		// CHECK
 		assertThat(dbmsClient.check(), equalTo(""));
 
-		// CLOSE, CURSOR, CURSORS, EXPLAIN
+		// CLOSE, CURSOR, CURSORS, STRATEGY
 		q = dbmsClient.cursor("tmp");
-		assertThat(q.explain(), equalTo("tmp^(a) [nrecs~ 0 cost~ 1]"));
+		assertThat(q.strategy(), equalTo("tmp^(a) [nrecs~ 0 cost~ 1]"));
 		assertThat(dbmsClient.cursors(), equalTo(1));
 		q.close();
 

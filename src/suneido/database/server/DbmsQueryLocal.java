@@ -60,13 +60,13 @@ public class DbmsQueryLocal implements DbmsQuery {
 	}
 
 	@Override
-	public String explain() {
-		return q.explain();
+	public String strategy() {
+		return q.strategy();
 	}
 
 	@Override
 	public String toString() {
-		return q.explain();
+		return q.strategy();
 	}
 
 	@Override

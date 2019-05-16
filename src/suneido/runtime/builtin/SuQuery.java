@@ -70,12 +70,12 @@ public class SuQuery extends SuValue {
 		return new SuObject(((SuQuery) self).q.header().rules());
 	}
 
-	public static Object Explain(Object self) {
-		return ((SuQuery) self).q.explain();
+	public static Object Explain(Object self) { // deprecated
+		return ((SuQuery) self).q.strategy();
 	}
 
 	public static Object Strategy(Object self) {
-		return ((SuQuery) self).q.explain();
+		return ((SuQuery) self).q.strategy();
 	}
 
 	public static Object Keys(Object self) {

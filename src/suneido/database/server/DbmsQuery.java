@@ -35,7 +35,7 @@ public interface DbmsQuery {
 
 	boolean updateable();
 
-	String explain();
+	String strategy();
 
 	void close();
 
