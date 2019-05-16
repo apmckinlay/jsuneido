@@ -9,8 +9,8 @@ import static suneido.util.Util.listToCommas;
 import java.util.ArrayList;
 import java.util.List;
 
-import suneido.SuObject;
 import suneido.SuException;
+import suneido.SuObject;
 import suneido.SuRecord;
 import suneido.SuValue;
 import suneido.database.query.Query.Dir;
@@ -59,14 +59,6 @@ public class SuQuery extends SuValue {
 	}
 
 	public static Object Columns(Object self) {
-		return columns(self);
-	}
-
-	public static Object Fields(Object self) {
-		return columns(self);
-	}
-
-	private static Object columns(Object self) {
 		List<String> cols = new ArrayList<>();
 		for (String col : ((SuQuery) self).q.header().columns())
 			if (!col.endsWith("_deps"))
