@@ -17,10 +17,10 @@ import suneido.util.Immutable;
 
 @Immutable
 public enum Token {
-	NIL, EOF, ERROR(1000),
-	IDENTIFIER(1001), NUMBER(1002), STRING(1003),
+	NIL, EOF, ERROR,
+	IDENTIFIER, NUMBER, STRING,
 	AND("and", BINOP), OR("or", BINOP),
-	WHITE(1006), COMMENT(1007), NEWLINE(1008),
+	WHITE, COMMENT, NEWLINE,
 	HASH, COMMA, COLON, SEMICOLON, Q_MARK(BINOP), AT, DOT,
 	R_PAREN, L_PAREN(R_PAREN),
 	R_BRACKET, L_BRACKET(R_BRACKET),
@@ -81,14 +81,11 @@ public enum Token {
 	private TokenFeature feature;
 	public TokenResultType resultType;
 	public String method;
-	public int oldnum = 0;
 
 	Token(Object... args) {
 		for (Object arg : args) {
 			if (arg instanceof String)
 				this.string = (String) arg;
-			else if (arg instanceof Integer)
-				this.oldnum = (Integer) arg;
 			else if (arg instanceof TokenFeature)
 				this.feature = (TokenFeature) arg;
 			else if (arg instanceof Token) {

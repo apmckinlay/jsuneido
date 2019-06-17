@@ -45,9 +45,8 @@ public class Scanner extends SuValue implements Iterable<String>, Iterator<Strin
 		return ((Scanner) self).lexer.length();
 	}
 
-	@Deprecated
 	public static Object Type(Object self) {
-		return ((Scanner) self).token.oldnum;
+		return ((Scanner) self).type2();
 	}
 
 	public static Object Type2(Object self) {
@@ -60,11 +59,6 @@ public class Scanner extends SuValue implements Iterable<String>, Iterator<Strin
 
 	public static Object Value(Object self) {
 		return ((Scanner) self).lexer.getValue();
-	}
-
-	@Deprecated
-	public static Object Keyword(Object self) {
-		return ((Scanner) self).isKeyword() ? 1 : 0;
 	}
 
 	public static Object KeywordQ(Object self) {
