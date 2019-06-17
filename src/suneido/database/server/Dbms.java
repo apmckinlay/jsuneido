@@ -7,8 +7,8 @@ package suneido.database.server;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-import suneido.SuObject;
 import suneido.SuDate;
+import suneido.SuObject;
 import suneido.database.query.Header;
 import suneido.database.query.Query.Dir;
 import suneido.database.query.Row;
