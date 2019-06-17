@@ -27,12 +27,12 @@ public class SystemFunction {
 
 	private static void getShell(String[] cmd) {
 		cmd[0] = System.getenv("COMSPEC");
-		if (cmd[0] != null) {
+		if (cmd[0] != null && !cmd[0].isBlank()) {
 			cmd[1] = "/c";
 			return;
 		}
 		cmd[0] = System.getenv("SHELL");
-		if (cmd[0] != null) {
+		if (cmd[0] != null && !cmd[0].isBlank()) {
 			cmd[1] = "-c";
 			return;
 		}
