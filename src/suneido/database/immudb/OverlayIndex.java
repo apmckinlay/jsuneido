@@ -154,7 +154,7 @@ class OverlayIndex implements TranIndex {
 			this.to = to;
 		}
 
-		/** copy constructor, used for Cursor set transaction */
+		/** copy constructor, used for SuCursor set transaction */
 		Iter(TranIndex global, TranIndex local, TIntHashSet deletes, Iter iter) {
 			super(global.iterator(iter.iter1), local.iterator(iter.iter2), iter);
 			this.deletes = deletes;

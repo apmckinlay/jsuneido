@@ -13,10 +13,10 @@ import suneido.database.query.Query.Dir;
 import suneido.database.server.DbmsTran;
 import suneido.runtime.*;
 
-public class Cursor extends SuQuery {
-	private static BuiltinMethods methods = new BuiltinMethods(Cursor.class);
+public class SuCursor extends SuQuery {
+	private static BuiltinMethods methods = new BuiltinMethods(SuCursor.class);
 
-	Cursor(String query) {
+	SuCursor(String query) {
 		super(query, TheDbms.dbms().cursor(query));
 	}
 
@@ -30,14 +30,15 @@ public class Cursor extends SuQuery {
 
 	@Params("transaction")
 	public static Object Next(Object self, Object t) {
-		return ((Cursor) self).getrec(t, Dir.NEXT);
+		return ((SuCursor) self).getrec(t, Dir.NEXT);
 	}
 
 	@Params("transaction")
 	public static Object Prev(Object self, Object t) {
-		return ((Cursor) self).getrec(t, Dir.PREV);
+		return ((SuCursor) self).getrec(t, Dir.PREV);
 	}
 
+	@Params("transaction,record")
 	public static Object Output(Object self, Object... args) {
 		throw new SuException("cursor.Output not implemented yet"); // TODO cursor.Output
 	}
@@ -64,20 +65,20 @@ public class Cursor extends SuQuery {
 		return "Cursor";
 	}
 
-	public static final BuiltinClass clazz = new BuiltinClass("Cursor") {
+	public static final BuiltinClass clazz = new BuiltinClass("SuCursor") {
 
 		FunctionSpec newFS = new FunctionSpec("query");
 		@Override
 		protected SuQuery newInstance(Object... args) {
 			args = Args.massage(newFS, args);
-			return new Cursor(Ops.toStr(args[0]));
+			return new SuCursor(Ops.toStr(args[0]));
 		}
 
 		FunctionSpec callFS = new FunctionSpec(array("query", "block"), false);
 		@Override
 		public Object call(Object... args) {
 			args = Args.massage(callFS, args);
-			SuQuery query = new Cursor(Ops.toStr(args[0]));
+			SuQuery query = new SuCursor(Ops.toStr(args[0]));
 			if (args[1] == Boolean.FALSE)
 				return query;
 			else {

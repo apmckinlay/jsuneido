@@ -36,7 +36,7 @@ public class Builtins {
 			.put("Construct", function(Construct.class))
 			.put("CopyFile", function(CopyFile.class))
 			.put("CreateDirectory", function(CreateDirectory.class))
-			.put("Cursor", Cursor.clazz)
+			.put("Cursor", SuCursor.clazz)
 			.put("Database", Database.singleton)
 			.put("Date", DateClass.singleton)
 			.put("Date?", function(DateQ.class))
