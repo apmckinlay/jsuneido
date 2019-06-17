@@ -115,7 +115,7 @@ public class SuFile extends SuValue {
 		}
 	}
 
-	@Params("offset = set, origin")
+	@Params("offset, origin='set'")
 	public static Object Seek(Object self, Object a, Object b) {
 		long offset = Numbers.longValue(a);
 		String origin = Ops.toStr(b);
