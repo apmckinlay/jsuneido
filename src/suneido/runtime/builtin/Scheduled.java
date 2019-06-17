@@ -13,7 +13,7 @@ import suneido.runtime.Params;
 public class Scheduled {
 
 	@Params("ms, block")
-	public static Object Delayed(Object ms, Object fn) {
+	public static Object Scheduled(Object ms, Object fn) {
 		Suneido.schedule(new Run(fn),
 				Ops.toInt(ms), TimeUnit.MILLISECONDS);
 		return null;
