@@ -77,8 +77,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	// update ------------------------------------------------------------------
 
 	@Override
-	public int updateRecord(int fromadr, Record to,
-			Blocking blocking) {
+	public int updateRecord(int fromadr, Record to, Blocking blocking) {
 		if (fromadr == 1)
 			throw new SuException("can't update the same record multiple times");
 		DataRecord from = tran.getrec(fromadr);
@@ -87,9 +86,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	}
 
 	@Override
-	public int updateRecord(int tblnum,
-			Record from,
-			Record r, Blocking blocking) {
+	public int updateRecord(int tblnum, Record from, Record r, Blocking blocking) {
 		DataRecord to = truncateRecord(tblnum, r);
 		updateRecord2(tblnum, (DataRecord) from, to, blocking);
 		// must be final step - may throw
