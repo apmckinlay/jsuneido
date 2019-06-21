@@ -216,9 +216,14 @@ public class SuRecord extends SuObject {
 			if (x != null)
 				result = x;
 			else if (result == null)
-				result = defval;
+				result = defaultValue(key, defval);
 		}
 		return result;
+	}
+
+	@Override
+	protected SuObject dup() {
+		return new SuRecord(this);
 	}
 
 	private Object getIfSpecial(Object key) {

@@ -198,13 +198,21 @@ public class SuObject extends SuValue
 		Object x = getIfPresent(key);
 		if (x != null)
 			return x;
+		return defaultValue(key, defval);
+	}
+
+	protected Object defaultValue(Object key, Object defval) {
 		if (defval instanceof SuObject) {
-			x = new SuObject((SuObject) defval);
+			Object x = ((SuObject) defval).dup();
 			if (! readonly)
 				put(key, x);
 			return x;
 		}
 		return defval;
+	}
+
+	protected SuObject dup() {
+		return new SuObject(this);
 	}
 
 	/**
