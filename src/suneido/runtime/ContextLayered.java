@@ -58,7 +58,7 @@ public class ContextLayered extends Context {
 				throw new SuException("error loading " + name, e);
 			}
 		}
-		if (result == null)
+		if (result == null && error != null)
 			throw new SuException("error loading " + name, error);
 		return result;
 	}
