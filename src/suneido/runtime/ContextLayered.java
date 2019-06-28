@@ -38,18 +38,28 @@ public class ContextLayered extends Context {
 			return null;
 		// System.out.println("LOAD " + name);
 		Object result = null;
+		SuException error = null;
 		for (LibGet libget : TheDbms.dbms().libget(name)) {
 			String src = getOverride(libget.library, name);
 			if (src == null)
 				src = ByteBuffers.bufferToString(libget.text);
 			try {
-				result = Compiler.compile(libget.library, name, src, this);
+				try {
+					result = Compiler.compile(libget.library, name, src, this);
+				} catch (SuException e) {
+					if (e.toString().contains("jSuneido does not implement dll"))
+						error = e;
+					else
+						throw e;
+				}
 				// needed inside loop for overloading references
 				set(name, result);
 			} catch (Exception e) {
 				throw new SuException("error loading " + name, e);
 			}
 		}
+		if (result == null)
+			throw new SuException("error loading " + name, error);
 		return result;
 	}
 
