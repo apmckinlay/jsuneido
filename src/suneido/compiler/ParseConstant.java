@@ -224,10 +224,6 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 				syntaxError("invalid getter (" + name + ")");
 			return "Getter_" + className + name.substring(6);
 		}
-		// TODO remove after transition from get_ to getter_
-		if (name.startsWith("get_") && name.length() > 4
-				&& Character.isLowerCase(name.charAt(4)))
-			return "Get_" + className + name.substring(3);
 		return className + "_" + name;
 	}
 

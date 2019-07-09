@@ -854,13 +854,7 @@ public class AstCompile {
 	private String privatizeRef(AstNode ast, String name) {
 		if (inMethod && ast.token == Token.SELFREF &&
 				Character.isLowerCase(name.charAt(0))) {
-			// ideally we wouldn't handle get_ here, only in privatizeDef
-			// but we have many get_ methods called as regular functions
-			if (name.startsWith("get_") && name.length() > 4
-					&& Character.isLowerCase(name.charAt(4)))
-				return "Get_" + suClassName + name.substring(3);
-			else
-				return suClassName + "_" + name;
+			return suClassName + "_" + name;
 		}
 		return name;
 	}

@@ -10,8 +10,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
 
-import suneido.SuObject;
 import suneido.SuException;
+import suneido.SuObject;
 import suneido.SuValue;
 import suneido.Suneido;
 import suneido.compiler.AstCompile;
@@ -63,7 +63,7 @@ public class SuClass extends SuValue implements Showable {
 		if (hasGet_) {
 			if (null != (value = get2("Getter_")))
 				return meval1(self, value, member, "Getter_");
-			// TODO remove after transition from get_ to getter_
+			// TODO remove after transition from Get_ to Getter_
 			if (null != (value = get2("Get_")))
 				return meval1(self, value, member, "Get_");
 			hasGet_ = false; // avoid future attempts
@@ -71,7 +71,7 @@ public class SuClass extends SuValue implements Showable {
 		String name;
 		if (null != (value = get2(name = ("Getter_" + member).intern())))
 			return meval0(self, value, name);
-		// TODO remove after transition from get_ to getter_
+		// TODO remove after transition from Get_ to Getter_
 		if (null != (value = get2(name = ("Get_" + member).intern())))
 			return meval0(self, value, name);
 		return null;

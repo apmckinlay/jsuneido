@@ -229,7 +229,7 @@ public class ClassTest {
 	@Test public void test_private_instance_getter() {
 		def("A", "class { "
 				+ "New(x) { .x = x } "
-				+ "get_n() { .x $ ' getter' } "
+				+ "getter_n() { .x $ ' getter' } "
 				+ "N() { .n }"
 				+ "Z() { .z }"
 				+ "}");
