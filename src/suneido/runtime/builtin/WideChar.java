@@ -24,7 +24,7 @@ public class WideChar {
 		if (sb.charAt(sb.length() - 1) == 0)
 			sb.setLength(sb.length() - 1);
 		String t = sb.toString();
-		byte[] bytes = t.getBytes(cp(b));
+		byte[] bytes = t.getBytes(cp(b)); // conversion
 		return Util.bytesToString(bytes);
 	}
 
@@ -32,7 +32,7 @@ public class WideChar {
 	public static Object MultiByteToWideChar(Object a, Object b) {
 		String s = Ops.toStr(a);
 		byte[] bytes = Util.stringToBytes(s);
-		String t = new String(bytes, cp(b));
+		String t = new String(bytes, cp(b)); // conversion
 		StringBuilder sb = new StringBuilder(t.length() * 2 + 2);
 		for (int i = 0; i < s.length(); ++i) {
 			char c = s.charAt(i);
