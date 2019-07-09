@@ -115,7 +115,7 @@ public final class ObjectMethods {
 		SuObject c = toObject(self);
 		ArgsIterator iter = new ArgsIterator(args);
 		if (! iter.hasNext())
-			deleteUsage();
+			return self;
 		Object arg = iter.next();
 		if (arg instanceof AbstractMap.SimpleEntry) {
 			@SuppressWarnings("unchecked")
