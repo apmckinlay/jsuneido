@@ -11,8 +11,6 @@ package suneido.runtime;
  * {@link SuCallBase} (if no {@code this} reference) or {@link SuEvalBase}
  * (if there's a {@code this} reference).
  * </p>
- *
- * @author Andrew McKinlay
  */
 public class SuClosure extends SuWrappingCallable {
 	protected final BlockSpec bspec;

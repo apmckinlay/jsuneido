@@ -41,7 +41,6 @@ import suneido.util.Util;
  * <p>
  * Note: the name and exit parameters are not used on jSuneido.
  * <p>
- * Listener is run in a new thread.
  * Connections use a thread pool shared with all listeners.
  *
  * @see ServerBySocket
