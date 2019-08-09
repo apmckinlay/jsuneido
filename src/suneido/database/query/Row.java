@@ -41,7 +41,6 @@ public class Row {
 		Arrays.fill(data, Dbpkg.MIN_RECORD);
 	}
 
-	// used by Project & Extend
 	public Row(Row row, Record... recs) {
 		this(new Record[row.data.length + recs.length]);
 		System.arraycopy(row.data, 0, data, 0, row.data.length);
