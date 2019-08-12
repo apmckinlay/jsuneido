@@ -412,6 +412,9 @@ public class ExecuteTest {
 			} else if (expected.equals("**notfalse**")) {
 				result = eval(args[0]);
 				ok = result != Boolean.FALSE;
+			} else if (expected.equals("nil")) {
+				result = eval(args[0]);
+				ok = result == null;
 			} else {
 				result = eval(args[0]);
 			 	Object expectedOb = compile(expected);
