@@ -53,6 +53,9 @@ public class Project extends Query1 {
 		flds = allbut
 				? difference(columns, args)
 				: withoutDups(args);
+		for (var a : flds)
+			if (a.endsWith("_lower!"))
+				throw new SuException("cannot project _lower! fields");
 
 		if (hasKey(source, flds)) {
 			strategy = Strategy.COPY;

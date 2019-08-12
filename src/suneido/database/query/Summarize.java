@@ -15,9 +15,9 @@ import java.util.Set;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
-import suneido.SuObject;
 import suneido.SuException;
 import suneido.SuInternalError;
+import suneido.SuObject;
 import suneido.database.immudb.Record;
 import suneido.runtime.Ops;
 
@@ -49,6 +49,8 @@ public class Summarize extends Query1 {
 		if (!source.columns().containsAll(by))
 			throw new SuException("summarize: nonexistent columns: "
 					+ difference(by, source.columns()));
+		check(by);
+		check(on);
 
 		for (int i = 0; i < cols.size(); ++i)
 			if (cols.get(i) == null)
@@ -56,6 +58,12 @@ public class Summarize extends Query1 {
 						: funcs.get(i) + "_" + on.get(i));
 
 		wholeRecord = minmax1() && source.keys().contains(on);
+	}
+
+	private void check(List<String> cols) {
+		for (var c : cols)
+			if (c != null && c.endsWith("_lower!"))
+				throw new SuException("cannot summarize _lower! fields");
 	}
 
 	private boolean minmax1() {
