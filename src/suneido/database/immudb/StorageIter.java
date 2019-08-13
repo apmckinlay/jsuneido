@@ -30,6 +30,7 @@ class StorageIter {
 	private long size;
 	/** date/time of current commit/persist */
 	private int date = 0;
+	private byte type = 0;
 	protected Status status = Status.OK;
 	private int cksum; // of current commit/persist
 	private boolean verifyChecksums = true;
@@ -99,7 +100,7 @@ class StorageIter {
 		if (checkType) {
 			int typeAdr = stor.advance(adr, Tran.HEAD_SIZE);
 			buf = stor.buffer(typeAdr);
-			byte type = buf.get();
+			type = buf.get();
 			if (type != 'u' && type != 's' && type != 'b')
 				status = Status.BAD_TYPE;
 		}
@@ -141,6 +142,10 @@ class StorageIter {
 	/** @return null for aborted commit */
 	Date date() {
 		return date == 0 ? null : new Date(1000L * date);
+	}
+
+	byte type() {
+		return type;
 	}
 
 	int cksum() {

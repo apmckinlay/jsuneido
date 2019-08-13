@@ -28,6 +28,7 @@ class Check {
 	/** set by findLast for fastcheck */
 	private int lastadr = 0;
 	private Date lastOkDate = null;
+	private byte lastOkType = 0;
 	private StorageIter dIter;
 	private StorageIter iIter;
 	private long dOkSize = 0;
@@ -145,8 +146,10 @@ class Check {
 			if (iInfo.lastcksum == dIter.cksum() && iInfo.lastadr == dIter.adr()) {
 				dOkSize = dIter.sizeInc();
 				iOkSize = iIter.sizeInc();
-				if (dIter.date() != null)
+				if (dIter.date() != null) {
 					lastOkDate = dIter.date();
+					lastOkType = dIter.type();
+				}
 				iIter.advance();
 				iInfo = null;
 				if (iIter.eof())
@@ -177,6 +180,11 @@ class Check {
 	/** @return The date/time of the last commit where data and indexes matched */
 	Date lastOkDate() {
 		return lastOkDate;
+	}
+
+	/** @return The type of the last good commit */
+	byte lastOkType() {
+		return lastOkType;
 	}
 
 	/** @return The size of data at the last data and indexes match */

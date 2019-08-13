@@ -61,6 +61,10 @@ class DbRebuild {
 							format(check.lastOkDate()));
 					return "database appears OK, no rebuild done";
 				} // else indexes corrupt
+			} else if (check.lastOkType() == 'b') {
+				Errlog.error("Rebuild: unrecoverable (bulk), last commit " +
+						format(check.lastOkDate()));
+				return null;
 			} else if (check.lastOkDate() != null) { // checksum error
 				System.out.println("Data and indexes match up to " +
 							format(check.lastOkDate()) +

@@ -77,6 +77,9 @@ class DbCheck {
 		if (ok) {
 			if (check_data_and_indexes(db))
 				status = Status.OK;
+		} else if (check.lastOkType() == 'b') {
+			status = Status.UNRECOVERABLE;
+			print("BULK ");
 		} else
 			print(check.status());
 		print(details);
@@ -94,9 +97,7 @@ class DbCheck {
 		String lgc = last_good_commit == null
 				? "not found"
 				: new SimpleDateFormat("yyyy-MM-dd HH:mm").format(last_good_commit);
-		return status == Status.UNRECOVERABLE
-			? "Unrecoverable"
-			: "Last " + (status == Status.CORRUPTED ? "good " : "")	+ "commit " + lgc;
+		return "Last " + (status == Status.OK ? "good " : "")	+ "commit " + lgc;
 	}
 
 	private static final int BAD_LIMIT = 10;
