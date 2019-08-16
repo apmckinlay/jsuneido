@@ -178,8 +178,7 @@ public class AstGenerator extends Generator<AstNode> {
 
 	@Override
 	public AstNode identifier(String text, int lineNumber) {
-		return new AstNode(Token.IDENTIFIER, "_".equals(text) ? "it" : text,
-				lineNumber);
+		return new AstNode(Token.IDENTIFIER, text, lineNumber);
 	}
 
 	@Override

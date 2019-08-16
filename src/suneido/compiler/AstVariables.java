@@ -61,7 +61,7 @@ public class AstVariables {
 			return name.substring(1);
 		if (name.startsWith("."))
 			i = 1;
-		if (name.charAt(i) == '_')
+		if (i+1 < name.length() && name.charAt(i) == '_')
 			++i;
 		return (i == 0) ? name : uncapitalize(name.substring(i));
 	}
