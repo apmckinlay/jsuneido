@@ -504,7 +504,7 @@ public class ExecuteTest {
 		PortTests.addTest("execute", ExecuteTest::pt_execute);
 		PortTests.addTest("lang_rangeto", ExecuteTest::pt_lang_rangeto);
 		PortTests.addTest("lang_rangelen", ExecuteTest::pt_lang_rangelen);
-		PortTests.addTest("method", ExecuteTest::pt_method);
+		PortTests.addTest2("method", ExecuteTest::pt_method);
 		assert PortTests.runFile("execute.test");
 		assert PortTests.runFile("execute2.test");
 		assert PortTests.runFile("class.test");

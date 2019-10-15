@@ -13,7 +13,7 @@ public class NumberMethodsTest {
 
 	@Test
 	public void porttests() {
-		PortTests.addTest("method", ExecuteTest::pt_method);
+		PortTests.addTest2("method", ExecuteTest::pt_method);
 		assert PortTests.runFile("number.test");
 	}
 

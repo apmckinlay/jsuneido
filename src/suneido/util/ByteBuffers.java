@@ -39,10 +39,9 @@ public class ByteBuffers {
 			return new String(buf.array(), buf.arrayOffset() + pos, len,
 					StandardCharsets.ISO_8859_1);
 		else {
-			char[] c = new char[len];
-			for (int i = 0; i < len; ++i)
-				c[i] = (char) (buf.get(pos + i) & 0xff);
-			return new String(c);
+			byte[] a = new byte[len];
+			buf.get(pos, a);
+			return new String(a, 0, len, StandardCharsets.ISO_8859_1);
 		}
 	}
 
@@ -56,10 +55,9 @@ public class ByteBuffers {
 			buf.position(buf.position() + len);
 			return s;
 		} else {
-			char[] c = new char[len];
-			for (int i = 0; i < len; ++i)
-				c[i] = (char) (buf.get() & 0xff);
-			return new String(c);
+			byte[] a = new byte[len];
+			buf.get(a);
+			return new String(a, 0, len, StandardCharsets.ISO_8859_1);
 		}
 	}
 
@@ -122,36 +120,11 @@ public class ByteBuffers {
 
 	public static ByteBuffer copyByteBuffer(ByteBuffer buf, int size) {
 		byte[] data = new byte[size];
-		// duplicate buffer if we need to set position
-		// because modification is not thread safe
-		if (buf.position() != 0) {
-			buf = buf.duplicate();
-			buf.position(0);
-		}
-		buf.get(data);
+		buf.get(0, data);
 		return ByteBuffer.wrap(data);
 	}
 
 	public static final ByteBuffer EMPTY_BUF = ByteBuffer.allocate(0);
-
-	/**
-	 * Return a slice of a buffer, ignoring the buffer position.<p>
-	 * The position of the result will be 0, and the limit will be len.<p>
-	 * Avoids modifying the original so thread safe.<p>
-	 * Always returns a new ByteBuffer (except when len is 0).<p>
-	 * @return A slice of a ByteBuffer.
-	 */
-	public static ByteBuffer slice(ByteBuffer buf, int pos, int len) {
-		if (len == 0)
-			return EMPTY_BUF;
-		assert pos + len <= buf.limit();
-		buf = buf.duplicate();
-		buf.position(pos);
-		buf.limit(pos + len);
-		if (pos != 0)
-			buf = buf.slice();
-		return buf;
-	}
 
 	public static int indexOf(ByteBuffer buf, byte b) {
 		return indexOf(buf, 0, b);

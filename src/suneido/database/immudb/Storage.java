@@ -163,12 +163,14 @@ abstract class Storage implements AutoCloseable {
 
 	protected ByteBuffer buf(long offset) {
 		ByteBuffer buf = chunks[offsetToChunk(offset)];
-		buf = (offset < protect) ? buf.asReadOnlyBuffer() : buf.duplicate();
-		buf.position((int) (offset % CHUNK_SIZE));
+		if (offset < protect)
+			buf = buf.asReadOnlyBuffer();
+		int pos = (int) (offset % CHUNK_SIZE);
 		long startOfLastChunk = (storSize / CHUNK_SIZE) * CHUNK_SIZE;
-		if (offset >= startOfLastChunk)
-			buf.limit((int) (storSize - startOfLastChunk));
-		return buf.slice();
+		int limit = (offset >= startOfLastChunk)
+				? (int) (storSize - startOfLastChunk)
+				: buf.limit();
+		return buf.slice(pos, limit - pos);
 	}
 
 	protected int offsetToChunk(long offset) {

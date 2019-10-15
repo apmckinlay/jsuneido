@@ -133,10 +133,7 @@ public abstract class Record
 			return Record.from(buf, off);
 		if (x == Tag.STRING) // avoid duplicate for strings
 			return ByteBuffers.bufferToString(buf, off + 1, len - 1);
-		ByteBuffer b = buf.duplicate();
-		b.position(off);
-		b.limit(off + len);
-		return Pack.unpack(b);
+		return Pack.unpack(buf.slice(off, len));
 		//PERF change unpack to take buf,i,n and not mutate to eliminate duplicate()
 	}
 
@@ -148,11 +145,7 @@ public abstract class Record
 	}
 
 	long getLong(int i) {
-		ByteBuffer b = fieldBuffer(i).duplicate();
-		int off = fieldOffset(i);
-		b.position(off);
-		b.limit(off + fieldLength(i));
-		return PackDnum.unpackLong(b);
+		return PackDnum.unpackLong(fieldBuffer(i).slice(fieldOffset(i), fieldLength(i)));
 		//PERF change unpackLong to take buf,i,n and not mutate to eliminate duplicate
 	}
 
@@ -195,7 +188,7 @@ public abstract class Record
 	public ByteBuffer getRaw(int i) {
 		if (i >= size())
 			return ByteBuffers.EMPTY_BUF;
-		return ByteBuffers.slice(fieldBuffer(i), fieldOffset(i), fieldLength(i));
+		return fieldBuffer(i).slice(fieldOffset(i), fieldLength(i));
 	}
 
 	public boolean isEmpty() {

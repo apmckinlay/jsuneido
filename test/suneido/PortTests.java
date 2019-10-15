@@ -80,7 +80,7 @@ public class PortTests {
 			String name = lxr.getValue();
 			match(IDENTIFIER, true);
 			System.out.println(filename + ": " + name + ": " + comment);
-			Test test;
+			Test2 test;
 			if (testmap.containsKey(name))
 				test = testmap.get(name);
 			else {
@@ -153,18 +153,18 @@ public class PortTests {
 	}
 
 	@FunctionalInterface
-	public interface Test {
+	public interface Test2 {
 		boolean run(boolean[] str, String... args);
 	}
 
 	@FunctionalInterface
-	public interface Test2 {
+	public interface Test {
 		boolean run(String... args);
 	}
 
-	static class Wrap implements Test {
-		Test2 test;
-		Wrap(Test2 test) {
+	static class Wrap implements Test2 {
+		Test test;
+		Wrap(Test test) {
 			this.test = test;
 		}
 		@Override
@@ -173,13 +173,13 @@ public class PortTests {
 		}
 	}
 
-	private static HashMap<String, Test> testmap = new HashMap<>();
+	private static HashMap<String, Test2> testmap = new HashMap<>();
 
-	public static void addTest(String name, Test test) {
+	public static void addTest2(String name, Test2 test) {
 		testmap.put(name, test);
 	}
 
-	public static void addTest(String name, Test2 test) {
+	public static void addTest(String name, Test test) {
 		testmap.put(name, new Wrap(test));
 	}
 
@@ -198,7 +198,7 @@ public class PortTests {
 		addTest("dnum_div", DnumTest::pt_dnum_div);
 		addTest("dnum_cmp", DnumTest::pt_dnum_cmp);
 		addTest("execute", ExecuteTest::pt_execute);
-		addTest("method", ExecuteTest::pt_method);
+		addTest2("method", ExecuteTest::pt_method);
 		addTest("lang_rangeto", ExecuteTest::pt_lang_rangeto);
 		addTest("lang_rangelen", ExecuteTest::pt_lang_rangelen);
 		addTest("compile", CompileTest::pt_compile);

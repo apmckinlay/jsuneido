@@ -181,14 +181,13 @@ public abstract class Serializer {
 	 * Get a buffer with a known size.
 	 * @return A new ByteBuffer
 	 * but referencing a portion of the io buffer
-	 * so it will be invalidated after the request.
+	 * so it will be invalid after the request.
 	 */
 	public ByteBuffer getBuffer(int n) {
 		ByteBuffer buf = need(n);
-		ByteBuffer b = buf.duplicate();
-		buf.position(buf.position() + n);
-		b.limit(buf.position());
-		return b;
+		int pos = buf.position();
+		buf.position(pos + n);
+		return buf.slice(pos, n);
 	}
 
 	public Object getPacked() {
