@@ -60,7 +60,7 @@ public class Summarize extends Query1 {
 		wholeRecord = minmax1() && source.keys().contains(on);
 	}
 
-	private void check(List<String> cols) {
+	private static void check(List<String> cols) {
 		for (var c : cols)
 			if (c != null && c.endsWith("_lower!"))
 				throw new SuException("cannot summarize _lower! fields");
