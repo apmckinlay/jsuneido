@@ -1,3 +1,3 @@
-suneido.database.immudb.DbRebuild2Test
-suneido.database.immudb.DumpLoadTest
-suneido.database.immudb.MmapFileTest
+exclude suneido.database.immudb.DbRebuild2Test
+exclude suneido.database.immudb.DumpLoadTest
+exclude suneido.database.immudb.MmapFileTest
