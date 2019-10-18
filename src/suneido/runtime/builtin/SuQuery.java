@@ -104,6 +104,8 @@ public class SuQuery extends SuValue {
 	protected Object getrec(Dir dir, DbmsTran t) {
 		if (eof == dir)
 			return Boolean.FALSE;
+		if (t.isEnded())
+			throw new SuException("cannot use a completed Transaction");
 		Row row = q.get(dir);
 		eof = (row == null) ? dir : null;
 		return (row == null) ? Boolean.FALSE : new SuRecord(row, q.header(), t);

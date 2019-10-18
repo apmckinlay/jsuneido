@@ -105,7 +105,8 @@ public class SuTransaction extends SuValue {
 		try {
 			return Ops.call(args[1], q);
 		} finally {
-			q.close();
+			if (!tran.t.isEnded())
+				q.close();
 		}
 	}
 
