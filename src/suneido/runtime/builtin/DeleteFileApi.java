@@ -14,7 +14,10 @@ public class DeleteFileApi {
 
 	@Params("filename")
 	public static Boolean DeleteFileApi(Object filename) {
-		return new File(toStr(filename)).delete();
+		File file = new File(toStr(filename));
+		if (!file.isFile())
+			return false;
+		return file.delete();
 	}
 
 }
