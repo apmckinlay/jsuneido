@@ -204,7 +204,7 @@ public class SuRecord extends SuObject {
 	@Override
 	public synchronized Object get(Object key) {
 		RuleContext.Rule ar = RuleContext.top();
-		if (ar != null && ar.rec == this)
+		if (ar != null && ar.rec == this && !ar.member.equals(key))
 			addDependency(ar.member, key);
 
 		Object result = getIfPresent(key);
