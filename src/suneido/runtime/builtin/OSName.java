@@ -4,11 +4,11 @@
 
 package suneido.runtime.builtin;
 
-public class OperatingSystem {
+public class OSName {
 
-	public static String OperatingSystem() {
+	public static String OSName() {
 		return System.getProperty("os.name") +
-				(System.getProperty("os.arch").contains("64") ? " 64bit" : "");
+				(System.getProperty("os.arch").contains("64") ? "" : " 32bit");
 		// NOTE: os.arch will not have 64 if running 32 bit JVM
 	}
 

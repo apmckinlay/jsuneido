@@ -81,7 +81,9 @@ public class Builtins {
 			.put("Number?", function(NumberQ.class))
 			.put("Object", new ObjectClass())
 			.put("Object?", function(ObjectQ.class))
-			.put("OperatingSystem", function(OperatingSystem.class))
+			.put("OperatingSystem", function(OSName.class)) // deprecated
+			.put("OSName", function(OSName.class))
+			.put("OSVersion", function(OSVersion.class))
 			.put("Pack", function(suneido.runtime.builtin.Pack.class))
 			.put("PrintStdout", function(PrintStdout.class))
 			.put("Query1", new Query1())
