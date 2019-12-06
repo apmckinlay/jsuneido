@@ -63,7 +63,7 @@ public class Repl {
 					break repl;
 				if (line.isEmpty())
 					break;
-				code.append(line);
+				code.append(line).append("\n");
 			}
 			// Evaluate the code
 			try {
