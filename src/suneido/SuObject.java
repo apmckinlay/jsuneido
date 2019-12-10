@@ -278,22 +278,39 @@ public class SuObject extends SuValue
 
 	@Override
 	public synchronized String toString() {
-		return toString("#(", ")");
+		StringBuilder sb = new StringBuilder();
+		rString(sb, new InProgress());
+		return sb.toString();
 	}
 
-	protected String toString(String before, String after) {
-		StringBuilder sb = new StringBuilder(before);
-		for (Object x : vec)
-			sb.append(Ops.display(x)).append(", ");
+	public void rString(StringBuilder sb, InProgress inProgress) {
+		toString(sb, "#(", ")", inProgress);
+	}
+
+	protected void toString(StringBuilder sb, String before, String after,
+			InProgress inProgress) {
+		if (!inProgress.push(this)) {
+			sb.append("...");
+			return;
+		}
+		inProgress.push(this);
+		sb.append(before);
+		for (Object x : vec) {
+			display(sb, x, inProgress);
+			sb.append(", ");
+		}
 		for (Map.Entry<Object, Object> e : map.entrySet()) {
 			sb.append(keyToString(e.getKey())).append(":");
-			if (e.getValue() != Boolean.TRUE)
-				sb.append(" ").append(Ops.display(e.getValue()));
+			if (e.getValue() != Boolean.TRUE) {
+				sb.append(" ");
+				display(sb, e.getValue(), inProgress);
+			}
 			sb.append(", ");
 		}
 		if (size() > 0)
 			sb.delete(sb.length() - 2, sb.length());
-		return sb.append(after).toString();
+		sb.append(after);
+		inProgress.pop();
 	}
 	static String keyToString(Object x) {
 		return Ops.isString(x) ? keyToString(x.toString()) : Ops.display(x);
@@ -303,6 +320,30 @@ public class SuObject extends SuValue
 	static String keyToString(String s) {
 		return idpat.matcher(s).matches() && !(s.equals("true") || s.equals("false"))
 				? s : Ops.display(s);
+	}
+
+	private static void display(StringBuilder sb, Object x, InProgress inProgress) {
+		if (x instanceof SuObject)
+			((SuObject) x).rString(sb, inProgress);
+		else
+			sb.append(Ops.display(x));
+	}
+
+	protected static class InProgress {
+		private List<SuObject> list =  new ArrayList<>();
+
+		boolean push(SuObject x) {
+			for (var y : list) {
+				if (y == x)
+					return false;
+			}
+			list.add(x);
+			return true;
+		}
+
+		void pop() {
+			list.remove(list.size() - 1);
+		}
 	}
 
 	@Override

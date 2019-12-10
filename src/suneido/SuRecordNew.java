@@ -105,7 +105,7 @@ public class SuRecordNew extends SuObservers {
 
 	@Override
 	public String toString() {
-		return toString("[", "]");
+		return ""; //TODO
 	}
 
 	@Override

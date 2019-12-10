@@ -6,8 +6,8 @@ package suneido.runtime;
 
 import java.nio.ByteBuffer;
 
-import suneido.SuObject;
 import suneido.SuException;
+import suneido.SuObject;
 import suneido.SuValue;
 
 /**
@@ -114,9 +114,9 @@ public abstract class SequenceBase extends SuObject {
 	}
 
 	@Override
-	public String toString() {
+	public void rString(StringBuilder sb, InProgress inProgress) {
 		ck_instantiate();
-		return super.toString();
+		super.rString(sb, inProgress);
 	}
 
 	@Override

@@ -132,8 +132,8 @@ public class SuRecord extends SuObject {
 	}
 
 	@Override
-	public synchronized String toString() {
-		return toString("[", "]");
+	public void rString(StringBuilder sb, InProgress inProgress) {
+		toString(sb, "[", "]", inProgress);
 	}
 
 	@Override
