@@ -4,7 +4,8 @@
 
 package suneido.runtime;
 
-/** Used by tests
+/** Used by tests. Similar to Display.
+ * Implemented by SuObject to sort named members
  * Implemented by SuClass to show contents
  * Implemented by SuCallable to show params
  * For containers, shows members in sorted order
