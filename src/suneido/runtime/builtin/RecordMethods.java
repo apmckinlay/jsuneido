@@ -9,10 +9,7 @@ import java.util.Map;
 import suneido.SuException;
 import suneido.SuObject;
 import suneido.SuRecord;
-import suneido.runtime.ArgsIterator;
-import suneido.runtime.BuiltinMethods;
-import suneido.runtime.Ops;
-import suneido.runtime.Params;
+import suneido.runtime.*;
 
 /** Used by {@link SuRecord} */
 public class RecordMethods {
@@ -38,6 +35,14 @@ public class RecordMethods {
 			return null;
 		} else
 			return ObjectMethods.delete(self, args);
+	}
+
+	@Params("member, block")
+	public static Object GetDefault(Object self, Object a, Object b) {
+		Object x = ((SuRecord) self).getDef(a, null);
+		if (x != null)
+			return x;
+		return SuCallable.isBlock(b) ? Ops.call(b) : b;
 	}
 
 	@Params("field")

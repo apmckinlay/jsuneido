@@ -194,7 +194,7 @@ public class SuObject extends SuValue
 		return getDefault(at, defval);
 	}
 
-	public synchronized Object getDefault(Object key, Object defval) {
+	private synchronized Object getDefault(Object key, Object defval) {
 		Object x = getIfPresent(key);
 		if (x != null)
 			return x;

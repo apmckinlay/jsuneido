@@ -203,6 +203,10 @@ public class SuRecord extends SuObject {
 
 	@Override
 	public synchronized Object get(Object key) {
+		return getDef(key, defval);
+	}
+
+	public Object getDef(Object key, Object def) {
 		RuleContext.Rule ar = RuleContext.top();
 		if (ar != null && ar.rec == this && !ar.member.equals(key))
 			addDependency(ar.member, key);
@@ -216,7 +220,7 @@ public class SuRecord extends SuObject {
 			if (x != null)
 				result = x;
 			else if (result == null)
-				result = defaultValue(key, defval);
+				result = defaultValue(key, def);
 		}
 		return result;
 	}
