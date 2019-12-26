@@ -52,7 +52,7 @@ class OverlayIndex implements TranIndex {
 		if (! remove(oldkey))
 			return Update.NOT_FOUND;
 		if (! add(newkey, unique))
-			return Update.ADD_FAILED;
+			return Update.ADD_FAILED; // inconsistent state!
 		return Update.OK;
 	}
 

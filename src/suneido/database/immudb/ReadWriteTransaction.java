@@ -124,7 +124,8 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	@Override
 	public void removeRecord(int adr) {
 		DataRecord rec = tran.getrec(adr);
-		removeRecord(rec.tblnum(), rec);
+		int adr2 = removeRecord(rec.tblnum(), rec);
+		assert adr2 == adr;
 	}
 
 	@Override
