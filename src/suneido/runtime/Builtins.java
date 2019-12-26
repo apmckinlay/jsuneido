@@ -59,7 +59,6 @@ public class Builtins {
 			.put("GetCurrentDirectory", function(GetCurrentDirectory.class))
 			.put("GetDiskFreeSpace", function(GetDiskFreeSpace.class))
 			.put("Getenv", function(Getenv.class))
-			.put("GetMacAddress", function(GetMacAddress.class))
 			.put("GetMacAddresses", function(GetMacAddresses.class))
 			.put("GetTempFileName", function(GetTempFileName.class))
 			.put("GetTempPath", function(GetTempPath.class))
