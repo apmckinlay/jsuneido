@@ -8,9 +8,15 @@ import suneido.SuObject;
 import suneido.runtime.Builtins;
 
 public class BuiltinNames {
+	private static final SuObject list = getList();
 
 	public static SuObject BuiltinNames() {
-		return new SuObject(Builtins.builtinNames());
+		return list;
 	}
 
+	private static SuObject getList() {
+		var ob = new SuObject(Builtins.builtinNames());
+		ob.sort(Boolean.FALSE);
+		return ob.setReadonly();
+	}
 }
