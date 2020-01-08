@@ -9,19 +9,20 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
-import suneido.SuObject;
-import suneido.SuException;
-import suneido.util.Util;
-
 import com.google.common.collect.Lists;
 
+import suneido.SuException;
+import suneido.SuObject;
+import suneido.util.Util;
+
 public class GetMacAddresses {
+	private static final SuObject addrs = getMacAddresses();
 
 	public static SuObject GetMacAddresses() {
-		return new SuObject(getMacAddresses());
+		return addrs;
 	}
 
-	private static ArrayList<String> getMacAddresses() {
+	private static SuObject getMacAddresses() {
 		ArrayList<String> list = Lists.newArrayList();
 		try {
 			for (Enumeration<NetworkInterface> e = NetworkInterface.getNetworkInterfaces();
@@ -36,7 +37,6 @@ public class GetMacAddresses {
 		} catch (SocketException e) {
 			throw new SuException("GetMacAddress failed - SocketException", e);
 		}
-		return list;
+		return new SuObject(list).setReadonly();
 	}
-
 }
