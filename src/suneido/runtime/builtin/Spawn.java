@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import suneido.SuException;
 import suneido.runtime.ArgsIterator;
 import suneido.runtime.Ops;
+import suneido.util.Errlog;
 
 public class Spawn {
 	static final int WAIT = 0;
@@ -32,9 +33,10 @@ public class Spawn {
 			ProcessBuilder pb = new ProcessBuilder(args);
 			pb.inheritIO();
 			Process proc = pb.start();
-			return mode == NOWAIT ? 0 : proc.waitFor();
+			return mode == NOWAIT ? (int) proc.pid() : proc.waitFor();
 		} catch (Throwable e) {
-			throw new SuException("Spawn failed", e);
+			Errlog.warn("Spawn: " + e);
+			return -1;
 		}
 	}
 
