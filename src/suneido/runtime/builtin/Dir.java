@@ -13,9 +13,10 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 
-import suneido.SuObject;
 import suneido.SuDate;
 import suneido.SuException;
+import suneido.SuObject;
+import suneido.runtime.BlockFlowException;
 import suneido.runtime.Ops;
 import suneido.runtime.Params;
 import suneido.util.Dnum;
@@ -53,7 +54,13 @@ public class Dir {
 					if (ob.size() > MAXFILES)
 						throw new SuException("Dir: too many files (>" + MAXFILES + ")");
 				} else
+					try {
 					Ops.call(block, value);
+					} catch (BlockFlowException e) {
+						if (e == BlockFlowException.BREAK_EXCEPTION)
+							break;
+						// else continue
+					}
 			}
 		} catch (IOException e) {
 			if (! (e instanceof NoSuchFileException))
