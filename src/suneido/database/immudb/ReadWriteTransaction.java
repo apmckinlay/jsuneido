@@ -237,7 +237,6 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 
 	void abortThrow(String conflict) {
 		conflict = "aborted " + this + " - " + conflict;
-		System.out.println(conflict);
 		abort(conflict);
 		throw new SuException(conflict);
 	}
