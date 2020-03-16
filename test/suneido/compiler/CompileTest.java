@@ -388,11 +388,14 @@ public class CompileTest {
 		test("throw a = b",
 				"&a, b, DUP_X2, AASTORE, throw");
 		test_e("try a()",
-				"try L0 L1 L2, L3, L0, a, call, POP, L1, GOTO L4, L2, POP, L4");
+				"try L0 L1 L2, L3, L0, a, call, POP, L1, GOTO L4, L2, " +
+					"catchMatch, POP, L4");
 		test_e("try a() catch ;",
-				"try L0 L1 L2, L3, L0, a, call, POP, L1, GOTO L4, L2, POP, L4");
+				"try L0 L1 L2, L3, L0, a, call, POP, L1, GOTO L4, L2, " +
+					"catchMatch, POP, L4");
 		test_e("try a() catch b()",
-				"try L0 L1 L2, L3, L0, a, call, POP, L1, GOTO L4, L2, POP, b, call, POP, L4");
+				"try L0 L1 L2, L3, L0, a, call, POP, L1, GOTO L4, L2, " +
+					"catchMatch, POP, b, call, POP, L4");
 		test_e("try a() catch(e) b()",
 				"try L0 L1 L2, L3, L0, a, call, POP, L1, GOTO L4, L2, " +
 					"catchMatch, args, SWAP, 4, SWAP, AASTORE, b, call, POP, L4");

@@ -577,7 +577,7 @@ public class ClassGen {
 			mv.visitMethodInsn(INVOKESTATIC, OPS_INTERNAL_NAME, "catchMatch",
 					"(Ljava/lang/Throwable;Ljava/lang/String;)" + EXCEPT_DESCRIPTOR,
 					false);
-		} else if (var != null)
+		} else
 			mv.visitMethodInsn(INVOKESTATIC, OPS_INTERNAL_NAME, "catchMatch",
 					"(Ljava/lang/Throwable;)" + EXCEPT_DESCRIPTOR, false);
 		if (var == null)
