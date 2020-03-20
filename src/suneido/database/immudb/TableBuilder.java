@@ -129,6 +129,11 @@ public class TableBuilder {
 	}
 
 	public TableBuilder addColumn(String column) {
+		// String orig = column;
+		// for (int i = 1; hasColumn(column); i++) {
+		//	column = orig + "_" + i;
+		//	System.out.println("duplicate column: " + column);
+		// }
 		verify(! hasColumn(column),
 				"add column: column already exists: " + column);
 		boolean isRuleField = isRuleField(column);
