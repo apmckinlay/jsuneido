@@ -282,7 +282,7 @@ public class DbRebuildTest extends TestBase {
 		check(values);
 		Storage dstor = db.dstor;
 //System.out.println("BEFORE ==================================================");
-//((Database) db).dump();
+//db.dump(true);
 		db.check();
 		db.close();
 		Rebuild rebuild = new Rebuild(dstor, null);

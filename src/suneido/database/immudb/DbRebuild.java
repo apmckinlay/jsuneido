@@ -212,6 +212,7 @@ class DbRebuild {
 		int bulkTblnum = 0;
 		int first = 0;
 		int last = 0;
+		private boolean ignore_rest_of_commit = false;
 
 		Proc(Database db, long copiedDataSize, Storage stor, int adrFrom) {
 			super(stor, adrFrom);
@@ -228,6 +229,7 @@ class DbRebuild {
 				ut = new RebuildTransaction(db);
 			else if (type == 'b')
 				bt = db.bulkTransaction();
+			ignore_rest_of_commit = false;
 		}
 
 		@Override
@@ -282,26 +284,25 @@ class DbRebuild {
 			if (type == 'u') {
 				ut.removeRecord(r.tblnum(), r);
 			} else if (type == 's') {
+				if (ignore_rest_of_commit)
+					return;
 				switch (r.tblnum()) {
 				case TN.TABLES:
 					String tablename = r.getString(1);
 					db.dropTable(tablename);
 					int tblnum = r.getInt(0);
 					tblnames.remove(tblnum);
+					ignore_rest_of_commit = true; // ie removing columns/indexes
 					break;
 				case TN.COLUMNS:
 					Column col = new Column(r);
-					if (tblnames.contains(col.tblnum)) {
-						tbEnsure(col.tblnum);
-						tb.dropColumn(col.name);
-					}
+					tbEnsure(col.tblnum);
+					tb.dropColumn(col.name);
 					break;
 				case TN.INDEXES:
 					Index ix = new Index(r);
-					if (tblnames.contains(ix.tblnum)) {
-						tbEnsure(ix.tblnum);
-						tb.dropIndex(ix.colNums);
-					}
+					tbEnsure(ix.tblnum);
+					tb.dropIndex(ix.colNums);
 					break;
 				case TN.VIEWS:
 					db.dropTable(r.getString(0));
