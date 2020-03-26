@@ -53,7 +53,6 @@ public class Builtins {
 			.put("File", SuFile.clazz)
 			.put("FileExists?", function(FileExistsQ.class))
 			.put("Finally", function(Finally.class))
-			.put("Frame", function(Frame.class))
 			.put("Function?", function(FunctionQ.class))
 			.put("GetComputerName", function(GetComputerName.class))
 			.put("GetCurrentDirectory", function(GetCurrentDirectory.class))
