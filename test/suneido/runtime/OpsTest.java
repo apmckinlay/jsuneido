@@ -16,7 +16,6 @@ import static suneido.runtime.Ops.*;
 import static suneido.util.Dnum.Inf;
 import static suneido.util.Dnum.MinusInf;
 import static suneido.util.Dnum.Zero;
-import static suneido.util.Dnum.div;
 
 import org.junit.After;
 import org.junit.Before;
