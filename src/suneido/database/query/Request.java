@@ -196,15 +196,8 @@ public class Request implements RequestGenerator<Object> {
 
 		@Override
 		public String toString() {
-			String s = "";
-			if (key)
-				s = "key";
-			else {
-				if (unique)
-					s = "unique ";
-				s += "index";
-			}
-			return s + columns + in;
+			return (key ? "key" : ((unique ? "unique" : "") + " index")) +
+					columns + in;
 		}
 	}
 
