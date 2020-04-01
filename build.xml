@@ -2,31 +2,19 @@
 
 <project default="build" name="jSuneido Ant build file">
 
-	<property name="lib.dir" value="lib"/>
-
-	<property name="main.srcdir" value="src"/>
-	<property name="main.dstdir.classes" value="target/classes"/>
+	<property name="target.classes" value="target/ant/classes"/>
+	<property name="test.classes" value="target/ant/test-classes"/>
+	<property name="test.output" value="target/ant/test-output"/>
 	<property name="target.jar" value="target/jsuneido.jar"/>
 
 	<path id="main.classpath">
-		<pathelement location="${lib.dir}/asm-6.2.1.jar"/>
-		<pathelement location="${lib.dir}/asm-analysis-6.2.1.jar"/>
-		<pathelement location="${lib.dir}/asm-commons-6.2.1.jar"/>
-		<pathelement location="${lib.dir}/asm-tree-6.2.1.jar"/>
-		<pathelement location="${lib.dir}/asm-util-6.2.1.jar"/>
-		<pathelement location="${lib.dir}/guava-26.0-jre.jar"/>
-		<pathelement location="${lib.dir}/checker-compat-qual-2.3.1.jar"/>
-		<pathelement location="${lib.dir}/jsr305-1.3.9.jar"/>
-		<pathelement location="${lib.dir}/lucene-core-7.4.0.jar"/>
-		<pathelement location="${lib.dir}/lucene-analyzers-common-7.4.0.jar"/>
-		<pathelement location="${lib.dir}/lucene-queryparser-7.4.0.jar"/>
-		<pathelement location="${lib.dir}/lucene-highlighter-7.4.0.jar"/>
-		<pathelement location="${lib.dir}/lucene-memory-7.4.0.jar"/>
-		<pathelement location="${lib.dir}/trove-3.0.3.jar"/>
+		<fileset dir="lib">
+			<include name="**/*.jar" />
+		</fileset>
 	</path>
 
-	<target name="build" description="Build jsuneido.jar"
-		depends="compile">
+	<target name="build" description="Build jsuneido.jar" depends="compile">
+		<echo message="${java.home}" level="info"/>
 		<jar destfile="${target.jar}">
 			<manifest>
 				<attribute name="Main-Class" value="suneido.Suneido" />
@@ -35,13 +23,13 @@
 					<attribute name="When" value="${when}"/>
 				</section>
 			</manifest>
-			<fileset dir="${main.dstdir.classes}">
+			<fileset dir="${target.classes}">
 				<patternset>
 					<include name="**/*.class*"/>
 				</patternset>
 			</fileset>
 			<zipgroupfileset dir="lib" includes="asm-6.2.1.jar,
-				asm-analysis-6.2.1.jar, asm-commons-6.2.1.jar, 
+				asm-analysis-6.2.1.jar, asm-commons-6.2.1.jar,
 				asm-tree-6.2.1.jar, asm-util-6.2.1.jar,
 				guava-26.0-jre.jar, lucene-analyzers-common-7.4.0.jar,
 				lucene-core-7.4.0.jar, lucene-highlighter-7.4.0.jar,
@@ -50,27 +38,61 @@
 		</jar>
 		<copy file="${target.jar}" todir="."/>
 	</target>
-	
+
 	<target name="clean" description="Delete all outputs">
-		<delete dir="target/classes" />
+		<delete dir="target" />
 	</target>
 
-	<target name="rebuild" description="Rebuild all jSuneido JARS"
+	<target name="rebuild" description="clean and build"
 			depends="clean,build"/>
 
-	<target name="compile" depends="dirs">
-		<echo message="${java.home}" level="info"/>
+	<target name="compile">
+        <mkdir dir="${target.classes}"/>
 		<!-- specifying debug="true" without debuglevel
 			should result in -g i.e. all debug info vars,file,line -->
-		<javac srcdir="${main.srcdir}" destdir="${main.dstdir.classes}"
+		<javac srcdir="src" destdir="${target.classes}"
 				classpathref="main.classpath"
 				includeAntRuntime="false"
 				release="13"
 				debug="true"/>
 	</target>
 
-	<target name="dirs">
-		<mkdir dir="${main.dstdir.classes}"/>
+	<path id="test.classpath">
+		<pathelement location="${target.classes}"/>
+		<pathelement location="${test.classes}"/>
+		<fileset dir="lib">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+
+	<target name="compile-tests">
+        <mkdir dir="${test.classes}"/>
+		<!-- specifying debug="true" without debuglevel
+			should result in -g i.e. all debug info vars,file,line -->
+		<javac srcdir="test" destdir="${test.classes}"
+				classpathref="test.classpath"
+				includeAntRuntime="false"
+				release="13"
+				debug="true"/>
+	</target>
+
+	<target name="test" depends="build,compile-tests">
+        <mkdir dir="${test.output}"/>
+		<junit fork="yes" forkmode="once" haltonfailure="yes">
+ 			<formatter type="brief" usefile="no" />
+            <jvmarg line="-ea"/>
+			<classpath refid="test.classpath"/>
+			<batchtest todir="${test.output}">
+				<fileset dir="test">
+					<include name="**/*Test.java" />
+				</fileset>
+			</batchtest>
+		</junit>
+		<delete>
+			<fileset dir=".">
+				<include name="sutmp*" />
+			</fileset>
+		</delete>
 	</target>
 
 </project>
