@@ -63,9 +63,6 @@ public class SuClass extends SuValue implements Showable {
 		if (hasGet_) {
 			if (null != (value = get2("Getter_")))
 				return meval1(self, value, member, "Getter_");
-			// TODO remove after transition from Get_ to Getter_
-			if (null != (value = get2("Get_")))
-				return meval1(self, value, member, "Get_");
 			hasGet_ = false; // avoid future attempts
 		}
 		String name;
@@ -73,7 +70,7 @@ public class SuClass extends SuValue implements Showable {
 			return meval0(self, value, name);
 		// TODO remove after transition from Get_ to Getter_
 		if (null != (value = get2(name = ("Get_" + member).intern())))
-			return meval0(self, value, name);
+			throw new SuException("invalid old style " + name);
 		return null;
 	}
 
