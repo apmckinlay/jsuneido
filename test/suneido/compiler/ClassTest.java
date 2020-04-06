@@ -180,7 +180,7 @@ public class ClassTest {
 	}
 	@Test public void test_static_getter() {
 		def("A", "class { " +
-				"Get_N() { 'getter' }" +
+				"Getter_N() { 'getter' }" +
 				" }");
 		test("A.N", "'getter'");
 		notFound("A.X");
@@ -190,8 +190,8 @@ public class ClassTest {
 		notFound("B.X");
 
 		def("A", "class { " +
-				"Get_N() { 'getter' }" + // will never be used
-				"Get_(m) { 'get ' $ m }" +
+				"Getter_N() { 'getter' }" + // will never be used
+				"Getter_(m) { 'get ' $ m }" +
 				" }");
 		test("A.N", "'get N'");
 		test("A.X", "'get X'");
@@ -204,7 +204,7 @@ public class ClassTest {
 	@Test public void test_instance_getter() {
 		def("A", "class { "
 				+ "New(x) { .X = x } "
-				+ "Get_N() { .X $ ' getter' } "
+				+ "Getter_N() { .X $ ' getter' } "
 				+ "}");
 		test("A(1).N", "'1 getter'");
 		notFound("A(1).Z");
@@ -215,8 +215,8 @@ public class ClassTest {
 
 		def("A", "class { "
 				+ "New(x) { .X = x } "
-				+ "Get_N() { .X $ ' getter' } " // will never be used
-				+ "Get_(m) { .X $ ' get ' $ m } "
+				+ "Getter_N() { .X $ ' getter' } " // will never be used
+				+ "Getter_(m) { .X $ ' get ' $ m } "
 				+ "}");
 		test("A(1).N", "'1 get N'");
 		test("A(1).Z", "'1 get Z'");
