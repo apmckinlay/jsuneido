@@ -56,7 +56,7 @@ public class CommandLineOptionsTest {
 
 	@Test
 	public void two_actions() {
-		assertEquals("ERROR only one action is allowed, cannot have both DUMP and LOAD",
+		assertEquals("ERROR only one action is allowed, can't have both DUMP and LOAD",
 				CommandLineOptions.parse("-dump", "-load").toString());
 	}
 

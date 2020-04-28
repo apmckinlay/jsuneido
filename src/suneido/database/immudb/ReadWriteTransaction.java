@@ -56,7 +56,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	}
 
 	protected int addRecord(int tblnum, DataRecord rec) {
-		check(tblnum, "output");
+		check(tblnum);
 		onlyReads = false;
 		rec.tblnum(tblnum);
 		int adr = indexedData(tblnum).add(rec);
@@ -96,7 +96,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 
 	protected int updateRecord2(int tblnum, DataRecord from, DataRecord to,
 			Blocking blocking) {
-		check(tblnum, "update");
+		check(tblnum);
 		onlyReads = false;
 		to.tblnum(tblnum);
 		int adr = indexedData(tblnum).update(from, to, blocking);
@@ -132,7 +132,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 	public int removeRecord(int tblnum, Record rec) {
 		if (rec.address() == 1)
 			throw new SuException("can't update the same record multiple times");
-		check(tblnum, "delete");
+		check(tblnum);
 		onlyReads = false;
 		int adr = indexedData(tblnum).remove(rec);
 		callTrigger(ck_getTable(tblnum), rec, null);
@@ -147,18 +147,18 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 			removeRecord(iter.keyadr());
 	}
 
-	private void check(int tblnum, String op) {
-		checkNotEnded(op);
-		checkNotSystemTable(tblnum, op);
+	private void check(int tblnum) {
+		checkNotEnded();
+		checkNotSystemTable(tblnum);
 	}
-	private void checkNotEnded(String op) {
+	private void checkNotEnded() {
 		if (ended)
-			throw new SuException("can't " + op + " ended transaction" +
+			throw new SuException("can't use ended transaction" +
 					(conflict == null ? "" : " (" + conflict + ")"));
 	}
-	protected void checkNotSystemTable(int tblnum, String op) {
+	protected void checkNotSystemTable(int tblnum) {
 		if (tblnum <= TN.VIEWS)
-			throw new SuException("can't " + op + " system table ");
+			throw new SuException("can't modify system table ");
 	}
 
 	// -------------------------------------------------------------------------

@@ -270,7 +270,7 @@ public class StringMethods extends BuiltinMethods {
 			// NOTE: A Buffer can be modified during iteration, in the sense
 			//       that the contents of the buffer can be overwritten with
 			//       other data. However, the *length* of any character sequence
-			//       cannot change once the object is created.
+			//       can't change once the object is created.
 			return iter.index < iter.length
 					? Character.toString(iter.seq.charAt(iter.index++)) : self;
 		}

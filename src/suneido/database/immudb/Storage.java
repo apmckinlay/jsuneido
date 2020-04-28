@@ -19,7 +19,7 @@ import com.google.common.primitives.UnsignedInts;
  * <li>derived classes must set storSize
  * <li>data is aligned to multiples of ALIGN (8)
  * <li>maximum allocation is CHUNK_SIZE
- * <li>allocations cannot straddle chunks and will be bumped to next chunk
+ * <li>allocations can't straddle chunks and will be bumped to next chunk
  * <li>long offsets are divided by ALIGN and passed as int "addresses" (adr),
  * 		to reduce the space to store them.
  *		Addresses are really unsigned ints, but we use int since that's all Java has.

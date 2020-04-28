@@ -406,7 +406,7 @@ public class DbmsClient extends Dbms {
 		@Override
 		public HeaderAndRow get(Dir dir, String query, boolean one) {
 			if (isEnded)
-				throw new SuException("cannot use a completed Transaction");
+				throw new SuException("can't use ended Transaction");
 			send(GET1, one ? '1' : (dir == Dir.PREV ? '-' : '+'), tn, query);
 			return rowResult(true);
 		}

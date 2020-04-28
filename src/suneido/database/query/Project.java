@@ -55,7 +55,7 @@ public class Project extends Query1 {
 				: withoutDups(args);
 		for (var a : flds)
 			if (a.endsWith("_lower!"))
-				throw new SuException("cannot project _lower! fields");
+				throw new SuException("can't project _lower! fields");
 
 		if (hasKey(source, flds)) {
 			strategy = Strategy.COPY;

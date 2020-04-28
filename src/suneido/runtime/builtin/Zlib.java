@@ -24,7 +24,7 @@ public class Zlib extends BuiltinClass {
 
 	@Override
 	protected Object newInstance(Object... args) {
-		throw new SuException("cannot create instances of Zlib");
+		throw new SuException("can't create instances of Zlib");
 	}
 
 	@Params("string")

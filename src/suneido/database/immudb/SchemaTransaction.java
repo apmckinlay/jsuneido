@@ -22,7 +22,7 @@ class SchemaTransaction extends UpdateTransaction {
 
 	/** allow modifying system tables */
 	@Override
-	protected void checkNotSystemTable(int tblnum, String op) {
+	protected void checkNotSystemTable(int tblnum) {
 	}
 
 	void addTableInfo(TableInfo ti) {

@@ -22,7 +22,7 @@ import com.google.common.collect.Lists;
  * Usage is to call put methods followed by write.
  * <p>
  * Assumes strict request/response.
- * Reading and writing cannot overlap since a single buffer is used for both.
+ * Reading and writing can't overlap since a single buffer is used for both.
  * i.e. Must finish receiving request before starting to send response.
  * Does NOT handle pipelining or multiplexing.
  */

@@ -105,7 +105,7 @@ public class SuQuery extends SuValue {
 		if (eof == dir)
 			return Boolean.FALSE;
 		if (t.isEnded())
-			throw new SuException("cannot use a completed Transaction");
+			throw new SuException("can't use ended Transaction");
 		Row row = q.get(dir);
 		eof = (row == null) ? dir : null;
 		return (row == null) ? Boolean.FALSE : new SuRecord(row, q.header(), t);

@@ -4,8 +4,8 @@
 
 package suneido.runtime.builtin;
 
-import suneido.SuObject;
 import suneido.SuException;
+import suneido.SuObject;
 import suneido.TheDbms;
 import suneido.runtime.*;
 import suneido.util.Dnum;
@@ -20,7 +20,7 @@ public class Database extends BuiltinClass {
 
 	@Override
 	protected Object newInstance(Object... args) {
-		throw new SuException("cannot create instances of Database");
+		throw new SuException("can't create instances of Database");
 	}
 
 	private static final FunctionSpec requestFS = new FunctionSpec("request");

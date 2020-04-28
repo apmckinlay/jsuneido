@@ -106,7 +106,7 @@ public class SuException extends RuntimeException {
 			boolean isSuneidoRethrown, boolean wantCallstack) {
 		super(makeMessage(message, cause, isSuneidoRethrown), cause);
 		if (isSuneidoRethrown) {
-			assert null != cause : "Cause cannot be null if this is a rethrown exception";
+			assert null != cause : "Cause can't be null if this is a rethrown exception";
 			assert wantCallstack : "All rethrown exceptions must have callstacks";
 		} else if (wantCallstack) {
 			super.fillInStackTrace();

@@ -28,7 +28,7 @@ public final class Ops {
 		if (x == y)
 			return true;
 
-		/* NOTE: cannot compare hashCode's for inequality
+		/* NOTE: can't compare hashCode's for inequality
 		 * because Suneido can compare different types as equal
 		 * for example String and Concat or Integer and Dnum */
 

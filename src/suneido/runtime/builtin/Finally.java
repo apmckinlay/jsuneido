@@ -7,7 +7,7 @@ package suneido.runtime.builtin;
 import suneido.runtime.Ops;
 import suneido.runtime.Params;
 
-// needed because Suneido code cannot catch block return
+// needed because Suneido code can't catch block return
 public class Finally {
 
 	@Params("main_block, final_block")

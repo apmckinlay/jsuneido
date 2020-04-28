@@ -7,8 +7,8 @@ package suneido.runtime.builtin;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import suneido.SuObject;
 import suneido.SuException;
+import suneido.SuObject;
 import suneido.Suneido;
 import suneido.TheDbms;
 import suneido.runtime.*;
@@ -25,7 +25,7 @@ public class SuThread extends BuiltinClass {
 
 	@Override
 	protected Object newInstance(Object... args) {
-		throw new SuException("cannot create instances of Thread");
+		throw new SuException("can't create instances of Thread");
 	}
 
 	private static final FunctionSpec callableFS = new FunctionSpec("block");

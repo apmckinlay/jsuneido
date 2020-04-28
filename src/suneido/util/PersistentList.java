@@ -11,8 +11,6 @@ import java.util.AbstractSequentialList;
 import java.util.Iterator;
 import java.util.ListIterator;
 
-import suneido.util.Immutable;
-
 /**
  * A persistent immutable single linked list class.
  */
@@ -190,7 +188,7 @@ public class PersistentList<T> extends AbstractSequentialList<T> {
 		}
 
 		/**
-		 * The Builder cannot be used after calling build()
+		 * The Builder can't be used after calling build()
 		 * @return The list
 		 */
 		public PersistentList<T> build() {

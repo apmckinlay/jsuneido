@@ -26,8 +26,8 @@ import org.apache.lucene.search.highlight.TextFragment;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
-import suneido.SuObject;
 import suneido.SuException;
+import suneido.SuObject;
 import suneido.SuValue;
 import suneido.runtime.BuiltinClass;
 import suneido.runtime.BuiltinMethods;
@@ -61,7 +61,7 @@ public class Lucene extends BuiltinClass {
 
 	@Override
 	protected Object newInstance(Object... args) {
-		throw new SuException("cannot create instances of Lucene");
+		throw new SuException("can't create instances of Lucene");
 	}
 
 	@Params("dir")

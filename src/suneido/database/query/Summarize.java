@@ -63,7 +63,7 @@ public class Summarize extends Query1 {
 	private static void check(List<String> cols) {
 		for (var c : cols)
 			if (c != null && c.endsWith("_lower!"))
-				throw new SuException("cannot summarize _lower! fields");
+				throw new SuException("can't summarize _lower! fields");
 	}
 
 	private boolean minmax1() {

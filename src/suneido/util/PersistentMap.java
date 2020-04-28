@@ -11,8 +11,6 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import suneido.util.Immutable;
-
 /**
  * A persistent immutable map.<p>
  * Uses hashCode and equals on keys.<p>
@@ -359,7 +357,7 @@ public abstract class PersistentMap<K, V> {
 		}
 
 		/**
-		 * The Builder cannot be used after calling build()
+		 * The Builder can't be used after calling build()
 		 * @return The working map, which may contain some unused space, but
 		 *         doesn't require copying.
 		 */

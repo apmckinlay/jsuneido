@@ -9,7 +9,7 @@ package suneido;
  * because {@link Bootstrap} does its own command line option handling.
  */
 
-public class CommandLineOptions { 
+public class CommandLineOptions {
 	private static final int DEFAULT_PORT = 3147;
 	private final String[] args;
 	private int arg_i = 0;
@@ -135,7 +135,7 @@ public class CommandLineOptions {
 		if (this.action == null)
 			this.action = action;
 		else {
-			error("only one action is allowed, cannot have both " + this.action
+			error("only one action is allowed, can't have both " + this.action
 					+ " and " + action);
 		}
 	}

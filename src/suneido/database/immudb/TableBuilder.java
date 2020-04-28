@@ -250,7 +250,7 @@ public class TableBuilder {
 		int i = 0;
 		for (String c : splitter.split(s)) {
 			int cn = colNum(c);
-			verify(cn != -1, "cannot index rule field " + c);
+			verify(cn != -1, "can't index rule field " + c);
 			cols[i++] = cn;
 		}
 		return cols;

@@ -56,7 +56,7 @@ public class SocketServer extends SuClass {
 
 	@Override
 	protected Object newInstance(Object... args) {
-		throw new SuException("cannot create instances of SocketServer");
+		throw new SuException("can't create instances of SocketServer");
 	}
 
 	private static class Info {

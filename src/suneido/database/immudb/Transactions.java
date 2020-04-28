@@ -9,13 +9,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import suneido.util.ThreadSafe;
-
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 import suneido.SuException;
 import suneido.util.Errlog;
+import suneido.util.ThreadSafe;
 
 /**
  * Manages transactions.
@@ -84,7 +83,7 @@ class Transactions {
 		if ((t instanceof BulkTransaction)
 				? ! utrans.isEmpty()
 				: utrans.size() != 1 || utrans.first() != t)
-			throw new SuException("cannot make transaction exclusive");
+			throw new SuException("can't make transaction exclusive");
 		exclusive = true;
 	}
 
