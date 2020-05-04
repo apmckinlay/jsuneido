@@ -55,6 +55,7 @@ public class ContextLayered extends Context {
 				// needed inside loop for overloading references
 				set(name, result);
 			} catch (Exception e) {
+				set(name, null);
 				throw new SuException("error loading " + name, e);
 			}
 		}
