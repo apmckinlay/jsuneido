@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" output="target/eclipse/classes" path="src"/>
-	<classpathentry kind="src" output="target/eclipse/test-classes" path="test"/>
+	<classpathentry kind="src" output="target/eclipse/test-classes" path="test">
+		<attributes>
+			<attribute name="test" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="lib" path="lib/jsr305-1.3.9.jar"/>
 	<classpathentry kind="lib" path="lib/trove-3.0.3.jar" sourcepath="lib/trove-3.0.3-src.jar">
 		<attributes>
@@ -84,5 +88,5 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="output" path="target"/>
+	<classpathentry kind="output" path="target/eclipse"/>
 </classpath>
