@@ -40,7 +40,7 @@
 	</target>
 
 	<target name="clean" description="Delete all outputs">
-		<delete dir="target" />
+		<delete dir="target/ant" />
 	</target>
 
 	<target name="rebuild" description="clean and build"
