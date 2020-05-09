@@ -38,7 +38,13 @@ public class DbmsLocal extends Dbms {
 
 	@Override
 	public DbmsTran transaction(boolean readwrite) {
-		Transaction t = readwrite ? db.updateTransaction() : db.readTransaction();
+		// temporary work around for Eclipse bug, revert when Eclipse fixed
+		Transaction t;
+		if (readwrite)
+		    t = db.updateTransaction();
+		else
+		    t = db.readTransaction();
+		// Transaction t = readwrite ? db.updateTransaction() : db.readTransaction();
 		return new DbmsTranLocal(t);
 	}
 
