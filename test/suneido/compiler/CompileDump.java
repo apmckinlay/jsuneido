@@ -5,7 +5,6 @@
 package suneido.compiler;
 
 import suneido.SuException;
-import suneido.compiler.Compiler;
 import suneido.database.immudb.Record;
 
 public class CompileDump implements DumpReader.Processor {

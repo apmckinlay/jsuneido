@@ -3,8 +3,6 @@ package suneido.util;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
-import suneido.util.ThreadSafe;
-
 /**
  * Demonstration of delta day calculations.
  * http://www.xmission.com/~goodhill/dates/deltaDates.html

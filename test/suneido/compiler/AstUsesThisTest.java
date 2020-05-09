@@ -8,10 +8,6 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import suneido.compiler.AstNode;
-import suneido.compiler.AstUsesThis;
-import suneido.compiler.Compiler;
-
 public class AstUsesThisTest {
 
 	@Test

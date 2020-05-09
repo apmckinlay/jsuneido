@@ -17,9 +17,6 @@ import org.junit.Test;
 import suneido.SuObject;
 import suneido.SuRecord;
 import suneido.SuValue;
-import suneido.runtime.Args;
-import suneido.runtime.FunctionSpec;
-import suneido.runtime.Numbers;
 
 public class ArgsTest {
 

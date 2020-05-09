@@ -8,8 +8,6 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import suneido.database.immudb.Record;
-
 public class HistoryIteratorTest extends TestBase {
 
 	@Test
@@ -46,7 +44,7 @@ public class HistoryIteratorTest extends TestBase {
 		Transaction t = db.readTransaction();
 		int tblnum = t.getTable(tablename).num();
 		// forward
-		HistoryIterator iter = new HistoryIterator(((Database) db).dstor, tblnum);
+		HistoryIterator iter = new HistoryIterator(db.dstor, tblnum);
 		for (String expect : expected) {
 			Record[] x = iter.getNext();
 			//System.out.println(x[0].get(1) + " " + x[1].get(fld));
@@ -55,7 +53,7 @@ public class HistoryIteratorTest extends TestBase {
 		assert iter.getNext() == null;
 
 		// reverse
-		iter = new HistoryIterator(((Database) db).dstor, tblnum);
+		iter = new HistoryIterator(db.dstor, tblnum);
 		for (int i = expected.length - 1; i >= 0; --i) {
 			String expect = expected[i];
 			Record[] x = iter.getPrev();

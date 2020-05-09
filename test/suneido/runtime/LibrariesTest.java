@@ -10,7 +10,6 @@ import org.junit.Test;
 
 import suneido.Suneido;
 import suneido.compiler.Compiler;
-import suneido.runtime.Ops;
 
 public class LibrariesTest {
 

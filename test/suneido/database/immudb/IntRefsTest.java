@@ -8,8 +8,6 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import suneido.database.immudb.IntRefs;
-
 public class IntRefsTest {
 
 	@Test

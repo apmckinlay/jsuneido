@@ -6,8 +6,6 @@ package suneido.util;
 
 import java.util.ArrayList;
 
-import suneido.util.NotThreadSafe;
-
 import com.google.common.collect.Lists;
 
 /**

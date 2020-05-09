@@ -6,14 +6,8 @@ package suneido.compiler;
 
 import org.junit.Test;
 
-import suneido.compiler.AstGenerator;
-import suneido.compiler.AstNode;
-import suneido.compiler.Generator;
-import suneido.compiler.Lexer;
-import suneido.compiler.ParseFunction;
-
 public class ParseFunctionTest {
-	
+
 	@Test
 	public void if_comment() {
 		parse("if 1 < 2\nPrint(12)");
@@ -33,5 +27,5 @@ public class ParseFunctionTest {
 				new ParseFunction<AstNode, Generator<AstNode>>(lexer, generator);
 		pc.parse();
 	}
-	
+
 }

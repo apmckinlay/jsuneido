@@ -7,8 +7,6 @@ package suneido.util;
 import java.nio.ByteBuffer;
 import java.util.zip.Adler32;
 
-import suneido.util.ThreadSafe;
-
 @ThreadSafe
 public class Checksum {
 	private final Adler32 cksum = new Adler32();

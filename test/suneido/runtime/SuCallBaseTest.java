@@ -8,11 +8,6 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import suneido.runtime.Args;
-import suneido.runtime.FunctionSpec;
-import suneido.runtime.Ops;
-import suneido.runtime.SuCallBase;
-
 public class SuCallBaseTest {
 
 	@Test
