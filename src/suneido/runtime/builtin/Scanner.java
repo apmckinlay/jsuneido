@@ -49,10 +49,6 @@ public class Scanner extends SuValue implements Iterable<String>, Iterator<Strin
 		return ((Scanner) self).type2();
 	}
 
-	public static Object Type2(Object self) {
-		return ((Scanner) self).type2();
-	}
-
 	public static Object Text(Object self) {
 		return ((Scanner) self).lexer.matched();
 	}
