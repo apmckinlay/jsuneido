@@ -101,6 +101,8 @@ public class Scanner extends SuValue implements Iterable<String>, Iterator<Strin
 	}
 
 	private String type2() {
+		if (token == null)
+			return "";
 		switch (token) {
 		case ERROR:
 			return "ERROR";
