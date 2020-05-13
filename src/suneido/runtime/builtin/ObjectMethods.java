@@ -227,12 +227,6 @@ public final class ObjectMethods {
 		return sb.toString();
 	}
 
-	//TODO remove once everyone has switched to BinarySearch
-	@Params("value, block=false")
-	public static Object LowerBound(Object self, Object a, Object b) {
-		return toObject(self).binarySearch(a, b);
-	}
-
 	@Params("key")
 	public static Object MemberQ(Object self, Object a) {
 		return toObject(self).containsKey(a);
