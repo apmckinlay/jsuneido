@@ -83,7 +83,7 @@ public class NumberMethods extends BuiltinMethods {
 					++after;
 				break;
 			}
-		if (n.exp() > before)
+		if (before + after == 0 || n.exp() > before)
 			return "#"; // too big to fit in mask
 
 		n = n.round(after);
