@@ -520,6 +520,16 @@ public class SuObject extends SuValue
 		map.clear();
 	}
 
+	public synchronized Object popFirst() {
+		checkReadonly();
+		return vec.isEmpty() ? null : vec.remove(0);
+	}
+
+	public synchronized Object popLast() {
+		checkReadonly();
+		return vec.isEmpty() ? null : vec.remove(vec.size() - 1);
+	}
+
 	public synchronized int vecSize() {
 		return vec.size();
 	}

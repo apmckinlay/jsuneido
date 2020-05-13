@@ -158,6 +158,18 @@ public final class ObjectMethods {
 		throw new SuException("usage: object.Erase(member ...)");
 	}
 
+	// built=in so atomic
+	public static Object PopFirst(Object self) {
+		Object x = toObject(self).popFirst();
+		return x == null ? self : x;
+	}
+
+	// built-in so atomic
+	public static Object PopLast(Object self) {
+		Object x = toObject(self).popLast();
+		return x == null ? self : x;
+	}
+
 	// also called by SuInstance and SuClass
 	public static Object Eval(Object self, Object... args) {
 		return evaluate(self, args);
