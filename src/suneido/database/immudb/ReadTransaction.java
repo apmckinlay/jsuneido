@@ -43,7 +43,7 @@ class ReadTransaction extends Transaction {
 		dbinfo = dbstate.dbinfo;
 		tran = new Tran(db.dstor, db.istor);
 		trans = db.trans;
-		trans.add(this);
+		trans.addReadTran(this);
 	}
 
 	Set<ForeignKeyTarget> getForeignKeys(String tableName, String colNames) {

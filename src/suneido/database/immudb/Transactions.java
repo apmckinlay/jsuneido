@@ -61,22 +61,19 @@ class Transactions {
 		assert overlapping.isEmpty() : "overlapping " + overlapping;
 	}
 
-	synchronized void add(Transaction t) {
-		limitTrans();
+	synchronized void addReadTran(ReadTransaction t) {
+		if (trans.size() >= MAX_ACTIVE)
+			throw new SuException("too many active transactions");
 		trans.add(t);
 	}
 
 	synchronized void addUpdateTran(UpdateTransaction t) {
 		if (exclusive)
-			throw new SuException("blocked by exclusive transaction");
-		limitTrans();
+			t.abortThrow("blocked by exclusive transaction");
+		if (trans.size() >= MAX_ACTIVE)
+			t.abortThrow("too many active transactions");
 		assert t.asof() > 0;
 		utrans.add(t);
-	}
-
-	private void limitTrans() {
-		if (trans.size() >= MAX_ACTIVE)
-			throw new SuException("too many active transactions");
 	}
 
 	synchronized void setExclusive(Transaction t) {
