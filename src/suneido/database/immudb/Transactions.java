@@ -72,7 +72,6 @@ class Transactions {
 			t.abortThrow("blocked by exclusive transaction");
 		if (trans.size() >= MAX_ACTIVE)
 			t.abortThrow("too many active transactions");
-		assert t.asof() > 0;
 		utrans.add(t);
 	}
 
