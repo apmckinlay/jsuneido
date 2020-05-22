@@ -152,6 +152,8 @@ public class DbTools {
 		String tempfile = arg.substring(i + SEPARATOR.length());
 		try (Database srcdb = Dbpkg.openReadonly(dbFilename);
 				Database dstdb = Dbpkg.create(tempfile)) {
+			if (srcdb == null)
+				throw new RuntimeException("open failed");
 			System.out.printf("size before: %,d%n", srcdb.size());
 			System.out.println("Compacting...");
 			Stopwatch sw = Stopwatch.createStarted();
