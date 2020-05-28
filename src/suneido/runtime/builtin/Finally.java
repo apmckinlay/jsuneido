@@ -12,18 +12,19 @@ public class Finally {
 
 	@Params("main_block, final_block")
 	public static Object Finally(Object main, Object fin) {
+		Object result;
 		try {
-			Object result = Ops.call0(main);
-			Ops.call0(fin); // could throw
-			return result;
-		} catch (Throwable e) {
+			result = Ops.call0(main);
+		} catch (Throwable e1) {
 			try {
 				Ops.call0(fin);
 			} catch (Throwable e2) {
-				// ignore exception from final_block if main_block threw
+				// ignore exception in final block if exception in main block
 			}
-			throw e;
+			throw e1;
 		}
+		Ops.call0(fin);
+		return result;
 	}
 
 }
