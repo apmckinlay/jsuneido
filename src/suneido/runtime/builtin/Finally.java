@@ -10,7 +10,7 @@ import suneido.runtime.Params;
 // needed because Suneido code can't catch block return
 public class Finally {
 
-	@Params("main_block, final_block")
+	@Params("main, final")
 	public static Object Finally(Object main, Object fin) {
 		Object result;
 		try {
