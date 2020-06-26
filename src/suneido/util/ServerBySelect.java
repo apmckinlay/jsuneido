@@ -83,6 +83,8 @@ public class ServerBySelect {
 					handleSelected();
 				closeIdleConnections();
 			} catch (Throwable e) {
+				if (e.toString().contains("error writing hello"))
+					continue;
 				Errlog.error("error in server loop", e);
 				if (++errorCount > 100)
 					Errlog.fatal("ServerBySelect too many errors");
