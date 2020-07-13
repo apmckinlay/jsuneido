@@ -516,7 +516,7 @@ public class Select extends Query1 {
 
 	public float iselsize(List<String> index, List<Iselect> iselects) {
 
-		// BUG still calling rangefrac for exact match on key
+		// TODO don't call rangefrac for exact match on key
 
 		// first check for matching a known number of records
 		if (keys().contains(index) && index.size() == iselects.size()) {
