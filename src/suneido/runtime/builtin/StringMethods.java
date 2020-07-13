@@ -323,8 +323,10 @@ public class StringMethods extends BuiltinMethods {
 			return Boolean.FALSE;
 		SuObject ob = new SuObject();
 		for (int i = 0; i <= result.groupCount(); ++i) {
-			int start = result.pos[i];
-			ob.add(SuObject.of(start, result.end[i] - start));
+			if (result.end[i] != -1) {
+				int start = result.pos[i];
+				ob.put(i, SuObject.of(start, result.end[i] - start));
+			}
 		}
 		return ob;
 	}

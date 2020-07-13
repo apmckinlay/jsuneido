@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.google.common.base.CharMatcher;
-import com.google.common.primitives.Ints;
 
 import gnu.trove.list.array.TIntArrayList;
 
@@ -99,8 +98,10 @@ public class Regex {
 		public final int[] end = new int[MAX_RESULTS];
 
 		public int groupCount() {
-			int n = Ints.indexOf(end, -1);
-			return n == -1 ? 9 : n - 1;
+			int i = MAX_RESULTS - 1;
+			for (; i >= 0 && end[i] == -1; i--) {
+			}
+			return i; // don't count slot 0
 		}
 
 		public String group(String s, int i) {
