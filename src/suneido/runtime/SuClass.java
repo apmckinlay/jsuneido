@@ -68,9 +68,6 @@ public class SuClass extends SuValue implements Showable {
 		String name;
 		if (null != (value = get2(name = ("Getter_" + member).intern())))
 			return meval0(self, value, name);
-		// TODO remove after transition from Get_ to Getter_
-		if (null != (value = get2(name = ("Get_" + member).intern())))
-			throw new SuException("invalid old style " + name);
 		return null;
 	}
 
