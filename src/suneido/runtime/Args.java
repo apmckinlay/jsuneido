@@ -8,10 +8,9 @@ import static suneido.runtime.Args.Special.EACH;
 import static suneido.runtime.Args.Special.EACH1;
 import static suneido.runtime.Args.Special.NAMED;
 
-import suneido.util.ThreadSafe;
-
-import suneido.SuObject;
 import suneido.SuException;
+import suneido.SuObject;
+import suneido.util.ThreadSafe;
 
 /**
  * Implements Suneido's argument handling.
@@ -74,6 +73,9 @@ public class Args {
 			else if (args[i] == EACH || args[i] == EACH1) {
 				int start = args[i] == EACH ? 0 : 1;
 				SuObject c = Ops.toObject(args[++i]);
+				if (c == null) {
+					throw new SuException("can't convert " + Ops.typeName(args[i]) + " to Object");
+				}
 				if (c.vecSize() - start > nlocals - li)
 					throw new SuException("too many arguments");
 				for (int j = start; j < c.vecSize(); ++j)
