@@ -12,38 +12,15 @@ import suneido.SuObject;
 import suneido.SuValue;
 
 /**
- * <p>
- * Type of a variable declared in a Suneido {@code catch} clause. Can be treated
- * as a string for backward compatibility.
- * </p>
- *
- * <p>
- * Consider the following Suneido-language code:
- * <pre>    try
- *        f()
- *    catch (e) // internally, e is an instance of Except
- *    {
- *        Print(Display(e.Callstack());
- *    }
- * </p>
- *
- * @author Andrew McKinlay, Victor Schappert
+ * Type of a variable declared in a Suneido {@code catch} clause.
+ * Can be treated as a string for backward compatibility.
  */
 public final class Except extends String2 {
-
-	//
-	// DATA
-	//
-
 	private final String message;
 	private final Throwable throwable;
 
-	//
-	// CONSTRUCTORS
-	//
-
 	public Except(Throwable throwable) {
-		this(translateMsgToSuneido(throwable), throwable);
+		this(throwable.toString(), throwable);
 	}
 
 	public Except(String message, Throwable throwable) {
@@ -52,22 +29,11 @@ public final class Except extends String2 {
 		this.throwable = throwable;
 	}
 
-	//
-	// ACCESSORS
-	//
-
-	/**
-	 * Called by {@link Ops} to get the internal throwable.
-	 *
-	 * @return Throwable object
-	 */
 	Throwable getThrowable() {
 		return throwable;
 	}
 
-	//
-	// ANCESTOR CLASS: SuValue
-	//
+	// SuValue
 
 	@Override
 	public String typeName() {
@@ -80,9 +46,7 @@ public final class Except extends String2 {
 		return f != null ? f : super.lookup(method);
 	}
 
-	//
-	// INTERFACE: CharSequence
-	//
+	// CharSequence
 
 	@Override
 	public char charAt(int index) {
@@ -104,9 +68,7 @@ public final class Except extends String2 {
 		return message;
 	}
 
-	//
 	// BUILT-IN METHODS
-	//
 
 	private static final BuiltinMethods methods = new BuiltinMethods(
 			Except.class);
@@ -145,18 +107,5 @@ public final class Except extends String2 {
 		call.put("fn", x.toString());
 		call.put("locals", new SuObject());
 		return call;
-	}
-	private static String translateMsgToSuneido(Throwable throwable) {
-		// Some Java exceptions have special names in Suneido. This method
-		// converts the Java-style message to a Suneido-style message where
-		// appropriate.
-		if (throwable instanceof StackOverflowError) {
-			return "function call overflow";
-		} else if (throwable instanceof NullPointerException ||
-					throwable instanceof AssertionError) {
-			return throwable.getClass().getName();
-		} else {
-			return throwable.getMessage();
-		}
 	}
 }
