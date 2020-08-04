@@ -150,10 +150,9 @@ public class BlockList {
 			blocks[startBlock + i] = result.blocks[i];
 	}
 
-	// returns max for out of range
 	private int safeget(int i, int lim) {
 		if (i >= lim)
-			return Integer.MAX_VALUE;
+		 	return 0; // not used
 		return get(i);
 	}
 
