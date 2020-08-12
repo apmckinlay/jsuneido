@@ -33,6 +33,7 @@ class DbLoad {
 		}
 	}
 
+	/** used when loading a specified table */
 	static int loadTable(Database db, String tablename, ReadableByteChannel in) {
 		try {
 			verifyFileHeader(in);
