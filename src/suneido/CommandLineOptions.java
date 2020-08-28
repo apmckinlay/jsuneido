@@ -153,7 +153,7 @@ public class CommandLineOptions {
 
 	private String getArg() {
 		String next = arg_i + 1 < args.length ? args[arg_i + 1] : "--";
-		if (!next.startsWith("-") && !next.equals("--")) {
+		if (!next.startsWith("-")) {
 			++arg_i;
 			return next;
 		} else
