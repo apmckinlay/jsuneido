@@ -10,12 +10,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import suneido.SuObject;
 import suneido.SuException;
+import suneido.SuObject;
 import suneido.SuRecord;
 import suneido.compiler.Token;
 import suneido.database.immudb.Transaction;
 import suneido.database.query.expr.*;
+import suneido.runtime.Ops;
 
 @SuppressWarnings("unchecked")
 public class TreeQueryGenerator extends QueryGenerator<Object> {
@@ -242,6 +243,14 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 
 	@Override
 	public Object unaryExpression(Token op, Object expression) {
+		if (expression instanceof Constant) {
+			switch (op) {
+			case ADD:
+				return Constant.valueOf(Ops.uplus(((Constant) expression).value));
+			case SUB:
+				return Constant.valueOf(Ops.uminus(((Constant) expression).value));
+			}
+		}
 		return new UnOp(op, (Expr) expression);
 	}
 
