@@ -67,6 +67,12 @@ public class Database extends BuiltinClass {
 		return 0;
 	}
 
+	@Params("tn")
+	public static Object Transaction(Object self, Object a) {
+		var t = TheDbms.dbms().transaction(Ops.toInt(a));
+		return t == null ? false : new SuTransaction(t);
+	}
+
 	public static Object Transactions(Object self) {
 		return new SuObject(TheDbms.dbms().transactions());
 	}

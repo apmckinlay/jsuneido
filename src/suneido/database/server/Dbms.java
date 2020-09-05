@@ -30,6 +30,9 @@ public abstract class Dbms {
 
 	public abstract DbmsQuery cursor(String s);
 
+	public DbmsTran transaction(int tn) {
+		return null; // overridden by DbmsLocal
+	}
 	public abstract List<Integer> transactions();
 	public abstract SuDate timestamp();
 	public abstract String check();

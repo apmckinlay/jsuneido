@@ -197,6 +197,11 @@ public class DbmsLocal extends Dbms {
 	}
 
 	@Override
+	public DbmsTran transaction(int tn) {
+		return ServerData.forThread().getTransaction(tn);
+	}
+
+	@Override
 	public List<Integer> transactions() {
 		return db.tranlist();
 	}
