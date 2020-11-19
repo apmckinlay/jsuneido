@@ -247,15 +247,11 @@ class UpdateTransaction extends ReadWriteTransaction {
 			Errlog.warn("excessive writes (" + writeCount +
 					") writes (output/update/delete) in one transaction " + this);
 		long secs = stopwatch.elapsed(TimeUnit.SECONDS);
-		if (secs > Transactions.MAX_UPDATE_TRAN_DURATION_SEC/2 &&
+		if (secs > Transactions.MAX_UPDATE_TRAN_DURATION_SEC / 2 &&
 				! (this instanceof SchemaTransaction) &&
 				! (this instanceof RebuildTransaction)) {
-			String msg = "long duration update transaction " + this +
-								" (" + secs + " secs)";
-			if (secs < Transactions.MAX_UPDATE_TRAN_DURATION_SEC + 2)
-				Errlog.warn(msg);
-			else
-				Errlog.error(msg);
+			Errlog.info("long duration update transaction " +
+					this + " (" + secs + " secs)");
 		}
 	}
 
