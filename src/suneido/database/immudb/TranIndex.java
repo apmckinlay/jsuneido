@@ -39,8 +39,6 @@ interface TranIndex {
 
 		BtreeKey cur();
 
-		BtreeKey oldNext();
-
 		void seek(BtreeKey key);
 
 		/**

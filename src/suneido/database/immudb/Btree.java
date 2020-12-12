@@ -536,11 +536,6 @@ class Btree implements TranIndex {
 		}
 
 		@Override
-		public BtreeKey oldNext() {
-			return next;
-		}
-
-		@Override
 		public boolean isIndexModified() {
 			return modified != valid;
 		}
