@@ -378,7 +378,7 @@ public enum Command {
 		@Override
 		public void execute(SuChannel io) {
 			String s = io.getString();
-			dbms().log(s);
+			dbms().log(dbms().sessionid() + " " + s);
 			io.put(true);
 		}
 	},
