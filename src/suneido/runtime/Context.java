@@ -46,7 +46,7 @@ public abstract class Context {
 	 * @return The slot for a name, assigning a new slot for a new name.
 	 */
 	public final synchronized int slotForName(String name) {
-		return nameToSlot.computeIfAbsent(name, (key) -> {
+		return nameToSlot.computeIfAbsent(name, key -> {
 			assert names.size() == values.size();
 			int slot = names.size();
 			names.add(name);

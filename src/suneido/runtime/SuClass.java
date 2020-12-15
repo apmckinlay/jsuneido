@@ -370,7 +370,7 @@ public class SuClass extends SuValue implements Showable {
 		else
 			sb.append(baseGlobal);
 		sb.append("{");
-		var keys = new ArrayList<String>(members.keySet());
+		var keys = new ArrayList<>(members.keySet());
 		Collections.sort(keys);
 		var sep = "";
 		for (var key : keys) {

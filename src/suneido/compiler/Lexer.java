@@ -310,9 +310,7 @@ public class Lexer implements Doesc.Src {
 	private Token whitespace(char c) {
 		Token kind = WHITE;
 		do {
-			if (c == '\n')
-				kind = NEWLINE;
-			else if (c == '\r')
+			if ((c == '\n') || (c == '\r'))
 				kind = NEWLINE;
 			c = charAt(si);
 			if (! Character.isWhitespace(c))

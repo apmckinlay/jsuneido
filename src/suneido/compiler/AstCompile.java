@@ -38,8 +38,6 @@ public class AstCompile {
 	private static final AtomicInteger nextFnId = new AtomicInteger();
 	private int fnId = -1;
 	private final ContextLayered context;
-	@SuppressWarnings("unused")
-	private final SuObject warnings;
 	private final boolean wantLineNumbers;
 
 	public static Object fold(String library, String globalName, String src,
@@ -59,7 +57,6 @@ public class AstCompile {
 				: "library[" + library + "]->" + globalName;
 		this.pw = pw;
 		this.context = context;
-		this.warnings = warnings;
 		this.wantLineNumbers = wantLineNumbers;
 	}
 
@@ -209,9 +206,7 @@ public class AstCompile {
 			List<AstNode> params = ast.first().children;
 			final int nParams = params.size();
 			boolean useArgsArray = false;
-			if (nParams > MAX_DIRECT_ARGS)
-				useArgsArray = true;
-			else if (nParams > 0 && params.get(0).strval().startsWith("@"))
+			if ((nParams > MAX_DIRECT_ARGS) || (nParams > 0 && params.get(0).strval().startsWith("@")))
 				useArgsArray = true;
 			cg.wrapBlockWithClosure(iBlockDef, nParams, useArgsArray);
 		}

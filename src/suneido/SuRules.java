@@ -96,11 +96,9 @@ public class SuRules extends SuObject {
 	}
 
 	private void invalidate(Object field, Object source) {
-		@SuppressWarnings("unused")
-		boolean invalidated = false;
 		for (Dependency d : dependencies.get(field))
 			if (d.field.equals(source) && ! d.invalidated)
-				invalidated = d.invalidated = true;
+				d.invalidated = true;
 //		if (invalidated)
 			invalidate1(field);
 	}

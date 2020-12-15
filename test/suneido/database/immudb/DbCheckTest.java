@@ -29,7 +29,7 @@ public class DbCheckTest extends TestBase {
 		t.getIndex(5, 1,0).check();
 		t.ck_complete();
 
-		((Database) db).persist();
+		db.persist();
 
 		t = readTransaction();
 		t.getIndex(1, 0).check();

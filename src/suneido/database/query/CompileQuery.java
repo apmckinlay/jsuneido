@@ -47,7 +47,7 @@ public class CompileQuery {
 		lexer.ignoreCase();
 		TreeQueryGenerator generator = new TreeQueryGenerator(tran);
 		ParseQuery<Object, QueryGenerator<Object>> pc =
-				new ParseQuery<Object, QueryGenerator<Object>>(lexer, generator);
+				new ParseQuery<>(lexer, generator);
 		pc.serverData(serverData);
 		return (Query) pc.parse();
 	}
@@ -58,7 +58,7 @@ public class CompileQuery {
 		lexer.ignoreCase();
 		TreeQueryGenerator generator = new TreeQueryGenerator(null);
 		ParseExpression<Object, QueryGenerator<Object>> pc =
-				new ParseExpression<Object, QueryGenerator<Object>>(lexer,
+				new ParseExpression<>(lexer,
 						generator);
 		pc.eq_as_is();
 		return (Expr) pc.parse();

@@ -358,7 +358,7 @@ public class SuObject extends SuValue
 			sb.append(sep).append(Ops.display(x));
 			sep = ", ";
 		}
-		var keys = new ArrayList<Object>(map.keySet());
+		var keys = new ArrayList<>(map.keySet());
 		Collections.sort(keys, Ops::cmp);
 		for (var key : keys) {
 			sb.append(sep);
@@ -828,7 +828,7 @@ public class SuObject extends SuValue
 	}
 
 	public synchronized SuObject subList(int from, int to) {
-		return new SuObject(new ArrayList<Object>(vec.subList(from, to)));
+		return new SuObject(new ArrayList<>(vec.subList(from, to)));
 	}
 
 }

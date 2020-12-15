@@ -29,7 +29,7 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 
 	@Override
 	public Object columns(Object columns, String column) {
-		List<String> list =	columns == null ? new ArrayList<String>()
+		List<String> list =	columns == null ? new ArrayList<>()
 						: (List<String>) columns;
 		list.add(column);
 		return list;
@@ -189,7 +189,7 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 	@Override
 	public Object argumentList(Object listOb, Object keyword, Object expression) {
 		List<Expr> args =
-				listOb == null ? new ArrayList<Expr>() : (List<Expr>) listOb;
+				listOb == null ? new ArrayList<>() : (List<Expr>) listOb;
 		if (keyword != null)
 			throw new SuException(
 					"query expressions don't support keyword arguments");

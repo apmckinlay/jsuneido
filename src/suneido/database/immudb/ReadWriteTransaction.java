@@ -331,7 +331,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 
 	@SuppressWarnings("serial")
 	private static HashingStrategy<IndexInfo> iihash =
-		new HashingStrategy<IndexInfo>() {
+		new HashingStrategy<>() {
 			@Override
 			public int computeHashCode(IndexInfo ii) {
 				return Arrays.hashCode(ii.columns);

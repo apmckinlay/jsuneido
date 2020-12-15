@@ -110,9 +110,9 @@ public class PersistentMapTest {
 
 	@Test
 	public void test_sameHash() {
-		Long k1 = Long.valueOf(1);
-		Long k2 = Long.valueOf(1L << 32);
-		Long k3 = Long.valueOf((2L << 32) + 3L);
+		Long k1 = 1L;
+		Long k2 = 1L << 32;
+		Long k3 = (2L << 32) + 3L;
 		assert k1 != k2 && k2 != k3;
 		assert k1.hashCode() == k2.hashCode();
 		assert k2.hashCode() == k3.hashCode();

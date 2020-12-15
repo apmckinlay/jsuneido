@@ -74,7 +74,7 @@ public final class SuInternalError extends Error {
 	 * @return Unreachable error to throw
 	 * @see #unhandledEnum(Class)
 	 */
-	public static final SuInternalError unreachable() {
+	public static SuInternalError unreachable() {
 		return new SuInternalError("should not reach here");
 	}
 
@@ -86,7 +86,7 @@ public final class SuInternalError extends Error {
 	 * @return Unhandled enumerator error to throw
 	 * @see #unreachable()
 	 */
-	public static final <E extends Enum<E>> SuInternalError unhandledEnum(E e) {
+	public static <E extends Enum<E>> SuInternalError unhandledEnum(E e) {
 		return new SuInternalError("unhandled " + e.getClass().getSimpleName()
 				+ " enumerator in switch: " + e);
 	}

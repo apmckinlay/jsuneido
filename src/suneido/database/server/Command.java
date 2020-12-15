@@ -338,8 +338,8 @@ public enum Command {
 			String name = io.getString();
 			List<LibGet> list = dbms().libget(name);
 			io.put(true).put(list.size());
-			list.forEach((x) -> io.put(x.library).put(x.text.remaining()));
-			list.forEach((x) -> io.putBuffer(x.text));
+			list.forEach(x -> io.put(x.library).put(x.text.remaining()));
+			list.forEach(x -> io.putBuffer(x.text));
 		}
 	},
 	/**

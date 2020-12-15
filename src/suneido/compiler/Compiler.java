@@ -86,7 +86,7 @@ public class Compiler {
 		Lexer lexer = new Lexer(src);
 		AstGenerator generator = new AstGenerator();
 		ParseConstant<AstNode, Generator<AstNode>> pc =
-				new ParseConstant<AstNode, Generator<AstNode>>(lexer, generator);
+				new ParseConstant<>(lexer, generator);
 		return pc.parse(name);
 	}
 

@@ -188,7 +188,7 @@ public class PortTests {
 	}
 
 	public static void main(String[] args) {
-		addTest("ptest", (a) -> a[0].equals(a[1]));
+		addTest("ptest", a -> a[0].equals(a[1]));
 		addTest("tr", TrTest::pt_tr);
 		addTest("regex_match", RegexTest::pt_regex_match);
 		addTest("regex_replace", RegexTest::pt_regex_replace);

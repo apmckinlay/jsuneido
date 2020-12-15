@@ -40,7 +40,7 @@ public class ParseDump implements DumpReader.Processor {
 		Lexer lexer = new Lexer(source);
 		StringGenerator generator = new StringGenerator();
 		ParseConstant<String, Generator<String>> pc =
-				new ParseConstant<String, Generator<String>>(lexer, generator);
+				new ParseConstant<>(lexer, generator);
 		try {
 			pc.parse("test");
 		} catch (RuntimeException e) {

@@ -104,7 +104,7 @@ public class ParseConstantTest {
 		Lexer lexer = new Lexer(code);
 		AstGenerator generator = new AstGenerator();
 		ParseConstant<AstNode, Generator<AstNode>> pc =
-				new ParseConstant<AstNode, Generator<AstNode>>(lexer, generator);
+				new ParseConstant<>(lexer, generator);
 		AstNode ast = pc.parse(null);
 		String actual = ast.toString().replace("\n", " ").replaceAll(" +", " ");
 		actual = actual.replaceAll("Class[0-9]+", "Class#");

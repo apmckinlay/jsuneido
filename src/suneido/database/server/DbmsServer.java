@@ -42,7 +42,7 @@ public class DbmsServer {
 
 	public DbmsServer(int idleTimeoutMin) {
 		server = new ServerBySelect(
-				(SocketChannel c) -> { return new DbmsServerHandler(c, serverDataSet); },
+				(SocketChannel c) -> new DbmsServerHandler(c, serverDataSet),
 				idleTimeoutMin);
 	}
 

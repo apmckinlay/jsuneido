@@ -24,7 +24,7 @@ public class ParseFunctionTest {
 		Lexer lexer = new Lexer("function () {\n" + code + "\n}");
 		AstGenerator generator = new AstGenerator();
 		ParseFunction<AstNode, Generator<AstNode>> pc =
-				new ParseFunction<AstNode, Generator<AstNode>>(lexer, generator);
+				new ParseFunction<>(lexer, generator);
 		pc.parse();
 	}
 

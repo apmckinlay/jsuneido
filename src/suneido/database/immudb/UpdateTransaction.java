@@ -498,7 +498,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 
 	@Override
 	public int readCount() {
-		return reads.values().stream().mapToInt(tr -> tr.readCount()).sum();
+		return reads.values().stream().mapToInt(TransactionReads::readCount).sum();
 	}
 
 	@Override

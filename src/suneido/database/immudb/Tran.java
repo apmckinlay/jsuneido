@@ -21,7 +21,7 @@ import suneido.database.immudb.DbHashTrie.Translator;
 class Tran implements Translator {
 	static final int HEAD_SIZE = 2 * Integer.BYTES; // size and datetime
 	static final int TAIL_SIZE = 2 * Integer.BYTES; // checksum and size
-	{ assert TAIL_SIZE == MmapFile.align(TAIL_SIZE); }
+	{ assert TAIL_SIZE == Storage.align(TAIL_SIZE); }
 	final Storage dstor;
 	final Storage istor;
 	final IntRefs intrefs = new IntRefs();

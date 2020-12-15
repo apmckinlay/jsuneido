@@ -13,7 +13,11 @@ import java.util.Set;
 import com.google.common.collect.Sets;
 
 import suneido.TheDbms;
-import suneido.database.immudb.*;
+import suneido.database.immudb.Database;
+import suneido.database.immudb.Record;
+import suneido.database.immudb.RecordBuilder;
+import suneido.database.immudb.Table;
+import suneido.database.immudb.Transaction;
 import suneido.util.Util;
 
 public class Auth {

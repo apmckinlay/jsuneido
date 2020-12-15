@@ -187,7 +187,7 @@ public class TestGenerator extends Generator<Object> {
 		Lexer lexer = new Lexer(s);
 		TestGenerator generator = new TestGenerator();
 		ParseConstant<Object, Generator<Object>> pc =
-				new ParseConstant<Object, Generator<Object>>(lexer, generator);
+				new ParseConstant<>(lexer, generator);
 		pc.parse("test");
 	}
 

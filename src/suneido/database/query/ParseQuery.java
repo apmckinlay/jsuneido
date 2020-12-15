@@ -143,7 +143,7 @@ public class ParseQuery<T, G extends QueryGenerator<T>> extends Parse<T, G> {
 				Lexer lexer = new Lexer(def);
 				lexer.ignoreCase();
 				ParseQuery<T, QueryGenerator<T>> pc =
-						new ParseQuery<T, QueryGenerator<T>>(lexer, generator);
+						new ParseQuery<>(lexer, generator);
 				pc.serverData(serverData);
 				return pc.parse();
 			} finally {

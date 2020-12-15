@@ -88,7 +88,7 @@ public class ClassGen {
 		this.base = baseClass.getInternalName();
 		this.name = name;
 		this.className = makeInternalName(name);
-		this.locals = locals == null ? new ArrayList<String>() : locals;
+		this.locals = locals == null ? new ArrayList<>() : locals;
 		this.useArgsArray = useArgsArray;
 		this.callableType = callableType;
 		this.parentId = parentId;

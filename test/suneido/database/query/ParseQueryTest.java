@@ -91,7 +91,7 @@ public class ParseQueryTest {
 		lexer.ignoreCase();
 		StringGenerator generator = new StringGenerator();
 		ParseQuery<String, QueryGenerator<String>> pc =
-				new ParseQuery<String, QueryGenerator<String>>(lexer, generator);
+				new ParseQuery<>(lexer, generator);
 		return pc.parse();
 	}
 

@@ -340,7 +340,7 @@ public class Database implements AutoCloseable {
 
 	public List<Integer> tranlist() {
 		if (trans.isLocked())
-			return ImmutableList.of(Integer.valueOf(0));
+			return ImmutableList.of(0);
 		return trans.tranlist();
 	}
 

@@ -44,7 +44,7 @@ public class Request implements RequestGenerator<Object> {
 	@Override
 	public Object columns(Object columns, String column) {
 		List<String> list = columns == null
-				? new ArrayList<String>() : (List<String>) columns;
+				? new ArrayList<>() : (List<String>) columns;
 		list.add(column);
 		return list;
 	}
@@ -210,7 +210,7 @@ public class Request implements RequestGenerator<Object> {
 	@Override
 	public Object indexes(Object indexes, Object index) {
 		List<AnIndex> list = indexes == null
-				? new ArrayList<AnIndex>() : (List<AnIndex>) indexes;
+				? new ArrayList<>() : (List<AnIndex>) indexes;
 		list.add((AnIndex) index);
 		return list;
 	}
@@ -228,7 +228,7 @@ public class Request implements RequestGenerator<Object> {
 	@Override
 	public Object renames(Object renames, String from, String to) {
 		List<Rename> list = renames == null
-				? new ArrayList<Rename>() : (List<Rename>) renames;
+				? new ArrayList<>() : (List<Rename>) renames;
 		list.add(new Rename(from, to));
 		return list;
 	}

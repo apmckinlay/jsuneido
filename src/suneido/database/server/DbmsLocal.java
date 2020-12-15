@@ -29,7 +29,7 @@ import suneido.util.Errlog;
 public class DbmsLocal extends Dbms {
 	private final Database db;
 	private static final List<String> libraries =
-			new CopyOnWriteArrayList<String>(new String[] { "stdlib" });
+			new CopyOnWriteArrayList<>(new String[] { "stdlib" });
 
 	public DbmsLocal(Database db) {
 		this.db = db;

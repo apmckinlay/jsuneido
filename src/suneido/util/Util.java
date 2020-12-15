@@ -154,7 +154,7 @@ public class Util {
 	}
 
 	public static <T> ImmutableSet<T> setUnion(Collection<T> x, Collection<T> y) {
-		Builder<T> builder = new ImmutableSet.Builder<T>();
+		Builder<T> builder = new ImmutableSet.Builder<>();
 		if (x != null)
 			builder.addAll(x);
 		if (y != null)

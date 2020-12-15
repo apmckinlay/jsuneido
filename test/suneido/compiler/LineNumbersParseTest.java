@@ -217,7 +217,7 @@ public class LineNumbersParseTest {
 
 	private static void test(String sourceCode, String expectedPrintout) {
 		Lexer lexer = new Lexer(sourceCode);
-		ParseConstant<AstNode, AstGenerator> parser = new ParseConstant<AstNode, AstGenerator>(
+		ParseConstant<AstNode, AstGenerator> parser = new ParseConstant<>(
 				lexer, new AstGenerator());
 		AstNode ast = parser.constant();
 		String printout = print(ast);

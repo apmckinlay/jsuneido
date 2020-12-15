@@ -43,7 +43,7 @@ public class BufferByteChannel implements ByteChannel {
 	}
 
 	public ByteBuffer getBuffer() {
-		return (ByteBuffer) buf.duplicate().flip();
+		return buf.duplicate().flip();
 	}
 
 	@Override
