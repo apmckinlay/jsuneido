@@ -49,11 +49,10 @@ public class HistoryIterator {
 	 */
 	public Record[] getNext() {
 		while (true) {
-			if (ri + 1 >= rlist.size())
-				if (! nextCommit()) {
-					rewind();
-					return null; // eof
-				}
+			if (ri + 1 >= rlist.size() && ! nextCommit()) {
+				rewind();
+				return null; // eof
+			}
 			int adr = rlist.get(++ri);
 			if (adr == REMOVE) {
 				adr = rlist.get(++ri);

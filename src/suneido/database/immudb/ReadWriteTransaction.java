@@ -316,8 +316,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 				info.add(new IndexInfo(e.getKey().colNums, btree.info()));
 				e = iter.hasNext() ? iter.next() : null;
 			} while (e != null && e.getKey().tblnum == tblnum);
-			for (IndexInfo ii : ti.indexInfo)
-				info.add(ii); // no dups, so only adds ones not already there
+			info.addAll(ti.indexInfo); // no dups, so only adds new ones
 
 			// after each table
 			TableInfoDelta d = tidelta(tblnum);

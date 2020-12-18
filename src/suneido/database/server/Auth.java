@@ -74,7 +74,7 @@ public class Auth {
 	 * where passhash is md5(user + password)
 	 */
 	public static boolean auth(String data) {
-		if (! (isToken(data) || isUser(data)))
+		if (!isToken(data) && !isUser(data))
 			return false;
 		ServerData.forThread().auth = true;
 		return true;

@@ -74,10 +74,11 @@ public class Project extends Query1 {
 
 	@Override
 	public String toString() {
-		String s = source.toString() + " PROJECT" + strategy.name;
+		StringBuilder s = new StringBuilder(source.toString())
+				.append(" PROJECT").append(strategy.name);
 		if (via != null)
-			s += "^" + listToParens(via);
-		return s + " " + listToParens(flds);
+			s.append("^").append(listToParens(via));
+		return s.append(" ").append(listToParens(flds)).toString();
 	}
 
 	private static boolean hasKey(Query source, List<String> flds) {

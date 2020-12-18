@@ -99,10 +99,10 @@ public class ByteBuffers {
 	}
 
 	private static String format(byte b) {
-		String s = String.format("%02x", b);
+		StringBuilder s = new StringBuilder(String.format("%02x", b));
 		if (32 <= b && b <= 126)
-			s += " '" + (char) b + "' ";
-		return s;
+			s.append(" '").append((char) b).append("' ");
+		return s.toString();
 	}
 
 	/** Unsigned byte compare */

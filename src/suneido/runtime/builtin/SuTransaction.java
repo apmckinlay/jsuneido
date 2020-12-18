@@ -44,7 +44,7 @@ public class SuTransaction extends SuValue {
 		if (args[0] == NA)
 			update = Ops.toIntBool(args[1]) == 1;
 		else
-			update = !(Ops.toIntBool(args[0]) == 1);
+			update = Ops.toIntBool(args[0]) != 1;
 		t = TheDbms.dbms().transaction(update);
 	}
 

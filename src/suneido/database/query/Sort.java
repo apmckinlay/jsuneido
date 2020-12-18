@@ -31,14 +31,14 @@ public class Sort extends Query1 {
 
 	@Override
 	public String toString() {
-		String s = source.toString();
+		StringBuilder s = new StringBuilder(source.toString());
 		if (!indexed) {
-			s += " SORT ";
+			s.append(" SORT ");
 			if (reverse)
-				s += "REVERSE ";
-			s += listToCommas(segs);
+				s.append("REVERSE ");
+			s.append(listToCommas(segs));
 		}
-		return s;
+		return s.toString();
 	}
 
 	@Override

@@ -70,17 +70,17 @@ public class BlockList {
 
 	@Override
 	public String toString() {
-		var s = "[";
+		StringBuilder s = new StringBuilder("[");
 		var sep = "";
 		for (int i = 0; i < size(); ++i) {
-			s += sep + get(i);
+			s.append(sep).append(get(i));
 			sep = " ";
 			if (i > 20) {
-				s += "...";
+				s.append("...");
 				break;
 			}
 		}
-		return s + "]";
+		return s.append("]").toString();
 	}
 
 	// --------------------------------------------------------------

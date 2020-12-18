@@ -167,7 +167,7 @@ public class Lexer implements Doesc.Src {
 			return whitespace(c);
 		case '#':
 			c = charAt(si);
-			if (! (c == '_' || Character.isLetter(c)))
+			if (c != '_' && !Character.isLetter(c))
 				return HASH;
 			skipIdentifier();
 			value = srcsub(prev + 1, si);
@@ -240,7 +240,7 @@ public class Lexer implements Doesc.Src {
 		value(null);
 		Token k = ignoreCase
 				? Token.lookupIgnoreCase(value) : Token.lookup(value);
-		if (charAt(si) == ':' && !(k == DEFAULT || k == TRUE || k == FALSE))
+		if (charAt(si) == ':' && k != DEFAULT && k != TRUE && k != FALSE)
 			return IDENTIFIER;
 		keyword = k;
 		return keyword != null && keyword.isOperator()

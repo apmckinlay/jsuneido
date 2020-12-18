@@ -50,14 +50,14 @@ public abstract class Compatible extends Query2 {
 	}
 
 	public String toString(String name, String strategy) {
-		String s = "(" + source + " " + name;
+		StringBuilder s = new StringBuilder("(").append(source).append(" ").append(name);
 		if (disjoint != null)
-			s += "-DISJOINT(" + disjoint + ")";
+			s.append("-DISJOINT(").append(disjoint).append(")");
 		else
-			s += strategy;
+			s.append(strategy);
 		if (ki != null)
-			s += "^" + listToParens(ki);
-		return s + " " + source2 + ")";
+			s.append("^").append(listToParens(ki));
+		return s.append(" ").append(source2).append(")").toString();
 	}
 
 	boolean isdup(Row row) {

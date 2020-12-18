@@ -138,12 +138,12 @@ public class Extend extends Query1 {
 		RecordBuilder rb = new RecordBuilder();
 		for (int i = 0; i < flds.size(); ++i)
 			if (exprs.get(i) != null) {
-//				Row row = new Row(srcrow, rb.build(), Dbpkg.MIN_RECORD);
-				Row row = new Row(srcrow, Dbpkg.MIN_RECORD, rb.build());
+//				Row row = srcrow.with(rb.build(), Dbpkg.MIN_RECORD);
+				Row row = srcrow.with(Dbpkg.MIN_RECORD, rb.build());
 				rb.add(exprs.get(i).eval(hdr, row));
 			}
-//		return new Row(srcrow, rb.build(), Dbpkg.MIN_RECORD);
-		return new Row(srcrow, Dbpkg.MIN_RECORD, rb.build());
+//		return srcrow.with(rb.build(), Dbpkg.MIN_RECORD);
+		return srcrow.with(Dbpkg.MIN_RECORD, rb.build());
 	}
 
 	@Override

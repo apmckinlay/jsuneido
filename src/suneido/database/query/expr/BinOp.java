@@ -38,14 +38,14 @@ public class BinOp extends Expr {
 
 	private void reverse() {
 		Expr tmp = left; left = right; right = tmp;
-		switch (op) {
-		case LT : op = GT; break ;
-		case LTE : op = GTE; break ;
-		case GT : op = LT; break ;
-		case GTE : op = LTE; break ;
-		case IS : case ISNT : break ;
-		default : throw unreachable();
-		}
+		op = switch (op) {
+			case LT -> GT;
+			case LTE -> GTE;
+			case GT -> LT;
+			case GTE -> LTE;
+			case IS, ISNT -> op;
+			default -> throw unreachable();
+		};
 	}
 
 	@Override
@@ -72,29 +72,29 @@ public class BinOp extends Expr {
 	}
 
 	private Object eval2(Object x, Object y) {
-		switch (op) {
-		case IS :	return is(x, y);
-		case ISNT :	return isnt(x, y);
-		case LT :	return cmp(x, y) < 0;
-		case LTE :	return cmp(x, y) <= 0;
-		case GT :	return cmp(x, y) > 0;
-		case GTE :	return cmp(x, y) >= 0;
-		case ADD :	return add(x, y);
-		case SUB :	return sub(x, y);
-		case CAT: 	return cat(x, y);
-		case MUL :	return mul(x, y);
-		case DIV :	return div(x, y);
-		case MOD :	return mod(x, y);
-		case LSHIFT :	return lshift(x, y);
-		case RSHIFT :	return rshift(x, y);
-		case BITAND :	return bitand(x, y);
-		case BITOR :	return bitor(x, y);
-		case BITXOR:	return bitxor(x, y);
-		case MATCH :	return match(x, y);
-		case MATCHNOT : return matchnot(x, y);
-		case SUBSCRIPT :	return get(x, y);
-		default : 	throw unreachable();
-		}
+		return switch (op) {
+			case IS -> is(x, y);
+			case ISNT -> isnt(x, y);
+			case LT -> cmp(x, y) < 0;
+			case LTE -> cmp(x, y) <= 0;
+			case GT -> cmp(x, y) > 0;
+			case GTE -> cmp(x, y) >= 0;
+			case ADD -> add(x, y);
+			case SUB -> sub(x, y);
+			case CAT -> cat(x, y);
+			case MUL -> mul(x, y);
+			case DIV -> div(x, y);
+			case MOD -> mod(x, y);
+			case LSHIFT -> lshift(x, y);
+			case RSHIFT -> rshift(x, y);
+			case BITAND -> bitand(x, y);
+			case BITOR -> bitor(x, y);
+			case BITXOR-> bitxor(x, y);
+			case MATCH -> match(x, y);
+			case MATCHNOT -> matchnot(x, y);
+			case SUBSCRIPT -> get(x, y);
+			default -> throw unreachable();
+		};
 	}
 
 	// override Ops.cmp to make "" < all other values
@@ -134,17 +134,15 @@ public class BinOp extends Expr {
 			ByteBuffer field = row.getraw(hdr, id.ident);
 			Constant c = (Constant) right;
 			ByteBuffer value = c.packed;
-			boolean result;
-			switch (op) {
-			case IS :	result = field.equals(value); break;
-			case ISNT :	result = ! field.equals(value); break;
-			case LT :	result = bufferUcompare(field, value) < 0; break;
-			case LTE :	result = bufferUcompare(field, value) <= 0; break;
-			case GT :	result = bufferUcompare(field, value) > 0; break;
-			case GTE :	result = bufferUcompare(field, value) >= 0; break;
-			default :	throw unreachable();
-			}
-			return result ? Boolean.TRUE : Boolean.FALSE;
+			return switch (op) {
+				case IS -> field.equals(value);
+				case ISNT -> ! field.equals(value);
+				case LT -> bufferUcompare(field, value) < 0;
+				case LTE -> bufferUcompare(field, value) <= 0;
+				case GT -> bufferUcompare(field, value) > 0;
+				case GTE -> bufferUcompare(field, value) >= 0;
+				default -> throw unreachable();
+			};
 		} else
 			return eval2(left.eval(hdr, row), right.eval(hdr, row));
 	}
@@ -170,15 +168,15 @@ public class BinOp extends Expr {
 		if (! isTerm(fields))
 			return false;
 		Constant c = (Constant) right;
-		switch (op) {
-		case IS :	return c != Constant.EMPTY;
-		case ISNT :	return c == Constant.EMPTY;
-		case LT :	return Ops.lte(c.value, "");
-		case LTE :	return Ops.lt(c.value, "");
-		case GT :	return Ops.gte(c.value, "");
-		case GTE :	return Ops.gt(c.value, "");
-		}
-		return false;
+		return switch (op) {
+			case IS -> c != Constant.EMPTY;
+			case ISNT -> c == Constant.EMPTY;
+			case LT -> Ops.lte(c.value, "");
+			case LTE -> Ops.lt(c.value, "");
+			case GT -> Ops.gte(c.value, "");
+			case GTE -> Ops.gt(c.value, "");
+			default -> false;
+		};
 	}
 
 }

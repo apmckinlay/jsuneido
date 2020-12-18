@@ -107,13 +107,13 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 	private String string() {
 		// overhead of StringBuilder not worth it
 		// because usually no concatenation
-		String s = "";
+		String s = lexer.getValue();
 		while (true) {
-			s += lexer.getValue();
 			match(STRING);
 			if (token != CAT || lookAhead() != STRING)
 				break;
 			matchSkipNewlines(CAT);
+			s += lexer.getValue();
 		}
 		return s;
 	}

@@ -5,6 +5,7 @@
 package suneido.util;
 
 import java.math.RoundingMode;
+import java.util.Objects;
 
 import com.google.common.base.Strings;
 
@@ -513,12 +514,7 @@ public class Dnum extends Number implements Comparable<Dnum> {
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + (int) (coef ^ (coef >>> 32));
-		result = prime * result + exp;
-		result = prime * result + sign;
-		return result;
+		return Objects.hash(coef, exp, sign);
 	}
 
 	/** Handles Integer */

@@ -334,10 +334,8 @@ class UpdateTransaction extends ReadWriteTransaction {
 			} else if (IntRefs.isIntRef(act)) {
 				if (! wasDeleted(act))
 					storeAdd(act);
-			} else {
-				if (! newRecord(act))
-					storeRemove(act);
-			}
+			} else if (! newRecord(act))
+				storeRemove(act);
 		}
 	}
 
@@ -363,7 +361,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 			from = updates.get(from);
 		if (updatedAgainLater(updates, from, to))
 			return;
-		else if (newRecord(from)) {
+		if (newRecord(from)) {
 			if (wasDeleted(to))
 				return;
 			else

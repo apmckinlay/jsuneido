@@ -85,7 +85,7 @@ public class TempIndex extends Query1 {
 		}
 		int adr = key.getInt(key.size() - 1);
 		return single
-				? new Row(new Record[] { null, tran.input(adr) })
+				? new Row(null, tran.input(adr))
 				: Row.fromRefs(tran, refs, adr);
 	}
 

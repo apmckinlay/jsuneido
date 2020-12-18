@@ -41,12 +41,6 @@ public class Row {
 		Arrays.fill(data, Dbpkg.MIN_RECORD);
 	}
 
-	public Row(Row row, Record... recs) {
-		this(new Record[row.data.length + recs.length]);
-		System.arraycopy(row.data, 0, data, 0, row.data.length);
-		System.arraycopy(recs, 0, data, row.data.length, recs.length);
-	}
-
 	public Row(Row row1, Row row2) {
 		if (row1 == null)
 			row1 = emptyrow;
@@ -55,6 +49,13 @@ public class Row {
 		data = new Record[row1.data.length + row2.data.length];
 		System.arraycopy(row1.data, 0, data, 0, row1.data.length);
 		System.arraycopy(row2.data, 0, data, row1.data.length, row2.data.length);
+	}
+
+	public Row with(Record... recs) {
+		Record[] newdata = new Record[data.length + recs.length];
+		System.arraycopy(data, 0, newdata, 0, data.length);
+		System.arraycopy(recs, 0, newdata, data.length, recs.length);
+		return new Row(newdata);
 	}
 
 	@Override

@@ -61,11 +61,11 @@ class DbDump {
 	private static void writeTableHeader(WritableByteChannel out, ReadTransaction t,
 			String tablename, boolean outputName) throws IOException {
 		String schema = t.ck_getTable(tablename).schema();
-		String header = "====== ";
+		StringBuilder header = new StringBuilder("====== ");
 		if (outputName)
-			header += tablename + " ";
-		header += schema + "\n";
-		write(out, header);
+			header.append(tablename).append(" ");
+		header.append(schema).append("\n");
+		write(out, header.toString());
 	}
 
 	private static int writeTableData(WritableByteChannel out, ReadTransaction t,

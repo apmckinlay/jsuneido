@@ -236,9 +236,9 @@ public class SuClass extends SuValue implements Showable {
 
 	boolean hasBase(Object base) {
 		if (base == this)
-			return Boolean.TRUE;
+			return true;
 		if (baseGlobal == null)
-			return Boolean.FALSE;
+			return false;
 		return base().hasBase(base);
 	}
 

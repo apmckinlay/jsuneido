@@ -164,8 +164,7 @@ public class Union extends Compatible {
 		var keys = new ArrayList<List<String>>();
 		for (var k1 : source.keys()) {
 			for (var k2 : source2.keys()) {
-				var key = new ArrayList<String>();
-				key.addAll(k1);
+				var key = new ArrayList<>(k1);
 				for (var k : k2)
 					if (!key.contains(k))
 						key.add(k);

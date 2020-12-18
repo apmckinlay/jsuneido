@@ -15,7 +15,7 @@ public class SystemMemory {
 	public static Object SystemMemory() {
 		OperatingSystemMXBean bean =
 				(OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
-		return Dnum.from(bean.getTotalPhysicalMemorySize());
+		return Dnum.from(bean.getTotalMemorySize());
 	}
 
 }

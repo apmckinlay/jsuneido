@@ -135,7 +135,7 @@ public abstract class Query {
 		double cost1 = optimize1(index, needs, firstneeds, is_cursor, false);
 
 		// tempindex
-		double cost2 = IMPOSSIBLE;
+		double cost2;
 		int keysize = index.size() * columnsize() * 2; // *2 for index overhead
 		Set<String> tempindex_needs = setUnion(needs, index);
 		double no_index_cost = optimize1(noFields, tempindex_needs, firstneeds,

@@ -148,22 +148,13 @@ public class Join extends Query2 {
 		if (freeze)
 			src2.optimize(joincols, needs2, noNeeds, is_cursor2, true);
 
-		switch (type) {
-		case ONE_ONE:
-			nrecs = Math.min(nrecs1, nrecs2);
-			break;
-		case N_ONE:
-			nrecs = nrecs2 <= 0 ? 0 : nrecs1;
-			break;
-		case ONE_N:
-			nrecs = nrecs1 <= 0 ? 0 : nrecs2;
-			break;
-		case N_N:
-			nrecs = nrecs1 * nrecs2;
-			break;
-		default:
-			throw unreachable();
-		}
+		nrecs = switch (type) {
+			case ONE_ONE -> Math.min(nrecs1, nrecs2);
+			case N_ONE -> nrecs2 <= 0 ? 0 : nrecs1;
+			case ONE_N -> nrecs1 <= 0 ? 0 : nrecs2;
+			case N_N -> nrecs1 * nrecs2;
+			default -> throw unreachable();
+		};
 		nrecs /= 2; // convert from max to guess of expected PROBABLY TOO LOW
 
 		if (nrecs <= 0)
