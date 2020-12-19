@@ -568,8 +568,7 @@ public class Regex {
 
 		@Override
 		public int omatch(String s, int si) {
-			return (si == 0 || s.charAt(si - 1) == '\r' ||
-					s.charAt(si - 1) == '\n') ? si : FAIL;
+			return (si == 0 || s.charAt(si - 1) == '\n') ? si : FAIL;
 		}
 
 		@Override
@@ -593,7 +592,9 @@ public class Regex {
 		@Override
 		public int omatch(String s, int si) {
 			return (si >= s.length() || s.charAt(si) == '\r' ||
-					s.charAt(si) == '\n') ? si : FAIL;
+					(s.charAt(si) == '\n' &&
+						(si < 1 || s.charAt(si-1) != '\r')))
+					? si : FAIL;
 		}
 
 		@Override
