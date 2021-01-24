@@ -190,7 +190,6 @@ public class ParseQuery<T, G extends QueryGenerator<T>> extends Parse<T, G> {
 		default:
 			return null;
 		}
-
 	}
 
 	private T project(T q) {

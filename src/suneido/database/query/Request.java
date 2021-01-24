@@ -17,7 +17,7 @@ import suneido.database.immudb.TableBuilder;
 import suneido.database.server.ServerData;
 
 /**
- * Parse and execute database "requests" to create, alter, or drop tables.
+ * Execute database "requests" to create, alter, or drop tables.
  */
 @SuppressWarnings("unchecked")
 public class Request implements RequestGenerator<Object> {
