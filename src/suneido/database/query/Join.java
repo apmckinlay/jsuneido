@@ -239,7 +239,7 @@ public class Join extends Query2 {
 
 	@Override
 	List<Fixed> fixed() {
-		return union(source.fixed(), source2.fixed());
+		return Fixed.combine(source.fixed(), source2.fixed());
 	}
 
 	@Override
