@@ -97,7 +97,7 @@ public class Extend extends Query1 {
 			source = e.source;
 			init();
 			return transform();
-			}
+		}
 		return super.transform();
 	}
 
