@@ -41,6 +41,8 @@ public class FixedTest extends TestBase {
 		{ "(test extend f=1, g=2) project a,f,g", "[f=(1), g=(2)]" },
 
 		{ "(test extend f=1) join (test extend f=1, g=2)", "[f=(1), g=(2)]" },
+
+		{ "test extend f=1, g=2 rename g to h", "[f=(1), h=(2)]" },
 	};
 
 	@Test

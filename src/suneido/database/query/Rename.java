@@ -140,6 +140,17 @@ public class Rename extends Query1 {
 		return rename_indexes(source.keys(), from, to);
 	}
 
+	@Override
+	public List<Fixed> fixed() {
+		var fixed = source.fixed();
+		List<Fixed> result = new ArrayList<>(fixed.size());
+		for (Fixed f : fixed) {
+			int j = from.indexOf(f.field);
+			result.add(new Fixed(j == -1 ? f.field : to.get(j), f.values));
+		}
+		return result;
+	}
+
 	// iteration
 	@Override
 	public Header header() {
