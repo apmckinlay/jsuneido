@@ -15,11 +15,13 @@ import java.io.File;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import suneido.database.immudb.Dbpkg.Status;
 import suneido.util.FileUtils;
 
+@Ignore
 public class DbRebuild2Test extends TestBase {
 	protected String filename;
 	protected String outfilename;

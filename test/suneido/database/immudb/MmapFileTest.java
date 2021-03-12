@@ -9,10 +9,12 @@ import static org.junit.Assert.assertEquals;
 import java.io.File;
 import java.nio.ByteBuffer;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import suneido.util.FileUtils;
 
+@Ignore
 public class MmapFileTest {
 
 	@Test(expected = RuntimeException.class)
