@@ -6,9 +6,7 @@ package suneido.database.query;
 
 import static java.util.Collections.disjoint;
 import static suneido.util.Util.*;
-import static suneido.util.Verify.verify;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -77,12 +75,7 @@ public class Product extends Query2 {
 		// keys are all pairs of source keys
 		// there are no columns in common so no keys in common
 		// so there won't be any duplicates in the result
-		List<List<String>> k = new ArrayList<>();
-		for (List<String> k1 : source.keys())
-			for (List<String> k2 : source2.keys())
-				addUnique(k, union(k1, k2));
-		verify(!nil(k));
-		return k;
+		return keypairs();
 	}
 
 	@Override

@@ -5,6 +5,7 @@
 package suneido.database.query;
 
 import static suneido.util.Util.intersect;
+import static suneido.util.Util.nil;
 import static suneido.util.Util.setIntersect;
 import static suneido.util.Util.union;
 
@@ -73,16 +74,18 @@ public class Intersect extends Compatible {
 	@Override
 	public List<List<String>> keys() {
 		List<List<String>> k = intersect(source.keys(), source2.keys());
-		return k == null ? Collections.singletonList(columns()) : k;
+		return nil(k) ? Collections.singletonList(columns()) : k;
 	}
 
 	@Override
 	double nrecords() {
+		if (disjoint != null)
+			return 0;
 		return Math.min(source.nrecords(), source2.nrecords()) / 2;
 	}
 
 	@Override
-	public Header header() {
+	public Header header() { //BUG doesn't match columns ???
 		return source.header();
 	}
 

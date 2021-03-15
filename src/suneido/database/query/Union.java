@@ -160,21 +160,13 @@ public class Union extends Compatible {
 		if (disjoint == null)
 			return asList(allcols);
 
-		var keys = new ArrayList<List<String>>();
-		for (var k1 : source.keys()) {
-			for (var k2 : source2.keys()) {
-				var key = new ArrayList<>(k1);
-				for (var k : k2)
-					if (!key.contains(k))
-						key.add(k);
-				if (!key.contains(disjoint))
-					key.add(disjoint);
-				keys.add(key);
-			}
-		}
+		var keys = keypairs();
+		for (var key : keys)
+			if (!key.contains(disjoint))
+				key.add(disjoint);
 		// exclude any keys that are super-sets of another key
 		var keys2 = new ArrayList<List<String>>();
-		outer:
+	outer:
 		for (int i = 0; i < keys.size(); ++i) {
 			for (int j = 0; j < keys.size(); ++j) {
 				if (i != j && keys.get(i).containsAll(keys.get(j)))
@@ -212,7 +204,14 @@ public class Union extends Compatible {
 
 	@Override
 	public double nrecords() {
-		return (source.nrecords() + source2.nrecords()) / 2;
+		var n1 = source.nrecords();
+		var n2 = source2.nrecords();
+		if (disjoint != null) {
+			return n1 + n2;
+		}
+		var min = Math.max(n1, n2); // smaller could be all duplicates
+		var max = n1 + n2; // could be no duplicates
+		return (min + max) / 2; // guess half way between
 	}
 
 	@Override

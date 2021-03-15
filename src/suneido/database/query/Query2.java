@@ -4,6 +4,14 @@
 
 package suneido.database.query;
 
+import static suneido.util.Util.addUnique;
+import static suneido.util.Util.nil;
+import static suneido.util.Util.union;
+import static suneido.util.Verify.verify;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import suneido.database.immudb.Transaction;
 
 public abstract class Query2 extends Query1 {
@@ -36,6 +44,15 @@ public abstract class Query2 extends Query1 {
 	public void setTransaction(Transaction tran) {
 		super.setTransaction(tran);
 		source2.setTransaction(tran);
+	}
+
+	protected List<List<String>> keypairs() {
+		var keys = new ArrayList<List<String>>();
+		for (var k1 : source.keys())
+			for (var k2 : source2.keys())
+				addUnique(keys, union(k1, k2));
+		verify(!nil(keys));
+		return keys;
 	}
 
 	@Override

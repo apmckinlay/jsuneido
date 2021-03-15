@@ -212,13 +212,7 @@ public class Summarize extends Query1 {
 
 	@Override
 	public List<List<String>> keys() {
-		List<List<String>> keys = new ArrayList<>();
-		for (List<String> k : source.keys())
-			if (by.containsAll(k))
-				keys.add(k);
-		if (nil(keys))
-			keys.add(by);
-		return keys;
+		return Project.projectKeys(source.keys(), by);
 	}
 
 	@Override

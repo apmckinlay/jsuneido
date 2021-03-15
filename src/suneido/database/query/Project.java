@@ -105,22 +105,29 @@ public class Project extends Query1 {
 
 	@Override
 	public List<List<String>> keys() {
-		List<List<String>> keys = new ArrayList<>();
-		for (List<String> k : source.keys())
-			if (flds.containsAll(k))
-				keys.add(k);
-		if (keys.isEmpty())
-			keys.add(flds);
-		return keys;
+		return projectKeys(source.keys(), flds);
+	}
+
+	public static List<List<String>> projectKeys(List<List<String>> keys,
+			List<String> flds) {
+		var keys2 = projectIndexes(keys, flds);
+		if (keys2.isEmpty())
+			keys2.add(flds);
+		return keys2;
 	}
 
 	@Override
 	List<List<String>> indexes() {
-		List<List<String>> idxs = new ArrayList<>();
-		for (List<String> src : source.indexes())
-			if (flds.containsAll(src))
-				idxs.add(src);
-		return idxs;
+		return projectIndexes(source.indexes(), flds);
+	}
+
+	private static List<List<String>> projectIndexes(List<List<String>> idxs,
+			List<String> flds) {
+		var idxs2 = new ArrayList<List<String>>();
+		for (var ix : idxs)
+			if (flds.containsAll(ix))
+				idxs2.add(ix);
+		return idxs2;
 	}
 
 	@Override

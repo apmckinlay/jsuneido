@@ -4,12 +4,10 @@
 
 package suneido.database.query;
 
-import static java.util.Collections.disjoint;
 import static suneido.SuInternalError.unreachable;
 import static suneido.util.Util.*;
 import static suneido.util.Verify.verify;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -97,9 +95,7 @@ public class Join extends Query2 {
 		if (freeze) {
 			if (cost2 < cost1) {
 				assert can_swap();
-				Query t1 = source;
-				source = source2;
-				source2 = t1;
+				Query t1 = source; source = source2; source2 = t1;
 				Set<String> t2 = needs1; needs1 = needs2; needs2 = t2;
 				type = reverse(type);
 			}
@@ -179,26 +175,9 @@ public class Join extends Query2 {
 
 	@Override
 	List<List<String>> indexes() {
-		switch (type) {
-		case ONE_ONE:
-			return union(source.indexes(), source2.indexes());
-		case ONE_N:
-			return source2.indexes();
-		case N_ONE:
-			return source.indexes();
-		case N_N:
-			// union of indexes that don't include joincols
-			List<List<String>> idxs = new ArrayList<>();
-			for (List<String> i : source.indexes())
-				if (disjoint(i, joincols))
-					idxs.add(i);
-			for (List<String> i : source2.indexes())
-				if (disjoint(i, joincols))
-					addUnique(idxs, i);
-			return idxs;
-		default:
-			throw unreachable();
-		}
+		// can really only provide source.indexes() but optimize may swap.
+		// optimize will return impossible for source2 indexes.
+		return union(source.indexes(), source2.indexes());
 	}
 
 	@Override
@@ -215,15 +194,6 @@ public class Join extends Query2 {
 		default :
 			throw unreachable();
 		}
-	}
-
-	protected List<List<String>> keypairs() {
-		List<List<String>> keys = new ArrayList<>();
-		for (List<String> k1 : source.keys())
-			for (List<String> k2 : source2.keys())
-				addUnique(keys, union(k1, k2));
-		verify(!nil(keys));
-		return keys;
 	}
 
 	@Override
