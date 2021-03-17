@@ -251,6 +251,11 @@ abstract class Storage implements AutoCloseable {
 		return 0 <= off && off < storSize;
 	}
 
+	// used by check/rebuild
+	void setSize(long size) {
+		storSize = size;
+	}
+
 	void force() {
 	}
 

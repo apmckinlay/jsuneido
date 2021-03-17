@@ -200,6 +200,7 @@ public class Suneido {
 		System.out.println("-l[oad] [table]           load from database.su or <table> from <table>.su");
 		System.out.println("-check                    check the database integrity");
 		System.out.println("-rebuild                  check and rebuild the database, i.e. for crash recovery");
+		System.out.println("-asof date/time           check or rebuild as of this date/time");
 		System.out.println("-compact                  remove deleted records");
 		System.out.println("-v[ersion]                print the version");
 		System.out.println("-i[mpersonate] <version>  tell clients this version");

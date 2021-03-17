@@ -351,7 +351,7 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 		return millisecond() + 1000 * (second() + 60 * (minute() + 60L * hour()));
 	}
 
-	private long time() {
+	public long time() {
 		return toCalendar().getTimeInMillis();
 	}
 

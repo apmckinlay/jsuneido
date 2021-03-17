@@ -23,7 +23,7 @@ import suneido.database.immudb.DbHashTrie.Translator;
  * Each persist consists of:<br>
  * header - size and timestamp (timestamp zero if aborted)<br>
  * body - btrees and dbinfo<br>
- * dbinfo root and dbstate.lastcksum<br>
+ * ending - dbinfo root, max table number, dbstate.lastcksum, last adr<br>
  * tail - checksum and size (checksum zero if aborted)
  */
 class Persist {

@@ -28,6 +28,7 @@ public class CommandLineOptions {
 	public int max_update_tran_sec = 0;
 	public int max_writes_per_tran = 0;
 	public boolean unattended = false;
+	public String asof = null;
 
 	public static CommandLineOptions parse(String... args) {
 		return new CommandLineOptions(args).parse();
@@ -74,12 +75,11 @@ public class CommandLineOptions {
 					actionArg = arg.substring(7);
 			} else if (arg.equals("-rebuild")) {
 				setAction(Action.REBUILD);
-			} else if (arg.equals("-rebuild/truncate")) {
-				setAction(Action.REBUILD);
-				actionArg = "trunc";
 			} else if (arg.startsWith("-rebuild:")) {
 				setAction(Action.REBUILD2);
 				actionArg = arg.substring(9);
+			} else if (arg.startsWith("-asof")) {
+				asof = getArg();
 			} else if (arg.equals("-compact"))
 				setAction(Action.COMPACT);
 			else if (arg.startsWith("-compact:")) {

@@ -54,7 +54,7 @@ class DbRebuild {
 			System.out.println("Checking...");
 			Check check = new Check(dstor, istor);
 			System.out.println("checksums...");
-			if (check.fullcheck()) {
+			if (check.fullcheck() && Suneido.cmdlineoptions.asof == null) {
 				if (check_data_and_indexes(dstor, istor)) {
 					new File(newFilename).delete();
 					System.out.println("OK Last good commit " +
@@ -66,12 +66,14 @@ class DbRebuild {
 						format(check.lastOkDate()));
 				return null;
 			} else if (check.lastOkDate() != null) { // checksum error
-				System.out.println("Data and indexes match up to " +
-							format(check.lastOkDate()) +
-							" ok sizes " + check.dOkSize() + ", " + check.iOkSize());
+				System.out.println("Checksums match up to " +
+						format(check.lastOkDate()) +
+						" ok sizes " + fmt(check.dOkSize()) + ", " +
+						fmt(check.iOkSize()));
 				return fix(check);
 			}
-			System.out.println("No usable indexes");
+			System.out.println("checking data and indexes failed " +
+				"(you could try -asof)");
 			// NOTE: at this point it could be bad data rather than bad index
 			// in which case rebuilding from data won't help.
 			// Could avoid this with better info from check_data_and_indexes.
@@ -124,12 +126,13 @@ class DbRebuild {
 			assert db != null;
 			Date lastOkDate = check.lastOkDate();
 			if (check.dIterNotFinished() &&
-					!"trunc".equals(Suneido.cmdlineoptions.actionArg)) {
+					Suneido.cmdlineoptions.asof == null) {
 				System.out.println("Reprocessing data ...");
 				lastOkDate = reprocess(db, check);
 			}
 			System.out.println("Checking rebuilt database ...");
 			db.persist();
+			Suneido.cmdlineoptions.asof = null;
 			Status status = DbCheck.check(newFilename, db.dstor, db.istor,
 					Dbpkg.printObserver);
 			if (status != Status.OK) {
@@ -153,12 +156,12 @@ class DbRebuild {
 		if (check.dOkSize() == 0)
 			return;
 		try {
-			System.out.println("Copying " + fmt(check.dOkSize()) + " bytes of data file...");
+			System.out.println("Copying " +
+					fmt(check.dOkSize()) + " bytes of data file...");
 			FileUtils.copy(new File(oldFilename + "d"), new File(newFilename + "d"),
 					check.dOkSize());
-			long discard = istor.sizeFrom(0) - check.iOkSize();
-			System.out.println("Copying " + fmt(check.iOkSize()) + " bytes of index file" +
-					" (discarding " + fmt(discard) + ")...");
+			System.out.println("Copying " +
+					fmt(check.iOkSize()) + " bytes of index file ...");
 			FileUtils.copy(new File(oldFilename + "i"), new File(newFilename + "i"),
 					check.iOkSize());
 		} catch (IOException e) {

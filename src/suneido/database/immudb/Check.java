@@ -9,6 +9,8 @@ import java.util.Date;
 
 import com.google.common.base.MoreObjects;
 
+import suneido.SuDate;
+import suneido.Suneido;
 import suneido.util.Errlog;
 import suneido.util.Immutable;
 
@@ -23,6 +25,7 @@ class Check {
 	private static final int CORRUPT = -1;
 	private final Storage dstor;
 	private final Storage istor;
+	private final Date asof;
 	private int dUpTo = Storage.MAX_ADR;
 	private int iUpTo = Storage.MAX_ADR;
 	/** set by findLast for fastcheck */
@@ -48,6 +51,12 @@ class Check {
 	Check(Storage dstor, Storage istor) {
 		this.dstor = dstor;
 		this.istor = istor;
+		if (Suneido.cmdlineoptions.asof != null) {
+			var d = SuDate.parse(Suneido.cmdlineoptions.asof);
+			asof = new Date(d.time());
+		} else {
+			asof = null;
+		}
 	}
 
 	/** Used when checking running database to check up to a specific commit. */
@@ -134,7 +143,7 @@ class Check {
 
 	/**
 	 * Check dstor and istor in parallel.
-	 * @return true if no problems found
+	 * @return true if no problems found (up to asof if non-null)
 	 */
 	private boolean checkFrom(int dAdr, int iAdr) {
 		dIter = new StorageIter(dstor, dAdr).upTo(dUpTo).checkType();
@@ -149,6 +158,12 @@ class Check {
 				if (dIter.date() != null) {
 					lastOkDate = dIter.date();
 					lastOkType = dIter.type();
+					if (asof != null && lastOkDate.compareTo(asof) >= 0) {
+						// set stor sizes to checked portion up to asof
+						dstor.setSize(dOkSize);
+						istor.setSize(iOkSize);
+						return true; // but could be corrupt after asof
+					}
 				}
 				iIter.advance();
 				iInfo = null;

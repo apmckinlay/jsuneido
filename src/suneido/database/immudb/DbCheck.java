@@ -14,6 +14,8 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import suneido.DbTools;
+import suneido.Suneido;
 import suneido.database.immudb.Dbpkg.Observer;
 import suneido.database.immudb.Dbpkg.Status;
 
@@ -73,6 +75,10 @@ class DbCheck {
 		println("checksums...");
 		Status status = Status.CORRUPTED;
 		boolean ok = check.fullcheck();
+		if (Suneido.cmdlineoptions.asof != null) {
+			// reopen with truncated dstor and istor
+			db = Database.openWithoutCheck("", dstor, istor);
+		}
 		last_good_commit = check.lastOkDate();
 		if (ok) {
 			if (check_data_and_indexes(db))
@@ -84,7 +90,7 @@ class DbCheck {
 			print(check.status());
 		print(details);
 		println(status + " " + lastCommit(status) +
-				" ok sizes " + check.dOkSize() + ", " + check.iOkSize());
+				" ok sizes " + fmt(check.dOkSize()) + ", " + fmt(check.iOkSize()));
 		if (! filename.equals(""))
 			if (status == Status.OK)
 				DbGood.create(filename + "c", dstor.sizeFrom(0));
@@ -100,11 +106,15 @@ class DbCheck {
 		return "Last " + (status == Status.OK ? "good " : "")	+ "commit " + lgc;
 	}
 
+	String fmt(long n) {
+		return String.format("%,d", n);
+	}
+
 	private static final int BAD_LIMIT = 10;
 	private static final int N_THREADS = Runtime.getRuntime().availableProcessors();
 
 	protected boolean check_data_and_indexes(Database db) {
-		println("indexes...");
+		println("indexes & data...");
 		ExecutorService executor = Executors.newFixedThreadPool(N_THREADS);
 		ExecutorCompletionService<String> ecs = new ExecutorCompletionService<>(executor);
 		try {
@@ -170,8 +180,8 @@ class DbCheck {
 		ob.print(s + "\n");
 	}
 
-//	public static void main(String[] args) {
-//		DbTools.checkPrint(DatabasePackage.dbpkg, "suneido.db");
-//	}
+	// public static void main(String[] args) {
+	// 	DbTools.checkPrint("suneido.db");
+	// }
 
 }

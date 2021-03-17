@@ -8,6 +8,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+
+import suneido.Suneido;
 
 public class Jvm {
 
@@ -15,8 +18,17 @@ public class Jvm {
 		String javaHome = System.getProperty("java.home");
 		String javaBin = javaHome + File.separator + "bin" + File.separator + "java";
 		String jarPath = JarPath.jarPath();
-		ProcessBuilder builder =
-				new ProcessBuilder(javaBin, "-ea", "-jar", jarPath, cmd);
+		var args = new ArrayList<String>();
+		args.add(javaBin);
+		args.add("-ea");
+		args.add("-jar");
+		args.add(jarPath);
+		args.add(cmd);
+		if (Suneido.cmdlineoptions.asof != null) {
+			args.add("-asof");
+			args.add(Suneido.cmdlineoptions.asof);
+		}
+		ProcessBuilder builder = new ProcessBuilder(args);
 		try {
 			builder.redirectErrorStream(true); // merge stderr into stdout
 			Process process = builder.start();
