@@ -303,7 +303,7 @@ public class SuRecord extends SuObject {
 			else
 				rb.addMin();
 		if (tsval != null && ! getReadonly())
-			put(ts, tsval);
+			super.put(ts, tsval);
 		return rb.build();
 	}
 
