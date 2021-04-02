@@ -14,7 +14,6 @@ import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import suneido.DbTools;
 import suneido.Suneido;
 import suneido.database.immudb.Dbpkg.Observer;
 import suneido.database.immudb.Dbpkg.Status;
