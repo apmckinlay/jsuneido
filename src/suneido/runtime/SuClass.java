@@ -98,8 +98,8 @@ public class SuClass extends SuValue implements Showable {
 		if (f != null)
 			return f;
 		Object o = get2(method);
-		if (o instanceof SuCallable)
-			return (SuCallable) o;
+		if (o instanceof SuValue)
+			return (SuValue) o;
 		switch (method) {
 		case "New":
 			return initMethod;
