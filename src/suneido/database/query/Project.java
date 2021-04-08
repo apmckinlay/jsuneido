@@ -440,14 +440,10 @@ public class Project extends Query1 {
 
 	@Override
 	public void output(Record r) {
-		ckmodify("output");
-		source.output(r);
-	}
-
-	void ckmodify(String action) {
 		if (strategy != Strategy.COPY)
 			throw new SuException(
-					"project: can't " + action + ": key required");
+					"project: can't output: key required");
+		source.output(r);
 	}
 
 }

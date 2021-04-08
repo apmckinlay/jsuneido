@@ -284,6 +284,11 @@ public class Summarize extends Query1 {
 		return false; // override Query1 source->updateable
 	}
 
+	@Override
+	public void output(Record r) {
+		throw new SuException("can't output to this query");
+	}
+
 	Header getHdr() {
 		return hdr;
 	}
