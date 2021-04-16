@@ -617,11 +617,18 @@ public enum Command {
 				: ServerData.forThread().getCursor(n);
 	}
 
+	private final static int maxRec = 1024 * 1024;
+
 	protected void rowResult(Row row, Header hdr, boolean sendHeader, SuChannel io) {
+		var buf = rowToRecord(row, hdr).getBuffer();
+		if (buf.remaining() > maxRec) {
+			io.put(false).put("result too large");
+			return;
+		}
 		io.put(true).put(true).put(row.address());
 		if (sendHeader)
 			io.putStrings(hdr.schema());
-		io.put(rowToRecord(row, hdr).getBuffer());
+		io.put(buf);
 	}
 
 	private static Record rowToRecord(Row row, Header hdr) {
