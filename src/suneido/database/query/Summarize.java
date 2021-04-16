@@ -426,6 +426,8 @@ public class Summarize extends Query1 {
 		}
 	}
 
+	private final static int maxList = 10_000;
+
 	private static class ListSum extends Summary {
 		HashSet<Object> set;
 
@@ -436,6 +438,8 @@ public class Summarize extends Query1 {
 
 		@Override
 		void add(Object x) {
+			if (set.size() > maxList)
+				throw new SuException("summarize list too large");
 			set.add(x);
 		}
 
