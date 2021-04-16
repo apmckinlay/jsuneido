@@ -126,7 +126,7 @@ public class Suneido {
 			break;
 		case VERSION:
 			System.out.println("jSuneido " + built);
-			System.out.println("Java " + System.getProperty("java.version")
+			System.out.println("Java " + System.getProperty("java.version") + " "
 					+ System.getProperty("java.vm.name").replace("Java", ""));
 			break;
 		case ERROR:
