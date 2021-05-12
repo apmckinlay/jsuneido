@@ -45,17 +45,16 @@ public class Numbers {
 	 * @return The string converted to a Number (long or Dnum)
 	 */
 	public static Number stringToNumber(String s) {
-		try {
-			if (s.startsWith("0x"))
+		if (s.startsWith("0x"))
+			try {
 				return Integer.parseUnsignedInt(s.substring(2), 16);
-			if (s.indexOf('.') == -1 &&
-					s.indexOf('e') == -1 && s.indexOf("E") == -1 &&
-					s.length() < 10)
-				return Integer.parseInt(s);
-			else
-				return Dnum.parse(s);
+			} catch (NumberFormatException e) {
+				throw new SuException("can't convert to number: " + s);
+			}
+		try {
+			return Integer.parseInt(s);
 		} catch (NumberFormatException e) {
-			throw new SuException("can't convert to number: " + s);
+			return Dnum.parse(s);
 		}
 	}
 

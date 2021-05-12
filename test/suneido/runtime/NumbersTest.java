@@ -4,7 +4,7 @@
 
 package suneido.runtime;
 
-import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
 import static suneido.util.testing.Throwing.assertThrew;
 
@@ -41,6 +41,14 @@ public class NumbersTest {
 		assertThrew(() -> Numbers.stringToNumber("0100x"));
 		assertThrew(() -> Numbers.stringToNumber("0xfffffffff"));
 		assertThrew(() -> Numbers.stringToNumber("0x100x"));
+
+		assertThat(Numbers.stringToNumber("2147483647"),
+				instanceOf(Integer.class));
+		assertThat(Numbers.stringToNumber("1"), instanceOf(Integer.class));
+		assertThat(Numbers.stringToNumber("0"), instanceOf(Integer.class));
+		assertThat(Numbers.stringToNumber("-1"), instanceOf(Integer.class));
+		assertThat(Numbers.stringToNumber("-2147483648"),
+				instanceOf(Integer.class));
 	}
 
 	@Test
