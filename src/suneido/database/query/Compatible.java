@@ -92,9 +92,4 @@ public abstract class Compatible extends Query2 {
 		source.rewind();
 	}
 
-	@Override
-	void select(List<String> index, Record from, Record to) {
-		source.select(index, from, to);
-	}
-
 }
