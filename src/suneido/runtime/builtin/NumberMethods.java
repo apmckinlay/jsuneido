@@ -145,7 +145,7 @@ public class NumberMethods extends BuiltinMethods {
 			long n = ((Number) self).longValue();
 			if (n < Integer.MIN_VALUE || UINT_MAX < n)
 				throw new SuException("Hex is limited to 32 bit");
-			return Long.toHexString(n);
+			return Integer.toHexString((int) n);
 		}
 	}
 
