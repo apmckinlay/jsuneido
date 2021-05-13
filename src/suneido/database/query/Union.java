@@ -54,7 +54,7 @@ public class Union extends Compatible {
 		Set<String> needs1 = setIntersect(needs, cols1);
 		List<String> cols2 = source2.columns();
 		Set<String> needs2 = setIntersect(needs, cols2);
-		if (!nil(index)) {
+		if (!index.isEmpty()) {
 			// if not disjoint then index must also be a key
 			if (disjoint == null &&
 				(! source.keys().contains(index) || ! source2.keys().contains(index)))

@@ -66,7 +66,7 @@ public class Table extends Query {
 		if (nil(indexes))
 			return IMPOSSIBLE;
 		if (singleton) {
-			idx = nil(index) ? indexes.get(0) : index;
+			idx = index.isEmpty() ? indexes.get(0) : index;
 			return recordsize();
 		}
 

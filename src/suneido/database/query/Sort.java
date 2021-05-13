@@ -61,9 +61,11 @@ public class Sort extends Query1 {
 			return Math.min(cost, best.cost);
 		if (cost <= best.cost)
 			return source.optimize(segs, needs, firstneeds, is_cursor, true);
-		else
+		else if (best.cost < IMPOSSIBLE)
 			// NOTE: optimize1 to avoid tempindex
 			return source.optimize1(best.index, needs, firstneeds, is_cursor, true);
+		else
+			return IMPOSSIBLE;
 	}
 
 	@Override

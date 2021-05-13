@@ -4,7 +4,6 @@
 
 package suneido.database.query;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -114,7 +113,7 @@ public abstract class Query1 extends Query {
 	/** holds an index and a cost, used for optimization */
 	protected static class Best {
 		double cost = IMPOSSIBLE;
-		List<String> index = Collections.emptyList();
+		List<String> index = null;
 
 		Best update(List<String> index, double cost) {
 			if (cost < this.cost) {

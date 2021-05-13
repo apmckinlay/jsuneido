@@ -120,7 +120,7 @@ public abstract class Query {
 					+ (is_cursor ? " CURSOR" : "")
 					+ (freeze ? " FREEZE" : ""));
 		}
-		if (is_cursor || nil(index)) {
+		if (is_cursor || index.isEmpty()) {
 			double cost = optimize1(index, needs, firstneeds, is_cursor, freeze);
 			if (tracing(QUERYOPT)) {
 				trace(QUERYOPT, "END " + this + "\n" + "\tcost " + cost);

@@ -148,7 +148,7 @@ public class Summarize extends Query1 {
 	}
 	/** @return the indexes that satisfy the required index */
 	private List<List<String>> sourceIndexes(List<String> index) {
-		if (nil(index))
+		if (index.isEmpty())
 			return source.indexes();
 		else {
 			List<Fixed> fixed = source.fixed();
