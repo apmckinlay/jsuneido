@@ -12,7 +12,8 @@ public class Getenv {
 	@Params("string")
 	public static String Getenv(Object a) {
 		String name = Ops.toStr(a);
-		return System.getenv(name);
+		String val = System.getenv(name);
+		return val == null ? "" : val;
 	}
 
 }
