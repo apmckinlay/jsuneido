@@ -67,19 +67,27 @@ class Transactions {
 		trans.add(t);
 	}
 
+	// addUpdateTran is called by UpdateTransaction.
+	// At this point the transaction has already been added to trans.
 	synchronized void addUpdateTran(UpdateTransaction t) {
-		if (exclusive)
-			t.abortThrow("blocked by exclusive transaction");
-		if (trans.size() >= MAX_ACTIVE)
-			t.abortThrow("too many active transactions");
+		if (exclusive) {
+			abortReadonly(t);
+			throw new SuException("blocked by exclusive transaction");
+		}
+		if (trans.size() >= MAX_ACTIVE) {
+			abortReadonly(t);
+			throw new SuException("too many active transactions");
+		}
 		utrans.add(t);
 	}
 
 	synchronized void setExclusive(Transaction t) {
 		if ((t instanceof BulkTransaction)
 				? ! utrans.isEmpty()
-				: utrans.size() != 1 || utrans.first() != t)
+				: utrans.size() != 1 || utrans.first() != t) {
+			abortReadonly(t);
 			throw new SuException("can't make transaction exclusive");
+		}
 		exclusive = true;
 	}
 
@@ -120,13 +128,16 @@ class Transactions {
 	synchronized void abort(Transaction t) {
 		if (t instanceof ReadWriteTransaction)
 			exclusive = false;
-		Errlog.verify(trans.remove(t),
-				"Transactions.abort missing from trans");
+		abortReadonly(t);
 		if (t instanceof UpdateTransaction) {
 			Errlog.verify(utrans.remove(t),
 					"Transactions.abort missing from utrans");
 			cleanOverlapping();
 		}
+	}
+
+	void abortReadonly(Transaction t) {
+		Errlog.verify(trans.remove(t), "Transactions.abort missing from trans");
 	}
 
 	/**

@@ -6,6 +6,7 @@ package suneido.database.immudb;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.core.StringContains.containsString;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
@@ -14,6 +15,8 @@ import static suneido.database.immudb.TestBase.rec;
 
 import org.junit.After;
 import org.junit.Test;
+
+import suneido.SuException;
 
 //TODO use TestBase
 
@@ -336,6 +339,19 @@ public class TransactionTest {
 		db.alterTable("tmp").dropColumn("foo").finish();
 		db.ensureTable("tmp").addColumn("foo").finish();
 		db.alterTable("tmp").dropColumn("foo").finish();
+	}
+
+	@Test
+	public void update_during_exclusive() {
+		var st = db.schemaTransaction();
+		st.exclusive();
+		try {
+			db.updateTransaction();
+			fail("expected exception");
+		} catch (SuException se) {
+			assertEquals("blocked by exclusive transaction", se.toString());
+		}
+		assert !st.ended;
 	}
 
 	//--------------------------------------------------------------------------
