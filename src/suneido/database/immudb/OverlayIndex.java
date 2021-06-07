@@ -166,6 +166,11 @@ class OverlayIndex implements TranIndex {
 			this.ir = ir;
 		}
 
+		// NOTE: there is a potential bug in the IndexRange tracking.
+		// It works for the normal case of iterating in a single direction.
+		// But it does not handle e.g. rewind, next+, rewind, prev+
+		// since this is two ranges.
+
 		@Override
 		public void next() {
 			if (eof())
