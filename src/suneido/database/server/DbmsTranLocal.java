@@ -4,6 +4,10 @@
 
 package suneido.database.server;
 
+import static suneido.Trace.trace;
+import static suneido.Trace.tracing;
+import static suneido.Trace.Type.QUERY;
+
 import suneido.SuException;
 import suneido.database.immudb.Record;
 import suneido.database.immudb.Transaction;
@@ -33,17 +37,23 @@ public class DbmsTranLocal implements DbmsTran {
 
 	@Override
 	public int request(String s) {
+		if (tracing(QUERY))
+			trace(QUERY, t + " " + s);
 		Query q = CompileQuery.parse(t, ServerData.forThread(), s);
 		return ((QueryAction) q).execute();
 	}
 
 	@Override
 	public DbmsQuery query(String s) {
+		if (tracing(QUERY))
+			trace(QUERY, t + " " + s);
 		return new DbmsQueryLocal(CompileQuery.query(t, ServerData.forThread(), s));
 	}
 
 	@Override
 	public HeaderAndRow get(Dir dir, String query, boolean one) {
+		if (tracing(QUERY))
+			trace(QUERY, t + " " + query);
 		Query q = CompileQuery.query(t, ServerData.forThread(), query);
 		try {
 			Row row = q.get(dir);

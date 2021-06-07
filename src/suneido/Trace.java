@@ -19,10 +19,16 @@ public class Trace {
 			this.bit = bit;
 		}
 	}
-	public static int flags = 0;
+	private static int flags = 0;
 	private static FileWriter fw;
 
-	public static boolean tracing(Type type) {
+	public static synchronized int setFlags(int f) {
+		int prev = flags;
+		flags = f;
+		return prev;
+	}
+
+	public static synchronized boolean tracing(Type type) {
 		return (flags & type.bit) == type.bit;
 	}
 
@@ -30,7 +36,7 @@ public class Trace {
 		println(type + " " + s);
 	}
 
-	public static void println(String s) {
+	public static synchronized void println(String s) {
 		if ((flags & Type.CONSOLE.bit) != 0)
 			System.out.println(s);
 		if ((flags & Type.LOGFILE.bit) != 0) {

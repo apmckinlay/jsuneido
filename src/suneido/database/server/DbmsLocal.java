@@ -4,6 +4,10 @@
 
 package suneido.database.server;
 
+import static suneido.Trace.trace;
+import static suneido.Trace.tracing;
+import static suneido.Trace.Type.QUERY;
+
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +52,8 @@ public class DbmsLocal extends Dbms {
 
 	@Override
 	public DbmsQuery cursor(String s) {
+		if (tracing(QUERY))
+			trace(QUERY, s);
 		Transaction t = db.readTransaction();
 		try {
 			return new DbmsQueryLocal(

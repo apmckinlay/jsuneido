@@ -20,13 +20,12 @@ public class SuTrace {
 			int flags = Ops.toInt(a);
 			if (0 == (flags & (CONSOLE.bit | LOGFILE.bit)))
 				flags |= CONSOLE.bit | LOGFILE.bit;
-			int original_flags = Trace.flags;
-			Trace.flags = flags;
+			int original_flags = Trace.setFlags(flags);
 			if (b != Boolean.FALSE)
 				try {
 					return Ops.call(b);
 				} finally {
-					Trace.flags = original_flags;
+					Trace.setFlags(original_flags);
 				}
 		}
 		return null;
