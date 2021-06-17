@@ -288,7 +288,7 @@ public enum Command {
 		}
 	},
 	/**
-	 * Return a list of server information.  ({@link suneido.database.runtime.Database#Info})
+	 * Return a list of server information.  ({@link suneido.database.Database#Info})
 	 * <p>
 	 * Object()
 	 */
