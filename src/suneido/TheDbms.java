@@ -25,10 +25,11 @@ public class TheDbms {
 	private static final ThreadLocal<DbmsClient> remoteDbms = new ThreadLocal<>();
 	private static final Set<DbmsClient> dbmsRemotes =
 			Collections.synchronizedSet(new HashSet<DbmsClient>());
-	private static final ThreadLocal<byte[]> authToken = new ThreadLocal<>();
 	private static final ThreadLocal<String> lastSessionId =
 			ThreadLocal.withInitial(() -> "");
 	private static String mainSessionId = "";
+	private static byte[] token;
+	private static final Object tokenLock = new Object();
 
 	public static Dbms dbms() {
 		if (ip == null)
@@ -60,11 +61,20 @@ public class TheDbms {
 		if (mainSessionId == "")
 			mainSessionId = dbms.sessionid("");
 		dbms.sessionid(mainSessionId + ":" + Thread.currentThread().getName());
-		// auth will only succeed if parent was authorized
-		byte[] token = authToken.get();
-		if (token != null)
-			dbms.auth(Util.bytesToString(token));
+		synchronized (tokenLock) {
+			if (token != null) {
+				if (dbms.auth(Util.bytesToString(token)))
+					token = dbms().token(); // get token for next time
+			}
+		}
 		return dbms;
+	}
+
+	public static void authorized(Dbms dbms) {
+		synchronized (tokenLock) {
+			if (token == null)
+				token = dbms.token(); // get token for next time
+		}
 	}
 
 	// used by errlog to avoid opening db just to get sessionid
@@ -106,10 +116,6 @@ public class TheDbms {
 
 	public static boolean isAvailable() {
 		return localDbms != null || ip != null;
-	}
-
-	public static void setAuthToken(byte[] token) {
-		authToken.set(token);
 	}
 
 	/** used by {@link SocketServer} */

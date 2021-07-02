@@ -42,23 +42,18 @@ public class SuThread extends BuiltinClass {
 
 	private static class Callable implements Runnable {
 		private final Object callable;
-		private final byte[] token;
 
 		public Callable(Object callable) {
 			// runs in the parent thread
 			this.callable = callable;
-			// NOTE: getting token here will keep parent connection alive
-			token = TheDbms.dbms().token();
-			// token may be empty if parent not authorized
 		}
 
 		@Override
 		public void run() {
 			// runs in the child thread
 			try {
-				// don't want to actually auth here
+				// don't want to auth here
 				// since that will force dbms connection
-				TheDbms.setAuthToken(token);
 				Ops.call(callable);
 			} catch (Throwable e ) {
 				if (! Suneido.exiting)

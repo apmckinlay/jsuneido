@@ -212,7 +212,10 @@ public class DbmsClient extends Dbms {
 		if ("".equals(data))
 			return false;
 		send(AUTH, data);
-		return io.getBool();
+		if (! io.getBool())
+			return false;
+		TheDbms.authorized(this);
+		return true;
 	}
 
 	@Override
