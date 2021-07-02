@@ -67,11 +67,14 @@ public class SocketServer extends SuClass {
 	public static Object CallClass(Object self, Object... args) {
 		Info info = new Info();
 		SuClass c = (SuClass) self;
-		if (info.name == null)
-			info.name = Ops.toStr(c.get1(c, "Name"));
-		if (info.port == 0)
-			info.port = Ops.toInt(c.get1(c, "Port"));
+		Object x;
+		if (null != (x = c.get1(c, "Name")))
+			info.name = Ops.toStr(x);
+		if (null != (x = c.get1(c, "Port")))
+			info.port = Ops.toInt(x);
 		args = convert(args, info);
+		if (info.port == 0)
+			throw new SuException("SocketServer: no port specified");
 		new Listener(info, new Master((SuClass) self, args)).run();
 		return null;
 	}
