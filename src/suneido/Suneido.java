@@ -83,10 +83,8 @@ public class Suneido {
 			Runtime.getRuntime().addShutdownHook(
 					new Thread(TheDbms::closeAll));
 			Errlog.setExtra(TheDbms::sessionid);
-			if ("".equals(cmdlineoptions.remainder))
-				Repl.repl2();
-			else
-				Compiler.eval("Init()");
+			Compiler.eval("Init.Repl()");
+			Repl.repl2();
 			break;
 		case DUMP:
 			String dumptablename = cmdlineoptions.actionArg;
