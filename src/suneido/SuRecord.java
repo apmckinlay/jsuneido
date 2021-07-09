@@ -196,7 +196,6 @@ public class SuRecord extends SuObject {
 
 	/** called by Suneido record.Invalidate */
 	public synchronized void invalidate(Object member) {
-		assert invalidated.isEmpty();
 		invalidate1(member);
 		callObservers(member);
 	}
@@ -406,13 +405,13 @@ public class SuRecord extends SuObject {
 	 */
 	public synchronized void callObservers(Object member) {
 		callObservers2(member);
-		invalidated.remove(member);
 		// can't iterate normally because of potential concurrent modification
 		while (! invalidated.isEmpty()) {
 			Iterator<Object> iter = invalidated.iterator();
 			Object m = iter.next();
 			iter.remove();
-			callObservers2(m);
+			if (! m.equals(member))
+				callObservers2(m);
 		}
 	}
 
