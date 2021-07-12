@@ -201,27 +201,32 @@ public class SuRecord extends SuObject {
 	}
 
 	@Override
-	public synchronized Object get(Object key) {
+	public Object get(Object key) {
 		return getDef(key, defval);
 	}
 
 	public Object getDef(Object key, Object def) {
-		RuleContext.Rule ar = RuleContext.top();
-		if (ar != null && ar.rec == this && !ar.member.equals(key))
-			addDependency(ar.member, key);
+		Object result;
+		synchronized (this) {
+			RuleContext.Rule ar = RuleContext.top();
+			if (ar != null && ar.rec == this && !ar.member.equals(key))
+				addDependency(ar.member, key);
 
-		Object result = getIfPresent(key);
-		if (result == null || invalid.contains(key)) {
+			result = getIfPresent(key);
+			if (result != null && !invalid.contains(key))
+				return result;
 			Object x = getIfSpecial(key);
 			if (x != null)
 				return x;
-			x = callRule(key);
+		}
+		Object x = callRule(key);
+		synchronized (this) {
 			if (x != null)
 				result = x;
 			else if (result == null)
 				result = defaultValue(key, def);
+			return result;
 		}
-		return result;
 	}
 
 	@Override
