@@ -4,6 +4,8 @@
 
 package suneido.runtime;
 
+import java.util.regex.Pattern;
+
 import suneido.SuException;
 import suneido.TheDbms;
 import suneido.compiler.Compiler;
@@ -33,6 +35,9 @@ public class ContextLayered extends Context {
 		return x;
 	}
 
+	static final Pattern windows =
+			Pattern.compile("jSuneido does not implement (dll|struct|callback)");
+
 	private Object libget(String name) {
 		if (! TheDbms.isAvailable())
 			return null;
@@ -47,7 +52,7 @@ public class ContextLayered extends Context {
 				try {
 					result = Compiler.compile(libget.library, name, src, this);
 				} catch (SuException e) {
-					if (e.toString().contains("jSuneido does not implement dll"))
+					if (windows.matcher(e.toString()).find())
 						error = e;
 					else
 						throw e;
