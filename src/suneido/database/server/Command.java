@@ -200,7 +200,7 @@ public enum Command {
 		@Override
 		public void execute(SuChannel io) {
 			SuObject c = (SuObject) io.getPacked();
-			Object result = ServerEval.exec(c);
+			Object result = dbms().exec(c);
 			valueResult(io, result);
 		}
 	},
