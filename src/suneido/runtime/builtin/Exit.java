@@ -13,6 +13,8 @@ public class Exit {
 
 	@Params("status = 0")
 	public static Object Exit(Object status) {
+		if (status == Boolean.TRUE)
+			status = 1;
 		Suneido.exit(toInt(status));
 		return null;
 	}
