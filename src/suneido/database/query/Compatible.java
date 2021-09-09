@@ -80,11 +80,7 @@ public abstract class Compatible extends Query2 {
 	boolean equal(Row r1, Row r2) {
 		if (disjoint != null)
 			return false;
-
-		for (String col : allcols)
-			if (!r1.getraw(hdr1, col).equals(r2.getraw(hdr2, col)))
-				return false;
-		return true;
+		return Row.equal(hdr1, r1, hdr2, r2, allcols);
 	}
 
 	@Override

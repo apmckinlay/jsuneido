@@ -172,6 +172,21 @@ public class Row {
 		}
 	}
 
+	public static boolean equal(Header hdr1, Row r1, Header hdr2, Row r2,
+			List<String> cols) {
+		for (String col : cols)
+			if (!get(hdr1, r1, col).equals(get(hdr2, r2, col)))
+				return false;
+		return true;
+	}
+
+	private static ByteBuffer get(Header hdr, Row row, String col) {
+		if (col.endsWith("_lower!")) {
+			col = Util.beforeLast(col, "_");
+		}
+		return row.getraw(hdr, col);
+	}
+
 	public void setTransaction(DbmsTran tran) {
 		this.tran = tran;
 	}
