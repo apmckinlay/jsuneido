@@ -20,7 +20,6 @@ import suneido.database.query.Query.Dir;
 import suneido.database.query.Row;
 import suneido.database.server.Dbms.HeaderAndRow;
 import suneido.database.server.Dbms.LibGet;
-import suneido.runtime.builtin.ServerEval;
 
 /**
  * Server side of the client-server protocol.
