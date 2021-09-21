@@ -18,6 +18,7 @@ class SchemaTransaction extends UpdateTransaction {
 	void exclusive() {
 		assert ! ended;
 		trans.setExclusive(this);
+		exclusive = true;
 	}
 
 	/** allow modifying system tables */

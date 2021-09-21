@@ -53,6 +53,7 @@ class UpdateTransaction extends ReadWriteTransaction {
 	protected static final short END = (short) -2;
 	/** Used by {@link Transactions} limitOutstanding */
 	final Stopwatch stopwatch = Stopwatch.createStarted();
+	protected boolean exclusive = false;
 
 	UpdateTransaction(int num, Database db) {
 		super(num, db);
@@ -173,8 +174,10 @@ class UpdateTransaction extends ReadWriteTransaction {
 	boolean exists(int tblnum, int[] colNums, Record key) {
 		Index index = index(tblnum, colNums);
 		TranIndex ti = getIndex(index);
-		var ir = indexRange(index);
-		ir.lo = ir.hi = key;
+		if (!exclusive) {
+			var ir = indexRange(index);
+			ir.lo = ir.hi = key;
+		}
 		return 0 != ti.get(key);
 	}
 
