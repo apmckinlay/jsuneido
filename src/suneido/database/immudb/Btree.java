@@ -321,25 +321,21 @@ class Btree implements TranIndex {
 	@Override
 	public Iter iterator() {
 		return new Iter();
-		//return new IndexIter(new Iter());
 	}
 
 	@Override
 	public Iter iterator(Record org, Record end) {
 		return new Iter(org, end);
-		//return new IndexIter(new Iter(org, end));
 	}
 
 	@Override
 	public Iter iterator(Record key) {
 		return new Iter(key, key);
-		//return new IndexIter(new Iter(key, key));
 	}
 
 	@Override
 	public Iter iterator(IndexIter iter) {
 		return new Iter((Iter) iter);
-		//return new IndexIter(new Iter((Iter) iter));
 	}
 
 	/**
