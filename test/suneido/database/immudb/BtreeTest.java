@@ -32,13 +32,39 @@ public class BtreeTest {
 	private int NKEYS = 100;
 
 	private static class Btree4 extends Btree {
-		@Override public int splitSize() { return 4; }
+		@Override
+		public int splitSize() {
+			return 4;
+		}
+
 		public Btree4(Tran tran) {
 			super(tran);
 		}
+
 		public Btree4(Tran tran, BtreeInfo info) {
 			super(tran, info);
 		}
+	}
+
+	@Test
+	public void testGetBug() {
+		// NOTE: this test depends on the btree node size of 20
+		// to create the specific error situation
+		btree = new Btree(tran); // normal node size
+		for (int i = 0; i < 21; i++)
+			btree.add(i < 16 ? key("1", i) : key("2", i), false);
+		// updating moves these keys to the next node
+		// since the higher address makes them larger than the split key
+		for (int i = 16; i < 21; i++)
+			btree.update(key("2", i), key("2", 100 + i), false);
+		// btree.print();
+		// should look like:
+		// ["1"]*14
+		// ["1"]*15
+		// 		["2"]*19
+		// ["2"]*116
+		// ["2"]*117
+		assert btree.get(rec("2")) != 0;
 	}
 
 	@Test

@@ -69,12 +69,17 @@ class Btree implements TranIndex {
 	 * @return The record address or 0 if the key wasn't found.
 	 * If keys are not unique without the record address
 	 * the first is returned.
+	 *
+	 * NOTE: can't use get(BtreeKey) because we don't know the record address
 	 */
 	@Override
-	public int get(Record rec) {
-		return get(new BtreeKey(rec));
+	public int get(Record key) {
+		var iter = iterator(key);
+		iter.next();
+		return iter.eof() ? 0 : iter.cur().adr();
 	}
 
+	// used by OverlayIndex.remove
 	int get(BtreeKey key) {
 		BtreeNode node = rootNode;
 		for (int level = treeLevels - 1; level >= 0; --level)
