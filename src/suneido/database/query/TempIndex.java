@@ -66,8 +66,8 @@ public class TempIndex extends Query1 {
 	@Override
 	public Row get(Dir dir) {
 		if (first) {
-			first = false;
 			iterate_setup(dir);
+			first = false;
 		}
 		if (rewound) {
 			rewound = false;
