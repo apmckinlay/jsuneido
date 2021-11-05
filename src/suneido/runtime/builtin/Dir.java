@@ -80,7 +80,7 @@ public class Dir {
 	private static SuObject detailsOf(File f) {
 		SuObject ob = new SuObject();
 		ob.put("name", nameOf(f));
-		ob.put("size", Dnum.from(f.length()));
+		ob.put("size", f.isDirectory() ? 0 : Dnum.from(f.length()));
 		ob.put("date", SuDate.fromTime(f.lastModified()));
 		ob.put("attr", attrOf(f));
 		return ob;
