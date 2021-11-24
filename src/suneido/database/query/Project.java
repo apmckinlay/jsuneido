@@ -82,9 +82,14 @@ public class Project extends Query1 {
 	}
 
 	private static boolean hasKey(Query source, List<String> flds) {
-		for (List<String> k : source.keys())
-			if (flds.containsAll(k))
-				return true;
+		var fixed = source.fixed();
+		outer:
+		for (List<String> keys : source.keys()) {
+			for (String fld : keys)
+				if (!Query1.isfixed(fixed, fld) && !flds.contains(fld))
+					continue outer;
+			return true;
+		}
 		return false;
 	}
 
