@@ -13,6 +13,7 @@ import java.nio.channels.Channel;
 import java.nio.channels.SocketChannel;
 import java.util.List;
 
+import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableList;
 
 import suneido.*;
@@ -190,8 +191,8 @@ public class DbmsClient extends Dbms {
 		ImmutableList.Builder<String> columns = ImmutableList.builder();
 		for (int i = 0; i < n; ++i) {
 			String s = io.getString();
-			if (Character.isUpperCase(s.charAt(0)))
-				s = Character.toLowerCase(s.charAt(0)) + s.substring(1);
+			if (Ascii.isUpperCase(s.charAt(0)))
+				s = Ascii.toLowerCase(s.charAt(0)) + s.substring(1);
 			else if (!Header.isSpecialField(s))
 				fields.add(s);
 			if (! s.equals("-"))

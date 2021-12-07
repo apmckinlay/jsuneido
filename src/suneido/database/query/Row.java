@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import com.google.common.base.Ascii;
 import com.google.common.base.MoreObjects;
 
 import suneido.SuRecord;
@@ -149,7 +150,7 @@ public class Row {
 			String base = Util.beforeLast(col, "_");
 			w = find(hdr, base);
 			return (w == null) ? ""
-				: data[w.di].getString(w.ri).toLowerCase();
+				: Ascii.toLowerCase(data[w.di].getString(w.ri));
 		}
 		// else rule
 		return surec(hdr).get(col);

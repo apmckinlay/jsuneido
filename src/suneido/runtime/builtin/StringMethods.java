@@ -14,6 +14,7 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.util.regex.Pattern;
 
+import com.google.common.base.Ascii;
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 
@@ -281,25 +282,17 @@ public class StringMethods extends BuiltinMethods {
 	}
 
 	public static Object Lower(Object self) {
-		var s = toStr(self);
-		StringBuilder sb = new StringBuilder(s.length());
-		for (int i = 0; i < s.length(); ++i) {
-			var c = s.charAt(i);
-			if ('A' <= c && c <= 'Z')
-				c -= 'A' - 'a';
-			sb.append(c);
-		}
-		return sb.toString();
+		return Ascii.toLowerCase(toStr(self));
 	}
 
 	public static Object LowerQ(Object self) {
 		String s = toStr(self);
-		Boolean result = Boolean.FALSE;
+		Boolean result = false;
 		for (int i = 0; i < s.length(); ++i) {
 			char c = s.charAt(i);
-			if ('A' <= c && c <= 'Z')
-				return Boolean.FALSE;
-			else if ('a' <= c && c <= 'z')
+			if (Ascii.isUpperCase(c))
+				return false;
+			else if (Ascii.isLowerCase(c))
 				result = true;
 		}
 		return result;
@@ -542,26 +535,18 @@ public class StringMethods extends BuiltinMethods {
 	}
 
 	public static Object Upper(Object self) {
-		var s = toStr(self);
-		StringBuilder sb = new StringBuilder(s.length());
-		for (int i = 0; i < s.length(); ++i) {
-			var c = s.charAt(i);
-			if ('a' <= c && c <= 'z')
-				c += 'A' - 'a';
-			sb.append(c);
-		}
-		return sb.toString();
+		return Ascii.toUpperCase(toStr(self));
 	}
 
 	public static Object UpperQ(Object self) {
 		String s = toStr(self);
-		Boolean result = Boolean.FALSE;
+		Boolean result = false;
 		for (int i = 0; i < s.length(); ++i) {
 			char c = s.charAt(i);
-			if ('a' <= c && c <= 'z')
-				return Boolean.FALSE;
-			else if ('A' <= c && c <= 'Z')
-				result = Boolean.TRUE;
+			if (Ascii.isLowerCase(c))
+				return false;
+			else if (Ascii.isUpperCase(c))
+				result = true;
 		}
 		return result;
 	}

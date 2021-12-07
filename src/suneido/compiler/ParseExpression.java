@@ -9,6 +9,7 @@ import static suneido.compiler.Token.*;
 
 import java.util.Set;
 
+import com.google.common.base.Ascii;
 import com.google.common.collect.Sets;
 
 import suneido.SuException;
@@ -356,7 +357,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 	private static boolean isGlobal(String name) {
 		int i = name.startsWith("_") && name.length() > 1 ? 1 : 0;
-		return Character.isUpperCase(name.charAt(i));
+		return Ascii.isUpperCase(name.charAt(i));
 	}
 	private T arguments() {
 		T args = null;
@@ -396,7 +397,7 @@ public class ParseExpression<T, G extends Generator<T>> extends Parse<T, G> {
 				int lineNumber = lexer.getLineNumber();
 				match(COLON);
 				String identifier = lexer.getValue();
-				if (!Character.isLowerCase(identifier.charAt(0)))
+				if (!Ascii.isLowerCase(identifier.charAt(0)))
 					syntaxError("expecting local variable name");
 				if (! keywords.add(identifier)) //FIXME e.g. '1' and '01'
 					throw new SuException("duplicate argument name: " + identifier);

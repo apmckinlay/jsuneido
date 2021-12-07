@@ -6,6 +6,8 @@ package suneido.database.query;
 
 import java.util.List;
 
+import com.google.common.base.Ascii;
+
 import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Record;
 import suneido.database.immudb.RecordBuilder;
@@ -22,7 +24,7 @@ public class SummarizeStrategyIdx extends SummarizeStrategy {
 	Row get(Dir dir, boolean rewound) {
 		if (! rewound)
 			return null;
-		dir = q.funcs.get(0).toLowerCase().equals("min") ? Dir.NEXT : Dir.PREV;
+		dir = Ascii.equalsIgnoreCase(q.funcs.get(0), "min") ? Dir.NEXT : Dir.PREV;
 		Row row = source.get(dir);
 		if (row == null)
 			return null;

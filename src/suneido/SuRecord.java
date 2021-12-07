@@ -11,6 +11,7 @@ import static suneido.util.Verify.verify;
 import java.nio.ByteBuffer;
 import java.util.*;
 
+import com.google.common.base.Ascii;
 import com.google.common.base.Objects;
 import com.google.common.collect.*;
 
@@ -240,7 +241,7 @@ public class SuRecord extends SuObject {
 			Object x = getIfPresent(base);
 			if (x != null)
 				return (x instanceof String)
-						? ((String) x).toLowerCase()
+						? Ascii.toLowerCase((String) x)
 						: x; // no transform if not string
 		}
 		return null;

@@ -9,6 +9,8 @@ import static suneido.util.Util.uncapitalize;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.google.common.base.Ascii;
+
 /** get the set of top level variables for a function */
 public class AstVariables {
 
@@ -39,7 +41,7 @@ public class AstVariables {
 			case CATCH:
 				if (ast.value != null) {
 					String var = paramToName(ast.strval());
-					if (Character.isLowerCase(var.charAt(0)))
+					if (Ascii.isLowerCase(var.charAt(0)))
 						vars.add(var);
 				}
 				return true;

@@ -12,6 +12,7 @@ import java.util.Set;
 import gnu.trove.set.hash.TIntHashSet;
 import suneido.SuException;
 import suneido.database.immudb.Transaction.Blocking;
+import com.google.common.base.Ascii;
 
 /**
  * Coordinates index updates for a table.
@@ -316,10 +317,9 @@ class IndexedData {
 			if (f >= 0)
 				rb.add(rec, f);
 			else {
-				//TODO handle other transforms
 				Object x = rec.get(-f - 2);
 				if (x instanceof String)
-					rb.add(((String) x).toLowerCase());
+					rb.add(Ascii.toLowerCase((String) x));
 				else
 					rb.add(rec, -f - 2);
 			}

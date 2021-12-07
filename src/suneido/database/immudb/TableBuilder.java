@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.google.common.base.Ascii;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
@@ -149,7 +150,7 @@ public class TableBuilder {
 	}
 
 	private static boolean isRuleField(String column) {
-		return Character.isUpperCase(column.charAt(0));
+		return Ascii.isUpperCase(column.charAt(0));
 	}
 
 	private int baseField(String column) {

@@ -16,6 +16,7 @@ import org.objectweb.asm.commons.TryCatchBlockSorter;
 import org.objectweb.asm.util.CheckClassAdapter;
 import org.objectweb.asm.util.TraceClassVisitor;
 
+import com.google.common.base.Ascii;
 import com.google.common.base.Strings;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -176,7 +177,7 @@ public class ClassGen {
 			// member ref lvalue
 			localLoad("this");
 			String afterPrefix = param.substring(dotParam && dynParam ? 2 : 1);
-			String prefix = Character.isLowerCase(afterPrefix.charAt(0)) ? privatePrefix : "";
+			String prefix = Ascii.isLowerCase(afterPrefix.charAt(0)) ? privatePrefix : "";
 			constant(prefix + afterPrefix);
 			// parameter value
 			localLoad(name);

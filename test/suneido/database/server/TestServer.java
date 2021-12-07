@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.google.common.base.Ascii;
+
 public class TestServer {
 
 	public static void main(String[] args) {
@@ -73,7 +75,7 @@ public class TestServer {
 		private static Command getCmd(ByteBuffer buf) {
 			try {
 				String word = firstWord(buf);
-				return Command.valueOf(word.toUpperCase());
+				return Command.valueOf(Ascii.toUpperCase(word));
 			} catch (IllegalArgumentException e) {
 				return null;
 			}
@@ -233,7 +235,7 @@ public class TestServer {
 			while (i < buf.limit() && Character.isWhitespace(buf.get(i)))
 				++i;
 			if (i >= buf.limit()
-					|| Character.toUpperCase(buf.get(i)) != type
+					|| Ascii.toUpperCase((char) buf.get(i)) != type
 					|| !Character.isDigit(buf.get(i + 1)))
 				return -1;
 			++i;

@@ -13,6 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import suneido.util.Immutable;
+import suneido.util.Util;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -120,7 +121,7 @@ class Columns implements Iterable<Column> {
 		// NOT reversing rule order like cSuneido
 		for (Column c : columns)
 			if (c.field == -1)
-				cols.add(c.name.substring(0,1).toUpperCase() + c.name.substring(1));
+				cols.add(Util.capitalize(c.name));
 			else if (c.field < -1)
 				cols.add(c.name); // special e.g. _lower!
 		return listToCommas(cols);

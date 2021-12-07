@@ -6,6 +6,8 @@ package suneido.runtime.builtin;
 
 import static suneido.runtime.FunctionSpec.NA;
 
+import com.google.common.base.Ascii;
+
 import suneido.SuDate;
 import suneido.SuException;
 import suneido.runtime.BuiltinMethods;
@@ -102,7 +104,7 @@ public final class DateMethods {
 	@Params("firstDay=sun")
 	public static Object WeekDay(Object self, Object a) {
 		int i = Ops.isString(a)
-				? dayNumber(Ops.toStr(a).toLowerCase())
+				? dayNumber(Ascii.toLowerCase(Ops.toStr(a)))
 				: Ops.toInt(a);
 		return (((SuDate) self).weekday() - i + 6) % 7;
 	}

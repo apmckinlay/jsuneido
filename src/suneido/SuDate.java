@@ -10,6 +10,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Calendar;
 
+import com.google.common.base.Ascii;
 import com.google.common.primitives.Ints;
 
 import suneido.runtime.Pack;
@@ -677,10 +678,10 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 	private static String nextWord(String s, int si) {
 		StringBuilder dst = new StringBuilder();
 		for (; si < s.length() && Character.isLetter(s.charAt(si)); ++si)
-			dst.append(Character.toLowerCase(s.charAt(si)));
+			dst.append(Ascii.toLowerCase(s.charAt(si)));
 		if (dst.length() == 0)
 			return "";
-		dst.setCharAt(0, Character.toUpperCase(dst.charAt(0)));
+		dst.setCharAt(0, Ascii.toUpperCase(dst.charAt(0)));
 		return dst.toString();
 	}
 
@@ -699,7 +700,7 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 		for (int oi = 0; oi < order.length() && i < 3; prev = oc, ++oi) {
 			oc = order.charAt(oi);
 			if (oc != prev && (oc == 'y' || oc == 'M' || oc == 'd'))
-				syspat[i++] = Character.toLowerCase(oc);
+				syspat[i++] = Ascii.toLowerCase(oc);
 		}
 		if (i != 3)
 			throw new SuException("invalid date format: '" + order + "'");
@@ -724,9 +725,9 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 		char s0 = get(s, i);
 		if (s0 == ' ')
 			s0 = get(s, ++i);
-		s0 = Character.toLowerCase(s0);
+		s0 = Ascii.toLowerCase(s0);
 		return (s0 == 'a' || s0 == 'p') &&
-				Character.toLowerCase(get(s, i + 1)) == 'm';
+				Ascii.toLowerCase(get(s, i + 1)) == 'm';
 	}
 
 	private static char get(String s, int i) {

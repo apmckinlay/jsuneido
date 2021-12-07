@@ -8,10 +8,7 @@ import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static suneido.util.Util.bytesToString;
-import static suneido.util.Util.lowerBound;
-import static suneido.util.Util.stringToBytes;
-import static suneido.util.Util.upperBound;
+import static suneido.util.Util.*;
 
 import java.util.ArrayList;
 import java.util.Collections;

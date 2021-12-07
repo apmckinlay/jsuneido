@@ -4,6 +4,8 @@
 
 package suneido.util;
 
+import com.google.common.base.Ascii;
+
 import suneido.util.Regex.Result;
 
 public class RegexReplace {
@@ -54,10 +56,10 @@ public class RegexReplace {
 			return rc;
 		case 'l':
 		case 'L':
-			return Character.toLowerCase(rc);
+			return Ascii.toLowerCase(rc);
 		case 'u':
 		case 'U':
-			return Character.toUpperCase(rc);
+			return Ascii.toUpperCase(rc);
 		default:
 			throw new RuntimeException("bad trcase");
 		}
@@ -71,18 +73,18 @@ public class RegexReplace {
 			sb.append(group);
 			break;
 		case 'l':
-			sb.append(Character.toLowerCase(group.charAt(0)));
+			sb.append(Ascii.toLowerCase(group.charAt(0)));
 			sb.append(group.substring(1));
 			break;
 		case 'L':
-			sb.append(group.toLowerCase());
+			sb.append(Ascii.toLowerCase(group));
 			break;
 		case 'u':
-			sb.append(Character.toUpperCase(group.charAt(0)));
+			sb.append(Ascii.toUpperCase(group.charAt(0)));
 			sb.append(group.substring(1));
 			break;
 		case 'U':
-			sb.append(group.toUpperCase());
+			sb.append(Ascii.toUpperCase(group));
 			break;
 		default:
 			assert false;

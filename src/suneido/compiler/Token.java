@@ -13,6 +13,8 @@ import static suneido.compiler.TokenResultType.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.common.base.Ascii;
+
 import suneido.util.Immutable;
 
 @Immutable
@@ -93,7 +95,7 @@ public enum Token {
 				other.other = this;
 			} else if (arg instanceof TokenResultType) {
 				this.resultType = (TokenResultType) arg;
-				method = toString().replace("EQ", "").toLowerCase();
+				method = Ascii.toLowerCase(toString().replace("EQ", ""));
 			}
 		}
 	}
@@ -125,6 +127,6 @@ public enum Token {
 		return keywords.get(s);
 	}
 	public static Token lookupIgnoreCase(String s) {
-		return keywords.get(s.toLowerCase());
+		return keywords.get(Ascii.toLowerCase(s));
 	}
 }

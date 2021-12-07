@@ -9,6 +9,8 @@ import static suneido.compiler.Token.*;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.google.common.base.Ascii;
+
 import suneido.*;
 import suneido.runtime.Numbers;
 import suneido.runtime.Ops;
@@ -176,7 +178,7 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 	}
 	private static boolean okBase(String s) {
 		int i = s.startsWith("_") ? 1 : 0;
-		return s.length() > i && Character.isUpperCase(s.charAt(i));
+		return s.length() > i && Ascii.isUpperCase(s.charAt(i));
 	}
 
 	private void memberList(Container con, Token opening, String className) {
@@ -215,12 +217,12 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 			syntaxError("class member names must be strings");
 		String name = (String) m;
 		if (name.startsWith("Getter_") &&
-				name.length() > 7 && !Character.isUpperCase(name.charAt(7)))
+				name.length() > 7 && !Ascii.isUpperCase(name.charAt(7)))
 			syntaxError("invalid getter (" + name + ")");
-		if (!Character.isLowerCase(name.charAt(0)))
+		if (!Ascii.isLowerCase(name.charAt(0)))
 			return name;
 		if (name.startsWith("getter_")) {
-			if (name.length() <= 7 || !Character.isLowerCase(name.charAt(7)))
+			if (name.length() <= 7 || !Ascii.isLowerCase(name.charAt(7)))
 				syntaxError("invalid getter (" + name + ")");
 			return "Getter_" + className + name.substring(6);
 		}

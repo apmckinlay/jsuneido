@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.google.common.base.Ascii;
 import com.google.common.base.CharMatcher;
 
 import gnu.trove.list.array.TIntArrayList;
@@ -686,8 +687,8 @@ public class Regex {
 				if (si + len > s.length())
 					return FAIL;
 				for (int i = 0; i < len; ++i)
-					if (Character.toLowerCase(s.charAt(si + i)) !=
-								Character.toLowerCase(b.charAt(i)))
+					if (Ascii.toLowerCase(s.charAt(si + i)) !=
+								Ascii.toLowerCase(b.charAt(i)))
 						return FAIL;
 			} else if (! s.startsWith(b, si))
 				return FAIL;
@@ -736,12 +737,12 @@ public class Regex {
 	static class CharsIgnoreCase extends Chars {
 
 		CharsIgnoreCase(String chars) {
-			super(chars.toLowerCase());
+			super(Ascii.toLowerCase(chars));
 		}
 
 		@Override
 		public void add(String s) {
-			chars += s.toLowerCase();
+			chars += Ascii.toLowerCase(s);
 		}
 
 		@Override
@@ -750,7 +751,7 @@ public class Regex {
 			if (si + len > s.length())
 				return FAIL;
 			for (int i = 0; i < len; ++i)
-				if (Character.toLowerCase(s.charAt(si + i)) != chars.charAt(i))
+				if (Ascii.toLowerCase(s.charAt(si + i)) != chars.charAt(i))
 					return FAIL;
 			return si + chars.length();
 		}
@@ -762,7 +763,7 @@ public class Regex {
 				for (int i = 0; ; ++i)
 					if (i == len)
 						return si;
-					else if (Character.toLowerCase(s.charAt(si + i)) != chars.charAt(i))
+					else if (Ascii.toLowerCase(s.charAt(si + i)) != chars.charAt(i))
 						break;
 			return sn + 1; // no possible match
 		}
@@ -826,8 +827,8 @@ public class Regex {
 		}
 
 		private boolean matches(char c) {
-			return cm.matches(Character.toLowerCase(c)) ||
-					cm.matches(Character.toUpperCase(c));
+			return cm.matches(Ascii.toLowerCase(c)) ||
+					cm.matches(Ascii.toUpperCase(c));
 		}
 
 		@Override

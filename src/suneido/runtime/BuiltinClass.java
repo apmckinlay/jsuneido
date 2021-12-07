@@ -4,6 +4,8 @@
 
 package suneido.runtime;
 
+import com.google.common.base.Ascii;
+
 import suneido.runtime.builtin.SuFile;
 
 /**
@@ -30,7 +32,7 @@ public abstract class BuiltinClass extends BuiltinMethods {
 
 	protected BuiltinClass(String className, Class<?> c, String userDefined,
 			FunctionSpec newInstanceParams) {
-		super(className.toLowerCase(), c, userDefined);
+		super(Ascii.toLowerCase(className), c, userDefined);
 		newInstance = new SuBuiltinMethod(className + ".<new>",
 				newInstanceParams) {
 			@Override

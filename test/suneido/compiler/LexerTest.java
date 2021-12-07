@@ -14,6 +14,7 @@ import java.util.List;
 
 import org.junit.Test;
 
+import com.google.common.base.Ascii;
 import com.google.common.collect.Lists;
 
 public class LexerTest {
@@ -178,7 +179,7 @@ public class LexerTest {
 			assertEquals(IDENTIFIER, token);
 			assertNotNull(lexer.getValue(), lexer.getKeyword());
 			assertEquals(lexer.getValue(),
-					lexer.getKeyword().toString().toLowerCase());
+					Ascii.toLowerCase(lexer.getKeyword().toString()));
 		}
 		assertEquals(source, EOF, lexer.next());
 	}

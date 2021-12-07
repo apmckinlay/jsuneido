@@ -14,6 +14,7 @@ import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.Map;
 
+import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableMap;
 
 import suneido.SuObject;
@@ -49,7 +50,7 @@ public class BuiltinMethods extends SuValue {
 	}
 
 	public BuiltinMethods(Class<?> c) {
-		this.methods = methods(c.getSimpleName().toLowerCase(), c);
+		this.methods = methods(Ascii.toLowerCase(c.getSimpleName()), c);
 		this.userDefined = null;
 	}
 

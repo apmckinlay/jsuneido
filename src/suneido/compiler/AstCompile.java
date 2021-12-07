@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.google.common.base.Ascii;
+
 import org.objectweb.asm.Label;
 
 import suneido.SuException;
@@ -848,7 +850,7 @@ public class AstCompile {
 	// privatize .name member references in code
 	private String privatizeRef(AstNode ast, String name) {
 		if (inMethod && ast.token == Token.SELFREF &&
-				Character.isLowerCase(name.charAt(0))) {
+				Ascii.isLowerCase(name.charAt(0))) {
 			return suClassName + "_" + name;
 		}
 		return name;
@@ -1000,7 +1002,7 @@ public class AstCompile {
 
 	private static boolean isGlobal(AstNode fn) {
 		return fn.token == Token.IDENTIFIER
-				&& Character.isUpperCase(fn.strval().charAt(0));
+				&& Ascii.isUpperCase(fn.strval().charAt(0));
 	}
 
 	private class VarArgs {
@@ -1247,7 +1249,7 @@ public class AstCompile {
 		if (name.isEmpty())
 			return false;
 		int i = name.startsWith("_") && name.length() > 1 ? 1 : 0;
-		return Character.isUpperCase(name.charAt(i));
+		return Ascii.isUpperCase(name.charAt(i));
 	}
 
 	private static void store(ClassGen cg, int ref) {

@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Function;
 
+import com.google.common.base.Ascii;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
@@ -28,15 +29,15 @@ public class Util {
 	public static final int MAX_LINE = 4000;
 
 	public static boolean isCapitalized(String s) {
-		return Character.isUpperCase(s.charAt(0));
+		return Ascii.isUpperCase(s.charAt(0));
 	}
 
 	public static String capitalize(String s) {
-		return s.substring(0, 1).toUpperCase() + s.substring(1);
+		return Ascii.toUpperCase(s.substring(0, 1)) + s.substring(1);
 	}
 
 	public static String uncapitalize(String s) {
-		return s.substring(0, 1).toLowerCase() + s.substring(1);
+		return Ascii.toLowerCase(s.substring(0, 1)) + s.substring(1);
 	}
 
 	/** @return original string if sub not found */

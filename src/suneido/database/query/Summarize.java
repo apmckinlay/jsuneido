@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
@@ -69,8 +70,9 @@ public class Summarize extends Query1 {
 	private boolean minmax1() {
 		if (! by.isEmpty() || funcs.size() != 1)
 			return false;
-		String fn = funcs.get(0).toLowerCase();
-		return fn.equals("min") || fn.equals("max");
+		String fn = funcs.get(0);
+		return Ascii.equalsIgnoreCase(fn, "min")
+				|| Ascii.equalsIgnoreCase(fn, "max");
 	}
 
 	@Override
@@ -307,18 +309,17 @@ public class Summarize extends Query1 {
 		}
 
 		static Summary valueOf(String summary) {
-			summary = summary.toLowerCase();
-			if ("count".equals(summary))
+			if (Ascii.equalsIgnoreCase(summary, "count"))
 				return new Count();
-			if ("total".equals(summary))
+			if (Ascii.equalsIgnoreCase(summary, "total"))
 				return new Total();
-			if ("average".equals(summary))
+			if (Ascii.equalsIgnoreCase(summary, "average"))
 				return new Average();
-			if ("max".equals(summary))
+			if (Ascii.equalsIgnoreCase(summary, "max"))
 				return new Max();
-			if ("min".equals(summary))
+			if (Ascii.equalsIgnoreCase(summary, "min"))
 				return new Min();
-			if ("list".equals(summary))
+			if (Ascii.equalsIgnoreCase(summary, "list"))
 				return new ListSum();
 			throw SuInternalError.unreachable();
 		}
