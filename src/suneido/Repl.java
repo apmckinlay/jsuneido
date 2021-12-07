@@ -42,7 +42,7 @@ public class Repl {
 
 	public static void repl2() throws IOException {
 		try {
-			Compiler.eval("Init()");
+			Compiler.eval("Init.Repl()");
 		} catch (SuException e) {
 			if (e.getMessage().equals("can't find Init"))
 				out.println("WARNING: can't find Init");

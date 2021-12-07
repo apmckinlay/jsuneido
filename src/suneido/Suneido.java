@@ -83,7 +83,6 @@ public class Suneido {
 			Runtime.getRuntime().addShutdownHook(
 					new Thread(TheDbms::closeAll));
 			Errlog.setExtra(TheDbms::sessionid);
-			Compiler.eval("Init.Repl()");
 			Repl.repl2();
 			break;
 		case DUMP:
