@@ -40,7 +40,7 @@ abstract class ReadWriteTransaction extends ReadTransaction {
 		super(num, db);
 	}
 
-	/** used by IndexedData foreign key checks */
+	/** for IndexedData foreign key checks, overridden by UpdateTransaction */
 	boolean exists(int tblnum, int[] colNums, Record key) {
 		return 0 != getIndex(tblnum, colNums).get(key);
 	}
