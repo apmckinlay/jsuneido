@@ -36,7 +36,6 @@ class BtreeTreeKey extends BtreeKey {
 
 	/** Used by BtreeMemNode childNode to cache */
 	void setChild(BtreeNode child) {
-		assert this.child == null;
 		assert child != null;
 		this.child = child;
 		assert childAdr == 0 || child == null || child.address() == childAdr;
