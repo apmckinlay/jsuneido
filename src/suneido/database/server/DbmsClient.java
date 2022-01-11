@@ -31,7 +31,7 @@ import suneido.database.query.Row;
 public class DbmsClient extends Dbms {
 	public final Thread owner = Thread.currentThread();
 	public volatile long idleSince = 0; // used by TheDbms.closeIfIdle
-	private String sessionid = "";
+	private String sessionid = null;
 	private SuChannel io;
 
 	public DbmsClient(String ip, int port) {

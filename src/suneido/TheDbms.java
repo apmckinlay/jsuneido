@@ -27,7 +27,7 @@ public class TheDbms {
 			Collections.synchronizedSet(new HashSet<DbmsClient>());
 	private static final ThreadLocal<String> lastSessionId =
 			ThreadLocal.withInitial(() -> "");
-	private static String mainSessionId = "";
+	private static String mainSessionId = null;
 	private static byte[] token;
 	private static final Object tokenLock = new Object();
 
@@ -58,9 +58,11 @@ public class TheDbms {
 		dbms = new DbmsClient(ip, port);
 		dbmsRemotes.add(dbms);
 		remoteDbms.set(dbms);
-		if (mainSessionId == "")
+		if (mainSessionId == null)
 			mainSessionId = dbms.sessionid("");
-		dbms.sessionid(mainSessionId + ":" + Thread.currentThread().getName());
+		String name = Thread.currentThread().getName();
+		dbms.sessionid(mainSessionId +
+			("main".equals(name) ? "" : ":" + name));
 		synchronized (tokenLock) {
 			if (token != null) {
 				if (dbms.auth(Util.bytesToString(token)))
