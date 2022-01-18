@@ -153,7 +153,7 @@ public class ClientServerTest {
 		assertThat(dbmsClient.run("123 + 456"), equalTo(579));
 
 		// SESSIONID
-		assertThat(dbmsClient.sessionid(), equalTo(""));
+		assertThat(dbmsClient.sessionid(), equalTo("127.0.0.1"));
 		assertThat(dbmsClient.sessionid("foobar"), equalTo("foobar"));
 		assertThat(dbmsClient.sessionid(), equalTo("foobar"));
 
