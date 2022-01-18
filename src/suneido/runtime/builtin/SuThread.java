@@ -17,6 +17,7 @@ import suneido.util.Util;
 
 public class SuThread extends BuiltinClass {
 	public static final SuThread singleton = new SuThread();
+	public static ThreadLocal<SuObject> subSuneido = new ThreadLocal<>();
 	private final AtomicInteger count = new AtomicInteger(0);
 
 	private SuThread() {
@@ -33,7 +34,8 @@ public class SuThread extends BuiltinClass {
 	@Override
 	public Object call(Object... args) {
 		args = Args.massage(callableFS, args);
-		Thread thread = new Thread(Suneido.threadGroup, new Callable(args[0]));
+		Thread thread = new Thread(Suneido.threadGroup,
+				new Callable(args[0], SuThread.subSuneido.get()));
 		thread.setDaemon(true); // so it won't stop Suneido exiting
 		thread.setName("Thread-" + count.getAndIncrement());
 		thread.start();
@@ -42,16 +44,19 @@ public class SuThread extends BuiltinClass {
 
 	private static class Callable implements Runnable {
 		private final Object callable;
+		private final SuObject subSuneido;
 
-		public Callable(Object callable) {
+		public Callable(Object callable, SuObject subSuneido) {
 			// runs in the parent thread
 			this.callable = callable;
+			this.subSuneido = subSuneido;
 		}
 
 		@Override
 		public void run() {
 			// runs in the child thread
 			try {
+				SuThread.subSuneido.set(this.subSuneido);
 				// don't want to auth here
 				// since that will force dbms connection
 				Ops.call(callable);
@@ -101,4 +106,8 @@ public class SuThread extends BuiltinClass {
 		return name;
 	}
 
+	public static Object NewSuneidoGlobal(Object self) {
+		SuThread.subSuneido.set(new SuObject());
+		return null;
+	}
 }

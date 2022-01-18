@@ -10,7 +10,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 
-import suneido.SuObject;
 import suneido.runtime.builtin.*;
 
 public class Builtins {
@@ -22,7 +21,7 @@ public class Builtins {
 
 	static {
 		builtins = new ImmutableMap.Builder<String,Object>()
-			.put("Suneido", new SuObject())
+			.put("Suneido", new SuSuneidoObject())
 			.put("Adler32", Adler32.clazz)
 			.put("AssertionError",
 						function(suneido.runtime.builtin.AssertionError.class))

@@ -28,7 +28,7 @@ public final class ObjectMethods {
 
 	@SuppressWarnings("unchecked")
 	public static Object Add(Object self, Object... args) {
-		SuObject c = (SuObject) self;
+		SuObject c = toObject(self);
 		int numValuesToAdd = 0;
 		Object atArg = null;
 		ArgsIterator iter = new ArgsIterator(args);
