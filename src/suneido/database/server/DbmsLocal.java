@@ -27,6 +27,7 @@ import suneido.database.query.Query.Dir;
 import suneido.database.query.Request;
 import suneido.runtime.Pack;
 import suneido.runtime.builtin.ServerEval;
+import suneido.runtime.builtin.SuThread;
 import suneido.util.Errlog;
 
 /** Connects Suneido to a local database. */
@@ -165,7 +166,7 @@ public class DbmsLocal extends Dbms {
 
 	@Override
 	public Object run(String s) {
-		return Compiler.eval(s);
+		return SuThread.runWithMainSuneido(() -> Compiler.eval(s));
 	}
 
 	@Override

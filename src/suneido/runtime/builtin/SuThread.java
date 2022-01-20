@@ -6,6 +6,7 @@ package suneido.runtime.builtin;
 
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 import suneido.SuException;
 import suneido.SuObject;
@@ -64,6 +65,7 @@ public class SuThread extends BuiltinClass {
 				if (! Suneido.exiting)
 					Errlog.error("uncaught in thread:", e);
 			} finally {
+				SuThread.subSuneido.remove();
 				TheDbms.close();
 			}
 		}
@@ -107,7 +109,17 @@ public class SuThread extends BuiltinClass {
 	}
 
 	public static Object NewSuneidoGlobal(Object self) {
-		SuThread.subSuneido.set(new SuObject());
+		subSuneido.set(new SuObject());
 		return null;
+	}
+
+	public static Object runWithMainSuneido(Supplier<Object> fn) {
+		SuObject orig = subSuneido.get();
+		subSuneido.set(null);
+		try {
+			return fn.get();
+		} finally {
+			subSuneido.set(orig);
+		}
 	}
 }

@@ -224,6 +224,7 @@ public class SocketServer extends SuClass {
 				 * so the connection will get timed out by the database server
 				 * and then if we try to use it again we'll get an error
 				 */
+				SuThread.subSuneido.remove();
 			}
 		}
 
