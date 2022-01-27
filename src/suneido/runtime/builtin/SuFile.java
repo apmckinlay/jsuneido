@@ -54,7 +54,7 @@ public class SuFile extends SuValue {
 			try {
 				f.seek(f.length());
 			} catch (IOException e) {
-				throw new SuException("File io exception", e);
+				throw new SuException("File: io exception", e);
 			}
 	}
 
@@ -67,7 +67,7 @@ public class SuFile extends SuValue {
 		try {
 			((SuFile) self).f.getChannel().force(true);
 		} catch (IOException e) {
-			throw new SuException("File Flush failed", e);
+			throw new SuException("File: Flush: failed", e);
 		}
 		return null;
 	}
@@ -87,7 +87,7 @@ public class SuFile extends SuValue {
 			f.readFully(buf);
 			return Util.bytesToString(buf);
 		} catch (IOException e) {
-			throw new SuException("File Read failed", e);
+			throw new SuException("File: Read: failed", e);
 		}
 	}
 
@@ -111,7 +111,7 @@ public class SuFile extends SuValue {
 			}
 			return Util.toLine(sb);
 		} catch (IOException e) {
-			throw new SuException("File Readline failed", e);
+			throw new SuException("File: Readline: failed", e);
 		}
 	}
 
@@ -127,12 +127,12 @@ public class SuFile extends SuValue {
 				offset += f.length();
 			else if (!origin.equals("set"))
 				throw new SuException(
-						"file.Seek: origin must be 'set', 'end', or 'cur'");
+						"File: Seek: origin must be 'set', 'end', or 'cur'");
 			if (offset < 0)
 				offset = 0;
 			f.seek(offset);
 		} catch (IOException e) {
-			throw new SuException("File Seek failed", e);
+			throw new SuException("File: Seek: failed", e);
 		}
 		return null;
 	}
@@ -141,7 +141,7 @@ public class SuFile extends SuValue {
 		try {
 			return Dnum.from(((SuFile) self).f.getFilePointer());
 		} catch (IOException e) {
-			throw new SuException("File Tell failed", e);
+			throw new SuException("File: Tell: failed", e);
 		}
 	}
 
@@ -159,7 +159,7 @@ public class SuFile extends SuValue {
 				f.writeBytes(s);
 			}
 		} catch (IOException e) {
-			throw new SuException("File Write failed", e);
+			throw new SuException("File: Write: failed", e);
 		}
 	}
 
@@ -178,7 +178,7 @@ public class SuFile extends SuValue {
 				f.writeBytes("\r\n");
 			}
 		} catch (IOException e) {
-			throw new SuException("File Write failed", e);
+			throw new SuException("File: Writeline: failed", e);
 		}
 	}
 
@@ -194,7 +194,7 @@ public class SuFile extends SuValue {
 				f = null;
 			}
 		} catch (IOException e) {
-			throw new SuException("File Close failed", e);
+			throw new SuException("File: Close: failed", e);
 		}
 	}
 
