@@ -1,11 +1,15 @@
 package suneido.runtime;
 
 import suneido.SuValue;
+
+import java.util.Iterator;
+
 import suneido.SuObject;
 import suneido.runtime.builtin.SuThread;
 import suneido.runtime.builtin.ObjectMethods;
 
-public class SuSuneidoObject extends SuValue {
+public class SuSuneidoObject extends SuValue
+		implements Iterable<Object> {
 	private final SuObject ob = new SuObject();
 
 
@@ -38,6 +42,11 @@ public class SuSuneidoObject extends SuValue {
 	public SuObject toObject() {
 		SuObject sub = SuThread.subSuneido.get();
 		return sub != null ? sub : ob;
+	}
+
+	@Override
+	public synchronized Iterator<Object> iterator() {
+		return ob.iterator();
 	}
 
 	@Override
