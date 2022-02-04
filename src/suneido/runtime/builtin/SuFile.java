@@ -9,7 +9,6 @@ import static suneido.util.Util.array;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 
 import suneido.SuException;
 import suneido.SuValue;
@@ -21,7 +20,7 @@ public class SuFile extends SuValue {
 	private final String filename;
 	private final String mode;
 	private final boolean append;
-	private RandomAccessFile f;
+	private BufferedRandomAccessFile f;
 	private static final BuiltinMethods methods =
 			new BuiltinMethods("file", SuFile.class);
 
@@ -45,7 +44,8 @@ public class SuFile extends SuValue {
 		}
 		append = mode.startsWith("a");
 		try {
-			f = new RandomAccessFile(filename, mode.equals("r") ? "r" : "rw");
+			f = new BufferedRandomAccessFile(new File(filename),
+					mode.equals("r") ? "r" : "rw");
 		} catch (FileNotFoundException e) {
 			throw new SuException("File: can't open '" + filename
 							+ "' in mode '" + mode + "'", e);
@@ -65,7 +65,7 @@ public class SuFile extends SuValue {
 
 	public static Object Flush(Object self) {
 		try {
-			((SuFile) self).f.getChannel().force(true);
+			((SuFile) self).f.force();
 		} catch (IOException e) {
 			throw new SuException("File: Flush: failed", e);
 		}
@@ -74,7 +74,7 @@ public class SuFile extends SuValue {
 
 	@Params("nbytes = INTMAX")
 	public static Object Read(Object self, Object a) {
-		RandomAccessFile f = ((SuFile) self).f;
+		var f = ((SuFile) self).f;
 		int n = Ops.toInt(a);
 		long remaining;
 		try {
@@ -84,7 +84,7 @@ public class SuFile extends SuValue {
 			if (n > remaining)
 				n = (int) remaining;
 			byte buf[] = new byte[n];
-			f.readFully(buf);
+			f.read(buf);
 			return Util.bytesToString(buf);
 		} catch (IOException e) {
 			throw new SuException("File: Read: failed", e);
@@ -93,7 +93,7 @@ public class SuFile extends SuValue {
 
 	// NOTE: Readline should be consistent across file, socket, and runpiped
 	public static Object Readline(Object self) {
-		RandomAccessFile f = ((SuFile) self).f;
+		var f = ((SuFile) self).f;
 		// our own implementation to get Suneido's behavior
 		try {
 			StringBuilder sb = new StringBuilder();
@@ -119,7 +119,7 @@ public class SuFile extends SuValue {
 	public static Object Seek(Object self, Object a, Object b) {
 		long offset = Numbers.longValue(a);
 		String origin = Ops.toStr(b);
-		RandomAccessFile f = ((SuFile) self).f;
+		var f = ((SuFile) self).f;
 		try {
 			if (origin.equals("cur"))
 				offset += f.getFilePointer();
