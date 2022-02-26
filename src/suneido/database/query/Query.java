@@ -7,10 +7,12 @@ package suneido.database.query;
 import static suneido.Trace.trace;
 import static suneido.Trace.tracing;
 import static suneido.Trace.Type.QUERYOPT;
+import static suneido.util.Util.addUniqueSet;
 import static suneido.util.Util.nil;
 import static suneido.util.Util.setUnion;
 import static suneido.util.Verify.verify;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -230,5 +232,17 @@ public abstract class Query {
 
 	/** used for trace, e.g. slow queries in Select */
 	public abstract void close();
+
+	// exclude any keys that are super-sets of another key
+	public static List<List<String>> withoutDupsOrSupersets(List<List<String>> keys) {
+		var keys2 = new ArrayList<List<String>>();
+		outer: for (var k1 : keys) {
+			for (var k2 : keys)
+				if (k1.size() > k2.size() && k1.containsAll(k2))
+					continue outer; // skip/exclude k1 - superset
+			addUniqueSet(keys2, k1); // exclude duplicates
+		}
+		return keys2;
+	}
 
 }

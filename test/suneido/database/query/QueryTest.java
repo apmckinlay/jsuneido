@@ -15,6 +15,7 @@ import java.util.List;
 
 import org.junit.Test;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 import suneido.database.immudb.Transaction;
@@ -35,6 +36,25 @@ public class QueryTest extends TestBase {
 		} finally {
 			t.abortIfNotComplete();
 		}
+	}
+
+	@Test
+	public void test_withoutDupsOrSupersets() {
+		wodors(list(list()), list(list()));
+		wodors(list(list("a", "b", "c")), list(list("a", "b", "c")));
+		wodors(list(list("a", "b"), list("b", "a")), list(list("a", "b")));
+		wodors(list(list("a", "b"), list("b", "a", "c")), list(list("a", "b")));
+	}
+
+	private static void wodors(List<List<String>> list,
+			List<List<String>> expected) {
+		var result = Query.withoutDupsOrSupersets(list);
+		assertThat(result, equalTo(expected));
+	}
+
+	@SafeVarargs
+	private static <T> List<T> list(T... fields) {
+		return ImmutableList.copyOf(fields);
 	}
 
 	@Test

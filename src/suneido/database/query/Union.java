@@ -159,22 +159,11 @@ public class Union extends Compatible {
 	public List<List<String>> keys() {
 		if (disjoint == null)
 			return asList(allcols);
-
 		var keys = keypairs();
 		for (var key : keys)
 			if (!key.contains(disjoint))
 				key.add(disjoint);
-		// exclude any keys that are super-sets of another key
-		var keys2 = new ArrayList<List<String>>();
-	outer:
-		for (int i = 0; i < keys.size(); ++i) {
-			for (int j = 0; j < keys.size(); ++j) {
-				if (i != j && keys.get(i).containsAll(keys.get(j)))
-					continue outer;
-			}
-			keys2.add(keys.get(i));
-		}
-		return keys2;
+		return withoutDupsOrSupersets(keys);
 	}
 
 	@Override

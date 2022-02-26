@@ -4,7 +4,7 @@
 
 package suneido.database.query;
 
-import static suneido.util.Util.addUnique;
+import static suneido.util.Util.addUniqueSet;
 import static suneido.util.Util.nil;
 import static suneido.util.Util.union;
 import static suneido.util.Verify.verify;
@@ -50,7 +50,7 @@ public abstract class Query2 extends Query1 {
 		var keys = new ArrayList<List<String>>();
 		for (var k1 : source.keys())
 			for (var k2 : source2.keys())
-				addUnique(keys, union(k1, k2));
+				addUniqueSet(keys, union(k1, k2));
 		verify(!nil(keys));
 		return keys;
 	}

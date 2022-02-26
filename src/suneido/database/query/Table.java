@@ -150,7 +150,7 @@ public class Table extends Query {
 
 	@Override
 	public List<List<String>> keys() {
-		return tbl.keysColumns();
+		return withoutDupsOrSupersets(tbl.keysColumns());
 	}
 
 	@Override

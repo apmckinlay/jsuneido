@@ -189,6 +189,21 @@ public class Util {
 		return list;
 	}
 
+	/** modifies list */
+	public static <T> List<List<T>> addUniqueSet(List<List<T>> list,
+			List<T> x) {
+		if (!containsSet(list, x))
+			list.add(x);
+		return list;
+	}
+
+	public static <T> boolean containsSet(List<List<T>> list, List<T> x) {
+		for (var y : list)
+			if (setEquals(x, y))
+				return true;
+		return false;
+	}
+
 	/** returns a new list */
 	public static <T> List<T> withoutDups(List<T> x) {
 		List<T> result = new ArrayList<>();
