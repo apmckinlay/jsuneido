@@ -38,7 +38,8 @@ public class SuRecord extends SuObject {
 	private final List<Object> observers = Lists.newArrayList();
 	private final Set<Object> invalid; // used by rules
 	private final SetMultimap<Object, Object> dependencies;
-	private final Deque<Object> activeRules = new ArrayDeque<>();
+	private ThreadLocal<Deque<Object>> activeRules =
+			ThreadLocal.withInitial(ArrayDeque::new);
 	private final Set<Object> invalidated = Sets.newLinkedHashSet(); // for observers
 	private final Map<Object, Object> attachedRules = Maps.newHashMap();
 
@@ -262,6 +263,7 @@ public class SuRecord extends SuObject {
 		if (rule == null)
 			return null;
 		// prevent cycles
+		Deque<Object> activeRules = this.activeRules.get();
 		if (activeRules.contains(key))
 			return null;
 		activeRules.push(key);
