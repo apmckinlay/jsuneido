@@ -21,7 +21,7 @@ public class MoveFile {
 					StandardCopyOption.REPLACE_EXISTING);
 			return true;
 		} catch (IOException e) {
-			return false;
+			throw new RuntimeException("MoveFile failed: " + e.toString());
 		}
 	}
 
