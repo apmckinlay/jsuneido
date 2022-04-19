@@ -222,7 +222,7 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 			fname = ((Identifier) function).ident;
 		else if (function instanceof Member) {
 			Member m = (Member) function;
-			ob = ((Expr) m.left);
+			ob = m.left;
 			fname = m.right;
 		} else
 			throw new SuException("query functions must be called by name, got " + function.getClass());
