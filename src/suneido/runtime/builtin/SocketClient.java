@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
 import suneido.SuException;
@@ -127,6 +128,21 @@ public class SocketClient extends SuValue {
 				sb.append((char) c);
 		}
 		return Util.toLine(sb);
+	}
+
+	@Params("seconds")
+	public static Object SetTimeout(Object self, Object a) {
+		int ms = Ops.toInt(a) * 1000;
+		socketClient(self).setTimeout(ms);
+		return null;
+	}
+
+	public void setTimeout(int ms) {
+		try {
+			socket.setSoTimeout(ms);
+		} catch (SocketException e) {
+			throw new SuException("socket SetTimeout failed", e);
+		}
 	}
 
 	@Params("string")

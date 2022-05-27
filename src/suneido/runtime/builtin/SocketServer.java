@@ -195,6 +195,7 @@ public class SocketServer extends SuClass {
 		final int nconn;
 		final String name;
 		final String extra;
+		boolean manualClose = false;
 
 		Instance(Master master, Socket socket, int nconn) throws IOException {
 			super(master);
@@ -216,7 +217,8 @@ public class SocketServer extends SuClass {
 					Errlog.error("in SocketServer:", e);
 			} finally {
 				Thread.currentThread().setName("SocketServer-thread-pool");
-				socket.close();
+				if (!manualClose)
+					socket.close();
 				TheDbms.closeIfIdle();
 				/*
 				 * need to close idle connections because threads may be active
@@ -249,6 +251,12 @@ public class SocketServer extends SuClass {
 		public static Object RemoteUser(Object self) {
 			Instance instance = (Instance) self;
 			return instance.socket.getInetAddress();
+		}
+
+		public static Object ManualClose(Object self) {
+			Instance instance = (Instance) self;
+			instance.manualClose = true;
+			return null;
 		}
 	}
 
