@@ -35,7 +35,7 @@ public class SuRecord extends SuObject {
 	enum Status { NEW, OLD, DELETED }
 
 	private Status status;
-	private final List<Object> observers = Lists.newArrayList();
+	private final List<Object> observers = Lists.newCopyOnWriteArrayList();
 	private final Set<Object> invalid; // used by rules
 	private final SetMultimap<Object, Object> dependencies;
 	private ThreadLocal<Deque<Object>> activeRules =
