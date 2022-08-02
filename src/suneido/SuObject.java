@@ -377,10 +377,11 @@ public class SuObject extends SuValue
 		// The nice thing about vectors: they have a canonical ordering, so
 		// we know we can satisfy the hashCode() contract by just looking at
 		// an arbitrary number of elements.
-		if (vec.size() > 0)
+		if (vec.size() > 0) {
 			h = 31 * h + Ops.hashCodeContrib(vec.get(0));
-		if (vec.size() > 1)
-			h = 31 * h + Ops.hashCodeContrib(vec.get(1));
+			if (vec.size() > 1)
+				h = 31 * h + Ops.hashCodeContrib(vec.get(1));
+		}
 		if (map.size() <= 5) {
 			// The nasty thing about hash maps: no canonical ordering.
 			// If we look at any members, we have to look at all of them.
