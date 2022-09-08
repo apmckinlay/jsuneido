@@ -89,13 +89,11 @@ public class HttpServerMonitor {
 		// NOTE: cSuneido checks for the exact check/rebuild strings
 		// if you changes these then cSuneido must be changed to match
 		private static String getBody() {
-			switch (HttpServerMonitor.mode.get()) {
+			switch (mode.get()) {
 			case CHECKING:
 				return "<h2 style=\"color: red;\">Checking database ...<h2>\r\n";
 			case REBUILDING:
 				return "<h2 style=\"color: red;\">Rebuilding database ...</h2>\r\n";
-			case RUNNING:
-			case CORRUPT:
 			default:
 				return status();
 			}
