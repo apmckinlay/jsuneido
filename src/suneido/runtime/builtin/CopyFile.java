@@ -4,25 +4,26 @@
 
 package suneido.runtime.builtin;
 
-import java.io.File;
+import java.nio.file.*;
 import java.io.IOException;
 
 import suneido.runtime.Ops;
 import suneido.runtime.Params;
 
-import com.google.common.io.Files;
-
 public class CopyFile {
 
 	@Params("from, to, failIfExists")
 	public static boolean CopyFile(Object a, Object b, Object c) {
-		File from = new File(Ops.toStr(a));
-		File to = new File(Ops.toStr(b));
+		var from = Paths.get(Ops.toStr(a));
+		var to = Paths.get(Ops.toStr(b));
 		boolean failIfExists = Ops.toBoolean(c);
-		if (to.exists() && (failIfExists || ! to.delete()))
-			return false;
+
 		try {
-			Files.copy(from, to);
+			if (failIfExists)
+				Files.copy(from, to, StandardCopyOption.COPY_ATTRIBUTES);
+			else
+				Files.copy(from, to, StandardCopyOption.COPY_ATTRIBUTES,
+					StandardCopyOption.REPLACE_EXISTING);
 		} catch (IOException e) {
 			return false;
 		}
