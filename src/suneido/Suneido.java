@@ -181,9 +181,7 @@ public class Suneido {
 
 	private static void tryToCloseMemoryMappings() {
 		System.gc();
-		System.runFinalization();
 		System.gc();
-		System.runFinalization();
 	}
 
 	private static void printHelp() {
