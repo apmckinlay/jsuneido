@@ -5,7 +5,7 @@
 package suneido.database.immudb;
 
 /**
- * Used to store key records for TempIndex and Project
+ * Used to store key records for TempIndex
  * to avoid per-object overhead for large numbers of keys.
  */
 public class RecordStore {
