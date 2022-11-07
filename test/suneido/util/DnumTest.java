@@ -375,10 +375,10 @@ public class DnumTest {
 		assertThat(Dnum.from(Double.POSITIVE_INFINITY), equalTo(Inf));
 		assertThat(Dnum.from(0.0), equalTo(Zero));
 		assertThat(Dnum.from(123.456e9), equalTo(Dnum.parse("123.456e9")));
-		assertThat(Dnum.from(0.37161106994968846),
+		assertThat(Dnum.from(0.3716110699496884),
 				equalTo(Dnum.parse("0.3716110699496884")));
-		assertThat(Dnum.from(37161106994968846.0),
-				equalTo(Dnum.parse("37161106994968840")));
+		assertThat(Dnum.from(3716110699496884.0),
+				equalTo(Dnum.parse("3716110699496884")));
 	}
 
 	@Test
