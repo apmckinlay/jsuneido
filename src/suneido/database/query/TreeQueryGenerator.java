@@ -249,6 +249,8 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 				return Constant.valueOf(Ops.uplus(((Constant) expression).value));
 			case SUB:
 				return Constant.valueOf(Ops.uminus(((Constant) expression).value));
+			default:
+				break;
 			}
 		}
 		return new UnOp(op, (Expr) expression);

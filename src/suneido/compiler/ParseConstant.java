@@ -89,6 +89,8 @@ public class ParseConstant<T, G extends Generator<T>> extends Parse<T, G> {
 				match();
 				return val;
 			}
+		default:
+			break;
 		}
 		syntaxError();
 		return null;

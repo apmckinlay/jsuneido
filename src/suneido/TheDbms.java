@@ -86,7 +86,7 @@ public class TheDbms {
 	}
 
 	public static String setMainSessionId(String sessionid, Thread owner) {
-		if (owner.getId() == 1)
+		if (owner.threadId() == 1)
 			mainSessionId = sessionid;
 		return sessionid;
 	}

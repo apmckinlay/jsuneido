@@ -5,7 +5,6 @@
 package suneido.database.server;
 
 import java.nio.ByteBuffer;
-import java.nio.channels.Channel;
 import java.nio.channels.GatheringByteChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.util.Random;
@@ -14,8 +13,7 @@ import java.util.Random;
  * Takes the place of a SocketChannel for connecting
  * {@link DbmsClient} to {@link DbmsServer}
  */
-public class TestChannel
-		implements Channel, ReadableByteChannel, GatheringByteChannel {
+public class TestChannel implements ReadableByteChannel, GatheringByteChannel {
 	Runnable server;
 	static final int BUFSIZE = 8 * 1024;
 	ByteBuffer buf = ByteBuffer.allocate(BUFSIZE);
