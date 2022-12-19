@@ -93,7 +93,6 @@ public class Builtins {
 			.put("RunPiped", RunPiped.clazz)
 			.put("Same?", function(SameQ.class))
 			.put("Scanner", Scanner.clazz)
-			.put("Scheduled", function(Scheduled.class))
 			.put("Seq", function(Seq.class))
 			.put("Seq?", function(SeqQ.class))
 			.put("Sequence", function(SuSequence.class))
