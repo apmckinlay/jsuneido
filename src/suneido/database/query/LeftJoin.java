@@ -9,6 +9,8 @@ import static suneido.util.Verify.verify;
 
 import java.util.List;
 
+import com.google.common.collect.Lists;
+
 public class LeftJoin extends Join {
 	private boolean row1_output = false;
 
@@ -44,6 +46,22 @@ public class LeftJoin extends Join {
 	double nrecords() {
 		verify(nrecs >= 0);
 		return source.nrecords();
+	}
+
+	@Override
+	List<Fixed> fixed() {
+		var fixed1 = source.fixed();
+		var fixed2 = source2.fixed();
+		if (fixed2.size() == 1) {
+			fixed1 = Lists.newArrayList(fixed1);
+			var f = fixed2.get(0);
+			if (!f.values.contains("")) {
+				f = new Fixed(f.field, Lists.newArrayList(f.values));
+				f.values.add("");
+			}
+			fixed1.add(f);
+		}
+		return fixed1;
 	}
 
 	@Override
