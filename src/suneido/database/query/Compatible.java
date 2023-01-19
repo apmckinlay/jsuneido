@@ -20,6 +20,10 @@ public abstract class Compatible extends Query2 {
 
 	Compatible(Query source1, Query source2) {
 		super(source1, source2);
+		reset();
+	}
+
+	void reset() {
 		allcols = union(source.columns(), source2.columns());
 		List<Fixed> fixed1 = source.fixed();
 		List<Fixed> fixed2 = source2.fixed();

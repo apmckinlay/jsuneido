@@ -223,18 +223,12 @@ public class Project extends Query1 {
 		// distribute project over union/intersect (NOT difference)
 		else if (source instanceof Union || source instanceof Intersect) {
 			Compatible c = (Compatible) source;
-			if (c.disjoint != null && ! flds.contains(c.disjoint)) {
-				List<String> flds2 = new ArrayList<>(flds);
-				flds2.add(c.disjoint);
-				c.source = new Project(c.source,
-						intersect(flds2, c.source.columns()));
-				c.source2 = new Project(c.source2,
-						intersect(flds2, c.source2.columns()));
-			} else {
+			if (c.disjoint == null || flds.contains(c.disjoint)) {
 				c.source = new Project(c.source,
 						intersect(flds, c.source.columns()));
 				c.source2 = new Project(c.source2,
 						intersect(flds, c.source2.columns()));
+				c.reset();
 				return source.transform();
 			}
 		}

@@ -41,6 +41,11 @@ public class Union extends Compatible {
 		super(source1, source2);
 	}
 
+	void reset() {
+		fix = null;
+		super.reset();
+	}
+
 	@Override
 	public String toString() {
 		return toString("UNION", strategy == null ? ""
