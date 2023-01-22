@@ -85,6 +85,7 @@ public class Builtins {
 			.put("PrintStdout", function(PrintStdout.class))
 			.put("Query1", new Query1())
 			.put("QueryFirst", new QueryFirst())
+			.put("QueryHash", function(QueryHash.class))
 			.put("QueryLast", new QueryLast())
 			.put("QueryScanner", QueryScanner.clazz)
 			.put("Random", function(Random.class))
