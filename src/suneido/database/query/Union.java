@@ -48,8 +48,9 @@ public class Union extends Compatible {
 
 	@Override
 	public String toString() {
-		return toString("UNION", strategy == null ? ""
-				: strategy == Strategy.MERGE ? "-MERGE" : "-LOOKUP");
+		return toString("UNION", (strategy == null ? ""
+				: strategy == Strategy.MERGE ? "-MERGE" : "-LOOKUP") +
+				(disjoint == null ? "" : "-DISJOINT(" + disjoint + ")"));
 	}
 
 	@Override

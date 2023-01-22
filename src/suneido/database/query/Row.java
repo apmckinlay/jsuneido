@@ -63,7 +63,10 @@ public class Row {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		for (Record r : data)
-			sb.append(r.toString());
+			if (r == null)
+                sb.append(" null ");
+            else
+				sb.append(r.toString());
 		return sb.toString();
 	}
 
