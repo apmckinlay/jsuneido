@@ -52,7 +52,7 @@ public class LeftJoin extends Join {
 	List<Fixed> fixed() {
 		var fixed1 = source.fixed();
 		var fixed2 = source2.fixed();
-		if (fixed2.size() == 1) {
+		if (fixed2.size() == 1 && !joincols.contains(fixed2.get(0).field)) {
 			fixed1 = Lists.newArrayList(fixed1);
 			var f = fixed2.get(0);
 			if (!f.values.contains("")) {
