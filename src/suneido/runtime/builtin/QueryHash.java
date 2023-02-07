@@ -28,9 +28,6 @@ public final class QueryHash {
 		var dbms = TheDbms.dbms();
 		var t = dbms.transaction(false);
 		var q = t.query(query);
-		if (details) {
-			System.out.println(q);
-		}
 		var hdr = q.header();
 		var fields = Lists.newArrayList(hdr.fields());
 		fields.removeIf(s -> "-".equals(s));
@@ -38,7 +35,8 @@ public final class QueryHash {
 		// System.out.println("fields: " + fields);
 		var adler = new Adler32();
 		Row row;
-		int hash = hashCols(adler, hdr, details);
+		int colhash = hashCols(adler, hdr);
+		int hash = colhash;
 		int n = 0;
 		while (null != (row = q.get(Dir.NEXT))) {
 			hash += hashRow(adler, hdr, fields, row);
@@ -49,12 +47,14 @@ public final class QueryHash {
 		}
 		t.complete();
 		if (details) {
-			System.out.println("nrows " + n);
+			return "nrows " + n + " hash " + (hash & 0xffffffffL) + "\r\n" +
+				(colhash & 0xffffffffL) + " " + hdr.columns();
+
 		}
 		return Dnum.from(hash & 0xffffffffL);
 	}
 
-	private static int hashCols(Adler32 adler, Header hdr, boolean details) {
+	private static int hashCols(Adler32 adler, Header hdr) {
 		int hash = 31;
 		var cols = Lists.newArrayList(hdr.columns());
 		cols.sort(null);
@@ -62,9 +62,6 @@ public final class QueryHash {
 			adler.reset();
 			adler.update(col.getBytes());
 			hash = hash * 31 + (int) adler.getValue();
-		}
-		if (details) {
-			System.out.println("cols " + (hash & 0xffffffffL) + " " + cols);
 		}
 		return hash;
 	}
