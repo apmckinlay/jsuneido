@@ -106,6 +106,18 @@ public class Header {
 		return fields;
 	}
 
+	public boolean hasField(String fld) {
+		for (int i = 1; i < flds.size(); i += 2)
+			for (String f : flds.get(i))
+				if (f.equals(fld))
+					return true;
+		return false;
+	}
+
+	public boolean hasRule(String col) {
+		return cols.contains(col) && !hasField(col);
+	}
+
 	/**
 	 * @return A list of the rule columns, i.e. columns() - fields()
 	 */

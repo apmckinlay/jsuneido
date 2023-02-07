@@ -31,6 +31,7 @@ public class Row {
 	final Record[] data;
 	private DbmsTran tran = null;
 	private SuRecord surec = null; // cache
+	private Header surecHdr = null;
 	private static final Row emptyrow = new Row();
 
 	public Row(Record... data) {
@@ -116,8 +117,10 @@ public class Row {
 		Which w = find(hdr, col);
 		if (w != null)
 			return getraw(w);
-		// else rule
-		return Pack.pack(surec(hdr).get(col));
+		if (hdr.hasRule(col)) {
+			return Pack.pack(surec(hdr).get(col)); // handle rules
+		}
+		return Record.MIN_FIELD;
 	}
 
 	public int address() {
@@ -125,8 +128,10 @@ public class Row {
 	}
 
 	public SuRecord surec(Header hdr) {
-		if (surec == null)
+		if (surec == null || !hdr.equals(surecHdr)) {
+			surecHdr = hdr;
 			surec = new SuRecord(this, hdr, tran);
+		}
 		return surec;
 	}
 

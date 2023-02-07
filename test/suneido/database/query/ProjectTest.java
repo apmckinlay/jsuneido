@@ -52,9 +52,9 @@ public class ProjectTest {
 		Suneido.context.set("Rule_r",
 				Compiler.compile("Rule_r", "function () { .a + .b + .c }"));
 
-		test("tmp extend r project a, r", "Row{a: 1, r: 1}"); // fails for copy
-		test("tmp extend r project b, r", "Row{b: 11, r: 123}");
-		test("tmp extend r project c, r", "Row{c: 111, r: 123}");
+		test("tmp extend r project a, r", "Row{a: 1, r: 1}");
+		test("tmp extend r project b, r", "Row{b: 11, r: 11}");
+		test("tmp extend r project c, r", "Row{c: 111, r: 111}");
 	}
 
 	private void test(String query, String result) {
