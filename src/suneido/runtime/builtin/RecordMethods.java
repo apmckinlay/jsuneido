@@ -30,11 +30,15 @@ public class RecordMethods {
 
 	// handle dbRecord.Delete()
 	public static Object Delete(Object self, Object... args) {
-		if (! new ArgsIterator(args).hasNext()) {
-			((SuRecord) self).delete();
-			return null;
-		} else
+		if (args.length != 0)
 			return ObjectMethods.delete(self, args);
+		((SuRecord) self).delete();
+		return null;
+	}
+
+	public static Object Drop(Object self, Object... args) {
+		((SuRecord) self).delete();
+		return null;
 	}
 
 	@Params("member, block")
