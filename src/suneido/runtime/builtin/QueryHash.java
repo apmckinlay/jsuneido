@@ -38,17 +38,20 @@ public final class QueryHash {
 		int colhash = hashCols(adler, hdr);
 		int hash = colhash;
 		int n = 0;
-		while (null != (row = q.get(Dir.NEXT))) {
-			hash += hashRow(adler, hdr, fields, row);
-			// System.out.println("row " + row);
-			++n;
-			// if (n >= 10)
-			//  break;
+		try {
+			while (null != (row = q.get(Dir.NEXT))) {
+				hash += hashRow(adler, hdr, fields, row);
+				// System.out.println("row " + row);
+				++n;
+				// if (n >= 10)
+				// break;
+			}
+		} finally {
+			t.complete();
 		}
-		t.complete();
 		if (details) {
 			return "nrows " + n + " hash " + (hash & 0xffffffffL) + "\r\n" +
-				(colhash & 0xffffffffL) + " " + hdr.columns();
+					(colhash & 0xffffffffL) + " " + hdr.columns();
 
 		}
 		return Dnum.from(hash & 0xffffffffL);
@@ -71,7 +74,7 @@ public final class QueryHash {
 		int hash = 0;
 		for (var fld : fields) {
 			var buf = row.getraw(hdr, fld);
-			hash += hashField(adler, buf);
+			hash = hash * 31 + hashField(adler, buf);
 			// System.out.print(fld + ": " + Pack.unpack(row.getraw(hdr, fld)) + " ");
 		}
 		// System.out.println("");
