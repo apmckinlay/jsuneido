@@ -12,6 +12,7 @@ import static suneido.Trace.Type.SELECT;
 import static suneido.Trace.Type.SLOWQUERY;
 import static suneido.compiler.Token.IS;
 import static suneido.compiler.Token.ISNT;
+import static suneido.compiler.Token.GT;
 import static suneido.database.immudb.Record.MAX_FIELD;
 import static suneido.database.immudb.Record.MIN_FIELD;
 import static suneido.util.ByteBuffers.bufferUcompare;
@@ -390,9 +391,12 @@ public class Select extends Query1 {
 					continue;
 				} else if (e instanceof BinOp) {
 					BinOp binop = (BinOp) e;
+					var op = binop.op;
+						ByteBuffer value = ((Constant) binop.right).packed;
+					if (op == IS && value.remaining() == 0)
+						op = GT;
 					if (binop.op != ISNT) {
 						String field = ((Identifier) binop.left).ident;
-						ByteBuffer value = ((Constant) binop.right).packed;
 						cmps.add(new Cmp(field, binop.op, value));
 						continue;
 					}
