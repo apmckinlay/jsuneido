@@ -140,7 +140,7 @@ public class PackDnum {
 			return 0;
 		// sign // back up to tag
 		byte c = buf.get(buf.position() - 1);
-		byte sign = (byte) (c == Tag.MINUS || c == Tag.NEW_MINUS ? -1 : +1);
+		byte sign = (byte) (c == Tag.MINUS ? -1 : +1);
 		int xor = (sign < 0) ? -1 : 0;
 
 		// exponent
@@ -209,7 +209,7 @@ public class PackDnum {
 			return 0;
 		// sign // back up to tag
 		byte c = buf.get(buf.position() - 1);
-		byte sign = (byte) (c == Tag.MINUS || c == Tag.NEW_MINUS ? -1 : +1);
+		byte sign = (byte) (c == Tag.MINUS ? -1 : +1);
 		int xor = (sign < 0) ? -1 : 0;
 
 		// exponent

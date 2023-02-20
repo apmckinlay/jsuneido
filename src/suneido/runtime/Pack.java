@@ -26,14 +26,6 @@ public class Pack {
 		public static final byte DATE = 5;
 		public static final byte OBJECT = 6;
 		public static final byte RECORD = 7;
-		public static final byte NEW_STRING = 10;
-		public static final byte NEW_FALSE = 11;
-		public static final byte NEW_TRUE = 12;
-		public static final byte NEW_MINUS = 13;
-		public static final byte NEW_PLUS = 14;
-		public static final byte NEW_DATE = 15;
-		public static final byte NEW_OBJECT = 16;
-		public static final byte NEW_RECORD = 17;
 	}
 	private static final ByteBuffer EMPTY_BUFFER = ByteBuffer.allocate(0);
 
@@ -112,19 +104,19 @@ public class Pack {
 		if (buf.remaining() == 0)
 			return "";
 		switch (buf.get()) {
-		case Tag.FALSE, Tag.NEW_FALSE:
+		case Tag.FALSE:
 			return Boolean.FALSE;
-		case Tag.TRUE, Tag.NEW_TRUE:
+		case Tag.TRUE:
 			return Boolean.TRUE;
-		case Tag.MINUS, Tag.NEW_MINUS, Tag.PLUS, Tag.NEW_PLUS:
+		case Tag.MINUS, Tag.PLUS:
 			return PackDnum.unpack(buf);
-		case Tag.STRING, Tag.NEW_STRING:
+		case Tag.STRING:
 			return unpackString(buf);
-		case Tag.OBJECT, Tag.NEW_OBJECT:
+		case Tag.OBJECT:
 			return SuObject.unpack(buf);
-		case Tag.RECORD, Tag.NEW_RECORD:
+		case Tag.RECORD:
 			return SuRecord.unpack(buf);
-		case Tag.DATE, Tag.NEW_DATE:
+		case Tag.DATE:
 			return SuDate.unpack(buf);
 		default:
 			throw new SuException("invalid unpack type: "
