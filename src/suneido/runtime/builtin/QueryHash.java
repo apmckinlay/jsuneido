@@ -50,9 +50,8 @@ public final class QueryHash {
 			t.complete();
 		}
 		if (details) {
-			return "nrows " + n + " hash " + (hash & 0xffffffffL) + "\r\n" +
-					(colhash & 0xffffffffL) + " " + hdr.columns();
-
+			return "nrows " + n + " hash " + (hash & 0xffffffffL) +
+					" ncols " + hdr.columns().size() + " hash " + (colhash & 0xffffffffL);
 		}
 		return Dnum.from(hash & 0xffffffffL);
 	}
@@ -62,6 +61,7 @@ public final class QueryHash {
 		var cols = Lists.newArrayList(hdr.columns());
 		cols.sort(null);
 		for (var col : cols) {
+			// System.out.println(col);
 			adler.reset();
 			adler.update(col.getBytes());
 			hash = hash * 31 + (int) adler.getValue();
