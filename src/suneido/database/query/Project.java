@@ -28,7 +28,6 @@ public class Project extends Query1 {
 	// used by SEQUENTIAL
 	private Row prevrow;
 	private Row currow;
-	// DestMem td;
 	private List<String> via;
 	enum Strategy {
 		NONE(""), COPY("-COPY"), SEQUENTIAL("-SEQ"), LOOKUP("-LOOKUP");
@@ -39,40 +38,54 @@ public class Project extends Query1 {
 		}
 	}
 
-	Project(Query source, List<String> flds) {
-		this(source, flds, false);
-	}
-
-	Project(Query source, List<String> args, boolean allbut) {
-		super(source);
-
-		List<String> columns = source.columns();
-		if (! columns.containsAll(args))
+	static Project project(Query source, List<String> flds) {
+		List<String> srcCols = source.columns();
+		if (!srcCols.containsAll(flds))
 			throw new SuException("project: nonexistent column(s): "
-					+ difference(args, columns));
-		flds = allbut
-				? difference(columns, args)
-				: withoutDups(args);
-		for (var iter = flds.iterator(); iter.hasNext();) {
-			var a = iter.next();
-			if (a.endsWith("_lower!"))
-				if (allbut)
-					iter.remove();
-				else
-					throw new SuException("can't project _lower! fields");
+					+ difference(flds, srcCols));
+		flds = withoutDups(flds);
+		for (var fld : flds) {
+			if (fld.endsWith("_lower!"))
+				throw new SuException("can't project _lower! fields");
 		}
-		if (hasKey(source, flds)) {
-			strategy = Strategy.COPY;
-			includeDeps(columns);
-		}
+		var p = new Project(source, flds);
+		if (p.strategy == Strategy.COPY)
+			p.includeDeps(srcCols);
+		return p;
 	}
 
-	private void includeDeps(List<String> columns) {
+	private void includeDeps(List<String> srcCols) {
 		for (int i = flds.size() - 1; i >= 0; --i) {
 			String f = flds.get(i);
 			String deps = f + "_deps";
-			if (columns.contains(deps) && !flds.contains(deps))
+			if (srcCols.contains(deps) && !flds.contains(deps))
 				flds.add(deps);
+		}
+	}
+
+	static Project remove(Query source, List<String> flds) {
+		var srcCols = source.columns();
+		var proj = new ArrayList<String>();
+		for (var col : srcCols) {
+			if (!(flds.contains(col) ||
+					col.endsWith("_lower!") ||
+					(col.endsWith("_deps") && flds.contains(removeDeps(col)))))
+				proj.add(col);
+		}
+		if (proj.isEmpty())
+            throw new SuException("remove: can't remove all columns");
+		return new Project(source, proj);
+	}
+
+	private static String removeDeps(String field) {
+		return field.substring(0, field.length() - 5);
+	}
+
+	private Project(Query source, List<String> flds) {
+		super(source);
+		this.flds = flds;
+		if (hasKey(source, flds)) {
+			strategy = Strategy.COPY;
 		}
 	}
 
@@ -427,7 +440,6 @@ public class Project extends Query1 {
 	void select(List<String> index, Record from, Record to) {
 		source.select(index, from, to);
 		if (strategy == Strategy.LOOKUP && !sel.equals(from, to))
-			// idx = new VVtree(td = new DestMem());
 			indexed = false;
 		sel.set(from, to);
 		rewound = true;

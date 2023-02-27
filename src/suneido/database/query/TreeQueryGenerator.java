@@ -94,12 +94,12 @@ public class TreeQueryGenerator extends QueryGenerator<Object> {
 
 	@Override
 	public Object project(Object query, Object columns) {
-		return new Project((Query) query, (List<String>) columns);
+		return Project.project((Query) query, (List<String>) columns);
 	}
 
 	@Override
 	public Object remove(Object query, Object columns) {
-		return new Project((Query) query, (List<String>) columns, true);
+		return Project.remove((Query) query, (List<String>) columns);
 	}
 
 	@Override
