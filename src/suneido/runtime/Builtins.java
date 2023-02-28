@@ -32,6 +32,7 @@ public class Builtins {
 			.put("CircLog", function(CircLog.class))
 			.put("Class?", function(ClassQ.class))
 			.put("Cmdline", function(Cmdline.class))
+			.put("Cmp", function(Cmp.class))
 			.put("Construct", function(Construct.class))
 			.put("CopyFile", function(CopyFile.class))
 			.put("CreateDirectory", function(CreateDirectory.class))
