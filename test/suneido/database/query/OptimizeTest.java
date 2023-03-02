@@ -26,6 +26,21 @@ public class OptimizeTest extends TestBase {
 	}
 
 	@Test
+	public void table_index_selection2() {
+		adm("create test (a,b,c) key(a) index(b)");
+		Transaction t = db.updateTransaction();
+		for (int i = 0; i < 50; ++i)
+			t.addRecord("test", new RecordBuilder().add(i).build());
+		String big = "now is the time for all good men";
+		for (int i = 50; i < 100; ++i)
+			t.addRecord("test", new RecordBuilder().add(i).add(big).build());
+		t.ck_complete();
+		test1("test", "test^(a)");
+		test1("test where b > ''", "test^(b) WHERE^(b)");
+		test1("test where b isnt ''", "test^(b) WHERE^(b)");
+	}
+
+	@Test
 	public void test() {
 		makeDB();
 		adm("create test_minus1 (a, b, c) key(a)");

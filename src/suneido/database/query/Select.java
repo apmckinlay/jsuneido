@@ -392,12 +392,13 @@ public class Select extends Query1 {
 				} else if (e instanceof BinOp) {
 					BinOp binop = (BinOp) e;
 					var op = binop.op;
-						ByteBuffer value = ((Constant) binop.right).packed;
-					if (op == IS && value.remaining() == 0)
+					ByteBuffer value = ((Constant) binop.right).packed;
+					if (op == ISNT && value.remaining() == 0) {
 						op = GT;
-					if (binop.op != ISNT) {
+					}
+					if (op != ISNT) {
 						String field = ((Identifier) binop.left).ident;
-						cmps.add(new Cmp(field, binop.op, value));
+						cmps.add(new Cmp(field, op, value));
 						continue;
 					}
 				}
