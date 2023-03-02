@@ -90,7 +90,19 @@ public class Row {
 	}
 
 	public ByteBuffer getraw(Header hdr, String col) {
-		return getraw(find(hdr, col));
+		var w = find(hdr, col);
+		if (w == null && col.endsWith("_lower!")) {
+			var base = Util.beforeLast(col, "_");
+			w = find(hdr, base);
+			if (w != null) {
+				var b = getraw(w);
+				var x = Pack.unpack(b);
+				if (x instanceof String s)
+					return Pack.pack(Ascii.toLowerCase(s));
+				return b;
+			}
+		}
+		return getraw(w);
 	}
 
 	public Record project(Header hdr, List<String> flds) {

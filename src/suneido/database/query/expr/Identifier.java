@@ -9,6 +9,7 @@ import java.util.List;
 
 import suneido.database.query.Header;
 import suneido.database.query.Row;
+import suneido.util.Util;
 
 public class Identifier extends Expr {
 	public String ident;
@@ -33,7 +34,9 @@ public class Identifier extends Expr {
 
 	@Override
 	public boolean isField(List<String> fields) {
-		return fields.contains(ident);
+		return fields.contains(ident) ||
+				(ident.endsWith("_lower!") &&
+					fields.contains(Util.beforeLast(ident, "_")));
 	}
 
 	@Override
