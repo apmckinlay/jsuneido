@@ -16,7 +16,7 @@ import suneido.util.ThreadSafe;
 
 @ThreadSafe // all static methods
 public class Pack {
-	// sequence must match Order, values must match cSuneido
+	// sequence must match Order, values must match gSuneido
 	public static final class Tag {
 		public static final byte FALSE = 0;
 		public static final byte TRUE = 1;
