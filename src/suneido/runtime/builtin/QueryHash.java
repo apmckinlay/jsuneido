@@ -73,13 +73,28 @@ public final class QueryHash {
 			Header hdr, List<String> fields, Row row) {
 		int hash = 0;
 		for (var fld : fields) {
-			var buf = row.getraw(hdr, fld);
-			hash = hash * 31 + hashField(adler, buf);
+			hash = hash * 31 + hashPacked(adler, row.getraw(hdr, fld));
 			// System.out.print(fld + ": " + Pack.unpack(row.getraw(hdr, fld)) + " ");
 		}
 		// System.out.println("");
 		return hash;
 	}
+
+	private static int hashPacked(Adler32 adler, ByteBuffer buf) {
+		if (buf.limit() > 0 && buf.get(0) >= Pack.Tag.OBJECT) {
+			return hashObject(buf);
+		}
+		return hashField(adler, buf);
+	}
+
+	private static int hashObject(ByteBuffer buf) {
+		int hash = 0;
+        for (int i = buf.position(); i < buf.limit(); i++) {
+			// use simple addition to be insensitive to member order
+			hash +=  Byte.toUnsignedInt(buf.get(i));
+		}
+		return hash;
+    }
 
 	private static int hashField(Adler32 adler, ByteBuffer buf) {
 		adler.reset();
