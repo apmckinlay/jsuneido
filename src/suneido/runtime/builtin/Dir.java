@@ -12,6 +12,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.util.function.Predicate;
 
 import suneido.SuDate;
 import suneido.SuException;
@@ -41,11 +42,14 @@ public class Dir {
 		}
 		if (glob.endsWith("*.*")) // *.* only matches if there is a literal '.'
 			glob = glob.substring(0, glob.length() - 2);
+		var match = matcher(glob);
 		Path path = FileSystems.getDefault().getPath(dir); // Path.of for 11
 		SuObject ob = (block == Boolean.FALSE) ? new SuObject() : null;
-		try (var ds = Files.newDirectoryStream(path, glob)) {
+		try (var ds = Files.newDirectoryStream(path)) {
 			for (var x : ds) {
 				File file = x.toFile();
+				if (!match.test(file.getName()))
+                    continue;
 				if (files && file.isDirectory())
 					continue;
 				Object value = details ? detailsOf(file) : nameOf(file);
@@ -94,6 +98,15 @@ public class Dir {
 		return (f.canWrite() ? 0 : READONLY)
 				| (f.isHidden() ? HIDDEN : 0)
 				| (f.isDirectory() ? DIRECTORY : 0);
+	}
+
+	private static Predicate<String> matcher(String pat) {
+		int i = pat.indexOf("*");
+		if (i == -1)
+			return (String name) -> name.equals(pat);
+		String before = pat.substring(0, i);
+		String after = pat.substring(i + 1);
+		return (String name) -> name.startsWith(before) && name.endsWith(after);
 	}
 
 }
