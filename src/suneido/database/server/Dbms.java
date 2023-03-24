@@ -34,7 +34,7 @@ public abstract class Dbms {
 		return null; // overridden by DbmsLocal
 	}
 	public abstract List<Integer> transactions();
-	public abstract SuDate timestamp();
+	protected abstract SuDate timestamp(); // see also tstamp below
 	public abstract String check();
 	public abstract String dump(String filename);
 	public abstract int load(String filename);
@@ -96,4 +96,8 @@ public abstract class Dbms {
 	public abstract byte[] token();
 
 	public abstract void close();
+
+	public SuDate tstamp() {
+		return Tstamp.next(this);
+	}
 }

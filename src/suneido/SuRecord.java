@@ -302,7 +302,7 @@ public class SuRecord extends SuObject {
 			if (f == null)
 				rb.addMin();
 			else if (f.equals(ts))
-				rb.add(tsval = TheDbms.dbms().timestamp());
+				rb.add(tsval = TheDbms.dbms().tstamp());
 			else if (deps.containsKey(f))
 				rb.add(commaJoiner.join(deps.get(f)));
 			else if (null != (x = get(f)))

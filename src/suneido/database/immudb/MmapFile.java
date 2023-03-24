@@ -25,7 +25,8 @@ class MmapFile extends Storage {
 	static final int MMAP_CHUNK_SIZE = 64 * 1024 * 1024; // 64 mb
 	static final byte[] MAGIC = { 's', 'n', 'd', 'o' };
 	static final ByteBuffer magic = ByteBuffer.allocate(4).put(MAGIC);
-	static final int VERSION = 2;
+	static final int VERSION = 3;
+	static final int VERSION_PREV = 2;
 	private final File file;
 	private final FileChannel.MapMode mode;
 	private final RandomAccessFile fin;
@@ -96,7 +97,9 @@ class MmapFile extends Storage {
 			if (!Arrays.equals(magic, MAGIC))
 				throw new SuException("invalid database file");
 			int ver = buf.getInt();
-			if (ver != VERSION)
+			if (ver == VERSION_PREV)
+				buf(0).put(MAGIC).putInt(VERSION);
+			else if (ver != VERSION)
 				throw new SuException("invalid database version, got " + ver +
 						", expected " + VERSION);
 		}

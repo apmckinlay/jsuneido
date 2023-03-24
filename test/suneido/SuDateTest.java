@@ -13,6 +13,7 @@ import java.nio.ByteBuffer;
 import org.junit.Test;
 
 import suneido.SuDate.SuDateBad;
+import suneido.runtime.Ops;
 import suneido.runtime.Pack;
 
 public class SuDateTest {
@@ -112,6 +113,35 @@ public class SuDateTest {
 		assert d2.compareTo(d1) > 0;
 		assert ! d1.equals(d2);
 		assert ! d2.equals(d1);
+	}
+
+	@Test
+	public void test_compare2() {
+		String dates[] = {"19990101", "20001231"};
+		String times[] = {"080102333", "180102333"};
+		String extra[] = {"", "123"};
+		SuDate vals[] = new SuDate[8];
+		int i = 0;
+		for (var d : dates) {
+			for (var t : times) {
+				for (var e : extra) {
+					vals[i++] = SuDate.fromLiteral("#" + d + "." + t + e);
+					var y = SuDate.fromLiteral("#" + d + "." + t + e);
+					assert(Ops.is_(vals[i-1], y));
+				}
+			}
+		}
+		for (i = 0; i < vals.length; i++) {
+			for (int j = 0; j < vals.length; j++) {
+				// System.out.println(i + ", " + vals[i] + ", " + j + ", " + vals[j]);
+				assertThat(Ops.cmp(vals[i], vals[j]),
+						equalTo(Integer.compare(i, j)));
+				assertThat(Ops.cmp(vals[j], vals[i]),
+						equalTo(Integer.compare(j, i)));
+				assertThat(Ops.is_(vals[i], vals[j]), equalTo(i == j));
+				assertThat(Ops.is_(vals[j], vals[i]), equalTo(i == j));
+				}
+		}
 	}
 
 	@Test

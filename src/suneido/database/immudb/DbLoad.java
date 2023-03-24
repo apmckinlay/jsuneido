@@ -51,10 +51,10 @@ class DbLoad {
 	private static void verifyFileHeader(ReadableByteChannel in)
 			throws IOException {
 		String s = getline(in);
-		if (s == null || ! s.startsWith("Suneido dump"))
+		if (s == null || ! s.startsWith(DbDump.versionBase))
 			throw new RuntimeException("not a valid dump file");
-		if (! s.startsWith("Suneido dump 2"))
-			throw new RuntimeException("wrong dump file version");
+		if (! DbDump.version.equals(s) && ! DbDump.versionPrev.equals(s))
+			throw new RuntimeException("invalid dump version");
 	}
 
 	private static String readTableHeader(ReadableByteChannel in)

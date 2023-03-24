@@ -10,7 +10,7 @@ import suneido.TheDbms;
 public class Timestamp {
 
 	public static SuDate Timestamp() {
-		return TheDbms.dbms().timestamp();
+		return TheDbms.dbms().tstamp();
 	}
 
 }

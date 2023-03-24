@@ -22,6 +22,7 @@ import suneido.database.immudb.Database;
 import suneido.database.immudb.Dbpkg;
 import suneido.database.immudb.Dump;
 import suneido.database.server.DbmsServer;
+import suneido.database.server.Timestamp;
 import suneido.runtime.ContextLayered;
 import suneido.runtime.Contexts;
 import suneido.util.Errlog;
@@ -177,6 +178,7 @@ public class Suneido {
 		}));
 		scheduleAtFixedRate(db::limitOutstandingTransactions, 1, TimeUnit.SECONDS);
 		scheduleAtFixedRate(db::force, 1, TimeUnit.MINUTES);
+		scheduleAtFixedRate(Timestamp::sync, 1, TimeUnit.SECONDS);
 	}
 
 	private static void tryToCloseMemoryMappings() {

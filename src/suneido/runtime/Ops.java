@@ -107,6 +107,8 @@ public final class Ops {
 			xClass = SuObject.class;
 		} else if (xClass == SuRecord.class)
 			xClass = SuObject.class;
+		else if (xClass == SuTimestamp.class)
+			xClass = SuDate.class;
 
 		if (yClass == Integer.class) {
 			y = Dnum.from((int) y);
@@ -119,6 +121,8 @@ public final class Ops {
 			yClass = SuObject.class;
 		} else if (yClass == SuRecord.class)
 			yClass = SuObject.class;
+		else if (yClass == SuTimestamp.class)
+			yClass = SuDate.class;
 
 		if (xClass == yClass && x instanceof Comparable)
 			return ((Comparable<Object>) x).compareTo(y);

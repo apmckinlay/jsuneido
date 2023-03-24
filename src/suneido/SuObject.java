@@ -794,7 +794,7 @@ public class SuObject extends SuValue
 			if (f == "-")
 				rec.addMin();
 			else if (f.equals(ts))
-				rec.add(tsval = TheDbms.dbms().timestamp());
+				rec.add(tsval = TheDbms.dbms().tstamp());
 			else if (null != (x = get(f)))
 				rec.add(x);
 			else

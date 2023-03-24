@@ -45,6 +45,11 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 		time = (hour << 22) | (minute << 16) | (second << 10) | millisecond;
 	}
 
+	public SuDate(SuDate dt) {
+		date = dt.date;
+        time = dt.time;
+	}
+
 	public static SuDate normalized(int year, int month, int day,
 			int hour, int minute, int second, int millisecond) {
 		return normalize(year, month, day, hour, minute, second, millisecond);
@@ -65,8 +70,8 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 			datelen = s.length();
 		else
 			timelen = s.length() - datelen - 1;
-		if (datelen != 8 ||
-				(timelen != 0 && timelen != 4 && timelen != 6 && timelen != 9))
+		if (datelen != 8 || (timelen != 0 && timelen != 4 && timelen != 6 &&
+			timelen != 9 && timelen != 12))
 			return null;
 
 		int year = nsub(s, 0, 4);
@@ -80,7 +85,14 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 
 		if (! SuDate.valid(year, month, day, hour, minute, second, millisecond))
 			return null;
-		return new SuDate(year, month, day, hour, minute, second, millisecond);
+		SuDate d = new SuDate(year, month, day, hour, minute, second, millisecond);
+		if (timelen == 12) {
+			int extra = nsub(s, 18, 21);
+			if (extra <= 0 || extra >= 256)
+                return null;
+			return new SuTimestamp(d, (byte) extra);
+		}
+		return d;
 	}
 
 	private static int nsub(String s, int from, int to) {
@@ -130,10 +142,12 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 			return true;
 		if (other == null)
 			return false;
-		if (! (other instanceof SuDate))
-			return false;
-		SuDate that = (SuDate) other;
-		return this.date == that.date && this.time == that.time;
+		// getClass instead of instanceof to not include SuTimestamp
+		return other.getClass() == SuDate.class && equals(this, (SuDate) other);
+	}
+
+	static boolean equals(SuDate x, SuDate y) {
+		return x.date == y.date && x.time == y.time;
 	}
 
 	@Override
@@ -146,8 +160,20 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 
 	@Override
 	public int compareTo(SuDate that) {
-		int cmp = Ints.compare(this.date, that.date);
-		return cmp != 0 ? cmp : Integer.compare(this.time, that.time);
+		return compare(this, that);
+	}
+
+	static int compare(SuDate x, SuDate y) {
+		int cmp = Integer.compare(x.date, y.date);
+		if (cmp != 0)
+			return cmp;
+		cmp = Integer.compare(x.time, y.time);
+		if (cmp != 0)
+			return cmp;
+		var x_extra = (x instanceof SuTimestamp ts) ? ts.extra : 0;
+		var y_extra = (y instanceof SuTimestamp ts) ? ts.extra : 0;
+		return Integer.compare(
+				Byte.toUnsignedInt(x_extra), Byte.toUnsignedInt(y_extra));
 	}
 
 	@Override
@@ -205,6 +231,8 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 	public static SuDate unpack(ByteBuffer buf) {
 		int date = buf.getInt();
 		int time = buf.getInt();
+		if (buf.remaining() > 0)
+			return new SuTimestamp(date, time, buf.get());
 		return new SuDate(date, time);
 	}
 
@@ -245,6 +273,10 @@ public class SuDate extends SuValue implements Comparable<SuDate> {
 
 	public int millisecond() {
 		return time & 0x3ff;
+	}
+
+	public SuDate withoutMs() {
+		return new SuDate(date, time & ~0x3ff);
 	}
 
 	public SuDate plus(int year, int month, int day,

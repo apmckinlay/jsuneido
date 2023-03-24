@@ -12,6 +12,9 @@ import java.nio.channels.WritableByteChannel;
 import java.util.List;
 
 class DbDump {
+	static final String version = "Suneido dump 3";
+	static final String versionPrev = "Suneido dump 2";
+	static final String versionBase = "Suneido dump";
 
 	static int dumpDatabase(Database db, WritableByteChannel out) {
 		ReadTransaction t = db.readTransaction();
@@ -49,7 +52,7 @@ class DbDump {
 	}
 
 	private static void writeFileHeader(WritableByteChannel out) throws IOException {
-		write(out, "Suneido dump 2\n");
+		write(out, version + "\n");
 	}
 
 	private static int dump1(WritableByteChannel out, ReadTransaction t, String tablename,

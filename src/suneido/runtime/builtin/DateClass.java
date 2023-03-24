@@ -7,6 +7,8 @@ package suneido.runtime.builtin;
 import static suneido.runtime.FunctionSpec.NA;
 import static suneido.util.Util.array;
 
+import java.util.regex.Pattern;
+
 import suneido.SuDate;
 import suneido.SuException;
 import suneido.runtime.Args;
@@ -16,6 +18,8 @@ import suneido.runtime.Ops;
 
 public class DateClass extends BuiltinClass {
 	public static final DateClass singleton = new DateClass();
+	public static final Pattern tsPat = Pattern.compile(
+			"^\\d\\d\\d\\d\\d\\d\\d\\d\\.\\d\\d\\d\\d\\d\\d\\d\\d\\d\\d\\d\\d$");
 
 	private DateClass() {
 		super("Date", DateClass.class, "Dates", dateFS);
@@ -39,12 +43,11 @@ public class DateClass extends BuiltinClass {
 				return args[0];
 			SuDate d;
 			String s = Ops.coerceStr(args[0]);
-			if (args[1] == NA) {
-				if (s.startsWith("#"))
-					d = SuDate.fromLiteral(s);
-				else
-					d = SuDate.parse(s);
-			} else
+			if (s.startsWith("#") || tsPat.matcher(s).matches())
+				d = SuDate.fromLiteral(s);
+			else if (args[1] == NA)
+				d = SuDate.parse(s);
+			else
 				d = SuDate.parse(s, Ops.toStr(args[1]));
 			return d == null ? false : d;
 		} else if (hasFields(args)) {
