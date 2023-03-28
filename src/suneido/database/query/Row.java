@@ -129,10 +129,9 @@ public class Row {
 		Which w = find(hdr, col);
 		if (w != null)
 			return getraw(w);
-		if (hdr.hasRule(col)) {
-			return Pack.pack(surec(hdr).get(col)); // handle rules
-		}
-		return Record.MIN_FIELD;
+
+		// else assume rule
+		return Pack.pack(surec(hdr).get(col));
 	}
 
 	public int address() {
