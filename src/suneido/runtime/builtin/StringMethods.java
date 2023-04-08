@@ -228,11 +228,6 @@ public class StringMethods extends BuiltinMethods {
 		return (toStr(self)).contains(toStr(a));
 	}
 
-	/** null method on jSuneido, implemented on cSuneido */
-	public static Object Instantiate(Object self) {
-		return self;
-	}
-
 	public static Object Iter(Object self) {
 		return new Iterate((CharSequence) self);
 	}
