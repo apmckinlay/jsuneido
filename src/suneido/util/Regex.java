@@ -281,6 +281,7 @@ public class Regex {
 		int leftCount = 0;
 		boolean inChars = false;
 		boolean inCharsIgnoringCase = false;
+		boolean multiline = true;  //TEMP for backward compatibility
 
 		Compiler(String src) {
 			this.src = src;
@@ -322,23 +323,27 @@ public class Regex {
 		}
 
 		void element() {
-			if (match("^"))
+			if (match("\\A") || (!multiline && match("^")))
+				emit(startOfString);
+			else if (match("\\Z") || (!multiline && match("$")))
+				emit(endOfString);
+			else if (match("^"))
 				emit(startOfLine);
 			else if (match("$"))
 				emit(endOfLine);
-			else if (match("\\A"))
-				emit(startOfString);
-			else if (match("\\Z"))
-				emit(endOfString);
 			else if (match("\\<"))
 				emit(startOfWord);
 			else if (match("\\>"))
 				emit(endOfWord);
-			else if (match("(?i)")) {
+			else if (match("(?i)"))
 				ignoringCase = true;
-			} else if (match("(?-i)")) {
+			else if (match("(?-i)"))
 				ignoringCase = false;
-			} else if (match("(?q)"))
+			else if (match("(?m)"))
+				multiline = true;
+			else if (match("(?-m)"))
+				multiline = false;
+			else if (match("(?q)"))
 				quoted();
 			else if (match("(?-q)"))
 				;
@@ -346,11 +351,11 @@ public class Regex {
 				int start = pat.size();
 				simple();
 				int len = pat.size() - start;
-				if (match("??")) {
+				if (match("??"))
 					insert(start, new Branch(len + 1, 1));
-				} else if (match("?")) {
+				else if (match("?"))
 					insert(start, new Branch(1, len + 1));
-				} else if (match("+?"))
+				else if (match("+?"))
 					emit(new Branch(1, -len));
 				else if (match("+"))
 					emit(new Branch(-len, 1));
