@@ -7,9 +7,16 @@ package suneido.runtime.builtin;
 public class OSName {
 
 	public static String OSName() {
-		return System.getProperty("os.name") +
-				(System.getProperty("os.arch").contains("64") ? "" : " 32bit");
-		// NOTE: os.arch will not have 64 if running 32 bit JVM
+		var os = System.getProperty("os.name");
+		os = os.toLowerCase();
+		if (os.contains("windows"))
+			return "windows";
+		else if (os.contains("linux"))
+			return "linux";
+		else if (os.contains("mac"))
+			return "macos";
+		else
+			throw new RuntimeException("unknown OS: " + os);
 	}
 
 }
