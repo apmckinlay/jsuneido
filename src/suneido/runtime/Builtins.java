@@ -80,7 +80,6 @@ public class Builtins {
 			.put("Object", new ObjectClass())
 			.put("Object?", function(ObjectQ.class))
 			.put("OSName", function(OSName.class))
-			.put("OSVersion", function(OSVersion.class))
 			.put("Pack", function(suneido.runtime.builtin.Pack.class))
 			.put("PrintStdout", function(PrintStdout.class))
 			.put("Query1", new Query1())
