@@ -30,7 +30,8 @@ public class SuThread extends BuiltinClass {
 		throw new SuException("can't create instances of Thread");
 	}
 
-	private static final FunctionSpec callableFS = new FunctionSpec("block");
+	private static final FunctionSpec callableFS =
+			ArgsArraySpec.from("block, name = false");
 
 	@Override
 	public Object call(Object... args) {
@@ -38,7 +39,10 @@ public class SuThread extends BuiltinClass {
 		Thread thread = new Thread(Suneido.threadGroup,
 				new Callable(args[0], SuThread.subSuneido.get()));
 		thread.setDaemon(true); // so it won't stop Suneido exiting
-		thread.setName("Thread-" + count.getAndIncrement());
+		String name = "Thread-" + count.getAndIncrement();
+		if (args[1] != Boolean.FALSE)
+			name += " " + args[1];
+		thread.setName(name);
 		thread.start();
 		return null;
 	}
