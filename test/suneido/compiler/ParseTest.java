@@ -124,6 +124,8 @@ public class ParseTest {
 			"(RETURN (BLOCK (LIST (IDENTIFIER=a null) (IDENTIFIER=b null)) (LIST (IDENTIFIER=x)) null))");
 		code("return {|@a| x }",
 			"(RETURN (BLOCK (LIST (IDENTIFIER=@a null)) (LIST (IDENTIFIER=x)) null))");
+		code("return throw fn",
+			"(RETURN (IDENTIFIER=fn))");
 		code("b = { x }",
 			"(EQ (IDENTIFIER=b) (BLOCK (LIST) (LIST (IDENTIFIER=x)) null))");
 		code("f(a) { x }",

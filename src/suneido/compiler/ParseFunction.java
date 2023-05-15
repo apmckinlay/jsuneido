@@ -269,6 +269,8 @@ public class ParseFunction<T, G extends Generator<T>> extends Parse<T, G> {
 	private T returnStatement(Object context) {
 		int lineNumber = lexer.getLineNumber();
 		matchKeepNewline(RETURN);
+		if (lexer.getKeyword() == THROW)
+			matchKeepNewline(); // return throw not implemented, ignore
 		T expr = endOfStatement() ? null : expressionStatement();
 		return generator.returnStatement(expr, context, lineNumber);
 		}
