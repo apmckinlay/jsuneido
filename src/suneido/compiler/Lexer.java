@@ -260,42 +260,46 @@ public class Lexer implements Doesc.Src {
 			++si;
 	}
 
+	// see also StringMethods NumberQ
 	private Token number() {
 		--si;
-		if (hexNumber())
-			return value(NUMBER);
-		matchWhileDigit();
-		if (matchIf('.'))
-			matchWhileDigit();
-		exponent();
-		if (source.charAt(si - 1) == '.' && nonWhiteRemaining())
-			--si; // don't absorb trailing period
-		return value(NUMBER);
-	}
-
-	private boolean nonWhiteRemaining() {
-		for (int i = si; i < source.length(); ++i)
-			if (! Character.isWhitespace(source.charAt(i)))
-				return true;
-		return false;
+		if (!hexNumber()) {
+			matchWhileDigitOrUnderscore(10);
+			if (matchIf('.'))
+				matchWhileDigitOrUnderscore(10);
+			exponent();
+			if (source.charAt(si - 1) == '.' && nonWhiteRemaining())
+				--si; // don't absorb trailing period
+		}
+		value = srcsub(prev, si);
+		valueIsSubstr = true;
+		if (value.contains("_")) {
+			value = value.replaceAll("_", "");
+			valueIsSubstr = false;
+		}
+		return NUMBER;
 	}
 
 	private boolean hexNumber() {
 		if (matchIf('0') && (matchIf('x') || matchIf('X'))) {
-			while (-1 != Character.digit(charAt(si), 16))
-				++si;
-			// NOTE: this accepts "0x"
-			return true;
+			if (matchWhileDigitOrUnderscore(16))
+				return true;
+			--si; // don't absorb 'x'
 		}
 		return false;
 	}
 
-	private boolean matchWhileDigit() {
+	private boolean matchWhileDigitOrUnderscore(int radix) {
 		int start = si;
-		while (si < source.length() && Character.isDigit(source.charAt(si)))
+		while (si < source.length() &&
+			isDigitOrUnderscore(source.charAt(si), radix))
 			++si;
 		return si > start;
 	}
+
+	private static boolean isDigitOrUnderscore(char c, int radix) {
+		return -1 != Character.digit(c, radix) || c == '_';
+    }
 
 	private void exponent() {
 		int save = si;
@@ -303,8 +307,15 @@ public class Lexer implements Doesc.Src {
 			return;
 		if (! matchIf('+'))
 			matchIf('-');
-		if (! matchWhileDigit())
+		if (! matchWhileDigitOrUnderscore(10))
 			si = save;
+	}
+
+	private boolean nonWhiteRemaining() {
+		for (int i = si; i < source.length(); ++i)
+			if (! Character.isWhitespace(source.charAt(i)))
+				return true;
+		return false;
 	}
 
 	private Token whitespace(char c) {

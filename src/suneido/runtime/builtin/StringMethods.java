@@ -21,6 +21,8 @@ import com.google.common.base.Strings;
 import suneido.*;
 import suneido.compiler.Compiler;
 import suneido.compiler.Doesc;
+import suneido.compiler.Lexer;
+import suneido.compiler.Token;
 import suneido.runtime.BuiltinMethods;
 import suneido.runtime.Ops;
 import suneido.runtime.Params;
@@ -345,31 +347,12 @@ public class StringMethods extends BuiltinMethods {
 	}
 
 	public static Object NumberQ(Object self) {
-		String s = toStr(self);
-		int i = 0;
-		char c = sget(s, i);
-		if (c == '+' || c == '-')
-			c = sget(s, ++i);
-		boolean intdigits = Character.isDigit(c);
-		while (Character.isDigit(c))
-			c = sget(s, ++i);
-		if (c == '.')
-			c = sget(s, ++i);
-		boolean fracdigits = Character.isDigit(c);
-		while (Character.isDigit(c))
-			c = sget(s, ++i);
-		if (!intdigits && !fracdigits)
-			return Boolean.FALSE;
-		if (c == 'e' || c == 'E') {
-			c = sget(s, ++i);
-			if (c == '-' || c == '+')
-				c = sget(s, ++i);
-			if (! Character.isDigit(c))
-				return false;
-			while (Character.isDigit(c))
-				c = sget(s, ++i);
-		}
-		return i == s.length();
+		var lexer = new Lexer(toStr(self));
+		var tok1 = lexer.nextAll();
+		if (tok1 == Token.ADD || tok1 == Token.SUB)
+			tok1 = lexer.nextAll();
+		var tok2 = lexer.nextAll();
+		return tok1 == Token.NUMBER && tok2 == Token.EOF;
 	}
 
 	public static Object NumericQ(Object self) {
@@ -380,10 +363,6 @@ public class StringMethods extends BuiltinMethods {
 			if (!Character.isDigit(s.charAt(i)))
 				return Boolean.FALSE;
 		return Boolean.TRUE;
-	}
-
-	private static char sget(String s, int i) {
-		return i < s.length() ? s.charAt(i) : 0;
 	}
 
 	// for debugging
