@@ -35,7 +35,8 @@ public class Builtins {
 			.put("Cmp", function(Cmp.class))
 			.put("Construct", function(Construct.class))
 			.put("CopyFile", function(CopyFile.class))
-			.put("CreateDirectory", function(CreateDirectory.class))
+			.put("CreateDir", function(CreateDir.class))
+			.put("CreateDirectory", function(CreateDir.class)) //TEMP
 			.put("Cursor", SuCursor.clazz)
 			.put("Database", Database.singleton)
 			.put("Date", DateClass.singleton)

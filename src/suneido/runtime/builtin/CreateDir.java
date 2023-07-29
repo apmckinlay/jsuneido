@@ -9,10 +9,10 @@ import java.io.File;
 import suneido.runtime.Ops;
 import suneido.runtime.Params;
 
-public class CreateDirectory {
+public class CreateDir {
 
 	@Params("string")
-	public static Object CreateDirectory(Object a) {
+	public static Object CreateDir(Object a) {
 		String path = Ops.toStr(a);
 		return new File(path).mkdir();
 	}
