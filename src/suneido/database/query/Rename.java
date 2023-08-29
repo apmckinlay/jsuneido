@@ -4,9 +4,6 @@
 
 package suneido.database.query;
 
-import static java.util.Collections.disjoint;
-import static suneido.util.Util.difference;
-import static suneido.util.Util.intersect;
 import static suneido.util.Util.nil;
 
 import java.util.ArrayList;
@@ -26,15 +23,24 @@ public class Rename extends Query1 {
 		super(source);
 		this.from = from;
 		this.to = to;
-		List<String> src = source.columns();
-		if (!src.containsAll(from))
-			throw new SuException("rename: nonexistent column(s): "
-					+ difference(from, src));
-		if (!disjoint(src, to))
-			throw new SuException("rename: column(s) already exist: "
-					+ intersect(src, to));
+		List<String> srcCols = source.columns();
+		checkRename(srcCols, from, to);
+		renameDependencies(srcCols);
+	}
 
-		renameDependencies(src);
+	private static void checkRename(List<String> srcCols,
+			List<String> from, List<String> to) {
+		var cols = new ArrayList<>(srcCols);
+		for (int i = 0; i < from.size(); ++i) {
+			var f = from.get(i);
+			var j = cols.indexOf(f);
+			if (j == -1)
+				throw new SuException("rename: nonexistent column: " + f);
+			var t = to.get(i);
+			if (cols.contains(t))
+				throw new SuException("rename: column already exists: " + t);
+			cols.set(j,  t);
+		}
 	}
 
 	private void renameDependencies(List<String> src) {
@@ -70,17 +76,12 @@ public class Rename extends Query1 {
 		// combine Renames
 		if (source instanceof Rename) {
 			Rename r = (Rename) source;
-			List<String> from2 = new ArrayList<>();
-			List<String> to2 = new ArrayList<>();
-			for (int i = 0; i < from.size(); ++i)
-				if (!r.to.contains(from.get(i))) {
-					from2.add(from.get(i));
-					to2.add(to.get(i));
-				}
-			to = new ArrayList<>(rename_fields(r.to, from, to));
-			to.addAll(to2);
-			from = new ArrayList<>(r.from);
-			from.addAll(from2);
+			var from2 = new ArrayList<>(r.from);
+			from2.addAll(from);
+			from = from2;
+			var to2 = new ArrayList<>(r.to);
+			to2.addAll(to);
+			to = to2;
 			source = r.source;
 			return transform();
 		}
@@ -88,65 +89,72 @@ public class Rename extends Query1 {
 		return this;
 	}
 
-	private static List<String> rename_fields(List<String> f,
-			List<String> from, List<String> to) {
+	private List<String> renameFwd(List<String> f) {
 		List<String> new_fields = new ArrayList<>(f);
-		for (int i = 0; i < f.size(); ++i) {
-			int j = from.indexOf(f.get(i));
+		for (int i = 0; i < from.size(); ++i) {
+			int j = new_fields.indexOf(from.get(i));
 			if (j != -1)
-				new_fields.set(i, to.get(j));
+				new_fields.set(j, to.get(i));
 		}
 		return new_fields;
 	}
 
-	private static Set<String> rename_fields(Set<String> f,
-			List<String> from, List<String> to) {
-		ImmutableSet.Builder<String> new_fields = ImmutableSet.builder();
-		for (String s : f) {
-			int j = from.indexOf(s);
-			new_fields.add(j == -1 ? s : to.get(j));
+	private List<String> renameRev(List<String> f) {
+		List<String> new_fields = new ArrayList<>(f);
+		for (int i = to.size() - 1; i >= 0; --i) {
+			int j = new_fields.indexOf(to.get(i));
+			if (j != -1)
+				new_fields.set(j, from.get(i));
 		}
-		return new_fields.build();
+		return new_fields;
+	}
+
+	private Set<String> renameSetRev(Set<String> f) {
+		var fields = new ArrayList<>(f);
+		return ImmutableSet.copyOf(renameRev(fields));
 	}
 
 	@Override
 	double optimize2(List<String> index, Set<String> needs,
 			Set<String> firstneeds, boolean is_cursor, boolean freeze) {
 		// NOTE: optimize1 to bypass tempindex
-		return source.optimize1(rename_fields(index, to, from), rename_fields(
-				needs, to, from), rename_fields(firstneeds, to, from),
-				is_cursor, freeze);
+		return source.optimize1(renameRev(index), renameSetRev(needs),
+				renameSetRev(firstneeds), is_cursor, freeze);
 	}
 
 	@Override
 	List<String> columns() {
-		return rename_fields(source.columns(), from, to);
+		return renameFwd(source.columns());
 	}
 
 	@Override
 	List<List<String>> indexes() {
-		return rename_indexes(source.indexes(), from, to);
+		return renameIndexes(source.indexes());
 	}
-	private static List<List<String>> rename_indexes(List<List<String>> i,
-			List<String> from, List<String> to) {
+	private List<List<String>> renameIndexes(List<List<String>> i) {
 		List<List<String>> new_idxs = new ArrayList<>(i.size());
 		for (List<String> j : i)
-			new_idxs.add(rename_fields(j, from, to));
+			new_idxs.add(renameFwd(j));
 		return new_idxs;
 	}
 
 	@Override
 	public List<List<String>> keys() {
-		return rename_indexes(source.keys(), from, to);
+		return renameIndexes(source.keys());
 	}
 
 	@Override
 	public List<Fixed> fixed() {
-		var fixed = source.fixed();
-		List<Fixed> result = new ArrayList<>(fixed.size());
-		for (Fixed f : fixed) {
-			int j = from.indexOf(f.field);
-			result.add(new Fixed(j == -1 ? f.field : to.get(j), f.values));
+		var result = new ArrayList<>(source.fixed());
+		for (int i = 0; i < from.size(); ++i) {
+			var fld = from.get(i);
+			for (int j = 0; j < result.size(); ++j) {
+				var f = result.get(j);
+				if (f.field.equals(fld)) {
+					result.set(j, new Fixed(to.get(i), f.values));
+					break;
+				}
+			}
 		}
 		return result;
 	}
@@ -154,12 +162,15 @@ public class Rename extends Query1 {
 	// iteration
 	@Override
 	public Header header() {
-		return source.header().rename(from, to);
-	}
+		var hdr = source.header();
+		var flds = renameIndexes(hdr.flds);
+		var cols = renameFwd(hdr.cols);
+		return new Header(flds, cols);
+		}
 
 	@Override
 	void select(List<String> index, Record f, Record t) {
-		source.select(rename_fields(index, to, from), f, t);
+		source.select(renameRev(index), f, t);
 	}
 
 	@Override

@@ -28,13 +28,6 @@ public class HeaderTest {
 		assertEquals(asList("a", "b", "c", "x", "y", "z", "Me", "No"),
 				hdr.schema());
 
-		hdr = hdr.rename(asList("x", "b"), asList("xx", "bb"));
-		assertEquals(asList("a", "bb", "me", "c", "xx", "no", "y", "z"), hdr.cols);
-		flds = asList(asList("a"), asList("a", "bb", "c"),
-				asList("xx"), asList("xx", "y", "z"));
-		assertEquals(flds, hdr.flds);
-
-
 		hdr = hdr.project(asList("c", "y", "me", "a"));
 		assertEquals(asList("a", "me", "c", "y"), hdr.cols);
 		flds = asList(asList("a"), asList("a", "-", "c"),

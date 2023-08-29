@@ -48,31 +48,6 @@ public class Header {
 		return new Header(newhdr, newcols);
 	}
 
-	public Header rename(List<String> from, List<String> to) {
-		int i;
-		List<List<String>> newhdr = new ArrayList<>();
-		for (List<String> f : flds)
-			if (intersect(from, f).isEmpty())
-				newhdr.add(f);
-			else
-				{
-				List<String> newflds = new ArrayList<>();
-				for (String g : f)
-					if (-1 == (i = from.indexOf(g)))
-						newflds.add(g);
-					else
-						newflds.add(to.get(i));
-				newhdr.add(newflds);
-				}
-		List<String> newcols = new ArrayList<>();
-		for (String c : cols)
-			if (-1 == (i = from.indexOf(c)))
-				newcols.add(c);
-			else
-				newcols.add(to.get(i));
-		return new Header(newhdr, newcols);
-	}
-
 	public boolean equal(Row r1, Row r2) {
 		return Row.equal(this, r1, this, r2, columns());
 	}

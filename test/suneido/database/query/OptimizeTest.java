@@ -108,7 +108,7 @@ public class OptimizeTest extends TestBase {
 			"customer^(id) RENAME city to location");
 
 		test1("customer rename city to location rename location to loc",
-			"customer^(id) RENAME city to loc");
+			"customer^(id) RENAME city to location, location to loc");
 
 		test1("customer rename id to i rename name to n rename city to c",
 			"customer^(id) RENAME id to i, name to n, city to c");
