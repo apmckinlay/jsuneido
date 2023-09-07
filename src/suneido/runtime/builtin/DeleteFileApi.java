@@ -13,10 +13,12 @@ import suneido.runtime.Params;
 public class DeleteFileApi {
 
 	@Params("filename")
-	public static Boolean DeleteFileApi(Object filename) {
+	public static Object DeleteFileApi(Object filename) {
 		File file = new File(toStr(filename));
+		if (!file.exists())
+			return "DeleteFile " + filename + ": does not exist";
 		if (!file.isFile())
-			return false;
+			return "DeleteFile " + filename + ": not a file";
 		return file.delete();
 	}
 

@@ -14,15 +14,17 @@ import suneido.runtime.Params;
 public class DeleteDir {
 
 	@Params("string")
-	public static Boolean DeleteDir(Object d) {
+	public static Object DeleteDir(Object d) {
 		String path = Ops.toStr(d);
 		File dir = new File(path);
+		if (!dir.exists())
+			return "DeleteDir " + path + ": does not exist";
 		if (!dir.isDirectory())
-			return false;
+			return "DeleteDir " + path + ": not a directory";
 		try {
 			deleteRecursively(dir);
 		} catch (IOException e) {
-			throw new SuException("DeleteDir failed", e);
+			throw new SuException("DeleteDir " + path + ": " + e);
 		}
 		return true;
 	}
