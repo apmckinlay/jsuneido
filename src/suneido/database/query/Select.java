@@ -161,6 +161,8 @@ public class Select extends Query1 {
 		// move selects before renames
 		else if (source instanceof Rename) {
 			Rename r = (Rename) source;
+			// WARNING expr.rename won't handle sequential renames
+			// it should call renameRev
 			Expr new_expr = expr.rename(r.to, r.from);
 			source = r.source;
 			r.source = (new_expr == expr ? this : new Select(tran, source, new_expr));
